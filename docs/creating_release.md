@@ -16,7 +16,7 @@ Testing locally (non-automated)
 
 - We assume you have a copy of this repository in your home folder.
 - In a Django project that hasn't been deployed or configured for deployment, do the following:
-  - $ python -m pip install ~/projects/django-simple-deploy/dist/django-simple-deploy-0.1.0.tar.gz
+  - $ python -m pip install -e ~/projects/django-simple-deploy
   - Add `simple_deploy` to `INSTALLED_APPS`
   - $ heroku create
   - $ python manage.py simple_deploy
