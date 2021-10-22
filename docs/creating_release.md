@@ -1,0 +1,28 @@
+Creating a Release
+===
+
+I'm not new to Python or Django, but I am new to creating and maintaining a package. So, this documentation is as much for me as a new package maintainer as it is for anyone else. Also, I know that Python packaging is often criticized as confusing because many different approaches have been tried over the years. I want to be really clear about the process used for creating and maintaining this package.
+
+
+Building a package
+---
+
+- Use [build](https://pypa-build.readthedocs.io/en/stable/index.html) instead of [invoking setup.py directly](https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html).
+- In root directory of this project, run `python -m build`.
+
+
+Testing locally (non-automated)
+---
+
+- We assume you have a copy of this repository in your home folder.
+- In a Django project that hasn't been deployed or configured for deployment, do the following:
+  - $ python -m pip install ~/projects/django-simple-deploy/dist/django-simple-deploy-0.1.0.tar.gz
+  - Add `simple_deploy` to `INSTALLED_APPS`
+  - $ heroku create
+  - $ python manage.py simple_deploy
+  - $ git add .
+  - $ git commit -am "Configured for deployment."
+  - $ git push heroku main
+  - $ heroku run python manage.py migrate
+  - $ heroku open
+

@@ -1,0 +1,9 @@
+.DS_Store
+
+dsd_env/
+
+*.pyc
+__pycache__/
+
+dist/
+*.egg-info
