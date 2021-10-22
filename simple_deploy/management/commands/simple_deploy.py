@@ -18,6 +18,7 @@ class Command(BaseCommand):
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._inspect_project()
+        self._add_simple_deploy_req()
         self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
@@ -109,6 +110,15 @@ class Command(BaseCommand):
             if self.found_heroku_settings:
                 self.current_heroku_settings_lines.append(line)
         # print(self.current_heroku_settings_lines)
+
+    def _add_simple_deploy_req(self):
+        """Add this project to requirements.txt."""
+        # Since the simple_deploy app is in INCLUDED_APPS, it needs to be in
+        #   requirements.txt. If it's not, Heroku will reject the push.
+        self.stdout.write("\n  Looking for django-simple-deploy in requirements...")
+
+        if self.using_req_txt:
+            self._add_req_txt_pkg('django-simple-deploy')
 
 
     def _generate_procfile(self):
