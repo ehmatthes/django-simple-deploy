@@ -118,8 +118,9 @@ class Command(BaseCommand):
         self.stdout.write("\n  Looking for django-simple-deploy in requirements...")
 
         if self.using_req_txt:
-            self._add_req_txt_pkg('django-simple-deploy')
-
+            # DEV: This is the correct code once this project is on PyPI.
+            # self._add_req_txt_pkg('django-simple-deploy')
+            self._add_req_txt_pkg('git+git://github.com/ehmatthes/django-simple-deploy')
 
     def _generate_procfile(self):
         """Create Procfile, if none present."""
