@@ -110,6 +110,9 @@ pip install requests
 cd "$script_dir"
 python integration_tests/test_deployed_app_functionality.py "$app_url"
 
+# Clarify which branch was tested.
+echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+
 # Check if user wants to destroy temp files.
 echo ""
 while true; do

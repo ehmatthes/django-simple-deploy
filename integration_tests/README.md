@@ -10,6 +10,9 @@ If you want to run these tests, you'll need a Heroku account. The test will crea
 Running the integration tests
 ---
 
-- Run the test file:
-  - `$ cd integration_tests`
-  - `$ ./autoconfigure_deploy_test.sh`
+Run the test file:
+- `$ cd integration_tests`
+- `$ ./autoconfigure_deploy_test.sh`
+
+I believe this also works from the root folder:
+- `$ ./integration_tests/autoconfigure_deploy_test.sh`
