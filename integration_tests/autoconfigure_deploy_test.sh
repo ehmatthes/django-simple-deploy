@@ -1,5 +1,10 @@
 # Test the simple_deploy process for deployment on Heroku.
 
+# This tests the latest push on the current branch.
+#   It does NOT test the local version of the code.
+#   This is because Heroku needs to install the code for the full integration
+#   test to work, and Heroku can't install code directly from your machine.
+
 # Overall approach:
 # - Create a temporary working location, outside of any existing git repo.
 # - Clone the test instance of the LL project.
@@ -12,49 +17,66 @@
 # - Destroy temp project.
 
 # Make sure user is okay with building a temp environment in $HOME.
-echo ""
-echo "This test will build a temporary directory in your home folder."
-while true; do
-    read -p "Proceed? " yn
-    case $yn in 
-        [Yy]* ) echo "Okay, proceeding with tests..."; break;;
-        [Nn]* ) echo "Okay, not running tests."; exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+# echo ""
+# echo "This test will build a temporary directory in your home folder."
+# while true; do
+#     read -p "Proceed? " yn
+#     case $yn in 
+#         [Yy]* ) echo "\nOkay, proceeding with tests..."; break;;
+#         [Nn]* ) echo "\nOkay, not running tests."; exit;;
+#         * ) echo "Please answer yes or no.";;
+#     esac
+# done
+
+# Get current branch and remote Git address, so we know which version 
+#   of the app to test against.
+echo "\nExamining current branch..."
+current_branch=$(git status | head -n 1)
+current_branch=${current_branch:10}
+echo "  Current branch: $current_branch"
+
+remote_address=$(git remote get-url origin)
+install_address="git+$remote_address@$current_branch"
+echo "  Installing from: $install_address"
 
 # Make tmp location and clone LL test repo.
-echo "Building temp environment and cloning LL project:"
+echo "\nBuilding temp environment and cloning LL project:"
 
 script_dir=$(pwd)
 tmp_dir="$HOME/tmp_django_simple_deploy_test"
 mkdir "$tmp_dir"
 echo "  Made temporary directory: $tmp_dir"
 
-echo "Cloning LL project into tmp directory..."
+echo "  Cloning LL project into tmp directory..."
 git clone https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
 
 # Need a Python environment for configuring project.
 # This environment needs to be deactivated before running the Python testing
 #   script below.
 # 
-echo "Building Python environment..."
+echo "  Building Python environment..."
 cd "$tmp_dir"
 python3 -m venv ll_env
 source ll_env/bin/activate
+pip install --upgrade pip
 pip install -r requirements.txt
 
-echo "Initializing Git repostitory..."
+echo "  Initializing Git repostitory..."
 git init
 git add .
 git commit -am "Initial commit."
 
 # Now install django-simple-deploy, just as a user would.
-echo "Installing django-simple-deploy..."
-pip install git+git://github.com/ehmatthes/django-simple-deploy
+#   Except, we'll install the version from the current branch.
+echo "  Installing django-simple-deploy..."
+pip install $install_address
 
-echo "Adding simple_deploy to INSTALLED_APPS..."
+echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
+
+
+echo "Modifying simple_deploy.py to require the current branch version on Heroku..."
+sed -i "" "s|git+git://github.com/ehmatthes/django-simple-deploy|$install_address|" ll_env/lib/python3.10/site-packages/simple_deploy/management/commands/simple_deploy.py
 
 echo "Running heroku create..."
 heroku create
@@ -86,7 +108,7 @@ echo "  Testing functionality of deployed app..."
 #   This uses the same venv that was built for deploying the project.
 pip install requests
 cd "$script_dir"
-python test_deployed_app_functionality.py "$app_url"
+python integration_tests/test_deployed_app_functionality.py "$app_url"
 
 # Check if user wants to destroy temp files.
 echo ""
