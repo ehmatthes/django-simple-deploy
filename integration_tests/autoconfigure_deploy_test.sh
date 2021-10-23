@@ -17,16 +17,16 @@
 # - Destroy temp project.
 
 # Make sure user is okay with building a temp environment in $HOME.
-# echo ""
-# echo "This test will build a temporary directory in your home folder."
-# while true; do
-#     read -p "Proceed? " yn
-#     case $yn in 
-#         [Yy]* ) echo "\nOkay, proceeding with tests..."; break;;
-#         [Nn]* ) echo "\nOkay, not running tests."; exit;;
-#         * ) echo "Please answer yes or no.";;
-#     esac
-# done
+echo ""
+echo "This test will build a temporary directory in your home folder."
+while true; do
+    read -p "Proceed? " yn
+    case $yn in 
+        [Yy]* ) echo "\nOkay, proceeding with tests..."; break;;
+        [Nn]* ) echo "\nOkay, not running tests."; exit;;
+        * ) echo "Please answer yes or no.";;
+    esac
+done
 
 # Get current branch and remote Git address, so we know which version 
 #   of the app to test against.
