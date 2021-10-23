@@ -10,7 +10,6 @@ If you want to run these tests, you'll need a Heroku account. The test will crea
 Running the integration tests
 ---
 
-- Make the test file executable:
-  - `$ chmod u+x integration_tests/autoconfigure_deploy_test.sh`
 - Run the test file:
-  - `$ ./integration_tests/autoconfigure_deploy_test.sh`
+  - `$ cd integration_tests`
+  - `$ ./autoconfigure_deploy_test.sh`
