@@ -82,8 +82,11 @@ echo "  Heroku URL: $app_url"
 # Call Python script for functional testing of app.
 #   May want to prompt for this.
 echo "  Testing functionality of deployed app..."
+# Need requests to run functionality tests.
+#   This uses the same venv that was built for deploying the project.
+pip install requests
 cd "$script_dir"
-python3 test_deployed_app_functionality.py "$app_url"
+python test_deployed_app_functionality.py "$app_url"
 
 # Check if user wants to destroy temp files.
 echo ""
