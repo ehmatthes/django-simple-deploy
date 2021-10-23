@@ -119,6 +119,8 @@ class Command(BaseCommand):
 
         if self.using_req_txt:
             # DEV: This is the correct code once this project is on PyPI.
+            #   Also, once this is updated, integration test will need to be updated.
+            #   (Substitution for dev branch install address.)
             # self._add_req_txt_pkg('django-simple-deploy')
             self._add_req_txt_pkg('git+git://github.com/ehmatthes/django-simple-deploy')
 
