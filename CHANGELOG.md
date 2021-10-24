@@ -6,9 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
-### 0.1.3
+### 0.1.4
 
 - Unreleased
+
+### 0.1.3
+
+- Makes Heroku install from PyPI instead of the GitHub repo.
 
 ### 0.1.2
 
