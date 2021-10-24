@@ -1,0 +1,5 @@
+build==0.7.0
+packaging==21.0
+pep517==0.12.0
+pyparsing==2.4.7
+tomli==1.2.1
