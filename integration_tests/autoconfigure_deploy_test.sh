@@ -76,7 +76,7 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" lea
 
 
 echo "Modifying simple_deploy.py to require the current branch version on Heroku..."
-sed -i "" "s|git+git://github.com/ehmatthes/django-simple-deploy|$install_address|" ll_env/lib/python3.10/site-packages/simple_deploy/management/commands/simple_deploy.py
+sed -i "" "s|('django-simple-deploy')|$install_address|" ll_env/lib/python3.10/site-packages/simple_deploy/management/commands/simple_deploy.py
 
 echo "Running heroku create..."
 heroku create
