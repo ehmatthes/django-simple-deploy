@@ -86,6 +86,8 @@ echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
 
 # Don't do this if we're installing from PyPI.
+#   DEV: Rather than this, it would probably be better to just modify the
+#        requirements.txt file directly, after running manage.py simple_deploy.
 if [ "$1" != test_pypi_release ]; then
     echo "Modifying simple_deploy.py to require the current branch version on Heroku..."
     sed -i "" "s|('django-simple-deploy')|('$install_address')|" ll_env/lib/python3.10/site-packages/simple_deploy/management/commands/simple_deploy.py
@@ -97,7 +99,10 @@ heroku create
 echo "Running manage.py simple_deploy..."
 python manage.py simple_deploy
 
-echo "Committing changes..."
+echo "\nModified requirements.txt:"
+cat requirements.txt
+
+echo "\n\nCommitting changes..."
 git add .
 git commit -am "Configured for deployment."
 
@@ -140,7 +145,6 @@ while true; do
         * ) echo "Please answer yes or no.";;
     esac
 done
-
 
 # Teardown
 if [ "$tear_down" = true ]; then
