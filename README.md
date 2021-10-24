@@ -67,7 +67,19 @@ The following commands will configure your project for deployment to Heroku. It'
 (venv)$ git commit -am "Configured project for deployment."
 ```
 
-Now your project should be ready for deployment. The remaining commands will push your project to Heroku, set up the database on Heroku, and open your project in a browser:
+Now your project should be ready for deployment. To configure your project, `simple_deploy` does the following:
+
+- Sets an environment variable on the Heroku server called `ON_HEROKU`, that lets the project detect when it's being run on the Heroku server. This allows us to have a section in `settings.py` that only applies in the deployed version of the project.
+- Adds `django-simple-deploy` to `requirements.txt`.
+- Generates a `Procfile`, telling Heroku what process to run. This is the production version of `manage.py runserver`.
+- Adds `gunicorn`, `dj-database-url`, `psycopg2`, and `whitenoise` to `requirements.txt`. These packages help serve the project in production, including managing the production database and serving static files efficiently.
+- Makes sure the `ALLOWED_HOSTS` setting includes the URL that Heroku created for the project.
+- Modifies `settings.py` to use the production database.
+- Configures the project to use `whitenoise` to manage static files such as CSS and JavaScript files.
+
+If you want to see the changes that were made, run `git status` and take a look at the files that were created or modified after running `manage.py simple_deploy`. Also, if you're curious to see the code that generates these changes, you can see the `simple_deploy.py` code [here](https://github.com/ehmatthes/django-simple-deploy/blob/main/simple_deploy/management/commands/simple_deploy.py).
+
+The remaining commands will push your project to Heroku, set up the database on Heroku, and open your project in a browser:
 
 ```
 (venv)$ git push heroku main
