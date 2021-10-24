@@ -5,20 +5,25 @@ This app gives you a management command that configures your project for an init
 
 If you have a relatively simple Django project that runs locally, you can deploy your project in a few short steps. The only change you'll need to make to your project is to add this app to `INSTALLED_APPS`.
 
-Quick start
+Prerequisites
 ---
 
 If you haven't already done so, install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) and make sure you're using [Git](https://git-scm.com) to track your project.
 
 Make sure your project is running in a virtual environment, and you have built a `requirements.txt` file with the command `pip freeze > requirements.txt`. (Other dependency management systems should be supported shortly.)
 
-Then you can deploy your project using the following steps:
+Quick start
+---
+
+If you've met the prerequisites, you can deploy your project using the following steps:
 
 ```
 (venv)$ pip install django-simple-deploy
 ```
 
-Now add `simple_deploy` to `INSTALLED_APPS`. The following commands will deploy your project:
+Now add `simple_deploy` to `INSTALLED_APPS`.
+
+The following commands will deploy your project:
 
 ```
 (venv)$ heroku create
@@ -33,14 +38,14 @@ Now add `simple_deploy` to `INSTALLED_APPS`. The following commands will deploy 
 
 After running this last command, you should see your project open in a browser. :)
 
-Detailed instructions
+Detailed steps
 ---
 
-Since this project only focuses on Heroku at the moment, you'll need to make a [Heroku](https://heroku.com/) account and install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli). Heroku lets you deploy up to five projects for free. Projects that are deployed on a free account "go to sleep" when they're not being used, but there is plenty of uptime to practice the deployment process before you need to pay for hosting.
+Since this project only focuses on Heroku at the moment, you'll need to make a [Heroku](https://heroku.com/) account and install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli). Heroku lets you deploy up to five projects for free. Projects that are deployed on a free account "go to sleep" when they're not being used, but there's plenty of uptime to practice the deployment process before you need to pay for hosting.
 
-Heroku uses Git to manage the deployment process, so you'll need to install and use [Git](https://git-scm.com) for version control if you're not already doing so. It's beyond the scope of these instructions to provide an introduction to Git, but if you're not using version control yet you really should run through a basic tutorial before focusing on deployment. It's also a good idea to commit all of your own changes before starting this deployment process. That way you can easily go back to your non-deployment state if anything goes wrong, and you can also easily see the changes that are made to prepare for deployment.
+Heroku uses Git to manage the deployment process, so you'll need to install and use [Git](https://git-scm.com) for version control if you're not already doing so. It's beyond the scope of these instructions to provide an introduction to Git, but if you're not using version control yet you really should run through a basic tutorial before focusing on deployment. It's also a good idea to commit all of your own changes before starting this deployment process. That way you can easily go back to your non-deployment state if anything goes wrong, and you can also see the specific changes that are made in preparing for deployment.
 
-Each Django project quickly ends up with its own set of specific dependencies. These include a specific version of Django, and any number of other libraries that you end up using in a project. These need to be managed separate from any other Django project you might have on your system, and separate from any other Python project you work on. There are a number of approaches to dependency management. For the moment, this project assumes that you have a `requirements.txt` file that lists your project's depencies. If you're working in a virtual environment, you can generate this file with the command `pip freeze > requirements.txt`. Make sure you re-run this command any time you install a new package to your project.
+Each Django project quickly ends up with its own set of specific dependencies. These include a specific version of Django, and any number of other libraries that you end up using in a project. These dependencies need to be managed separate from any other Django project you might have on your system, and separate from any other Python project you work on. There are a number of approaches to dependency management. For the moment, this project assumes that you have a `requirements.txt` file that lists your project's depencies. If you're working in a virtual environment, you can generate this file with the command `pip freeze > requirements.txt`. Make sure you re-run this command any time you install a new package to your project.
 
 For the deployment process, work in an active virtual environment in your project's root folder. You can install `django-simple-deploy` with Pip:
 
@@ -48,7 +53,7 @@ For the deployment process, work in an active virtual environment in your projec
 (venv)$ pip install django-simple-deploy
 ```
 
-Now you'll need to add the app `simple_deploy` to `INSTALLED_APPS` in `settings.py`. This is a stripped-down app that makes a management command, `python manage.py simple_deploy`, available in your project.
+You'll need to add the app `simple_deploy` to `INSTALLED_APPS` in `settings.py`. This is a stripped-down app that makes the management command `manage.py simple_deploy` available in your project.
 
 Now run:
 
@@ -69,7 +74,7 @@ The following commands will configure your project for deployment to Heroku. It'
 
 Now your project should be ready for deployment. To configure your project, `simple_deploy` does the following:
 
-- Sets an environment variable on the Heroku server called `ON_HEROKU`, that lets the project detect when it's being run on the Heroku server. This allows us to have a section in `settings.py` that only applies in the deployed version of the project.
+- Sets an environment variable on the Heroku server called `ON_HEROKU`, that lets the project detect when it's being run on the Heroku server. This allows us to have a section in `settings.py` that only applies to the deployed version of the project.
 - Adds `django-simple-deploy` to `requirements.txt`.
 - Generates a `Procfile`, telling Heroku what process to run. This is the production version of `manage.py runserver`.
 - Adds `gunicorn`, `dj-database-url`, `psycopg2`, and `whitenoise` to `requirements.txt`. These packages help serve the project in production, including managing the production database and serving static files efficiently.
@@ -87,7 +92,7 @@ The remaining commands will push your project to Heroku, set up the database on 
 (venv)$ heroku open
 ```
 
-Heroku assumes you are pushing your project from a `main` or `master` branch. If you are pushing from any other branch, you'll need to run a command like `git push heroku test_branch:main`. This pushes your test branch to Heroku's main branch. See the section "Deploying from a branch besides main" on Heroku's [Deploying with Git](https://devcenter.heroku.com/articles/git#deploying-code) page.
+Heroku assumes you are pushing your project from a `main` or `master` branch. If you're pushing from any other branch, you'll need to run a command like `git push heroku test_branch:main`. This pushes your test branch to Heroku's main branch. See the section "Deploying from a branch besides main" on Heroku's [Deploying with Git](https://devcenter.heroku.com/articles/git#deploying-code) page.
 
 Ongoing development
 ---
@@ -110,18 +115,9 @@ Contributing
 
 If you want to contribute to this project, feel free to [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues) and share how you'd like to help.
 
+Good luck, and please be mindful
+---
 
+Web apps have been around for a while now, and many people take them for granted because we've seen so many silly projects. But the power of a web app has never been diminished; if you have an idea for a project and you know how to build an app, you can share your idea with the world and see if it goes anywhere.
 
-
-
-
-
-- Install the package `django-simple-deploy`.
-- Add `simple_deploy` to `INSTALLED_APPS`.
-- Run `heroku create`.
-- Run `python manage.py simple_deploy`.
-- Commit the new files and changes that `simple_deploy` makes.
-- Run `git push heroku main`.
-- Run `heroku run python manage.py migrate`.
-
-That's it; your project should now be deployed and running on Heroku.
+Every project that gains traction has an impact on people's lives. Many have unintended consequences, and some of that can not be avoided. If your project is gaining traction, please be mindful of the positive and negative impact it can have on people, and do what's needed to make sure it's a net positive in the world. :)
