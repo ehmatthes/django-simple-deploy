@@ -28,6 +28,13 @@ while true; do
     esac
 done
 
+# Check if we're testing the latest PyPI release.
+#   It should have already been tested from a feature branch, but testing
+#   the actual release is helpful.
+if [ "$1" = test_pypi_release ]; then
+    echo "Testing pypi release..."
+fi
+
 # Get current branch and remote Git address, so we know which version 
 #   of the app to test against.
 echo "\nExamining current branch..."
@@ -35,8 +42,12 @@ current_branch=$(git status | head -n 1)
 current_branch=${current_branch:10}
 echo "  Current branch: $current_branch"
 
-remote_address=$(git remote get-url origin)
-install_address="git+$remote_address@$current_branch"
+if [ "$1" = test_pypi_release ]; then
+    install_address="django-simple-deploy"
+else    
+    remote_address=$(git remote get-url origin)
+    install_address="git+$remote_address@$current_branch"
+fi
 echo "  Installing from: $install_address"
 
 # Make tmp location and clone LL test repo.
@@ -74,9 +85,11 @@ pip install $install_address
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
 
-
-echo "Modifying simple_deploy.py to require the current branch version on Heroku..."
-sed -i "" "s|('django-simple-deploy')|$install_address|" ll_env/lib/python3.10/site-packages/simple_deploy/management/commands/simple_deploy.py
+# Don't do this if we're installing from PyPI.
+if [ "$1" != test_pypi_release ]; then
+    echo "Modifying simple_deploy.py to require the current branch version on Heroku..."
+    sed -i "" "s|('django-simple-deploy')|('$install_address')|" ll_env/lib/python3.10/site-packages/simple_deploy/management/commands/simple_deploy.py
+fi
 
 echo "Running heroku create..."
 heroku create
@@ -103,7 +116,7 @@ echo "  Heroku URL: $app_url"
 
 # Call Python script for functional testing of app.
 #   May want to prompt for this.
-echo "  Testing functionality of deployed app..."
+echo "\n  Testing functionality of deployed app..."
 # Need requests to run functionality tests.
 #   This uses the same venv that was built for deploying the project.
 pip install requests
@@ -111,7 +124,11 @@ cd "$script_dir"
 python integration_tests/test_deployed_app_functionality.py "$app_url"
 
 # Clarify which branch was tested.
-echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+if [ "$1" = test_pypi_release ]; then
+    echo "\n --- Finished testing latest release from PyPI. ---"
+else
+    echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+fi
 
 # Check if user wants to destroy temp files.
 echo ""

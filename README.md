@@ -115,6 +115,8 @@ Contributing
 
 If you want to contribute to this project, feel free to [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues) and share how you'd like to help.
 
+A great way to get started is to clone the project and run the integration tests. See the current [testing documentation](integration_tests/README.md) to get started.
+
 Good luck, and please be mindful
 ---
 
