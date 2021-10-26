@@ -3,7 +3,7 @@
 # This tests the latest push on the current branch.
 #   It does NOT test the local version of the code.
 #   This is because Heroku needs to install the code for the full integration
-#   test to work, and Heroku can't install code directly from your machine.
+#   test to work, and Heroku can't install code directly from a local machine.
 
 # Overall approach:
 # - Create a temporary working location, outside of any existing git repo.
@@ -12,13 +12,24 @@
 # - Follow the deploy steps.
 # - Run automated availability and functionality tests.
 #   - This could be a call to a .py file
-# - Pause to let user test deployed project.
 # - Prompt for whether to destroy deployed app (default yes).
+#   At this time, user can also use the deployed app.
 # - Destroy temp project.
+# - Destroy heroku app.
+
+# Usage
+#
+# Test the latest pushed version of the current branch:
+#   $ ./integration_tests/autoconfigure_deploy_test.sh
+#
+# Test the most recent PyPI release:
+#   $ ./integration_tests/autoconfigure_deploy_test.sh test_pypi_release
 
 # Make sure user is okay with building a temp environment in $HOME.
 echo ""
 echo "This test will build a temporary directory in your home folder."
+echo "  It will also create a heroku app on your account."
+echo "  (By calling 'heroku create', which you'll need to authorize."
 while true; do
     read -p "Proceed? " yn
     case $yn in 
@@ -43,8 +54,10 @@ current_branch=${current_branch:10}
 echo "  Current branch: $current_branch"
 
 if [ "$1" = test_pypi_release ]; then
+    # Install address is just the package name, which will be pulled from PyPI.
     install_address="django-simple-deploy"
-else    
+else
+    # Install address is the git remote address with the current branch name.
     remote_address=$(git remote get-url origin)
     install_address="git+$remote_address@$current_branch"
 fi
@@ -61,10 +74,9 @@ echo "  Made temporary directory: $tmp_dir"
 echo "  Cloning LL project into tmp directory..."
 git clone https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
 
-# Need a Python environment for configuring project.
-# This environment needs to be deactivated before running the Python testing
+# Need a Python environment for configuring the test Django project.
+# This environment might need to be deactivated before running the Python testing
 #   script below.
-# 
 echo "  Building Python environment..."
 cd "$tmp_dir"
 python3 -m venv ll_env
@@ -85,22 +97,26 @@ pip install $install_address
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
 
-# Don't do this if we're installing from PyPI.
-#   DEV: Rather than this, it would probably be better to just modify the
-#        requirements.txt file directly, after running manage.py simple_deploy.
-if [ "$1" != test_pypi_release ]; then
-    echo "Modifying simple_deploy.py to require the current branch version on Heroku..."
-    sed -i "" "s|('django-simple-deploy')|('$install_address')|" ll_env/lib/python3.10/site-packages/simple_deploy/management/commands/simple_deploy.py
-fi
-
 echo "Running heroku create..."
 heroku create
 
 echo "Running manage.py simple_deploy..."
 python manage.py simple_deploy
 
-echo "\nModified requirements.txt:"
+# Heroku needs a copy of requirements.txt with the same django-simple-deploy
+#   we're testing against. Modify django-simple-deploy to match install_address.
+#   This is important to verify, so we'll routinely include it in the test output.
+#   This is not needed if we're testing the latest PyPI release.
+echo "\nOriginal requirements.txt; should see django-simple-deploy:"
 cat requirements.txt
+
+if [ "$1" != test_pypi_release ]; then
+    echo "  Modifying simple_deploy.py to require the current branch version on Heroku..."
+    sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
+    echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
+    cat requirements.txt
+fi
+
 
 echo "\n\nCommitting changes..."
 git add .
@@ -122,6 +138,7 @@ echo "  Heroku URL: $app_url"
 # Call Python script for functional testing of app.
 #   May want to prompt for this.
 echo "\n  Testing functionality of deployed app..."
+
 # Need requests to run functionality tests.
 #   This uses the same venv that was built for deploying the project.
 pip install requests
