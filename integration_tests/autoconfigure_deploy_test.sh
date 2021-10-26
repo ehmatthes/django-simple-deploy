@@ -72,14 +72,22 @@ mkdir "$tmp_dir"
 echo "  Made temporary directory: $tmp_dir"
 
 echo "  Cloning LL project into tmp directory..."
-# Clone the version of the project with unpinned dependencies.
-git clone -b unpinned_dependencies_req_txt https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
+# The cloned repository has several versions of the test project.
+#   We'll focus on the unpinned one for now.
+git clone  https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
 
 # Need a Python environment for configuring the test Django project.
 # This environment might need to be deactivated before running the Python testing
 #   script below.
 echo "  Building Python environment..."
-cd "$tmp_dir"
+
+# cd'ing into the version of the project with unpinned dependencies.
+#   We also get rid of the git repository from cloning, so we can use git on just
+#   the version of the project we're testing.
+cd "$tmp_dir/"
+rm -rf .git/
+
+cd "req_txt_unpinned"
 python3 -m venv ll_env
 source ll_env/bin/activate
 pip install --upgrade pip
@@ -129,7 +137,7 @@ git commit -am "Configured for deployment."
 echo "Pushing to heroku..."
 # DEV: There should probably be a variable to track which branch we're using on the test repository.
 # git push heroku main
-git push heroku unpinned_dependencies_req_txt:main
+git push heroku main
 heroku run python manage.py migrate
 heroku open
 
