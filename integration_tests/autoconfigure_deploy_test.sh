@@ -46,6 +46,12 @@ if [ "$1" = test_pypi_release ]; then
     echo "Testing pypi release..."
 fi
 
+# What dependency management approach are we testing?
+#   'req_txt': requirements.txt with a venv
+#   'pipenv': Pipenv
+#   'poetry': Poetry
+dep_man_approach="req_txt"
+
 # Get current branch and remote Git address, so we know which version 
 #   of the app to test against.
 echo "\nExamining current branch..."
@@ -91,10 +97,11 @@ cd "req_txt_unpinned"
 python3 -m venv ll_env
 source ll_env/bin/activate
 pip install --upgrade pip
-pip install -r requirements.txt
-
-# We may have installed from unpinned dependencies, so pin them now for Heroku.
-pip freeze > requirements.txt
+if [ "$dep_man_approach" = 'req_txt' ]; then
+    pip install -r requirements.txt
+    # We may have installed from unpinned dependencies, so pin them now for Heroku.
+    pip freeze > requirements.txt
+fi
 
 echo "  Initializing Git repostitory..."
 git init
@@ -119,16 +126,18 @@ python manage.py simple_deploy
 #   we're testing against. Modify django-simple-deploy to match install_address.
 #   This is important to verify, so we'll routinely include it in the test output.
 #   This is not needed if we're testing the latest PyPI release.
-echo "\nOriginal requirements.txt; should see django-simple-deploy:"
-cat requirements.txt
-
 if [ "$1" != test_pypi_release ]; then
-    echo "  Modifying simple_deploy.py to require the current branch version on Heroku..."
-    sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
-    echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
-    cat requirements.txt
-fi
+    if [ "$dep_man_approach" = 'req_txt' ]; then
+        echo "\nOriginal requirements.txt; should see django-simple-deploy:"
+        cat requirements.txt
 
+        echo "  Modifying simple_deploy.py to require the current branch version on Heroku..."
+        sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
+
+        echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
+        cat requirements.txt
+    fi
+fi
 
 echo "\n\nCommitting changes..."
 git add .
