@@ -25,11 +25,32 @@
 # Test the most recent PyPI release:
 #   $ ./integration_tests/autoconfigure_deploy_test.sh test_pypi_release
 
+
+# --- Get options for current test run. --
+# t: Target for testing.
+#    current_branch, pypi
+# d: Dependency management approach that's being tested.
+#    req_txt, pipenv, poetry
+#
+# DEV: Not sure if fromatting of this is standard.
+# Usage:
+#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|pipenv|poetry]
+
+target="current_branch"
+dep_man_approach="req_txt"
+while getopts t:d: flag
+do
+    case "${flag}" in
+        t) target=${OPTARG};;
+        d) dep_man_approach=${OPTARG};;
+    esac
+done
+
 # Make sure user is okay with building a temp environment in $HOME.
 echo ""
 echo "This test will build a temporary directory in your home folder."
 echo "  It will also create a heroku app on your account."
-echo "  (By calling 'heroku create', which you'll need to authorize."
+echo "  (By calling 'heroku create', which you'll need to authorize.)"
 while true; do
     read -p "Proceed? " yn
     case $yn in 
@@ -42,15 +63,9 @@ done
 # Check if we're testing the latest PyPI release.
 #   It should have already been tested from a feature branch, but testing
 #   the actual release is helpful.
-if [ "$1" = test_pypi_release ]; then
+if [ "$target" = pypi ]; then
     echo "Testing pypi release..."
 fi
-
-# What dependency management approach are we testing?
-#   'req_txt': requirements.txt with a venv
-#   'pipenv': Pipenv
-#   'poetry': Poetry
-dep_man_approach="req_txt"
 
 # Get current branch and remote Git address, so we know which version 
 #   of the app to test against.
@@ -59,7 +74,7 @@ current_branch=$(git status | head -n 1)
 current_branch=${current_branch:10}
 echo "  Current branch: $current_branch"
 
-if [ "$1" = test_pypi_release ]; then
+if [ "$target" = pypi ]; then
     # Install address is just the package name, which will be pulled from PyPI.
     install_address="django-simple-deploy"
 else
@@ -126,7 +141,7 @@ python manage.py simple_deploy
 #   we're testing against. Modify django-simple-deploy to match install_address.
 #   This is important to verify, so we'll routinely include it in the test output.
 #   This is not needed if we're testing the latest PyPI release.
-if [ "$1" != test_pypi_release ]; then
+if [ "$target" != pypi ]; then
     if [ "$dep_man_approach" = 'req_txt' ]; then
         echo "\nOriginal requirements.txt; should see django-simple-deploy:"
         cat requirements.txt
@@ -169,7 +184,7 @@ cd "$script_dir"
 python integration_tests/test_deployed_app_functionality.py "$app_url"
 
 # Clarify which branch was tested.
-if [ "$1" = test_pypi_release ]; then
+if [ "$target" = pypi ]; then
     echo "\n --- Finished testing latest release from PyPI. ---"
 else
     echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
