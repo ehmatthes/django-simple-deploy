@@ -46,7 +46,7 @@ do
     esac
 done
 
-# Make sure user is okay with building a temp environment in $HOME.
+# --- Make sure user is okay with building a temp environment in $HOME. ---
 echo ""
 echo "This test will build a temporary directory in your home folder."
 echo "  It will also create a heroku app on your account."
@@ -59,13 +59,6 @@ while true; do
         * ) echo "Please answer yes or no.";;
     esac
 done
-
-# Check if we're testing the latest PyPI release.
-#   It should have already been tested from a feature branch, but testing
-#   the actual release is helpful.
-if [ "$target" = pypi ]; then
-    echo "Testing pypi release..."
-fi
 
 # Get current branch and remote Git address, so we know which version 
 #   of the app to test against.
@@ -94,7 +87,7 @@ echo "  Made temporary directory: $tmp_dir"
 
 echo "  Cloning LL project into tmp directory..."
 # The cloned repository has several versions of the test project.
-#   We'll focus on the unpinned one for now.
+#   All testing options work with this same repository.
 git clone  https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
 
 # Need a Python environment for configuring the test Django project.
@@ -108,15 +101,19 @@ echo "  Building Python environment..."
 cd "$tmp_dir/"
 rm -rf .git/
 
-cd "req_txt_unpinned"
-python3 -m venv ll_env
-source ll_env/bin/activate
-pip install --upgrade pip
 if [ "$dep_man_approach" = 'req_txt' ]; then
+    cd "req_txt_unpinned"
+    python3 -m venv ll_env
+    source ll_env/bin/activate
+    pip install --upgrade pip
     pip install -r requirements.txt
     # We may have installed from unpinned dependencies, so pin them now for Heroku.
     pip freeze > requirements.txt
+elif [ "$dep_man_approach" = 'pipenv' ]; then
+    echo "pipenv not tested yet"
+    exit 0
 fi
+
 
 echo "  Initializing Git repostitory..."
 git init
@@ -179,7 +176,12 @@ echo "\n  Testing functionality of deployed app..."
 
 # Need requests to run functionality tests.
 #   This uses the same venv that was built for deploying the project.
-pip install requests
+if [ "$dep_man_approach" = 'req_txt' ]; then
+    pip install requests
+elif [ "$dep_man_approach" = 'pipenv' ]; then
+    echo "pass"
+fi
+
 cd "$script_dir"
 python integration_tests/test_deployed_app_functionality.py "$app_url"
 
