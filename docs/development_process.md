@@ -22,7 +22,14 @@ Developing with Pipenv
 I don't normally use Pipenv, so I need some notes for developing for Pipenv support.  
 
 - I have a test project that uses Pipenv. It's core aspect is to have a Pipfile.
-- It should follow the same process described above:
+- It should follow the same process described above, starting from just a Pipfile, and maybe with a Pipfile.lock:
 ```
-(venv-path)$ pipenv install -e ~/projects/django-simple-deploy/
+$ python3 -m pipenv install
+$ python3 -m pipenv install -e ~/projects/django-simple-deploy/
 ```
+- To activate the virtual environment created by Pipenv, and then you can run ie management commands:
+```
+$ python3 -m pipenv shell
+(venv_path)$ python manage.py check
+```
+- To deactivate the environment, use `exit`; don't use `deactivate`.
