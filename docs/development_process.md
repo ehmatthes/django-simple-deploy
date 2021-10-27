@@ -8,7 +8,7 @@ Quick start
 
 - Make a sample Django project in a location outside this repository.
   - It needs to be managed by Git, and it's much easier to not deal with a repo-in-a-repo, or submodules.
-  - I'm using a copy of the Learning Log project from Python Crash Course, but long term we should make a standard generic blog app specifically for development and testing work on this project.
+  - I'm using a copy of the [Learning Log project](https://github.com/ehmatthes/learning_log_heroku_test) from Python Crash Course, but long term we should make a standard generic blog app specifically for development and testing work on this project.
 - In that project, install django-simple-deploy from your local version of this repository. If this repo is in ~/projects/django-simple-deploy/, that would look like this:
 ```
 (venv)$ pip install -e ~/projects/django-simple-deploy/
