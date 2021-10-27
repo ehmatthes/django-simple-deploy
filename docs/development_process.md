@@ -13,7 +13,7 @@ Quick start
 ```
 (venv)$ pip install -e ~/projects/django-simple-deploy/
 ```
-    - This is an "editable install". It means any time you make changes in the local simple-deploy repository, they will be pulled into the sample project as well.
+- This is an "editable install". It means any time you make changes in the local simple-deploy repository, they will be pulled into the sample project as well.
 
 
 Developing with Pipenv
