@@ -110,8 +110,8 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
     # We may have installed from unpinned dependencies, so pin them now for Heroku.
     pip freeze > requirements.txt
 elif [ "$dep_man_approach" = 'pipenv' ]; then
-    echo "pipenv not tested yet"
-    exit 0
+    cd "pipenv_unpinned"
+    python3 -m pipenv install
 fi
 
 
@@ -137,8 +137,8 @@ python manage.py simple_deploy
 # Heroku needs a copy of requirements.txt with the same django-simple-deploy
 #   we're testing against. Modify django-simple-deploy to match install_address.
 #   This is important to verify, so we'll routinely include it in the test output.
-#   This is not needed if we're testing the latest PyPI release.
-if [ "$target" != pypi ]; then
+#   This is only needed if we're testing against a GitHub repo.
+if [ "$target" = 'current_branch' ]; then
     if [ "$dep_man_approach" = 'req_txt' ]; then
         echo "\nOriginal requirements.txt; should see django-simple-deploy:"
         cat requirements.txt
@@ -148,7 +148,13 @@ if [ "$target" != pypi ]; then
 
         echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
         cat requirements.txt
+    elif [ "$dep_man_approach" = 'pipenv' ]; then
+        echo "\nOriginal Pipfile; should see django-simple-deploy:"
+        cat Pipfile
+
+
     fi
+
 fi
 
 echo "\n\nCommitting changes..."
