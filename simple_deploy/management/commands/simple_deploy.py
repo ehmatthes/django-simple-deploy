@@ -87,9 +87,11 @@ class Command(BaseCommand):
         # Which dependency management approach are we using?
         #   req_txt, pipenv, poetry?
         #   In a simple project, I don't think we should find both Pipfile
-        #   and requirements.txt
+        #   and requirements.txt. However, if there's both, prioritize Pipfile.
         self.using_req_txt = 'requirements.txt' in os.listdir(self.project_root)
         self.using_pipenv = 'Pipfile' in os.listdir(self.project_root)
+        if self.using_pipenv:
+            self.using_req_txt = False
 
         # What requirements are already listed?
         if self.using_req_txt:
@@ -107,11 +109,6 @@ class Command(BaseCommand):
 
             # Get list of requirements.
             self.requirements = self._get_pipfile_requirements()
-            print('reqs:')
-            print(self.requirements)
-            sys.exit()
-
-
 
         # Store any heroku-specific settings already in place.
         #   If any have already been written, we don't want to add them again.
@@ -141,6 +138,13 @@ class Command(BaseCommand):
             #   (Substitution for dev branch install address.)
             self._add_req_txt_pkg('django-simple-deploy')
             # self._add_req_txt_pkg('git+git://github.com/ehmatthes/django-simple-deploy')
+        elif self.using_pipenv:
+            # There's nothing to do here. When you use Pipenv to install something,
+            #   it automatically gets added to Pipfile, so simple-deploy should
+            #   already be here. There's no separate step like "pip freeze".
+            # Modify this later if some people are using a Pipenv approach that
+            #   doesn't automatically add installed packages to Pipfile.
+            pass
 
     def _generate_procfile(self):
         """Create Procfile, if none present."""
