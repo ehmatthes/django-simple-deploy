@@ -69,12 +69,19 @@ echo "  Current branch: $current_branch"
 
 if [ "$target" = pypi ]; then
     # Install address is just the package name, which will be pulled from PyPI.
+    # Note: I believe this is just for req_txt approach.
     install_address="django-simple-deploy"
 else
     # Install address is the git remote address with the current branch name.
     remote_address=$(git remote get-url origin)
     install_address="git+$remote_address@$current_branch"
+
+    # Pipenv also needs something about the egg:
+    if [ "$dep_man_approach" = 'pipenv' ]; then
+        install_address="$install_address#egg=django-simple-deploy"
+    fi
 fi
+
 echo "  Installing from: $install_address"
 
 # Make tmp location and clone LL test repo.
@@ -110,10 +117,10 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
     # We may have installed from unpinned dependencies, so pin them now for Heroku.
     pip freeze > requirements.txt
 elif [ "$dep_man_approach" = 'pipenv' ]; then
+    # Note that this generates a Pipfile.lock file.
     cd "pipenv_unpinned"
     python3 -m pipenv install
 fi
-
 
 echo "  Initializing Git repostitory..."
 git init
@@ -122,8 +129,14 @@ git commit -am "Initial commit."
 
 # Now install django-simple-deploy, just as a user would.
 #   Except, we'll install the version from the current branch.
-echo "  Installing django-simple-deploy..."
-pip install $install_address
+if [ "$dep_man_approach" = 'req_txt' ]; then
+    echo "  Installing django-simple-deploy..."
+    pip install $install_address
+elif [ "$dep_man_approach" = 'pipenv' ]; then
+    python3 -m pipenv install $install_address
+fi
+
+exit 0
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
