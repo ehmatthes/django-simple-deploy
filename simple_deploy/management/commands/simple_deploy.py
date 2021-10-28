@@ -1,4 +1,4 @@
-import os, re, subprocess
+import sys, os, re, subprocess
 
 from django.core.management.base import BaseCommand, CommandError
 
@@ -15,8 +15,8 @@ class Command(BaseCommand):
         #   Assume deploying to Heroku for now.
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
 
-        self._get_heroku_app_info()
-        self._set_heroku_env_var()
+        # self._get_heroku_app_info()
+        # self._set_heroku_env_var()
         self._inspect_project()
         self._add_simple_deploy_req()
         self._generate_procfile()
@@ -84,8 +84,14 @@ class Command(BaseCommand):
         self.project_root = settings.BASE_DIR
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
-        # Are we using requirements.txt?
+        # Which dependency management approach are we using?
+        #   req_txt, pipenv, poetry?
+        #   In a simple project, I don't think we should find both Pipfile
+        #   and requirements.txt
         self.using_req_txt = 'requirements.txt' in os.listdir(self.project_root)
+        self.using_pipenv = 'Pipfile' in os.listdir(self.project_root)
+
+        # What requirements are already listed?
         if self.using_req_txt:
             # Build path to requirements.txt.
             self.req_txt_path = f"{self.project_root}/requirements.txt"
@@ -94,6 +100,18 @@ class Command(BaseCommand):
             with open(f"{self.project_root}/requirements.txt") as f:
                 requirements = f.readlines()
                 self.requirements = [r.rstrip() for r in requirements]
+
+        if self.using_pipenv:
+            # Build path to Pipfile.
+            self.pipfile_path = f"{self.project_root}/Pipfile"
+
+            # Get list of requirements.
+            self.requirements = self._get_pipfile_requirements()
+            print('reqs:')
+            print(self.requirements)
+            sys.exit()
+
+
 
         # Store any heroku-specific settings already in place.
         #   If any have already been written, we don't want to add them again.
@@ -331,6 +349,33 @@ class Command(BaseCommand):
         self.stdout.write(msg)
 
     # --- Utility methods ---
+
+    def _get_pipfile_requirements(self):
+        """Get a list of requirements that are already in the Pipfile."""
+        with open(self.pipfile_path) as f:
+            lines = f.readlines()
+
+        requirements = []
+        in_packages = False
+        for line in lines:
+            # Ignore all lines until we've found the start of packages.
+            #   Stop parsing when we hit dev-packages.
+            if '[packages]' in line:
+                in_packages = True
+                continue
+            elif '[dev-packages]' in line:
+                # Ignore dev packages for now.
+                break
+
+            if in_packages:
+                pkg_name = line.split('=')[0].rstrip()
+
+                # Ignore blank lines.
+                if pkg_name:
+                    requirements.append(pkg_name)
+
+        return requirements
+
 
     def _add_req_txt_pkg(self, package_name):
         """Add a package to requirements.txt, if not already present."""
