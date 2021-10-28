@@ -118,19 +118,17 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
     pip freeze > requirements.txt
 elif [ "$dep_man_approach" = 'pipenv' ]; then
     # This test usually runs inside a venv for the overall django-simple-deploy
-    #   project. Pipenv will install to that environment unless we tell it to ignore
-    #   existing virtualenvs.
-
+    #   project. Pipenv will install to that environment unless we create a venv
+    #   for it to use.
     cd "pipenv_unpinned"
-    echo "\n.venv/\n" >> .gitignore
-    python3 -m venv .venv
-    source .venv/bin/activate
+
+    python3 -m venv ll_env
+    source ll_env/bin/activate
+
     pip install --upgrade pip
     pip install pipenv
     python3 -m pipenv install
 fi
-
-exit 0
 
 echo "  Initializing Git repostitory..."
 git init
