@@ -119,8 +119,23 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
 elif [ "$dep_man_approach" = 'pipenv' ]; then
     # Note that this generates a Pipfile.lock file.
     cd "pipenv_unpinned"
+    # This test usually runs inside a venv for the overall django-simple-deploy
+    #   project. Pipenv will install to that environment unless we tell it to ignore
+    #   existing virtualenvs.
+
+    # export PIPENV_IGNORE_VIRTUALENVS=1
+    # printenv
+    # exit 0
+    export PIPENV_VENV_IN_PROJECT=1
+    echo "\n.venv/\n" >> .gitignore
+    python3 -m venv .venv
+    source .venv/bin/activate
+    pip install --upgrade pip
+    pip install pipenv
     python3 -m pipenv install
 fi
+
+exit 0
 
 echo "  Initializing Git repostitory..."
 git init
