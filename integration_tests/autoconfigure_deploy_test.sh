@@ -127,7 +127,7 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
 
     pip install --upgrade pip
     pip install pipenv
-    # DEV: Add --skip-lock here, and let locking happen after installing simple-heroku.
+    # We'll only lock once, just before committing for deployment.
     python3 -m pipenv install --skip-lock
 fi
 
@@ -142,7 +142,6 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
     echo "  Installing django-simple-deploy..."
     pip install $install_address
 elif [ "$dep_man_approach" = 'pipenv' ]; then
-    # DEV: Add --skip-lock here, because simple_deploy will modify Pipfile.
     python3 -m pipenv install $install_address --skip-lock
 fi
 
