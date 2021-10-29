@@ -15,8 +15,8 @@ class Command(BaseCommand):
         #   Assume deploying to Heroku for now.
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
 
-        # self._get_heroku_app_info()
-        # self._set_heroku_env_var()
+        self._get_heroku_app_info()
+        self._set_heroku_env_var()
         self._inspect_project()
         self._add_simple_deploy_req()
         self._generate_procfile()
@@ -176,8 +176,6 @@ class Command(BaseCommand):
             # Here.
             self._add_pipenv_pkg('gunicorn')
 
-        sys.exit()
-
 
     def _check_allowed_hosts(self):
         """Make sure project can be served from heroku."""
@@ -229,10 +227,15 @@ class Command(BaseCommand):
     def _add_db_packages(self):
         """Add packages required for the Heroku db."""
         self.stdout.write("    Adding db-related packages...")
+
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        self._add_req_txt_pkg('psycopg2<2.9')
-        self._add_req_txt_pkg('dj-database-url')
+        if self.using_req_txt:
+            self._add_req_txt_pkg('psycopg2<2.9')
+            self._add_req_txt_pkg('dj-database-url')
+        elif self.using_pipenv:
+            self._add_pipenv_pkg('psycopg2', version="<2.9")
+            self._add_pipenv_pkg('dj-database-url')
 
 
     def _add_db_settings(self):
@@ -270,7 +273,10 @@ class Command(BaseCommand):
         # Add whitenoise to requirements.
         self.stdout.write("\n  Configuring static files for Heroku deployment...")
         self.stdout.write("    Adding staticfiles-related packages...")
-        self._add_req_txt_pkg('whitenoise')
+        if self.using_req_txt:
+            self._add_req_txt_pkg('whitenoise')
+        elif self.using_pipenv:
+            self._add_pipenv_pkg('whitenoise')
 
         # Modify settings.
         # DEV: There are three lines here; this can easily be refactored.
@@ -402,17 +408,17 @@ class Command(BaseCommand):
 
             self.stdout.write(f"    Added {package_name} to requirements.txt.")
 
-    def _add_pipenv_pkg(self, package_name):
+    def _add_pipenv_pkg(self, package_name, version=""):
         """Add a package to Pipfile, if not already present."""
         pkg_present = any(package_name in r for r in self.requirements)
 
         if pkg_present:
             self.stdout.write(f"    Found {package_name} in Pipfile.")
         else:
-            self._write_pipfile_pkg(package_name)
+            self._write_pipfile_pkg(package_name, version)
 
 
-    def _write_pipfile_pkg(self, package_name):
+    def _write_pipfile_pkg(self, package_name, version=""):
         """Write package to Pipfile."""
         # Write package name right after [packages].
         #   For simple projects, this shouldn't cause any issues.
@@ -420,7 +426,11 @@ class Command(BaseCommand):
         with open(self.pipfile_path) as f:
             pipfile_text = f.read()
 
-        new_pkg_string = f'[packages]\n{package_name} = "*"'
+        if version:
+            new_pkg_string = f'[packages]\n{package_name} = "{version}"'
+        else:
+            new_pkg_string = f'[packages]\n{package_name} = "*"'
+
         pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
 
         with open(self.pipfile_path, 'w') as f:
