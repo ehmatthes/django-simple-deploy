@@ -420,7 +420,7 @@ class Command(BaseCommand):
             self._write_pipfile_pkg(package_name, version)
 
 
-    def _write_pipfile_pkg(self, package_name, version=""):
+    def _write_pipfile_pkg(self, package_name, version="*"):
         """Write package to Pipfile."""
         # Write package name right after [packages].
         #   For simple projects, this shouldn't cause any issues.
@@ -428,11 +428,7 @@ class Command(BaseCommand):
         with open(self.pipfile_path) as f:
             pipfile_text = f.read()
 
-        if version:
-            new_pkg_string = f'[packages]\n{package_name} = "{version}"'
-        else:
-            new_pkg_string = f'[packages]\n{package_name} = "*"'
-
+        new_pkg_string = f'[packages]\n{package_name} = "{version}"'
         pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
 
         with open(self.pipfile_path, 'w') as f:
