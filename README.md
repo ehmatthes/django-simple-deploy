@@ -10,9 +10,14 @@ Prerequisites
 
 If you haven't already done so, install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) and make sure you're using [Git](https://git-scm.com) to track your project.
 
-Make sure your project is running in a virtual environment, and you have built a `requirements.txt` file with the command `pip freeze > requirements.txt`. (Other dependency management systems should be supported shortly.)
+Make sure your project is running in a virtual environment, and you have either:
 
-Quick start
+- built a `requirements.txt` file with the command `pip freeze > requirements.txt`;
+- Or, used Pipenv to create a `Pipfile`.
+
+Poetry should be supported shortly.
+
+Quick start - using `requirements.txt`
 ---
 
 If you've met the prerequisites, you can deploy your project using the following steps:
@@ -38,6 +43,33 @@ The following commands will deploy your project:
 
 After running this last command, you should see your project open in a browser. :)
 
+Quick start - using Pipenv
+---
+
+If you've met the prerequisites, you can deploy your project using the following steps:
+
+```
+(venv)$ pipenv install django-simple-deploy
+```
+
+Now add `simple_deploy` to `INSTALLED_APPS`.
+
+The following commands will deploy your project:
+
+```
+(venv)$ heroku create
+(venv)$ python manage.py simple_deploy
+(venv)$ git status                               # See what changes were made.
+(venv)$ pipenv lock                              # Update new dependencies.
+(venv)$ git add .
+(venv)$ git commit -am "Configured project for deployment."
+(venv)$ git push heroku main
+(venv)$ heroku run python manage.py migrate
+(venv)$ heroku open
+```
+
+After running this last command, you should see your project open in a browser. :)
+
 Detailed steps
 ---
 
@@ -45,12 +77,18 @@ Since this project only focuses on Heroku at the moment, you'll need to make a [
 
 Heroku uses Git to manage the deployment process, so you'll need to install and use [Git](https://git-scm.com) for version control if you're not already doing so. It's beyond the scope of these instructions to provide an introduction to Git, but if you're not using version control yet you really should run through a basic tutorial before focusing on deployment. It's also a good idea to commit all of your own changes before starting this deployment process. That way you can easily go back to your non-deployment state if anything goes wrong, and you can also see the specific changes that are made in preparing for deployment.
 
-Each Django project quickly ends up with its own set of specific dependencies. These include a specific version of Django, and any number of other libraries that you end up using in a project. These dependencies need to be managed separate from any other Django project you might have on your system, and separate from any other Python project you work on. There are a number of approaches to dependency management. For the moment, this project assumes that you have a `requirements.txt` file that lists your project's depencies. If you're working in a virtual environment, you can generate this file with the command `pip freeze > requirements.txt`. Make sure you re-run this command any time you install a new package to your project.
+Each Django project quickly ends up with its own set of specific dependencies. These include a specific version of Django, and any number of other libraries that you end up using in a project. These dependencies need to be managed separate from any other Django project you might have on your system, and separate from any other Python project you work on. There are a number of approaches to dependency management. If you're working in a virtual environment, you can generate a requirements file with the command `pip freeze > requirements.txt`. If you're using Pipenv, a `Pipfile` and `Pipfile.lock` were probably generated when you installed your dependencies.
 
 For the deployment process, work in an active virtual environment in your project's root folder. You can install `django-simple-deploy` with Pip:
 
 ```
 (venv)$ pip install django-simple-deploy
+```
+
+You can also install it with Pipenv:
+
+```
+(venv)$ pipenv install django-simple-deploy
 ```
 
 You'll need to add the app `simple_deploy` to `INSTALLED_APPS` in `settings.py`. This is a stripped-down app that makes the management command `manage.py simple_deploy` available in your project.
@@ -72,12 +110,22 @@ The following commands will configure your project for deployment to Heroku. It'
 (venv)$ git commit -am "Configured project for deployment."
 ```
 
+If you're using Pipenv, you'll need to regenerate your lock file after running `manage.py simple_deploy`. The `simple_deploy` command modifies your Pipfile, and if you try to push your project to Heroku without rebuilding the lock file it will complain about an out-of-date lock file. Your commands will look like this:
+
+```
+(venv)$ python manage.py simple_deploy
+(venv)$ git status
+(venv)$ pipenv lock
+(venv)$ git add .
+(venv)$ git commit -am "Configured project for deployment."
+```
+
 Now your project should be ready for deployment. To configure your project, `simple_deploy` does the following:
 
 - Sets an environment variable on the Heroku server called `ON_HEROKU`, that lets the project detect when it's being run on the Heroku server. This allows us to have a section in `settings.py` that only applies to the deployed version of the project.
-- Adds `django-simple-deploy` to `requirements.txt`.
+- Adds `django-simple-deploy` to your requirements file, if it's not already there.
 - Generates a `Procfile`, telling Heroku what process to run. This is the production version of `manage.py runserver`.
-- Adds `gunicorn`, `dj-database-url`, `psycopg2`, and `whitenoise` to `requirements.txt`. These packages help serve the project in production, including managing the production database and serving static files efficiently.
+- Adds `gunicorn`, `dj-database-url`, `psycopg2`, and `whitenoise` to your requirements file, if they're not already listed. These packages help serve the project in production, including managing the production database and serving static files efficiently.
 - Makes sure the `ALLOWED_HOSTS` setting includes the URL that Heroku created for the project.
 - Modifies `settings.py` to use the production database.
 - Configures the project to use `whitenoise` to manage static files such as CSS and JavaScript files.
