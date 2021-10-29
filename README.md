@@ -12,7 +12,7 @@ If you haven't already done so, install the [Heroku CLI](https://devcenter.herok
 
 Make sure your project is running in a virtual environment, and you have either:
 
-- built a `requirements.txt` file with the command `pip freeze > requirements.txt`;
+- Built a `requirements.txt` file with the command `pip freeze > requirements.txt`;
 - Or, used Pipenv to create a `Pipfile`.
 
 Poetry should be supported shortly.

@@ -6,9 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
+### 0.1.5
+
+- Unreleased.
+
 ### 0.1.4
 
-- Unreleased
+- Supports projects that use Pipenv.
 
 ### 0.1.3
 
