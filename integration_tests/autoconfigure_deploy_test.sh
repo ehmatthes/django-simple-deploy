@@ -127,7 +127,8 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
 
     pip install --upgrade pip
     pip install pipenv
-    python3 -m pipenv install
+    # DEV: Add --skip-lock here, and let locking happen after installing simple-heroku.
+    python3 -m pipenv install --skip-lock
 fi
 
 echo "  Initializing Git repostitory..."
@@ -141,10 +142,9 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
     echo "  Installing django-simple-deploy..."
     pip install $install_address
 elif [ "$dep_man_approach" = 'pipenv' ]; then
-    python3 -m pipenv install $install_address
+    # DEV: Add --skip-lock here, because simple_deploy will modify Pipfile.
+    python3 -m pipenv install $install_address --skip-lock
 fi
-
-exit 0
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
@@ -155,7 +155,12 @@ heroku create
 echo "Running manage.py simple_deploy..."
 python manage.py simple_deploy
 
-# Heroku needs a copy of requirements.txt with the same django-simple-deploy
+# After running simple_deploy, need to regenerate the lock file.
+if [ "$dep_man_approach" = 'pipenv' ]; then
+    python3 -m pipenv lock
+fi
+
+# Heroku needs a copy of requirements with the same django-simple-deploy
 #   we're testing against. Modify django-simple-deploy to match install_address.
 #   This is important to verify, so we'll routinely include it in the test output.
 #   This is only needed if we're testing against a GitHub repo.
@@ -164,18 +169,25 @@ if [ "$target" = 'current_branch' ]; then
         echo "\nOriginal requirements.txt; should see django-simple-deploy:"
         cat requirements.txt
 
-        echo "  Modifying simple_deploy.py to require the current branch version on Heroku..."
+        echo "  Modifying requirements.txt to require the current branch version on Heroku..."
         sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
 
         echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
         cat requirements.txt
     elif [ "$dep_man_approach" = 'pipenv' ]; then
-        echo "\nOriginal Pipfile; should see django-simple-deploy:"
-        cat Pipfile
+        # No need for this; installing from branch with Pipenv specifies this location
+        #   in Pipfile. :)
+        echo "No need to modify Pipfile."
 
+        # echo '\nOriginal Pipfile; should see django-simple-deploy = "*":'
+        # cat Pipfile
 
+        # echo "  Modifying Pipfile to require the current branch version on Heroku..."
+        # sed -i "" "s|django-simple-deploy = \"*\"|django-simple-deploy = {ref = \"$current_branch\", git = \"https://github.com/ehmatthes/django-simple-deploy.git\"}"
+
+        # echo "\nModified Pipfile; should see django-simple-deploy address you're trying to test:"
+        # cat Pipfile
     fi
-
 fi
 
 echo "\n\nCommitting changes..."
@@ -206,7 +218,8 @@ echo "\n  Testing functionality of deployed app..."
 if [ "$dep_man_approach" = 'req_txt' ]; then
     pip install requests
 elif [ "$dep_man_approach" = 'pipenv' ]; then
-    echo "pass"
+    # We won't do anything further that needs a lock file.
+    python3 -m pipenv install requests --skip-lock
 fi
 
 cd "$script_dir"
