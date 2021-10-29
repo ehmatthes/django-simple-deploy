@@ -354,6 +354,8 @@ class Command(BaseCommand):
         msg += "\n- Push the changes to Heroku."
         msg += "\n- Migrate the database on Heroku."
         msg += "\n\nThe following commands should finish your initial deployment:"
+        if using_pipenv:
+            msg += "\n$ pipenv lock"
         msg += "\n$ git add ."
         msg += '\n$ git commit -am "Configured for Heroku deployment."'
         msg += "\n$ git push heroku main"
