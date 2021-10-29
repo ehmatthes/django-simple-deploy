@@ -172,6 +172,11 @@ class Command(BaseCommand):
         
         if self.using_req_txt:
             self._add_req_txt_pkg('gunicorn')
+        elif self.using_pipenv:
+            # Here.
+            self._add_pipenv_pkg('gunicorn')
+
+        sys.exit()
 
 
     def _check_allowed_hosts(self):
@@ -396,6 +401,32 @@ class Command(BaseCommand):
                 f.write(f"\n{package_name}    # Added by simple_deploy command.")
 
             self.stdout.write(f"    Added {package_name} to requirements.txt.")
+
+    def _add_pipenv_pkg(self, package_name):
+        """Add a package to Pipfile, if not already present."""
+        pkg_present = any(package_name in r for r in self.requirements)
+
+        if pkg_present:
+            self.stdout.write(f"    Found {package_name} in Pipfile.")
+        else:
+            self._write_pipfile_pkg(package_name)
+
+
+    def _write_pipfile_pkg(self, package_name):
+        """Write package to Pipfile."""
+        # Write package name right after [packages].
+        #   For simple projects, this shouldn't cause any issues.
+        #   If ordering matters, we can address that later.
+        with open(self.pipfile_path) as f:
+            pipfile_text = f.read()
+
+        new_pkg_string = f'[packages]\n{package_name} = "*"'
+        pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
+
+        with open(self.pipfile_path, 'w') as f:
+            f.write(pipfile_text)
+
+        self.stdout.write(f"    Added {package_name} to Pipfile.")
 
 
     def _check_current_heroku_settings(self, heroku_setting):
