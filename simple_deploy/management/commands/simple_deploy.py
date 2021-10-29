@@ -354,7 +354,7 @@ class Command(BaseCommand):
         msg += "\n- Push the changes to Heroku."
         msg += "\n- Migrate the database on Heroku."
         msg += "\n\nThe following commands should finish your initial deployment:"
-        if using_pipenv:
+        if self.using_pipenv:
             msg += "\n$ pipenv lock"
         msg += "\n$ git add ."
         msg += '\n$ git commit -am "Configured for Heroku deployment."'
@@ -406,6 +406,7 @@ class Command(BaseCommand):
             self.stdout.write(f"    Found {root_package_name} in requirements file.")
         else:
             with open(self.req_txt_path, 'a') as f:
+                # DEV: Align these comments like they're aligned in Pipfile.
                 f.write(f"\n{package_name}    # Added by simple_deploy command.")
 
             self.stdout.write(f"    Added {package_name} to requirements.txt.")
@@ -420,7 +421,7 @@ class Command(BaseCommand):
             self._write_pipfile_pkg(package_name, version)
 
 
-    def _write_pipfile_pkg(self, package_name, version="*"):
+    def _write_pipfile_pkg(self, package_name, version=""):
         """Write package to Pipfile."""
         # Write package name right after [packages].
         #   For simple projects, this shouldn't cause any issues.
@@ -428,7 +429,14 @@ class Command(BaseCommand):
         with open(self.pipfile_path) as f:
             pipfile_text = f.read()
 
-        new_pkg_string = f'[packages]\n{package_name} = "{version}"'
+        if not version:
+            version = '*'
+
+        # Don't make ugly comments; make space to align comments.
+        #   Align at column 30, so take away name length, and version spec space.
+        tab_string = ' ' * (30 - len(package_name) - 5 - len(version))
+
+        new_pkg_string = f'[packages]\n{package_name} = "{version}"{tab_string}# Added by simple_deploy command.'
         pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
 
         with open(self.pipfile_path, 'w') as f:
