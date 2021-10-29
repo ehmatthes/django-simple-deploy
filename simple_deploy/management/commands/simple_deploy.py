@@ -407,7 +407,10 @@ class Command(BaseCommand):
         else:
             with open(self.req_txt_path, 'a') as f:
                 # DEV: Align these comments like they're aligned in Pipfile.
-                f.write(f"\n{package_name}    # Added by simple_deploy command.")
+                # Align comments, so we don't make req_txt file ugly.
+                #   Version specs are in package_name in req_txt approach.
+                tab_string = ' ' * (30 - len(package_name))
+                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
 
             self.stdout.write(f"    Added {package_name} to requirements.txt.")
 
