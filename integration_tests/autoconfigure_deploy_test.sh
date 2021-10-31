@@ -132,18 +132,8 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
 elif [ "$dep_man_approach" = 'poetry' ]; then
     cd "poetry_unpinned"
 
-    # DEV: This is what I'd like to do; create a new venv that poetry
-    #   will use, and then destroy this at the end of the script.
-    #   But every time I run it this way, it fails on installing a dep.
-    #   Sometimes it's django-bootstrap4, sometimes it's a dependency of Django.
-    #     As is, it installs to the django-simple-deploy development env.
-    #   That's not ideal as it pollutes that env, but I believe it does test
-    #   the deploy process for Poetry.
-    #     Come back to this at some point.
-    #     Can't use `poetry shell`, because that pops up an interactive shell.
-    #   `poetry shell &` isn't any better.
-    # Poetry should use this env. If there are issues, may want to run
-    #   `$poetry_cmd cache clear --all pypi`
+    # Make a new venv in this tmp project directory, so Poetry will use it,
+    #   and we can destroy it at the end of testing.
     python3 -m venv ll_env
     source ll_env/bin/activate
 
@@ -194,6 +184,8 @@ fi
 #   we're testing against. Modify django-simple-deploy to match install_address.
 #   This is important to verify, so we'll routinely include it in the test output.
 #   This is only needed if we're testing against a GitHub repo.
+#   Note: Pipenv and Poetry specify install address, so this modification is
+#     not necessary for either of those approaches.
 if [ "$target" = 'current_branch' ]; then
     if [ "$dep_man_approach" = 'req_txt' ]; then
         echo "\nOriginal requirements.txt; should see django-simple-deploy:"
@@ -204,19 +196,6 @@ if [ "$target" = 'current_branch' ]; then
 
         echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
         cat requirements.txt
-    elif [ "$dep_man_approach" = 'pipenv' ]; then
-        # No need for this; installing from branch with Pipenv specifies this location
-        #   in Pipfile. :)
-        echo "No need to modify Pipfile."
-
-        # echo '\nOriginal Pipfile; should see django-simple-deploy = "*":'
-        # cat Pipfile
-
-        # echo "  Modifying Pipfile to require the current branch version on Heroku..."
-        # sed -i "" "s|django-simple-deploy = \"*\"|django-simple-deploy = {ref = \"$current_branch\", git = \"https://github.com/ehmatthes/django-simple-deploy.git\"}"
-
-        # echo "\nModified Pipfile; should see django-simple-deploy address you're trying to test:"
-        # cat Pipfile
     fi
 fi
 
