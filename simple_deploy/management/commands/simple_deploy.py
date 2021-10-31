@@ -10,10 +10,34 @@ class Command(BaseCommand):
     Configure as much as possible automatically.
     """
 
-    def handle(self, *args, **kwargs):
+    def add_arguments(self, parser):
+        """Parse CLI options."""
+
+        parser.add_argument('--automate-all',
+            help="Automate all aspects of deployment?",
+            action='store_true')
+
+        
+
+
+    def handle(self, *args, **options):
         # DEV: Later, this should check for the platform to deploy to.
         #   Assume deploying to Heroku for now.
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
+
+
+
+        self.automate_all = options['automate_all']
+
+        if self.automate_all:
+            self.stdout.write("Automating all steps...")
+        else:
+            self.stdout.write("Only configuring for deployment...")
+
+        sys.exit()
+
+
+
 
         self._get_heroku_app_info()
         self._set_heroku_env_var()
