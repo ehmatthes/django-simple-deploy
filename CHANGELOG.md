@@ -8,7 +8,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 ### 0.1.5
 
-- Unreleased.
+- Supports projects that use Poetry.
 
 ### 0.1.4
 

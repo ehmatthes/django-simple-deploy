@@ -129,6 +129,11 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     pip install pipenv
     # We'll only lock once, just before committing for deployment.
     python3 -m pipenv install --skip-lock
+elif [ "$dep_man_approach" = 'poetry' ]; then
+    cd "poetry_unpinned"
+    poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
+    # $poetry_cmd shell
+    $poetry_cmd install
 fi
 
 echo "  Initializing Git repostitory..."
@@ -143,6 +148,8 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
     pip install $install_address
 elif [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv install $install_address --skip-lock
+elif [ "$dep_man_approach" = 'poetry' ]; then
+    $poetry_cmd add $install_address
 fi
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
@@ -251,4 +258,11 @@ if [ "$tear_down" = true ]; then
     echo "  Destroying temporary directory..."
     rm -rf "$tmp_dir"
     echo "...removed temporary directory: $tmp_dir"
+
+    if [ "$dep_man_approach" = 'poetry' ]; then
+        echo "  Destroying poetry environment..."
+        poetry env remove $(which python)
+        echo "  ...Destroyed environment."
+    fi
+    
 fi
