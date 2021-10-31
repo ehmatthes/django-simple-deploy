@@ -27,7 +27,9 @@ Making a new relase
 (venv)$ python -m twine upload dist/*
 ```
 - Test the released package:
+```
 (venv)$ ./integration_tests/autoconfigure_deploy_test.sh -t pypi -d [req_txt|poetry|pipenv]
+```
 
 Testing locally (non-automated)
 ---
