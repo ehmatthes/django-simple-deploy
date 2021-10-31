@@ -47,3 +47,17 @@ To test the latest release on PyPI instead of the current branch, use the `test_
 ```
 (venv)$ ./integration_tests/autoconfigure_deploy_test.sh test_pypi_release
 ```
+
+Testing options
+---
+
+```
+./integration_tests/autoconfigure_deploy_test.sh -t [pypi|current_branch] -d [req_txt|poetry|pipenv]
+```
+
+Testing poetry has been problematic for me due to caching issues. If you see errors about installing requirements to the temporary environment created during the tests, try clearing the cache manually before running the tests:
+
+```
+$ poetry cache clear --all pypi
+$ ./integration_tests/autoconfigure_deploy_test -d pypi
+```

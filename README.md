@@ -13,9 +13,8 @@ If you haven't already done so, install the [Heroku CLI](https://devcenter.herok
 Make sure your project is running in a virtual environment, and you have either:
 
 - Built a `requirements.txt` file with the command `pip freeze > requirements.txt`;
+- Or, used Poetry to manage your project's requirements using a `pyproject.toml` file;
 - Or, used Pipenv to create a `Pipfile`.
-
-Poetry should be supported shortly.
 
 Quick start - using `requirements.txt`
 ---
@@ -24,6 +23,32 @@ If you've met the prerequisites, you can deploy your project using the following
 
 ```
 (venv)$ pip install django-simple-deploy
+```
+
+Now add `simple_deploy` to `INSTALLED_APPS`.
+
+The following commands will deploy your project:
+
+```
+(venv)$ heroku create
+(venv)$ python manage.py simple_deploy
+(venv)$ git status                               # See what changes were made.
+(venv)$ git add .
+(venv)$ git commit -am "Configured project for deployment."
+(venv)$ git push heroku main
+(venv)$ heroku run python manage.py migrate
+(venv)$ heroku open
+```
+
+After running this last command, you should see your project open in a browser. :)
+
+Quick start - using Poetry
+---
+
+If you've met the prerequisites, you can deploy your project using the following steps:
+
+```
+(venv)$ poetry add django-simple-deploy
 ```
 
 Now add `simple_deploy` to `INSTALLED_APPS`.
@@ -77,12 +102,18 @@ Since this project only focuses on Heroku at the moment, you'll need to make a [
 
 Heroku uses Git to manage the deployment process, so you'll need to install and use [Git](https://git-scm.com) for version control if you're not already doing so. It's beyond the scope of these instructions to provide an introduction to Git, but if you're not using version control yet you really should run through a basic tutorial before focusing on deployment. It's also a good idea to commit all of your own changes before starting this deployment process. That way you can easily go back to your non-deployment state if anything goes wrong, and you can also see the specific changes that are made in preparing for deployment.
 
-Each Django project quickly ends up with its own set of specific dependencies. These include a specific version of Django, and any number of other libraries that you end up using in a project. These dependencies need to be managed separate from any other Django project you might have on your system, and separate from any other Python project you work on. There are a number of approaches to dependency management. If you're working in a virtual environment, you can generate a requirements file with the command `pip freeze > requirements.txt`. If you're using Pipenv, a `Pipfile` and `Pipfile.lock` were probably generated when you installed your dependencies.
+Each Django project quickly ends up with its own set of specific dependencies. These include a specific version of Django, and any number of other libraries that you end up using in a project. These dependencies need to be managed separate from any other Django project you might have on your system, and separate from any other Python project you work on. There are a number of approaches to dependency management. If you're working in a virtual environment, you can generate a requirements file with the command `pip freeze > requirements.txt`. If you're using Poetry, a `pyproject.toml` file and a `poetry.lock` file were probably generated when you installed your dependencies. If you're using Pipenv, a `Pipfile` and `Pipfile.lock` were probably generated when you installed your dependencies.
 
 For the deployment process, work in an active virtual environment in your project's root folder. You can install `django-simple-deploy` with Pip:
 
 ```
 (venv)$ pip install django-simple-deploy
+```
+
+You can also install it with Poetry:
+
+```
+(venv)$ poetry add django-simple-deploy
 ```
 
 You can also install it with Pipenv:
@@ -109,6 +140,8 @@ The following commands will configure your project for deployment to Heroku. It'
 (venv)$ git add .
 (venv)$ git commit -am "Configured project for deployment."
 ```
+
+If you're using Poetry, `manage.py simple_deploy` will generate a `requirements.txt` file for you, without affecting your local environment. It does this because Heroku doesn't recognize `pyproject.toml` or `poetry.lock`.
 
 If you're using Pipenv, you'll need to regenerate your lock file after running `manage.py simple_deploy`. The `simple_deploy` command modifies your Pipfile, and if you try to push your project to Heroku without rebuilding the lock file it will complain about an out-of-date lock file. Your commands will look like this:
 
