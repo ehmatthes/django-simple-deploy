@@ -142,11 +142,22 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     #     Come back to this at some point.
     #     Can't use `poetry shell`, because that pops up an interactive shell.
     #   `poetry shell &` isn't any better.
-    # python3 -m venv ll_env
-    # source ll_env/bin/activate
+    # Poetry should use this env. If there are issues, may want to run
+    #   `$poetry_cmd cache clear --all pypi`
+    python3 -m venv ll_env
+    source ll_env/bin/activate
 
+    # Poetry cache issues have been really hard to troubleshoot. At one point
+    #   testing against pypi code that doesn't even recognize poetry projects
+    #   was passing. The only explanation was it was using local code, even
+    #   though it reported what looked like pypi code. So, clear cache before
+    #   each test run.
     poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
+    $poetry_cmd cache clear --all pypi --no-interaction
     $poetry_cmd install
+
+    echo "--- info ---"
+    $poetry_cmd env info
 fi
 
 echo "  Initializing Git repostitory..."
@@ -239,6 +250,8 @@ if [ "$dep_man_approach" = 'req_txt' ]; then
 elif [ "$dep_man_approach" = 'pipenv' ]; then
     # We won't do anything further that needs a lock file.
     python3 -m pipenv install requests --skip-lock
+elif [ "$dep_man_approach" = 'poetry' ]; then
+    $poetry_cmd add requests
 fi
 
 cd "$script_dir"
