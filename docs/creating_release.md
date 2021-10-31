@@ -31,6 +31,16 @@ Making a new relase
 (venv)$ ./integration_tests/autoconfigure_deploy_test.sh -t pypi -d [req_txt|poetry|pipenv]
 ```
 
+Deleting branches
+---
+
+I always forget this, so put it here. Delete on the remote, and then delete locally.
+
+```
+$ git push origin -d feature_branch
+$ git branch -d feature_branch
+```
+
 Testing locally (non-automated)
 ---
 
