@@ -90,19 +90,22 @@ class Command(BaseCommand):
         #   and requirements.txt. However, if there's both, prioritize Pipfile.
         self.using_req_txt = 'requirements.txt' in os.listdir(self.project_root)
 
+        # DEV: If both req_txt and Pipfile are found, could just use req.txt.
+        #      That's Heroku's prioritization, I believe. Address this if
+        #      anyone has such a project, and ask why they have both initially.
         self.using_pipenv = 'Pipfile' in os.listdir(self.project_root)
         if self.using_pipenv:
             self.using_req_txt = False
 
         self.using_poetry = 'pyproject.toml' in os.listdir(self.project_root)
         if self.using_poetry:
-            # Export to requirements.txt, then work from the req_txt file.
+            # Heroku does not recognize pyproject.toml, so we'll export to
+            #   a requirements.txt file, and then work from that. This should
+            #   not affect the user's local environment.
             export_cmd_parts = ['poetry', 'export', '-f', 'requirements.txt',
                     '--output', 'requirements.txt', '--without-hashes']
             subprocess.run(export_cmd_parts)
             self.using_req_txt = True
-            # DEV: Or, do we want to generate a requirements.txt file now
-            #   and use that approach?
 
         # What requirements are already listed?
         if self.using_req_txt:
