@@ -25,20 +25,7 @@ class Command(BaseCommand):
         #   Assume deploying to Heroku for now.
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
 
-
-
-        self.automate_all = options['automate_all']
-
-        if self.automate_all:
-            self.stdout.write("Automating all steps...")
-        else:
-            self.stdout.write("Only configuring for deployment...")
-
-        sys.exit()
-
-
-
-
+        self._parse_cli_options(options)
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._inspect_project()
@@ -49,7 +36,17 @@ class Command(BaseCommand):
         self._configure_db()
         self._configure_static_files()
         self._show_success_message()
-    
+
+
+    def _parse_cli_options(self, options):
+        """Parse cli options."""
+        self.automate_all = options['automate_all']
+
+        if self.automate_all:
+            self.stdout.write("Automating all steps...")
+        else:
+            self.stdout.write("Only configuring for deployment...")
+
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to."""
