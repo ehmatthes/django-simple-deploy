@@ -6,6 +6,10 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
+### 0.1.6
+
+- Unreleased.
+
 ### 0.1.5
 
 - Supports projects that use Poetry.
