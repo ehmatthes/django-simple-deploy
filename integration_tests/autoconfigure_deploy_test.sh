@@ -131,8 +131,21 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv install --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
     cd "poetry_unpinned"
+
+    # DEV: This is what I'd like to do; create a new venv that poetry
+    #   will use, and then destroy this at the end of the script.
+    #   But every time I run it this way, it fails on installing a dep.
+    #   Sometimes it's django-bootstrap4, sometimes it's a dependency of Django.
+    #     As is, it installs to the django-simple-deploy development env.
+    #   That's not ideal as it pollutes that env, but I believe it does test
+    #   the deploy process for Poetry.
+    #     Come back to this at some point.
+    #     Can't use `poetry shell`, because that pops up an interactive shell.
+    #   `poetry shell &` isn't any better.
+    # python3 -m venv ll_env
+    # source ll_env/bin/activate
+
     poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
-    # $poetry_cmd shell
     $poetry_cmd install
 fi
 
@@ -258,11 +271,4 @@ if [ "$tear_down" = true ]; then
     echo "  Destroying temporary directory..."
     rm -rf "$tmp_dir"
     echo "...removed temporary directory: $tmp_dir"
-
-    if [ "$dep_man_approach" = 'poetry' ]; then
-        echo "  Destroying poetry environment..."
-        poetry env remove $(which python)
-        echo "  ...Destroyed environment."
-    fi
-    
 fi
