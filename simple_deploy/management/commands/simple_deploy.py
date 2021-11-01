@@ -17,8 +17,6 @@ class Command(BaseCommand):
             help="Automate all aspects of deployment?",
             action='store_true')
 
-        
-
 
     def handle(self, *args, **options):
         # DEV: Later, this should check for the platform to deploy to.
@@ -26,6 +24,7 @@ class Command(BaseCommand):
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
 
         self._parse_cli_options(options)
+        self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._inspect_project()
@@ -35,6 +34,7 @@ class Command(BaseCommand):
         self._check_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
+        self._conclude_automate_all()
         self._show_success_message()
 
 
@@ -46,6 +46,44 @@ class Command(BaseCommand):
             self.stdout.write("Automating all steps...")
         else:
             self.stdout.write("Only configuring for deployment...")
+
+
+    def _prep_automate_all(self):
+        """Do intial work for automating entire process."""
+        # Confirm automation.
+        # Call heroku create.
+
+        # Skip this prep work if --automate-all not used.
+        if not self.automate_all:
+            return
+
+        msg = "\n\nThe --automate-all flag means simple_deploy will:"
+        msg += "\n- Run `heroku create` for you, to create a new Heroku project;"
+        msg += "\n- Commit all changes to your project that are necessary for deployment;"
+        msg += "\n  These changes will be committed to the current branch, you"
+        msg += "\n    may want to make a new branch for this work."
+        msg += "\n- Push these changes to Heroku;"
+        msg += "\n- Run `heroku migrate` to set up the remote database;"
+        msg += "\n- Call `heroku open` to open your deployed project in a new browser tab."
+        self.stdout.write(msg)
+
+        confirmed = ''
+        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
+            prompt = "\nAre you sure you want to do this? (yes|no) "
+            confirmed = input(prompt)
+            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
+                self.stdout.write("  Please answer yes or no.")
+
+        if confirmed.lower() in ('y', 'yes'):
+            pass
+            self.stdout.write("  Running `heroku create`...")
+            subprocess.run(['heroku', 'create'])
+        else:
+            # Quit and have the user run the command again.
+            self.stdout.write("\nOkay. Canceling this run.")
+            self.stdout.write("  If you want to configure your project for deployment,")
+            self.stdout.write("  run simple_deploy again without the --automate-all flag.")
+            sys.exit()
 
 
     def _get_heroku_app_info(self):
@@ -369,6 +407,31 @@ class Command(BaseCommand):
 
             self.stdout.write("    Created static files directory, and placeholder file.")
 
+
+    def _conclude_automate_all(self):
+        """Finish automating the push to Heroku."""
+        if not self.automate_all:
+            return
+
+        self.stdout.write("Committing and pushing project...")
+
+        self.stdout.write("  Adding changes...")
+        subprocess.run(['git', 'add', '.'])
+
+        self.stdout.write("  Committing changes...")
+        subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
+
+        # DEV: This should grab the current branch name, and push to that.
+        self.stdout.write("  Pushing to heroku...")
+        subprocess.run(['git', 'push', 'heroku', 'main'])
+
+        self.stdout.write("  Migrating deployed app...")
+        subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'])
+
+        self.stdout.write("  Opening deployed app in a new browser tab...")
+        subprocess.run(['heroku', 'open'])
+
+        
 
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
