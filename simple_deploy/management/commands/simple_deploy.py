@@ -413,7 +413,7 @@ class Command(BaseCommand):
         if not self.automate_all:
             return
 
-        self.stdout.write("Committing and pushing project...")
+        self.stdout.write("\n\nCommitting and pushing project...")
 
         self.stdout.write("  Adding changes...")
         subprocess.run(['git', 'add', '.'])
@@ -422,10 +422,13 @@ class Command(BaseCommand):
         subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
 
         self.stdout.write("  Pushing to heroku...")
-        # Get the current branch name, and push that branch.
-        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
-        self.current_branch = git_status.stdout[10:]
 
+        # Get the current branch name, and push that branch.
+        # Get the first line of status output, and keep everything after "On branch ".
+        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
+        self.current_branch = git_status.stdout.split('\n')[0][10:]
+
+        self.stdout.write(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
             subprocess.run(['git', 'push', 'heroku', self.current_branch])
         else:
@@ -436,7 +439,6 @@ class Command(BaseCommand):
 
         self.stdout.write("  Opening deployed app in a new browser tab...")
         subprocess.run(['heroku', 'open'])
-
 
 
     def _show_success_message(self):
@@ -454,6 +456,10 @@ class Command(BaseCommand):
         if self.automate_all:
             msg = "\n\n--- Your project should now be deployed on Heroku. ---"
             msg += "\n\nIt should have opened up in a new browser tab."
+            msg += """\nIf you see the message "There's nothing here, yet." try waiting"""
+            msg += "\na moment and then refreshing your browser."
+            msg += "\nSometimes when the process is automated there's a little lag"
+            msg += "\nbefore the project is fully deployed."
             msg += f"\nYou can also visit your project at {self.heroku_app_name}.herokuapp.com."
             msg += "\n\nIf you make further changes and want to push them to Heroku,"
             msg += "\ncommit your changes and then run the following command:"
