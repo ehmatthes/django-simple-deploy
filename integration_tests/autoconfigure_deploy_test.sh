@@ -31,6 +31,8 @@
 #    current_branch, pypi
 # d: Dependency management approach that's being tested.
 #    req_txt, pipenv, poetry
+# o: Options for the simple_deploy run.
+#    automate_all
 #
 # DEV: Not sure if fromatting of this is standard.
 # Usage:
@@ -38,11 +40,15 @@
 
 target="current_branch"
 dep_man_approach="req_txt"
-while getopts t:d: flag
+# Options:
+# - test_automate_all
+cli_sd_options=""
+while getopts t:d:o: flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
         d) dep_man_approach=${OPTARG};;
+        o) cli_sd_options=${OPTARG};;
     esac
 done
 
@@ -59,6 +65,11 @@ while true; do
         * ) echo "Please answer yes or no.";;
     esac
 done
+
+# Only one possibility for cli_sd_options right now.
+if [ "$cli_sd_options" = 'automate_all' ]; then
+    test_automate_all=true
+fi
 
 # Get current branch and remote Git address, so we know which version 
 #   of the app to test against.
@@ -169,11 +180,18 @@ fi
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
 
-echo "Running heroku create..."
-heroku create
+# Skip if testing --atomate-all
+if [ "$test_automate_all" != true ]; then
+    echo "Running heroku create..."
+    heroku create
+fi
 
 echo "Running manage.py simple_deploy..."
-python manage.py simple_deploy
+if [ "$test_automate_all" = true ]; then
+    python manage.py simple_deploy --automate-all
+else
+    python manage.py simple_deploy
+fi
 
 # After running simple_deploy, need to regenerate the lock file.
 if [ "$dep_man_approach" = 'pipenv' ]; then
@@ -199,16 +217,19 @@ if [ "$target" = 'current_branch' ]; then
     fi
 fi
 
-echo "\n\nCommitting changes..."
-git add .
-git commit -am "Configured for deployment."
+# Skip if testing --automate-all.
+if [ "$test_automate_all" != true ]; then
+    echo "\n\nCommitting changes..."
+    git add .
+    git commit -am "Configured for deployment."
 
-echo "Pushing to heroku..."
-# DEV: There should probably be a variable to track which branch we're using on the test repository.
-# git push heroku main
-git push heroku main
-heroku run python manage.py migrate
-heroku open
+    echo "Pushing to heroku..."
+    # DEV: There should probably be a variable to track which branch we're using on the test repository.
+    # git push heroku main
+    git push heroku main
+    heroku run python manage.py migrate
+    heroku open
+fi
 
 app_name=$(heroku apps:info | grep "===")
 app_name=${app_name:4}
