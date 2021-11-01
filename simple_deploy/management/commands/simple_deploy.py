@@ -421,9 +421,15 @@ class Command(BaseCommand):
         self.stdout.write("  Committing changes...")
         subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
 
-        # DEV: This should grab the current branch name, and push to that.
         self.stdout.write("  Pushing to heroku...")
-        subprocess.run(['git', 'push', 'heroku', 'main'])
+        # Get the current branch name, and push that branch.
+        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
+        self.current_branch = git_status.stdout[10:]
+
+        if self.current_branch in ('main', 'master'):
+            subprocess.run(['git', 'push', 'heroku', self.current_branch])
+        else:
+            subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'])
 
         self.stdout.write("  Migrating deployed app...")
         subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'])
@@ -431,7 +437,7 @@ class Command(BaseCommand):
         self.stdout.write("  Opening deployed app in a new browser tab...")
         subprocess.run(['heroku', 'open'])
 
-        
+
 
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
@@ -445,21 +451,36 @@ class Command(BaseCommand):
         #   creating a new deployment.
         #   - Describe ongoing approach of commit, push, migrate. Lots to consider
         #     when doing this on production app with users, make sure you learn.
-        
-        msg = "\n\n--- Your project is now configured for deployment on Heroku. ---"
-        msg += "\n\nTo deploy your project, you will need to:"
-        msg += "\n- Commit the changes made in the configuration process."
-        msg += "\n- Push the changes to Heroku."
-        msg += "\n- Migrate the database on Heroku."
-        msg += "\n\nThe following commands should finish your initial deployment:"
-        if self.using_pipenv:
-            msg += "\n$ pipenv lock"
-        msg += "\n$ git add ."
-        msg += '\n$ git commit -am "Configured for Heroku deployment."'
-        msg += "\n$ git push heroku main"
-        msg += "\n$ heroku run python manage.py migrate"
-        msg += "\n\nAfter this, you can see your project by running 'heroku open'."
-        msg += f"\nOr, you can visit {self.heroku_app_name}.herokuapp.com."
+        if self.automate_all:
+            msg = "\n\n--- Your project should now be deployed on Heroku. ---"
+            msg += "\n\nIt should have opened up in a new browser tab."
+            msg += f"\nYou can also visit your project at {self.heroku_app_name}.herokuapp.com."
+            msg += "\n\nIf you make further changes and want to push them to Heroku,"
+            msg += "\ncommit your changes and then run the following command:"
+            if self.current_branch in ('main', 'master'):
+                msg += f"\n  $ git push heroku {self.current_branch}"
+            else:
+                msg += f"\n  $ git push heroku {self.current_branch}:main"
+            msg += "\n\nAlso, if you haven't already done so you should review the"
+            msg += "\ndocumentation for Python deployments on Heroku at:"
+            msg += "\n  https://devcenter.heroku.com/categories/python-support"
+            msg += "\nThis documentation will help you understand how to maintain"
+            msg += "\nyour deployment."
+        else:
+            msg = "\n\n--- Your project is now configured for deployment on Heroku. ---"
+            msg += "\n\nTo deploy your project, you will need to:"
+            msg += "\n- Commit the changes made in the configuration process."
+            msg += "\n- Push the changes to Heroku."
+            msg += "\n- Migrate the database on Heroku."
+            msg += "\n\nThe following commands should finish your initial deployment:"
+            if self.using_pipenv:
+                msg += "\n$ pipenv lock"
+            msg += "\n$ git add ."
+            msg += '\n$ git commit -am "Configured for Heroku deployment."'
+            msg += "\n$ git push heroku main"
+            msg += "\n$ heroku run python manage.py migrate"
+            msg += "\n\nAfter this, you can see your project by running 'heroku open'."
+            msg += f"\nOr, you can visit {self.heroku_app_name}.herokuapp.com."
 
         self.stdout.write(msg)
 
