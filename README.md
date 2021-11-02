@@ -16,7 +16,20 @@ Make sure your project is running in a virtual environment, and you have either:
 - Or, used Poetry to manage your project's requirements using a `pyproject.toml` file;
 - Or, used Pipenv to create a `Pipfile`.
 
-Quick start - using `requirements.txt`
+Quick start: using `--automate-all`
+---
+
+The `--automate-all` flag allows you to deploy your projects in just three steps:
+- Install `django-simple-deply`.
+    - With pip: `$ pip install django-simple-deploy`
+    - With Poetry: `$ poetry add django-simple-deploy`
+    - With Pipenv: `$ pipenv install django-simple-deploy`
+- Add `simple_deploy` to `INSTALLED_APPS`;
+- Run `python manage.py simple_deploy --automate-all`.
+
+This will take care of creating a new Heroku app, configuring your project for deployment, committing all changes, pushing the project to Heroku's servers, running the initial migration, and opening the project in a new browser tab.
+
+Quick start: using `requirements.txt`
 ---
 
 If you've met the prerequisites, you can deploy your project using the following steps:
@@ -42,7 +55,7 @@ The following commands will deploy your project:
 
 After running this last command, you should see your project open in a browser. :)
 
-Quick start - using Poetry
+Quick start: using Poetry
 ---
 
 If you've met the prerequisites, you can deploy your project using the following steps:
@@ -68,7 +81,7 @@ The following commands will deploy your project:
 
 After running this last command, you should see your project open in a browser. :)
 
-Quick start - using Pipenv
+Quick start: using Pipenv
 ---
 
 If you've met the prerequisites, you can deploy your project using the following steps:
