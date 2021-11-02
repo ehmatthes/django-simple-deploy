@@ -19,7 +19,7 @@ Make sure your project is running in a virtual environment, and you have either:
 Quick start: using `--automate-all`
 ---
 
-The `--automate-all` flag allows you to deploy your projects in just three steps:
+The `--automate-all` flag allows you to deploy your project in just three steps:
 - Install `django-simple-deply`.
     - With pip: `$ pip install django-simple-deploy`
     - With Poetry: `$ poetry add django-simple-deploy`

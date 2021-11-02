@@ -52,7 +52,7 @@ Testing options
 ---
 
 ```
-./integration_tests/autoconfigure_deploy_test.sh -t [pypi|current_branch] -d [req_txt|poetry|pipenv]
+./integration_tests/autoconfigure_deploy_test.sh -t [pypi|current_branch] -d [req_txt|poetry|pipenv] -o [automate_all]
 ```
 
 Testing poetry has been problematic for me due to caching issues. If you see errors about installing requirements to the temporary environment created during the tests, try clearing the cache manually before running the tests:
@@ -60,4 +60,9 @@ Testing poetry has been problematic for me due to caching issues. If you see err
 ```
 $ poetry cache clear --all pypi
 $ ./integration_tests/autoconfigure_deploy_test -d pypi
+```
+
+Example: Test the `--automate-all` approach using poetry:
+```
+$ ./integration_tests/autoconfigure_deploy_test.sh -o automate_all -d poetry
 ```
