@@ -111,11 +111,11 @@ class Command(BaseCommand):
         # Turn stdout info into a list of strings that we can then parse.
         apps_info = apps_info.stdout.decode().split('\n')
         # print('split apps info:\n', apps_info)
-
         self.heroku_app_name = apps_info[0].removeprefix('=== ')
-        self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")
 
-        if not self.heroku_app_name:
+        if self.heroku_app_name:
+            self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")
+        else:
             msg = "\n\nNo Heroku app name has been detected."
             msg += "\n\nThe simple_deploy command assumes you have already run 'heroku create' to start the deployment process. Please run 'heroku create', and then run 'python manage.py simple_deploy' again."
             msg += "\n\nIf you haven't already done so, you will need to install the Heroku CLI: https://devcenter.heroku.com/articles/heroku-cli"
