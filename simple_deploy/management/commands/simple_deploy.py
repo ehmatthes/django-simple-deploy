@@ -86,11 +86,11 @@ class Command(BaseCommand):
         #     deployment process.
         #   This is all done through the `heroku apps:info` command.
         #
+        #  DEV: I believe the folling is incorrect, running heroku create
+        #    repeatedly will keep making new apps!
         #  If they haven't run heroku create, output should go to stderr
         #    and we simply won't have an app name. So, blank app name -> 
         #    tell user to run 'heroku create and then run this command again.
-        #  We could consider running this for the user, but we probably want them to 
-        #    interact with heroku to some degree.
         #  What happens if they haven't installed Heroku CLI?
         #    Telling them they need to run heroku create probably covers that
         #    for now.
@@ -429,9 +429,8 @@ class Command(BaseCommand):
 
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
-        # DEV: This might be better structured as a block of text in a
-        #   separate file, pulled in from this method.
-        # Also:
+
+        # DEV:
         # - Say something about DEBUG setting.
         #   - Should also consider setting DEBUG = False in the Heroku-specific
         #     settings.
@@ -439,41 +438,17 @@ class Command(BaseCommand):
         #   creating a new deployment.
         #   - Describe ongoing approach of commit, push, migrate. Lots to consider
         #     when doing this on production app with users, make sure you learn.
+
         if self.automate_all:
-            # State that project has been deployed, and show how to make
-            #   future deployments.
-            self.heroku_app_name = 'wandering-sands-23232'
-            self.current_branch = 'main'
+            # Show how to make future deployments.
             msg = d_msgs.success_msg_automate_all(self.heroku_app_name,
                     self.current_branch)
-
-
-            # msg = "\n\n--- Your project should now be deployed on Heroku. ---"
-            # msg += "\n\nIt should have opened up in a new browser tab."
-            # msg += """\n- If you see the message "There's nothing here, yet." try waiting"""
-            # msg += "\n  a moment and then refreshing your browser."
-            # msg += "\n- Sometimes when the process is automated there's a little lag"
-            # msg += "\n  before the project is fully deployed."
-            # msg += f"\n- You can also visit your project at {self.heroku_app_name}.herokuapp.com."
-            # msg += "\n\nIf you make further changes and want to push them to Heroku,"
-            # msg += "\ncommit your changes and then run the following command:"
-            # if self.current_branch in ('main', 'master'):
-            #     msg += f"\n$ git push heroku {self.current_branch}"
-            # else:
-            #     msg += f"\n$ git push heroku {self.current_branch}:main"
-            # msg += "\n\nAlso, if you haven't already done so you should review the"
-            # msg += "\ndocumentation for Python deployments on Heroku at:"
-            # msg += "\n- https://devcenter.heroku.com/categories/python-support"
-            # msg += "\n- This documentation will help you understand how to maintain"
-            # msg += "\n  your deployment."
-
-
         else:
-            # State that project has been configured, and show steps to finish
-            #   the deployment process.
+            # Show steps to finish the deployment process.
             msg = d_msgs.success_msg(self.using_pipenv, self.heroku_app_name)
 
         self.stdout.write(msg)
+
 
     # --- Utility methods ---
 
