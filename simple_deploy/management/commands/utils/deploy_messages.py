@@ -11,16 +11,14 @@
 #   that clearly summarizes what the message says.
 #
 # CommandError messages
-# - Any message used when raising a CommandError should have the first line
-#   immediately after the opening triple quote, so it appears right after
-#   "CommandError: ".
-# - This should be followed by a blank line, to emphasize the detailed
-#   information in the error message.
+# - Any message used when raising a CommandError should have a blank line after
+#   the line with the opening triple quote, to separate the main error message
+#   from the generic "Command Error".
 #
 # Line length conventions
 # - DynamicMessages
-#  - It can be helpful to make a second vertical line at 90 characters
-#    (78 characters + three indentation levels) to judge the line lengths
+#  - It can be helpful to make a second vertical line at 86 characters
+#    (78 characters + two indentation levels) to judge the line lengths
 #    for dynamic messages.
 
 
@@ -57,36 +55,51 @@ no_heroku_app_detected = """No Heroku app name has been detected.
 
 
 # --- Dynamic strings ---
+# These need to be generated in functions, to display information that's 
+#   determined as the script runs.
 
-class DynamicMessages:
-    """Messages that require information generated in simple_deploy.py."""
+def allowed_hosts_not_empty_msg(heroku_host):
+    # This will be displayed as a CommandError.
+    msg = dedent(f"""
 
-    def __init__(self, sd_command):
-        """Gets a copy of the simple_deploy Command object, which has
-        references to all information needed to generate any dynamic message.
-        """
-        # Don't do everything in __init__(); may want to break this up into
-        #   defining groups of messages.
-        # self.sd_command = sd_command
-        pass
-
-
-    def get_allowed_hosts_not_empty_msg(self, heroku_host):
-        # This will be displayed as a CommandError.
-        msg = dedent(f"""
-
-            Your ALLOWED_HOSTS setting is not empty, and it does not contain {heroku_host}.
-            - ALLOWED_HOSTS is a critical security setting.
-            - It is empty by default, which means you or someone else has decided where this project can be hosted.
-            - Your ALLOWED_HOSTS setting currently contains the following entries:
-              {settings.ALLOWED_HOSTS}"
-            - We don't know enough about your project to add to or override this setting.
-            - If you want to continue with this deployment, make sure ALLOWED_HOSTS
-              is either empty, or contains the host {heroku_host}.
-            - Once you have addressed this issue, you can run the simple_deploy command
-              again, and it will pick up where it left off.
-        """)
-        return msg
+        Your ALLOWED_HOSTS setting is not empty, and it does not contain {heroku_host}.
+        - ALLOWED_HOSTS is a critical security setting.
+        - It is empty by default, which means you or someone else has decided where this project can be hosted.
+        - Your ALLOWED_HOSTS setting currently contains the following entries:
+          {settings.ALLOWED_HOSTS}"
+        - We don't know enough about your project to add to or override this setting.
+        - If you want to continue with this deployment, make sure ALLOWED_HOSTS
+          is either empty, or contains the host {heroku_host}.
+        - Once you have addressed this issue, you can run the simple_deploy command
+          again, and it will pick up where it left off.
+    """)
+    return msg
 
 
+def success_msg(using_pipenv, heroku_app_name):
+    """Success message shown, without --automate-all flag."""
 
+    # You can't use backslashes in f-strings, so this is the cleanest way I
+    #   can add a pipenv line when needed.
+    newline = '\n'
+
+    msg = dedent(f"""
+
+        --- Your project is now configured for deployment on Heroku. ---
+        
+        To deploy your project, you will need to:
+        - Commit the changes made in the configuration process.
+        - Push the changes to Heroku.
+        - Migrate the database on Heroku.
+        
+        The following commands should finish your initial deployment:{newline + '        $ pipenv lock' if using_pipenv else ''}
+        $ git add .
+        $ git commit -am "Configured for Heroku deployment."
+        $ git push heroku main
+        $ heroku run python manage.py migrate
+        
+        After this, you can see your project by running 'heroku open'.
+        Or, you can visit https://{heroku_app_name}.herokuapp.com.
+
+    """)
+    return msg

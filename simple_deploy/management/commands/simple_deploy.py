@@ -26,7 +26,6 @@ class Command(BaseCommand):
         #   Assume deploying to Heroku for now.
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
 
-        self._prep_messages()
         self._parse_cli_options(options)
         self._prep_automate_all()
         self._get_heroku_app_info()
@@ -36,16 +35,10 @@ class Command(BaseCommand):
         self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
-        # self._configure_db()
-        # self._configure_static_files()
-        # self._conclude_automate_all()
-        # self._show_success_message()
-
-    def _prep_messages(self):
-        """Initialize a DynamicMessages class, to build output messages
-        that have dynamic content.
-        """
-        self.dm = d_msgs.DynamicMessages(self)
+        self._configure_db()
+        self._configure_static_files()
+        self._conclude_automate_all()
+        self._show_success_message()
 
 
     def _parse_cli_options(self, options):
@@ -83,7 +76,6 @@ class Command(BaseCommand):
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
             self.stdout.write(d_msgs.cancel_automate_all)
-            sys.exit()
 
 
     def _get_heroku_app_info(self):
@@ -278,10 +270,8 @@ class Command(BaseCommand):
         else:
             # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
             #   contain the current Heroku URL.
-            msg = self.dm.get_allowed_hosts_not_empty_msg(heroku_host)
+            msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
             raise CommandError(msg)
-
-        sys.exit()
 
 
     def _configure_db(self):
@@ -469,20 +459,26 @@ class Command(BaseCommand):
             msg += "\n- This documentation will help you understand how to maintain"
             msg += "\n  your deployment."
         else:
-            msg = "\n\n--- Your project is now configured for deployment on Heroku. ---"
-            msg += "\n\nTo deploy your project, you will need to:"
-            msg += "\n- Commit the changes made in the configuration process."
-            msg += "\n- Push the changes to Heroku."
-            msg += "\n- Migrate the database on Heroku."
-            msg += "\n\nThe following commands should finish your initial deployment:"
-            if self.using_pipenv:
-                msg += "\n$ pipenv lock"
-            msg += "\n$ git add ."
-            msg += '\n$ git commit -am "Configured for Heroku deployment."'
-            msg += "\n$ git push heroku main"
-            msg += "\n$ heroku run python manage.py migrate"
-            msg += "\n\nAfter this, you can see your project by running 'heroku open'."
-            msg += f"\nOr, you can visit {self.heroku_app_name}.herokuapp.com."
+            # State that project has been configured, and show steps to finish
+            #   the deployment process.
+            msg = d_msgs.success_msg(self.using_pipenv, self.heroku_app_name)
+
+
+
+            # msg = "\n\n--- Your project is now configured for deployment on Heroku. ---"
+            # msg += "\n\nTo deploy your project, you will need to:"
+            # msg += "\n- Commit the changes made in the configuration process."
+            # msg += "\n- Push the changes to Heroku."
+            # msg += "\n- Migrate the database on Heroku."
+            # msg += "\n\nThe following commands should finish your initial deployment:"
+            # if self.using_pipenv:
+            #     msg += "\n$ pipenv lock"
+            # msg += "\n$ git add ."
+            # msg += '\n$ git commit -am "Configured for Heroku deployment."'
+            # msg += "\n$ git push heroku main"
+            # msg += "\n$ heroku run python manage.py migrate"
+            # msg += "\n\nAfter this, you can see your project by running 'heroku open'."
+            # msg += f"\nOr, you can visit {self.heroku_app_name}.herokuapp.com."
 
         self.stdout.write(msg)
 
