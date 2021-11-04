@@ -5,7 +5,7 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 
-from simple_deploy.management.commands.utils import deploy_messages as dmsgs
+from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 
 
 class Command(BaseCommand):
@@ -60,7 +60,7 @@ class Command(BaseCommand):
         if not self.automate_all:
             return
 
-        self.stdout.write(dmsgs.confirm_automate_all)
+        self.stdout.write(d_msgs.confirm_automate_all)
 
         confirmed = ''
         while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
