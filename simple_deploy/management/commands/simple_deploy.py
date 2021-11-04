@@ -27,17 +27,17 @@ class Command(BaseCommand):
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
 
         self._parse_cli_options(options)
-        self._prep_automate_all()
-        self._get_heroku_app_info()
-        self._set_heroku_env_var()
-        self._inspect_project()
-        self._add_simple_deploy_req()
-        self._generate_procfile()
-        self._add_gunicorn()
-        self._check_allowed_hosts()
-        self._configure_db()
-        self._configure_static_files()
-        self._conclude_automate_all()
+        # self._prep_automate_all()
+        # self._get_heroku_app_info()
+        # self._set_heroku_env_var()
+        # self._inspect_project()
+        # self._add_simple_deploy_req()
+        # self._generate_procfile()
+        # self._add_gunicorn()
+        # self._check_allowed_hosts()
+        # self._configure_db()
+        # self._configure_static_files()
+        # self._conclude_automate_all()
         self._show_success_message()
 
 
@@ -440,45 +440,38 @@ class Command(BaseCommand):
         #   - Describe ongoing approach of commit, push, migrate. Lots to consider
         #     when doing this on production app with users, make sure you learn.
         if self.automate_all:
-            msg = "\n\n--- Your project should now be deployed on Heroku. ---"
-            msg += "\n\nIt should have opened up in a new browser tab."
-            msg += """\n- If you see the message "There's nothing here, yet." try waiting"""
-            msg += "\n  a moment and then refreshing your browser."
-            msg += "\n- Sometimes when the process is automated there's a little lag"
-            msg += "\n  before the project is fully deployed."
-            msg += f"\n- You can also visit your project at {self.heroku_app_name}.herokuapp.com."
-            msg += "\n\nIf you make further changes and want to push them to Heroku,"
-            msg += "\ncommit your changes and then run the following command:"
-            if self.current_branch in ('main', 'master'):
-                msg += f"\n$ git push heroku {self.current_branch}"
-            else:
-                msg += f"\n$ git push heroku {self.current_branch}:main"
-            msg += "\n\nAlso, if you haven't already done so you should review the"
-            msg += "\ndocumentation for Python deployments on Heroku at:"
-            msg += "\n- https://devcenter.heroku.com/categories/python-support"
-            msg += "\n- This documentation will help you understand how to maintain"
-            msg += "\n  your deployment."
+            # State that project has been deployed, and show how to make
+            #   future deployments.
+            self.heroku_app_name = 'wandering-sands-23232'
+            self.current_branch = 'main'
+            msg = d_msgs.success_msg_automate_all(self.heroku_app_name,
+                    self.current_branch)
+
+
+            # msg = "\n\n--- Your project should now be deployed on Heroku. ---"
+            # msg += "\n\nIt should have opened up in a new browser tab."
+            # msg += """\n- If you see the message "There's nothing here, yet." try waiting"""
+            # msg += "\n  a moment and then refreshing your browser."
+            # msg += "\n- Sometimes when the process is automated there's a little lag"
+            # msg += "\n  before the project is fully deployed."
+            # msg += f"\n- You can also visit your project at {self.heroku_app_name}.herokuapp.com."
+            # msg += "\n\nIf you make further changes and want to push them to Heroku,"
+            # msg += "\ncommit your changes and then run the following command:"
+            # if self.current_branch in ('main', 'master'):
+            #     msg += f"\n$ git push heroku {self.current_branch}"
+            # else:
+            #     msg += f"\n$ git push heroku {self.current_branch}:main"
+            # msg += "\n\nAlso, if you haven't already done so you should review the"
+            # msg += "\ndocumentation for Python deployments on Heroku at:"
+            # msg += "\n- https://devcenter.heroku.com/categories/python-support"
+            # msg += "\n- This documentation will help you understand how to maintain"
+            # msg += "\n  your deployment."
+
+
         else:
             # State that project has been configured, and show steps to finish
             #   the deployment process.
             msg = d_msgs.success_msg(self.using_pipenv, self.heroku_app_name)
-
-
-
-            # msg = "\n\n--- Your project is now configured for deployment on Heroku. ---"
-            # msg += "\n\nTo deploy your project, you will need to:"
-            # msg += "\n- Commit the changes made in the configuration process."
-            # msg += "\n- Push the changes to Heroku."
-            # msg += "\n- Migrate the database on Heroku."
-            # msg += "\n\nThe following commands should finish your initial deployment:"
-            # if self.using_pipenv:
-            #     msg += "\n$ pipenv lock"
-            # msg += "\n$ git add ."
-            # msg += '\n$ git commit -am "Configured for Heroku deployment."'
-            # msg += "\n$ git push heroku main"
-            # msg += "\n$ heroku run python manage.py migrate"
-            # msg += "\n\nAfter this, you can see your project by running 'heroku open'."
-            # msg += f"\nOr, you can visit {self.heroku_app_name}.herokuapp.com."
 
         self.stdout.write(msg)
 

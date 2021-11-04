@@ -77,7 +77,7 @@ def allowed_hosts_not_empty_msg(heroku_host):
 
 
 def success_msg(using_pipenv, heroku_app_name):
-    """Success message shown, without --automate-all flag."""
+    """Success message, when not using --automate-all flag."""
 
     # You can't use backslashes in f-strings, so this is the cleanest way I
     #   can add a pipenv line when needed.
@@ -100,6 +100,40 @@ def success_msg(using_pipenv, heroku_app_name):
         
         After this, you can see your project by running 'heroku open'.
         Or, you can visit https://{heroku_app_name}.herokuapp.com.
+
+    """)
+    return msg
+
+
+def success_msg_automate_all(heroku_app_name, current_branch):
+    """Success message, when using --automate-all."""
+
+    # Set correct command for pushing to heroku.
+    if current_branch in ('main', 'master'):
+        push_command = f"$ git push heroku {current_branch}"
+    else:
+        push_command = f"$ git push heroku {current_branch}:main"
+
+    msg = dedent(f"""
+
+        --- Your project should now be deployed on Heroku. ---
+
+        It should have opened up in a new browser tab.
+        - If you see the message "There's nothing here, yet"
+          try waiting a moment and then refreshing your browser.
+        - Sometimes when the process is automated there's a little lag
+          before the project is fully deployed.
+        - You can also visit your project at {heroku_app_name}.herokuapp.com.
+
+        If you make further changes and want to push them to Heroku,
+        commit your changes and then run the following command:
+        {push_command}
+
+        Also, if you haven't already done so you should review the
+        documentation for Python deployments on Heroku at:
+        - https://devcenter.heroku.com/categories/python-support
+        - This documentation will help you understand how to maintain
+          your deployment.
 
     """)
     return msg
