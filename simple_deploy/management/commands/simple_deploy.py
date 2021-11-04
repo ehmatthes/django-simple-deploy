@@ -5,6 +5,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 
+from simple_deploy.management.commands.utils import deploy_messages as dmsgs
+
+
 class Command(BaseCommand):
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
@@ -25,17 +28,17 @@ class Command(BaseCommand):
 
         self._parse_cli_options(options)
         self._prep_automate_all()
-        self._get_heroku_app_info()
-        self._set_heroku_env_var()
-        self._inspect_project()
-        self._add_simple_deploy_req()
-        self._generate_procfile()
-        self._add_gunicorn()
-        self._check_allowed_hosts()
-        self._configure_db()
-        self._configure_static_files()
-        self._conclude_automate_all()
-        self._show_success_message()
+        # self._get_heroku_app_info()
+        # self._set_heroku_env_var()
+        # self._inspect_project()
+        # self._add_simple_deploy_req()
+        # self._generate_procfile()
+        # self._add_gunicorn()
+        # self._check_allowed_hosts()
+        # self._configure_db()
+        # self._configure_static_files()
+        # self._conclude_automate_all()
+        # self._show_success_message()
 
 
     def _parse_cli_options(self, options):
@@ -57,15 +60,7 @@ class Command(BaseCommand):
         if not self.automate_all:
             return
 
-        msg = "\n\nThe --automate-all flag means simple_deploy will:"
-        msg += "\n- Run `heroku create` for you, to create a new Heroku project;"
-        msg += "\n- Commit all changes to your project that are necessary for deployment;"
-        msg += "\n  These changes will be committed to the current branch, you"
-        msg += "\n    may want to make a new branch for this work."
-        msg += "\n- Push these changes to Heroku;"
-        msg += "\n- Run `heroku migrate` to set up the remote database;"
-        msg += "\n- Call `heroku open` to open your deployed project in a new browser tab."
-        self.stdout.write(msg)
+        self.stdout.write(dmsgs.confirm_automate_all)
 
         confirmed = ''
         while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
@@ -77,7 +72,7 @@ class Command(BaseCommand):
         if confirmed.lower() in ('y', 'yes'):
             pass
             self.stdout.write("  Running `heroku create`...")
-            subprocess.run(['heroku', 'create'])
+            # subprocess.run(['heroku', 'create'])
         else:
             # Quit and have the user run the command again.
             self.stdout.write("\nOkay. Canceling this run.")
