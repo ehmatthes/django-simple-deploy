@@ -28,7 +28,7 @@ class Command(BaseCommand):
 
         self._parse_cli_options(options)
         self._prep_automate_all()
-        # self._get_heroku_app_info()
+        self._get_heroku_app_info()
         # self._set_heroku_env_var()
         # self._inspect_project()
         # self._add_simple_deploy_req()
@@ -109,11 +109,9 @@ class Command(BaseCommand):
         if self.heroku_app_name:
             self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")
         else:
-            msg = "\n\nNo Heroku app name has been detected."
-            msg += "\n\nThe simple_deploy command assumes you have already run 'heroku create' to start the deployment process. Please run 'heroku create', and then run 'python manage.py simple_deploy' again."
-            msg += "\n\nIf you haven't already done so, you will need to install the Heroku CLI: https://devcenter.heroku.com/articles/heroku-cli"
-
-            raise CommandError(msg)
+            # Quit with an error, and let user know they need to run 
+            #   `heroku create` first.
+            raise CommandError(d_msgs.no_heroku_app_detected)
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
