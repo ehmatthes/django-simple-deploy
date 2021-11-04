@@ -26,19 +26,26 @@ class Command(BaseCommand):
         #   Assume deploying to Heroku for now.
         self.stdout.write("Auto-configuring project for deployment to Heroku...")
 
+        self._prep_messages()
         self._parse_cli_options(options)
         self._prep_automate_all()
         self._get_heroku_app_info()
-        # self._set_heroku_env_var()
-        # self._inspect_project()
-        # self._add_simple_deploy_req()
-        # self._generate_procfile()
-        # self._add_gunicorn()
-        # self._check_allowed_hosts()
+        self._set_heroku_env_var()
+        self._inspect_project()
+        self._add_simple_deploy_req()
+        self._generate_procfile()
+        self._add_gunicorn()
+        self._check_allowed_hosts()
         # self._configure_db()
         # self._configure_static_files()
         # self._conclude_automate_all()
         # self._show_success_message()
+
+    def _prep_messages(self):
+        """Initialize a DynamicMessages class, to build output messages
+        that have dynamic content.
+        """
+        self.dm = d_msgs.DynamicMessages(self)
 
 
     def _parse_cli_options(self, options):
@@ -268,15 +275,13 @@ class Command(BaseCommand):
                     self.stdout.write(f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project.")
             else:
                 self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project.")
-
         else:
-            msg = f"\n\nYour ALLOWED_HOSTS setting is not empty, and it does not contain {heroku_host}. ALLOWED_HOSTS is a critical security setting. It is empty by default, which means you or someone else has decided where this project can be hosted."
-            msg += "\n\nYour ALLOWED_HOSTS setting currently contains the following entries:"
-            msg += f"\n{settings.ALLOWED_HOSTS}"
-            msg += f"\n\nWe do not know enough about your project to add to or override this setting. If you want to continue with this deployment, make sure ALLOWED_HOSTS is either empty, or contains the host {heroku_host}."
-            msg += "\n\nOnce you have addressed this issue, you can run the simple_deploy command again, and it will pick up where it left off."
-
+            # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
+            #   contain the current Heroku URL.
+            msg = self.dm.get_allowed_hosts_not_empty_msg(heroku_host)
             raise CommandError(msg)
+
+        sys.exit()
 
 
     def _configure_db(self):
