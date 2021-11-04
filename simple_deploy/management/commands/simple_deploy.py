@@ -53,15 +53,15 @@ class Command(BaseCommand):
 
     def _prep_automate_all(self):
         """Do intial work for automating entire process."""
-        # Confirm automation.
-        # Call heroku create.
 
         # Skip this prep work if --automate-all not used.
         if not self.automate_all:
             return
 
+        # Confirm the user knows exactly what will be automated.
         self.stdout.write(d_msgs.confirm_automate_all)
 
+        # Get confirmation.
         confirmed = ''
         while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
             prompt = "\nAre you sure you want to do this? (yes|no) "
@@ -70,14 +70,12 @@ class Command(BaseCommand):
                 self.stdout.write("  Please answer yes or no.")
 
         if confirmed.lower() in ('y', 'yes'):
-            pass
             self.stdout.write("  Running `heroku create`...")
-            # subprocess.run(['heroku', 'create'])
+            subprocess.run(['heroku', 'create'])
         else:
-            # Quit and have the user run the command again.
-            self.stdout.write("\nOkay. Canceling this run.")
-            self.stdout.write("  If you want to configure your project for deployment,")
-            self.stdout.write("  run simple_deploy again without the --automate-all flag.")
+            # Quit and have the user run the command again; don't assume not
+            #   wanting to automate means they want to configure.
+            self.stdout.write(d_msgs.cancel_automate_all)
             sys.exit()
 
 

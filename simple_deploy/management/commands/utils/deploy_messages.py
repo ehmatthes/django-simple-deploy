@@ -14,3 +14,7 @@ The --automate-all flag means simple_deploy will:
 - Call `heroku open` to open your deployed project in a new browser tab.
 """
 
+cancel_automate_all = """
+Okay, canceling this run. If you want to configure your project
+  for deployment, run simple_deploy again without the --automate-all flag.
+"""
