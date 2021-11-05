@@ -2,3 +2,4 @@ include LICENSE
 include README.md
 recursive-include docs *
 include simple_deploy/management/commands/simple_deploy.py
+include simple_deploy/management/commands/utils *
