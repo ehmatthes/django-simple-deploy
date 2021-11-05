@@ -16,10 +16,13 @@
 #   from the generic "Command Error".
 #
 # Line length conventions
+# - Try to keep lines at the 79-char PEP 8 limit, but the project is not
+#   overly strict about it at this point.
+#
 # - DynamicMessages
-#  - It can be helpful to make a second vertical line at 86 characters
-#    (78 characters + two indentation levels) to judge the line lengths
-#    for dynamic messages.
+#   - It can be helpful to make a second vertical line at 86 characters
+#     (78 characters + two indentation levels) to judge the line lengths
+#     for dynamic messages.
 
 
 from textwrap import dedent

@@ -14,7 +14,7 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        """Parse CLI options."""
+        """Define CLI options."""
 
         parser.add_argument('--automate-all',
             help="Automate all aspects of deployment?",
@@ -24,7 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # DEV: Later, this should check for the platform to deploy to.
         #   Assume deploying to Heroku for now.
-        self.stdout.write("Auto-configuring project for deployment to Heroku...")
+        self.stdout.write("Configuring project for deployment to Heroku...")
 
         self._parse_cli_options(options)
         self._prep_automate_all()
@@ -80,37 +80,22 @@ class Command(BaseCommand):
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to."""
-        # This command assumes the user has already run 'heroku create'.
-        #   If they haven't, we'll quit and tell them to.
-        #   If they have, we'll get the information we'll need later in the
-        #     deployment process.
-        #   This is all done through the `heroku apps:info` command.
-        #
-        #  DEV: I believe the folling is incorrect, running heroku create
-        #    repeatedly will keep making new apps!
-        #  If they haven't run heroku create, output should go to stderr
-        #    and we simply won't have an app name. So, blank app name -> 
-        #    tell user to run 'heroku create and then run this command again.
-        #  What happens if they haven't installed Heroku CLI?
-        #    Telling them they need to run heroku create probably covers that
-        #    for now.
-
+        # We assume the user has already run 'heroku create', or --automate-all
+        #   has run it. If it hasn't been run, we'll quit and tell them to do so.
         self.stdout.write("  Inspecting Heroku app...")
-
         apps_info = subprocess.run(["heroku", "apps:info"], capture_output=True)
-        # print('raw apps info:\n', apps_info)
 
         # Turn stdout info into a list of strings that we can then parse.
+        #   If no app exists, stdout is empty and the output went to stderr.
         apps_info = apps_info.stdout.decode().split('\n')
-        # print('split apps info:\n', apps_info)
         self.heroku_app_name = apps_info[0].removeprefix('=== ')
 
         if self.heroku_app_name:
             self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")
         else:
-            # Quit with an error, and let user know they need to run 
-            #   `heroku create` first.
+            # Let user know they need to run `heroku create`.
             raise CommandError(d_msgs.no_heroku_app_detected)
+
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
@@ -120,6 +105,7 @@ class Command(BaseCommand):
         subprocess.run(["heroku", "config:set", "ON_HEROKU=1"])
         self.stdout.write("    Set ON_HEROKU=1.")
         self.stdout.write("    This is used to define Heroku-specific settings.")
+
 
     def _inspect_project(self):
         """Inspect the project, and pull information needed by multiple steps.
@@ -133,9 +119,17 @@ class Command(BaseCommand):
         self.project_root = settings.BASE_DIR
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
-        # Which dependency management approach are we using?
-        #   req_txt, pipenv, poetry?
-        #   In a simple project, I don't think we should find both Pipfile
+        self._get_dep_man_approach()
+        self._get_current_requirements()
+        self._get_heroku_settings()
+
+
+    def _get_dep_man_approach(self):
+        """Identify which dependency management approach the project uses.
+        req_txt, poetry, or pipenv.
+        """
+
+        # In a simple project, I don't think we should find both Pipfile
         #   and requirements.txt. However, if there's both, prioritize Pipfile.
         self.using_req_txt = 'requirements.txt' in os.listdir(self.project_root)
 
@@ -156,7 +150,10 @@ class Command(BaseCommand):
             subprocess.run(export_cmd_parts)
             self.using_req_txt = True
 
-        # What requirements are already listed?
+
+    def _get_current_requirements(self):
+        """Get current project requirements, before adding any new ones.
+        """
         if self.using_req_txt:
             # Build path to requirements.txt.
             self.req_txt_path = f"{self.project_root}/requirements.txt"
@@ -173,10 +170,14 @@ class Command(BaseCommand):
             # Get list of requirements.
             self.requirements = self._get_pipfile_requirements()
 
-        # Store any heroku-specific settings already in place.
-        #   If any have already been written, we don't want to add them again.
-        #   This assumes a section at the end, starting with a check for 
-        #   'ON_HEROKU' in os.environ.
+
+    def _get_heroku_settings(self):
+        """Get any heroku-specific settings that are already in place.
+        """
+        # If any heroku settings have already been written, we don't want to
+        #  add them again. This assumes a section at the end, starting with a
+        #  check for 'ON_HEROKU' in os.environ.
+
         with open(self.settings_path) as f:
             settings_lines = f.readlines()
 
@@ -187,7 +188,7 @@ class Command(BaseCommand):
                 self.found_heroku_settings = True
             if self.found_heroku_settings:
                 self.current_heroku_settings_lines.append(line)
-        # print(self.current_heroku_settings_lines)
+
 
     def _add_simple_deploy_req(self):
         """Add this project to requirements.txt."""
