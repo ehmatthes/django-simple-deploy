@@ -8,7 +8,10 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 ### 0.1.7
 
-- Unreleased.
+(Unreleased)
+
+- Internal changes:
+    - All multiline output messages defined in a separate module.
 
 ### 0.1.6
 
