@@ -12,6 +12,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 - Internal changes:
     - All multiline output messages defined in a separate module.
+    - Reviewed all existing comments. (11/5/21)
 
 ### 0.1.6
 
