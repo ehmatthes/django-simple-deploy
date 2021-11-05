@@ -23,7 +23,9 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         # DEV: Later, this should check for the platform to deploy to.
-        #   Assume deploying to Heroku for now.
+        #   Will also probably move all platform-specific steps to 
+        #   separate files.
+        # Assume we're deploying to Heroku for now.
         self.stdout.write("Configuring project for deployment to Heroku...")
 
         self._parse_cli_options(options)
