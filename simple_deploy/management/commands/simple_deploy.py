@@ -308,7 +308,13 @@ class Command(BaseCommand):
         elif self.using_pipenv:
             self._add_pipenv_pkg('whitenoise')
 
-        # Modify settings.
+        # Modify settings, and add a directory for static files.
+        self._add_static_file_settings()
+        self._add_static_file_directory()
+
+
+    def _add_static_file_settings(self):
+        """Add all settings needed to manage static files."""
         self.stdout.write("    Configuring static files settings...")
 
         new_setting = "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')"
@@ -326,9 +332,12 @@ class Command(BaseCommand):
         msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
         self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-        # Create folder for static files.
-        # DEV: Move this to a helper method.
+
+    def _add_static_file_directory(self):
+        """Create a folder for static files, if it doesn't already exist.
+        """
         self.stdout.write("    Checking for static files directory...")
+        
         static_files_dir = f"{self.project_root}/static"
         if os.path.exists(static_files_dir):
             if os.listdir(static_files_dir):
