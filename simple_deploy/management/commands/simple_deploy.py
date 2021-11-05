@@ -319,12 +319,12 @@ class Command(BaseCommand):
         new_setting = "STATIC_URL = '/static/'"
         msg_added = "    Added STATIC_URL setting for Heroku."
         msg_already_set = "    Found STATIC_URL setting for Heroku."
-        self._add_req_txt_pkg(new_setting, msg_added, msg_already_set)
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
         new_setting = "STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)"
         msg_added = "    Added STATICFILES_DIRS setting for Heroku."
         msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
-        self._add_req_txt_pkg(new_setting, msg_added, msg_already_set)
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
         # Create folder for static files.
         # DEV: Move this to a helper method.
