@@ -344,15 +344,7 @@ class Command(BaseCommand):
             if os.listdir(static_files_dir):
                 self.stdout.write("    Found non-empty static files directory.")
                 return
-            # else:
-            #     # Directory exists, but it's empty and won't push to Heroku.
-            #     placeholder_file = f"{static_files_dir}/placeholder.txt"
-            #     with open(placeholder_file, 'w') as f:
-            #         f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
-
-            #     self.stdout.write("    Found empty static files directory; added a placeholder file.")
         else:
-            # No static directory exists. Make one a new empty directory.
             os.makedirs(static_files_dir)
             self.stdout.write("    Created empty static files directory.")
 
@@ -360,15 +352,7 @@ class Command(BaseCommand):
         placeholder_file = f"{static_files_dir}/placeholder.txt"
         with open(placeholder_file, 'w') as f:
             f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
-
         self.stdout.write("    Added placeholder file to static files directory.")
-
-        # Directory exists, but it's empty and won't push to Heroku.
-        placeholder_file = f"{static_files_dir}/placeholder.txt"
-        with open(placeholder_file, 'w') as f:
-            f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
-
-
 
 
     def _conclude_automate_all(self):
