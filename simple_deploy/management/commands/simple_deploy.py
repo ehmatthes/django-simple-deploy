@@ -250,40 +250,11 @@ class Command(BaseCommand):
             msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
             msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
             self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-
-            # already_set = self._check_current_heroku_settings(new_setting)
-
-            # if not already_set:
-            #     with open(self.settings_path, 'a') as f:
-            #         self._prep_heroku_setting(f)
-            #         f.write(f"\n    {new_setting}")
-
-            #         self.stdout.write(f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project.")
-            # else:
-            #     self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project.")
-
-
         else:
             # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
             #   contain the current Heroku URL.
             msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
             raise CommandError(msg)
-
-
-    def _add_heroku_setting(self, new_setting, msg_added='',
-            msg_already_set=''):
-        """Add a new setting to the heroku-specific settings, if not already
-        present.
-        """
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-                self.stdout.write(msg_added)
-        else:
-            self.stdout.write(msg_already_set)
 
 
     def _configure_db(self):
@@ -313,28 +284,16 @@ class Command(BaseCommand):
         self.stdout.write("   Checking Heroku db settings...")
 
         # Import dj-database-url.
-        # DEV: To refactor this, write a method to take in new setting, msg
-        #   if needed to set it, msg if already set.
         new_setting = "import dj_database_url"
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-            self.stdout.write("    Added import statement for dj-database-url.")
-        else:
-            self.stdout.write("    Found import statement for dj-database-url.")
+        msg_added = "    Added import statement for dj-database-url."
+        msg_already_set = "    Found import statement for dj-database-url."
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
         # Configure db.
         new_setting = "DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}"
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-            self.stdout.write("    Added setting to configure Postgres on Heroku.")
-        else:
-            self.stdout.write("    Found setting to configure Postgres on Heroku.")
+        msg_added = "    Added setting to configure Postgres on Heroku."
+        msg_already_set = "    Found setting to configure Postgres on Heroku."
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
 
     def _configure_static_files(self):
@@ -553,6 +512,21 @@ class Command(BaseCommand):
         settings section.
         """
         return any(heroku_setting in line for line in self.current_heroku_settings_lines)
+
+
+    def _add_heroku_setting(self, new_setting, msg_added='',
+            msg_already_set=''):
+        """Add a new setting to the heroku-specific settings, if not already
+        present.
+        """
+        already_set = self._check_current_heroku_settings(new_setting)
+        if not already_set:
+            with open(self.settings_path, 'a') as f:
+                self._prep_heroku_setting(f)
+                f.write(f"\n    {new_setting}")
+                self.stdout.write(msg_added)
+        else:
+            self.stdout.write(msg_already_set)
 
 
     def _prep_heroku_setting(self, f_settings):
