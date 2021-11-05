@@ -246,24 +246,44 @@ class Command(BaseCommand):
             # This is a generic entry that allows serving from any heroku URL.
             self.stdout.write("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
         elif not settings.ALLOWED_HOSTS:
-            # Only add this host if it's not already listed in the heroku-
-            #   specific section.
             new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
-            already_set = self._check_current_heroku_settings(new_setting)
+            msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
+            msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
+            self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-            if not already_set:
-                with open(self.settings_path, 'a') as f:
-                    self._prep_heroku_setting(f)
-                    f.write(f"\n    {new_setting}")
 
-                    self.stdout.write(f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project.")
-            else:
-                self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project.")
+            # already_set = self._check_current_heroku_settings(new_setting)
+
+            # if not already_set:
+            #     with open(self.settings_path, 'a') as f:
+            #         self._prep_heroku_setting(f)
+            #         f.write(f"\n    {new_setting}")
+
+            #         self.stdout.write(f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project.")
+            # else:
+            #     self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project.")
+
+
         else:
             # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
             #   contain the current Heroku URL.
             msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
             raise CommandError(msg)
+
+
+    def _add_heroku_setting(self, new_setting, msg_added='',
+            msg_already_set=''):
+        """Add a new setting to the heroku-specific settings, if not already
+        present.
+        """
+        already_set = self._check_current_heroku_settings(new_setting)
+        if not already_set:
+            with open(self.settings_path, 'a') as f:
+                self._prep_heroku_setting(f)
+                f.write(f"\n    {new_setting}")
+                self.stdout.write(msg_added)
+        else:
+            self.stdout.write(msg_already_set)
 
 
     def _configure_db(self):
