@@ -143,18 +143,36 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
 elif [ "$dep_man_approach" = 'poetry' ]; then
     cd "poetry_unpinned"
 
+    poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
+
+    # DEV: Poetry cache issues have been really hard to troubleshoot. At one point
+    #   testing against pypi code that doesn't even recognize poetry projects
+    #   was passing. The only explanation was it was using local code, even
+    #   though it reported what looked like pypi code. So, clear cache before
+    #   each test run. Also many poetry installation steps fail without clearing
+    #   cache manually first. 
+    # Leaving attempted cache clearing approaches commented here until
+    #   this issue is clearly resolved.
+    # If you have issues testing poetry, run the command
+    #   `poetry cache clear --all pypi` manually before running the test.
+    #
+    # See: https://github.com/python-poetry/poetry/issues/521
+    # and: https://github.com/python-poetry/poetry/issues/949
+    # 
+    # This approach fails, because --no-interaction accepts default answer,
+    #   which is 'no'.
+    # $poetry_cmd cache clear --all pypi --no-interaction
+    #
+    # This should pipe 'y' to the command, but it doesn't seem to work.
+    #   (It was failing when run after creating ll_env, maybe it works better
+    #   before making the new venv?)
+    yes | $poetry_cmd cache clear --all pypi
+
     # Make a new venv in this tmp project directory, so Poetry will use it,
     #   and we can destroy it at the end of testing.
     python3 -m venv ll_env
     source ll_env/bin/activate
 
-    # Poetry cache issues have been really hard to troubleshoot. At one point
-    #   testing against pypi code that doesn't even recognize poetry projects
-    #   was passing. The only explanation was it was using local code, even
-    #   though it reported what looked like pypi code. So, clear cache before
-    #   each test run.
-    poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
-    $poetry_cmd cache clear --all pypi --no-interaction
     $poetry_cmd install
 
     echo "--- info ---"

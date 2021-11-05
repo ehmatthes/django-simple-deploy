@@ -6,13 +6,16 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
-### 0.1.7
+### 0.1.8
 
 (Unreleased)
+
+### 0.1.7
 
 - Internal changes:
     - All multiline output messages defined in a separate module.
     - Reviewed all existing comments. (11/5/21)
+    - Refactored code that adds Heroku-specific settings.
 
 ### 0.1.6
 

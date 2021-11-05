@@ -59,10 +59,15 @@ Testing poetry has been problematic for me due to caching issues. If you see err
 
 ```
 $ poetry cache clear --all pypi
-$ ./integration_tests/autoconfigure_deploy_test -d pypi
+$ ./integration_tests/autoconfigure_deploy_test -d poetry
 ```
 
 Example: Test the `--automate-all` approach using poetry:
 ```
 $ ./integration_tests/autoconfigure_deploy_test.sh -o automate_all -d poetry
 ```
+
+Don't modify testing script while running
+---
+
+If you modify the autoconfigure_deploy_test.sh file while the test is running, it will try to load your changes during the current test run. This will almost certainly fail. If it happens, remember to destroy the tmp files manually, and make sure you destroy any apps that were created on your account as well.
