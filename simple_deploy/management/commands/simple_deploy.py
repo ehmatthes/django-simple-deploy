@@ -299,8 +299,9 @@ class Command(BaseCommand):
     def _configure_static_files(self):
         """Configure static files for Heroku deployment."""
 
-        # Add whitenoise to requirements.
         self.stdout.write("\n  Configuring static files for Heroku deployment...")
+
+        # Add whitenoise to requirements.
         self.stdout.write("    Adding staticfiles-related packages...")
         if self.using_req_txt:
             self._add_req_txt_pkg('whitenoise')
@@ -308,38 +309,22 @@ class Command(BaseCommand):
             self._add_pipenv_pkg('whitenoise')
 
         # Modify settings.
-        # DEV: There are three lines here; this can easily be refactored.
         self.stdout.write("    Configuring static files settings...")
 
         new_setting = "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')"
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-            self.stdout.write("    Added STATIC_ROOT setting for Heroku.")
-        else:
-            self.stdout.write("    Found STATIC_ROOT setting for Heroku.")
+        msg_added = "    Added STATIC_ROOT setting for Heroku."
+        msg_already_set = "    Found STATIC_ROOT setting for Heroku."
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
         new_setting = "STATIC_URL = '/static/'"
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-            self.stdout.write("    Added STATIC_URL setting for Heroku.")
-        else:
-            self.stdout.write("    Found STATIC_URL setting for Heroku.")
+        msg_added = "    Added STATIC_URL setting for Heroku."
+        msg_already_set = "    Found STATIC_URL setting for Heroku."
+        self._add_req_txt_pkg(new_setting, msg_added, msg_already_set)
 
         new_setting = "STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)"
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-            self.stdout.write("    Added STATICFILES_DIRS setting for Heroku.")
-        else:
-            self.stdout.write("    Found STATICFILES_DIRS setting for Heroku.")
+        msg_added = "    Added STATICFILES_DIRS setting for Heroku."
+        msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
+        self._add_req_txt_pkg(new_setting, msg_added, msg_already_set)
 
         # Create folder for static files.
         # DEV: Move this to a helper method.
