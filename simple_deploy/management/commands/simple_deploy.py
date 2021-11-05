@@ -192,23 +192,14 @@ class Command(BaseCommand):
 
     def _add_simple_deploy_req(self):
         """Add this project to requirements.txt."""
-        # Since the simple_deploy app is in INCLUDED_APPS, it needs to be in
-        #   requirements.txt. If it's not, Heroku will reject the push.
-        self.stdout.write("\n  Looking for django-simple-deploy in requirements...")
-
+        # Since the simple_deploy app is in INCLUDED_APPS, it needs to be
+        #   required. If it's not, Heroku will reject the push.
+        # This step isn't needed for Pipenv users, because when they install
+        #   django-simple-deploy it's automatically added to Pipfile.
         if self.using_req_txt:
-            # DEV: This is the correct code once this project is on PyPI.
-            #   Also, once this is updated, integration test will need to be updated.
-            #   (Substitution for dev branch install address.)
+            self.stdout.write("\n  Looking for django-simple-deploy in requirements.txt...")
             self._add_req_txt_pkg('django-simple-deploy')
-            # self._add_req_txt_pkg('git+git://github.com/ehmatthes/django-simple-deploy')
-        elif self.using_pipenv:
-            # There's nothing to do here. When you use Pipenv to install something,
-            #   it automatically gets added to Pipfile, so simple-deploy should
-            #   already be here. There's no separate step like "pip freeze".
-            # Modify this later if some people are using a Pipenv approach that
-            #   doesn't automatically add installed packages to Pipfile.
-            pass
+
 
     def _generate_procfile(self):
         """Create Procfile, if none present."""
@@ -233,27 +224,25 @@ class Command(BaseCommand):
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.stdout.write("\n  Looking for gunicorn...")
-        
+
         if self.using_req_txt:
             self._add_req_txt_pkg('gunicorn')
         elif self.using_pipenv:
-            # Here.
             self._add_pipenv_pkg('gunicorn')
 
 
     def _check_allowed_hosts(self):
         """Make sure project can be served from heroku."""
-        # DEV: Still more nesting than I like here, still needs some refactoring.
+        # DEV: Refactor to reduce nesting.
 
         self.stdout.write("\n  Making sure project can be served from Heroku...")
         heroku_host = f"{self.heroku_app_name}.herokuapp.com"
 
         if heroku_host in settings.ALLOWED_HOSTS:
             self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS.")
-
         elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
+            # This is a generic entry that allows serving from any heroku URL.
             self.stdout.write("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
-
         elif not settings.ALLOWED_HOSTS:
             # Only add this host if it's not already listed in the heroku-
             #   specific section.
@@ -276,8 +265,7 @@ class Command(BaseCommand):
 
 
     def _configure_db(self):
-        """This method is responsible for adding required db-related packages,
-        and modifying settings for the Heroku db.
+        """Add required db-related packages, and modify settings for Heroku db.
         """
         self.stdout.write("\n  Configuring project for Heroku database...")
         self._add_db_packages()
@@ -373,6 +361,7 @@ class Command(BaseCommand):
             self.stdout.write("    Found STATICFILES_DIRS setting for Heroku.")
 
         # Create folder for static files.
+        # DEV: Move this to a helper method.
         self.stdout.write("    Checking for static files directory...")
         static_files_dir = f"{self.project_root}/static"
         if os.path.exists(static_files_dir):
@@ -404,26 +393,28 @@ class Command(BaseCommand):
 
         self.stdout.write("  Adding changes...")
         subprocess.run(['git', 'add', '.'])
-
         self.stdout.write("  Committing changes...")
         subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
 
         self.stdout.write("  Pushing to heroku...")
 
-        # Get the current branch name, and push that branch.
-        # Get the first line of status output, and keep everything after "On branch ".
+        # Get the current branch name. Get the first line of status output,
+        #   and keep everything after "On branch ".
         git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
         self.current_branch = git_status.stdout.split('\n')[0][10:]
 
+        # Push current local branch to Heroku main branch.
         self.stdout.write(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
             subprocess.run(['git', 'push', 'heroku', self.current_branch])
         else:
             subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'])
 
+        # Run initial set of migrations.
         self.stdout.write("  Migrating deployed app...")
         subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'])
 
+        # Open Heroku app, so it simply appears in user's browser.
         self.stdout.write("  Opening deployed app in a new browser tab...")
         subprocess.run(['heroku', 'open'])
 
@@ -492,13 +483,13 @@ class Command(BaseCommand):
             self.stdout.write(f"    Found {root_package_name} in requirements file.")
         else:
             with open(self.req_txt_path, 'a') as f:
-                # DEV: Align these comments like they're aligned in Pipfile.
                 # Align comments, so we don't make req_txt file ugly.
                 #   Version specs are in package_name in req_txt approach.
                 tab_string = ' ' * (30 - len(package_name))
                 f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
 
             self.stdout.write(f"    Added {package_name} to requirements.txt.")
+
 
     def _add_pipenv_pkg(self, package_name, version=""):
         """Add a package to Pipfile, if not already present."""
@@ -512,9 +503,7 @@ class Command(BaseCommand):
 
     def _write_pipfile_pkg(self, package_name, version=""):
         """Write package to Pipfile."""
-        # Write package name right after [packages].
-        #   For simple projects, this shouldn't cause any issues.
-        #   If ordering matters, we can address that later.
+
         with open(self.pipfile_path) as f:
             pipfile_text = f.read()
 
@@ -525,6 +514,9 @@ class Command(BaseCommand):
         #   Align at column 30, so take away name length, and version spec space.
         tab_string = ' ' * (30 - len(package_name) - 5 - len(version))
 
+        # Write package name right after [packages].
+        #   For simple projects, this shouldn't cause any issues.
+        #   If ordering matters, we can address that later.
         new_pkg_string = f'[packages]\n{package_name} = "{version}"{tab_string}# Added by simple_deploy command.'
         pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
 
@@ -540,12 +532,13 @@ class Command(BaseCommand):
         """
         return any(heroku_setting in line for line in self.current_heroku_settings_lines)
 
+
     def _prep_heroku_setting(self, f_settings):
         """Add a block for Heroku-specific settings, if it doesn't already
         exist.
         """
-
         if not self.found_heroku_settings:
+            # DEV: Should check if `import os` already exists in settings file.
             f_settings.write("\nimport os")
             f_settings.write("\nif 'ON_HEROKU' in os.environ:")
 
