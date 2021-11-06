@@ -40,7 +40,7 @@ class HerokuDeployer:
         #   will be automated.
 
         # Skip this prep work if --automate-all not used.
-        if not self.automate_all:
+        if not self.sd.automate_all:
             return
 
         # Confirm the user knows exactly what will be automated.
