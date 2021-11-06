@@ -23,7 +23,7 @@ class HerokuDeployer:
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._inspect_project()
-        self._add_simple_deploy_req()
+        self.sd._add_simple_deploy_req()
         self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
@@ -43,7 +43,7 @@ class HerokuDeployer:
             return
 
         # Confirm the user knows exactly what will be automated.
-        self.stdout.write(d_msgs.confirm_automate_all)
+        self.stdout.write(dh_msgs.confirm_automate_all)
 
         # Get confirmation.
         confirmed = ''
@@ -78,7 +78,7 @@ class HerokuDeployer:
             self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")
         else:
             # Let user know they need to run `heroku create`.
-            raise CommandError(d_msgs.no_heroku_app_detected)
+            raise CommandError(dh_msgs.no_heroku_app_detected)
 
 
     def _set_heroku_env_var(self):
@@ -95,16 +95,9 @@ class HerokuDeployer:
         """Inspect the project, and pull information needed by multiple steps.
         """
 
-         # Get project name. There are a number of ways to get the project
-        #   name; for now we'll assume the root url config file has not
-        #   been moved from the default location.
-        self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
+        # Get platform-agnostic information about the project.
+        self.sd._inspect_project()
 
-        self.project_root = settings.BASE_DIR
-        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
-
-        self._get_dep_man_approach()
-        self._get_current_requirements()
         self._get_heroku_settings()
 
 
@@ -115,7 +108,7 @@ class HerokuDeployer:
         #  add them again. This assumes a section at the end, starting with a
         #  check for 'ON_HEROKU' in os.environ.
 
-        with open(self.settings_path) as f:
+        with open(self.sd.settings_path) as f:
             settings_lines = f.readlines()
 
         self.found_heroku_settings = False
@@ -131,16 +124,16 @@ class HerokuDeployer:
         """Create Procfile, if none present."""
 
         #   Procfile should be in project root, if present.
-        self.stdout.write(f"\n  Looking in {self.project_root} for Procfile...")
-        procfile_present = 'Procfile' in os.listdir(self.project_root)
+        self.stdout.write(f"\n  Looking in {self.sd.project_root} for Procfile...")
+        procfile_present = 'Procfile' in os.listdir(self.sd.project_root)
 
         if procfile_present:
             self.stdout.write("    Found existing Procfile.")
         else:
             self.stdout.write("    No Procfile found. Generating Procfile...")
-            proc_command = f"web: gunicorn {self.project_name}.wsgi --log-file -"
+            proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
 
-            with open(f"{self.project_root}/Procfile", 'w') as f:
+            with open(f"{self.sd.project_root}/Procfile", 'w') as f:
                 f.write(proc_command)
 
             self.stdout.write("    Generated Procfile with following process:")
@@ -151,10 +144,34 @@ class HerokuDeployer:
         """Add gunicorn to project requirements."""
         self.stdout.write("\n  Looking for gunicorn...")
 
-        if self.using_req_txt:
-            self._add_req_txt_pkg('gunicorn')
-        elif self.using_pipenv:
-            self._add_pipenv_pkg('gunicorn')
+        if self.sd.using_req_txt:
+            self.sd._add_req_txt_pkg('gunicorn')
+        elif self.sd.using_pipenv:
+            self.sd._add_pipenv_pkg('gunicorn')
+
+
+    def _check_allowed_hosts(self):
+        """Make sure project can be served from heroku."""
+        # This method is specific to Heroku, but the error message is not.
+
+        self.stdout.write("\n  Making sure project can be served from Heroku...")
+        heroku_host = f"{self.heroku_app_name}.herokuapp.com"
+
+        if heroku_host in settings.ALLOWED_HOSTS:
+            self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS.")
+        elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
+            # This is a generic entry that allows serving from any heroku URL.
+            self.stdout.write("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
+        elif not settings.ALLOWED_HOSTS:
+            new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
+            msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
+            msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
+            self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        else:
+            # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
+            #   contain the current Heroku URL.
+            msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
+            raise CommandError(msg)
 
 
     def _configure_db(self):
@@ -171,12 +188,12 @@ class HerokuDeployer:
 
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        if self.using_req_txt:
-            self._add_req_txt_pkg('psycopg2<2.9')
-            self._add_req_txt_pkg('dj-database-url')
-        elif self.using_pipenv:
-            self._add_pipenv_pkg('psycopg2', version="<2.9")
-            self._add_pipenv_pkg('dj-database-url')
+        if self.sd.using_req_txt:
+            self.sd._add_req_txt_pkg('psycopg2<2.9')
+            self.sd._add_req_txt_pkg('dj-database-url')
+        elif self.sd.using_pipenv:
+            self.sd._add_pipenv_pkg('psycopg2', version="<2.9")
+            self.sd._add_pipenv_pkg('dj-database-url')
 
 
     def _add_db_settings(self):
@@ -203,10 +220,10 @@ class HerokuDeployer:
 
         # Add whitenoise to requirements.
         self.stdout.write("    Adding staticfiles-related packages...")
-        if self.using_req_txt:
-            self._add_req_txt_pkg('whitenoise')
-        elif self.using_pipenv:
-            self._add_pipenv_pkg('whitenoise')
+        if self.sd.using_req_txt:
+            self.sd._add_req_txt_pkg('whitenoise')
+        elif self.sd.using_pipenv:
+            self.sd._add_pipenv_pkg('whitenoise')
 
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
@@ -239,7 +256,7 @@ class HerokuDeployer:
         self.stdout.write("    Checking for static files directory...")
 
         # Make sure there's a static files directory.
-        static_files_dir = f"{self.project_root}/static"
+        static_files_dir = f"{self.sd.project_root}/static"
         if os.path.exists(static_files_dir):
             if os.listdir(static_files_dir):
                 self.stdout.write("    Found non-empty static files directory.")
@@ -308,7 +325,7 @@ class HerokuDeployer:
                     self.current_branch)
         else:
             # Show steps to finish the deployment process.
-            msg = d_msgs.success_msg(self.using_pipenv, self.heroku_app_name)
+            msg = d_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
 
         self.stdout.write(msg)
 
@@ -329,7 +346,7 @@ class HerokuDeployer:
         """
         already_set = self._check_current_heroku_settings(new_setting)
         if not already_set:
-            with open(self.settings_path, 'a') as f:
+            with open(self.sd.settings_path, 'a') as f:
                 self._prep_heroku_setting(f)
                 f.write(f"\n    {new_setting}")
                 self.stdout.write(msg_added)

@@ -51,15 +51,6 @@ class Command(BaseCommand):
 
         if self.platform == 'heroku':
             self.stdout.write("  Targeting Heroku deployment...")
-
-
-
-
-
-            sys.exit()
-
-
-            
             hd = HerokuDeployer(self)
             hd.deploy()
         else:
@@ -80,7 +71,6 @@ class Command(BaseCommand):
 
         self._get_dep_man_approach()
         self._get_current_requirements()
-        self._get_heroku_settings()
 
 
     def _get_dep_man_approach(self):
@@ -139,30 +129,6 @@ class Command(BaseCommand):
         if self.using_req_txt:
             self.stdout.write("\n  Looking for django-simple-deploy in requirements.txt...")
             self._add_req_txt_pkg('django-simple-deploy')
-
-
-    def _check_allowed_hosts(self):
-        """Make sure project can be served from heroku."""
-        # DEV: Refactor to reduce nesting.
-
-        self.stdout.write("\n  Making sure project can be served from Heroku...")
-        heroku_host = f"{self.heroku_app_name}.herokuapp.com"
-
-        if heroku_host in settings.ALLOWED_HOSTS:
-            self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS.")
-        elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
-            # This is a generic entry that allows serving from any heroku URL.
-            self.stdout.write("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
-        elif not settings.ALLOWED_HOSTS:
-            new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
-            msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
-            msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
-            self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-        else:
-            # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
-            #   contain the current Heroku URL.
-            msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
-            raise CommandError(msg)
 
 
     # --- Utility methods ---

@@ -33,24 +33,6 @@ no_heroku_app_detected = """No Heroku app name has been detected.
 # These need to be generated in functions, to display information that's 
 #   determined as the script runs.
 
-def allowed_hosts_not_empty_msg(heroku_host):
-    # This will be displayed as a CommandError.
-    msg = dedent(f"""
-
-        Your ALLOWED_HOSTS setting is not empty, and it does not contain {heroku_host}.
-        - ALLOWED_HOSTS is a critical security setting.
-        - It is empty by default, which means you or someone else has decided where this project can be hosted.
-        - Your ALLOWED_HOSTS setting currently contains the following entries:
-          {settings.ALLOWED_HOSTS}"
-        - We don't know enough about your project to add to or override this setting.
-        - If you want to continue with this deployment, make sure ALLOWED_HOSTS
-          is either empty, or contains the host {heroku_host}.
-        - Once you have addressed this issue, you can run the simple_deploy command
-          again, and it will pick up where it left off.
-    """)
-    return msg
-
-
 def success_msg(using_pipenv, heroku_app_name):
     """Success message, when not using --automate-all flag."""
 
