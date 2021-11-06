@@ -14,6 +14,7 @@ class HerokuDeployer:
     def __init__(self, command):
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
+        self.stdout = self.sd.stdout
 
 
     def deploy(self, *args, **options):
