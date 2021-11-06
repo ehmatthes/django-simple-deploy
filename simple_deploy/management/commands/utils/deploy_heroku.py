@@ -1,5 +1,7 @@
 """Manages all Heroku-specific aspects of the deployment process."""
 
+import sys, os, re, subprocess
+
 from django.conf import settings
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
