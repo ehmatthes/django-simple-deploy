@@ -277,7 +277,7 @@ class HerokuDeployer:
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
-        if not self.automate_all:
+        if not self.sd.automate_all:
             return
 
         self.stdout.write("\n\nCommitting and pushing project...")
