@@ -322,7 +322,7 @@ class HerokuDeployer:
         #   - Describe ongoing approach of commit, push, migrate. Lots to consider
         #     when doing this on production app with users, make sure you learn.
 
-        if self.automate_all:
+        if self.sd.automate_all:
             # Show how to make future deployments.
             msg = d_msgs.success_msg_automate_all(self.heroku_app_name,
                     self.current_branch)
