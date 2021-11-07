@@ -324,11 +324,11 @@ class HerokuDeployer:
 
         if self.sd.automate_all:
             # Show how to make future deployments.
-            msg = d_msgs.success_msg_automate_all(self.heroku_app_name,
+            msg = dh_msgs.success_msg_automate_all(self.heroku_app_name,
                     self.current_branch)
         else:
             # Show steps to finish the deployment process.
-            msg = d_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
+            msg = dh_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
 
         self.stdout.write(msg)
 
