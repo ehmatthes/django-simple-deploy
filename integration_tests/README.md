@@ -52,7 +52,7 @@ Testing options
 ---
 
 ```
-./integration_tests/autoconfigure_deploy_test.sh -t [pypi|current_branch] -d [req_txt|poetry|pipenv] -o [automate_all]
+./integration_tests/autoconfigure_deploy_test.sh -t [pypi|current_branch] -d [req_txt|poetry|pipenv] -o [automate_all] -p [heroku]
 ```
 
 Testing poetry has been problematic for me due to caching issues. If you see errors about installing requirements to the temporary environment created during the tests, try clearing the cache manually before running the tests:
@@ -65,6 +65,16 @@ $ ./integration_tests/autoconfigure_deploy_test -d poetry
 Example: Test the `--automate-all` approach using poetry:
 ```
 $ ./integration_tests/autoconfigure_deploy_test.sh -o automate_all -d poetry
+```
+
+Testing other platforms
+---
+
+- The script tests Heroku deployments by default.
+- The `-p` flag will allow testing of other platforms.
+- This is currently identical to running without the `-p` flag:
+```
+$ ./integration_tests/autoconfigure_deploy_test.sh -o automate_all -p heroku
 ```
 
 Don't modify testing script while running

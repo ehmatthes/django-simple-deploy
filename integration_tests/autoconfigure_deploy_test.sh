@@ -34,29 +34,36 @@
 # o: Options for the simple_deploy run.
 #    automate_all
 #
-# DEV: Not sure if fromatting of this is standard.
+# DEV: Not sure if formatting of this is standard.
 # Usage:
 #  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|pipenv|poetry]
 
+
+# --- Get CLI arguments. ---
+
 target="current_branch"
 dep_man_approach="req_txt"
+platform="heroku"
+
 # Options:
 # - test_automate_all
 cli_sd_options=""
-while getopts t:d:o: flag
+
+while getopts t:d:o:p flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
         d) dep_man_approach=${OPTARG};;
         o) cli_sd_options=${OPTARG};;
+        p) platform=${OPTARG};;
     esac
 done
 
 # --- Make sure user is okay with building a temp environment in $HOME. ---
 echo ""
 echo "This test will build a temporary directory in your home folder."
-echo "  It will also create a heroku app on your account."
-echo "  (By calling 'heroku create', which you'll need to authorize.)"
+echo "  It will also create an app on your account for the selected platform."
+
 while true; do
     read -p "Proceed? " yn
     case $yn in 
@@ -113,7 +120,7 @@ git clone  https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
 #   script below.
 echo "  Building Python environment..."
 
-# cd'ing into the version of the project with unpinned dependencies.
+# cd'ing into the version of the project we're testing.
 #   We also get rid of the git repository from cloning, so we can use git on just
 #   the version of the project we're testing.
 cd "$tmp_dir/"
@@ -198,108 +205,115 @@ fi
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
 
-# Skip if testing --atomate-all
-if [ "$test_automate_all" != true ]; then
-    echo "Running heroku create..."
-    heroku create
-fi
 
-echo "Running manage.py simple_deploy..."
-if [ "$test_automate_all" = true ]; then
-    python manage.py simple_deploy --automate-all
-else
-    python manage.py simple_deploy
-fi
+# --- Test Heroku deployment. ---
+if [ "$platform" = 'heroku' ]; then
 
-# After running simple_deploy, need to regenerate the lock file.
-if [ "$dep_man_approach" = 'pipenv' ]; then
-    python3 -m pipenv lock
-fi
-
-# Heroku needs a copy of requirements with the same django-simple-deploy
-#   we're testing against. Modify django-simple-deploy to match install_address.
-#   This is important to verify, so we'll routinely include it in the test output.
-#   This is only needed if we're testing against a GitHub repo.
-#   Note: Pipenv and Poetry specify install address, so this modification is
-#     not necessary for either of those approaches.
-if [ "$target" = 'current_branch' ]; then
-    if [ "$dep_man_approach" = 'req_txt' ]; then
-        echo "\nOriginal requirements.txt; should see django-simple-deploy:"
-        cat requirements.txt
-
-        echo "  Modifying requirements.txt to require the current branch version on Heroku..."
-        sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
-
-        echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
-        cat requirements.txt
+    # Skip if testing --automate-all
+    if [ "$test_automate_all" != true ]; then
+        echo "Running heroku create..."
+        heroku create
     fi
-fi
 
-# Skip if testing --automate-all.
-if [ "$test_automate_all" != true ]; then
-    echo "\n\nCommitting changes..."
-    git add .
-    git commit -am "Configured for deployment."
+    echo "Running manage.py simple_deploy..."
+    if [ "$test_automate_all" = true ]; then
+        python manage.py simple_deploy --automate-all
+    else
+        python manage.py simple_deploy
+    fi
 
-    echo "Pushing to heroku..."
-    # DEV: There should probably be a variable to track which branch we're using on the test repository.
-    # git push heroku main
-    git push heroku main
-    heroku run python manage.py migrate
-    heroku open
-fi
+    # After running simple_deploy, need to regenerate the lock file.
+    if [ "$dep_man_approach" = 'pipenv' ]; then
+        python3 -m pipenv lock
+    fi
 
-app_name=$(heroku apps:info | grep "===")
-app_name=${app_name:4}
-echo "  Heroku app name: $app_name"
+    # Heroku (and assume other platforms) needs a copy of requirements with
+    #   the same django-simple-deploy we're testing against.
+    #   Modify django-simple-deploy to match install_address.
+    #   This is important to verify, so we'll routinely include it in the test output.
+    #   This is only needed if we're testing against a GitHub repo.
+    #   Note: Pipenv and Poetry specify install address, so this modification is
+    #     not necessary for either of those approaches.
+    if [ "$target" = 'current_branch' ]; then
+        if [ "$dep_man_approach" = 'req_txt' ]; then
+            echo "\nOriginal requirements.txt; should see django-simple-deploy:"
+            cat requirements.txt
 
-app_url=$(heroku apps:info | grep "Web URL")
-app_url=${app_url:16}
-echo "  Heroku URL: $app_url"
+            echo "  Modifying requirements.txt to require the current branch version on Heroku..."
+            sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
 
-# Call Python script for functional testing of app.
-#   May want to prompt for this.
-echo "\n  Testing functionality of deployed app..."
+            echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
+            cat requirements.txt
+        fi
+    fi
 
-# Need requests to run functionality tests.
-#   This uses the same venv that was built for deploying the project.
-if [ "$dep_man_approach" = 'req_txt' ]; then
-    pip install requests
-elif [ "$dep_man_approach" = 'pipenv' ]; then
-    # We won't do anything further that needs a lock file.
-    python3 -m pipenv install requests --skip-lock
-elif [ "$dep_man_approach" = 'poetry' ]; then
-    $poetry_cmd add requests
-fi
+    # Skip if testing --automate-all.
+    if [ "$test_automate_all" != true ]; then
+        echo "\n\nCommitting changes..."
+        git add .
+        git commit -am "Configured for deployment."
 
-cd "$script_dir"
-python integration_tests/test_deployed_app_functionality.py "$app_url"
+        echo "Pushing to heroku..."
+        # DEV: There should probably be a variable to track which branch we're using on the test repository.
+        # git push heroku main
+        git push heroku main
+        heroku run python manage.py migrate
+        heroku open
+    fi
 
-# Clarify which branch was tested.
-if [ "$target" = pypi ]; then
-    echo "\n --- Finished testing latest release from PyPI. ---"
-else
-    echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
-fi
+    app_name=$(heroku apps:info | grep "===")
+    app_name=${app_name:4}
+    echo "  Heroku app name: $app_name"
 
-# Check if user wants to destroy temp files.
-echo ""
-while true; do
-    read -p "Tear down temporary files? " yn
-    case $yn in 
-        [Yy]* ) echo "Okay, tearing down..."; tear_down=true; break;;
-        [Nn]* ) echo "Okay, leaving files."; tear_down=false; break;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+    app_url=$(heroku apps:info | grep "Web URL")
+    app_url=${app_url:16}
+    echo "  Heroku URL: $app_url"
 
-# Teardown
-if [ "$tear_down" = true ]; then
+    # Call Python script for functional testing of app.
+    #   May want to prompt for this.
+    echo "\n  Testing functionality of deployed app..."
+
+    # Need requests to run functionality tests.
+    #   This uses the same venv that was built for deploying the project.
+    if [ "$dep_man_approach" = 'req_txt' ]; then
+        pip install requests
+    elif [ "$dep_man_approach" = 'pipenv' ]; then
+        # We won't do anything further that needs a lock file.
+        python3 -m pipenv install requests --skip-lock
+    elif [ "$dep_man_approach" = 'poetry' ]; then
+        $poetry_cmd add requests
+    fi
+
+    cd "$script_dir"
+    python integration_tests/test_deployed_app_functionality.py "$app_url"
+
+    # Clarify which branch was tested.
+    if [ "$target" = pypi ]; then
+        echo "\n --- Finished testing latest release from PyPI. ---"
+    else
+        echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+    fi
+
+    # Check if user wants to destroy temp files.
     echo ""
-    echo "Cleaning up:"
-    echo "  Destroying Heroku app $app_name..."
-    heroku apps:destroy --app "$app_name" --confirm "$app_name"
-    echo "  Destroying temporary directory..."
-    rm -rf "$tmp_dir"
-    echo "...removed temporary directory: $tmp_dir"
-fi
+    while true; do
+        read -p "Tear down temporary files? " yn
+        case $yn in 
+            [Yy]* ) echo "Okay, tearing down..."; tear_down=true; break;;
+            [Nn]* ) echo "Okay, leaving files."; tear_down=false; break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+
+    # Teardown
+    if [ "$tear_down" = true ]; then
+        echo ""
+        echo "Cleaning up:"
+        echo "  Destroying Heroku app $app_name..."
+        heroku apps:destroy --app "$app_name" --confirm "$app_name"
+        echo "  Destroying temporary directory..."
+        rm -rf "$tmp_dir"
+        echo "...removed temporary directory: $tmp_dir"
+    fi
+
+fi      # End testing of Heroku deployment
