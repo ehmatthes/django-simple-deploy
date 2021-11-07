@@ -10,6 +10,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 (Unreleased)
 
+- External changes:
+    - `simple_deploy` accepts a `--platform` argument. The default, and only meaningful value at the moment is `heroku`. However, this change makes it possible to begin targeting other platforms.
+
+- Internal changes:
+    - Testing script is broken into platform-agnostic, and Heroku-specific files.
+    - Test script accepts a platform argument: `$ autoconfigure_deploy_test.sh -o automate_all -p heroku`. Heroku is default value, and is the only meaningful value at the moment.
+
 ### 0.1.7
 
 - Internal changes:
