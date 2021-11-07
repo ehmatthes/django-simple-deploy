@@ -6,9 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
+### 0.1.10
+
+- Unreleased.
+
 ### 0.1.9
 
-- Unreleased
+- Bugfix: Minor bugs were causing issues with final message after deployment process had been completed.
 
 ### 0.1.8
 
