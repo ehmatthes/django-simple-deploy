@@ -1,3 +1,9 @@
+# --- Test the Heroku deployment process. ---
+#
+# This is sourced by autoconfigure_deploy_test.sh, so this script has access
+#   to all variables defined in autoconfigure_deploy_test.sh.
+
+
 # Skip if testing --automate-all
 if [ "$test_automate_all" != true ]; then
     echo "Running heroku create..."
