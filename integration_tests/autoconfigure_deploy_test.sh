@@ -208,9 +208,10 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" lea
 
 # --- Test platform-specific deployment processes. ---
 
+# Source each platform-specific file, so it has access to all current variables.
+#   Bash note: Simply calling the script runs it in a subshell, without
+#   access to any variables defined in the calling script.
+
 if [ "$platform" = 'heroku' ]; then
-    # Source this file, so it has access to all current variables.
-    #   Bash note: Simply calling the script runs it in a subshell, without
-    #   access to any variables defined in this script.
-    source $script_dir/integration_tests/test_heroku_deployment.sh
+        source $script_dir/integration_tests/test_heroku_deployment.sh
 fi
