@@ -6,9 +6,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
-### 0.1.8
+### 0.1.9
 
-(Unreleased)
+- Unreleased
+
+### 0.1.8
 
 - External changes:
     - `simple_deploy` accepts a `--platform` argument. The default, and only meaningful value at the moment is `heroku`. However, this change makes it possible to begin targeting other platforms.
