@@ -20,7 +20,7 @@ Quick start: using `--automate-all`
 ---
 
 The `--automate-all` flag allows you to deploy your project in just three steps:
-- Install `django-simple-deply`.
+- Install `django-simple-deploy`.
     - With pip: `$ pip install django-simple-deploy`
     - With Poetry: `$ poetry add django-simple-deploy`
     - With Pipenv: `$ pipenv install django-simple-deploy`
