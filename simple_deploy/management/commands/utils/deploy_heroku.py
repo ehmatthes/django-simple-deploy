@@ -3,6 +3,7 @@
 import sys, os, re, subprocess
 
 from django.conf import settings
+from django.core.management.base import CommandError
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
