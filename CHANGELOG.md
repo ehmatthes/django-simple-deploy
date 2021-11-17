@@ -6,9 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
+### 0.1.11
+
+- Unreleased
+
 ### 0.1.10
 
-- Unreleased.
+- Bugfix to address import error in deploy_heroku.py.
 
 ### 0.1.9
 
