@@ -24,11 +24,10 @@ class AzureDeployer:
     def deploy(self, *args, **options):
         self.stdout.write("Configuring project for deployment to Azure...")
 
-        return
-
-
+        self._confirm_preliminary()
 
         self._prep_automate_all()
+        return
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._inspect_project()
@@ -42,6 +41,28 @@ class AzureDeployer:
         self._show_success_message()
 
 
+    def _confirm_preliminary(self):
+        """Deployment to azure is in a preliminary state, and we need to be
+        explicit about that.
+        """
+        self.stdout.write(da_msgs.confirm_preliminary)
+
+        # Get confirmation.
+        confirmed = ''
+        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
+            prompt = "\nAre you sure you want to continue deploying to Azure? (yes|no) "
+            confirmed = input(prompt)
+            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
+                self.stdout.write("  Please answer yes or no.")
+
+        if confirmed.lower() in ('y', 'yes'):
+            self.stdout.write("  Continuing with Azure deployment...")
+        else:
+            # Quit and invite the user to try another platform.
+            self.stdout.write(da_msgs.cancel_azure)
+            sys.exit()
+
+
     def _prep_automate_all(self):
         """Do intial work for automating entire process."""
         # This is platform-specific, because we want to specify exactly what
@@ -52,7 +73,7 @@ class AzureDeployer:
             return
 
         # Confirm the user knows exactly what will be automated.
-        self.stdout.write(dh_msgs.confirm_automate_all)
+        self.stdout.write(da_msgs.confirm_automate_all)
 
         # Get confirmation.
         confirmed = ''
@@ -63,8 +84,7 @@ class AzureDeployer:
                 self.stdout.write("  Please answer yes or no.")
 
         if confirmed.lower() in ('y', 'yes'):
-            self.stdout.write("  Running `heroku create`...")
-            subprocess.run(['heroku', 'create'])
+            self.stdout.write("  Continuing with automated deployment...")
         else:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.

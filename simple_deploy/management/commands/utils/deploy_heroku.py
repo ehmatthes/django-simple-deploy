@@ -64,6 +64,7 @@ class HerokuDeployer:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
             self.stdout.write(d_msgs.cancel_automate_all)
+            sys.exit()
 
 
     def _get_heroku_app_info(self):

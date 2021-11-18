@@ -7,25 +7,44 @@ from textwrap import dedent
 from django.conf import settings
 
 
+confirm_preliminary = """
+***** Azure deployments are experimental at this point ***
+
+- Support for deploying to Azure is in a preliminary phase at this point.
+- You should only be using this project to deploy to Azure at this point if
+  you are interested in helping to develop or test the simple_deploy project.
+- You should look at the deploy_azure.py script before running this command,
+  so you know exactly what Azure resources will be created on your account.
+- You should understand the Azure portal, and be comfortable deleting resources
+  that are created during this deployment, that you don't want persisting and
+  accruing charges.
+- You may want to cancel this run and deploy to Heroku instead. You can do this
+  explicitly with the `--platform heroku` argument, or you can leave out the
+  `--platform` argument and simple_deploy will deploy to Heroku by default.
+"""
+
+cancel_azure = """
+Okay, cancelling Azure deployment.
+"""
+
 confirm_automate_all = """
-The --automate-all flag means simple_deploy will:
-- Run `heroku create` for you, to create a new Heroku project.
+***** The --automate-all flag means simple_deploy will: *****
+- Modify your project so it's configured for deploying to Azure.
 - Commit all changes to your project that are necessary for deployment.
   - These changes will be committed to the current branch, so you may want
     to make a new branch for this work.
-- Push these changes to Heroku.
-- Run the initial set of migrations to set up the remote database.
-- Open your deployed project in a new browser tab.
-"""
-
-no_heroku_app_detected = """No Heroku app name has been detected.
-
-- The simple_deploy command assumes you have already run 'heroku create'
-  to start the deployment process.
-- Please run 'heroku create', and then run
-  'python manage.py simple_deploy' again.
-- If you haven't already done so, you will need to install the Heroku CLI:
-  https://devcenter.heroku.com/articles/heroku-cli
+- Do the following through your Azure account:
+  - Add the db-up extension if it's not already installed.
+  - Create a resource group called SimpleDeployGroup.
+  - Create an appservice plan called SimpleDeployPlan.
+  - Create a unique name for your app.
+  - Create an Azure Database for PostgreSQL server and database.
+  - Create a new app with the 'az webapp create' command. The app will be
+    configured for Git deployments.
+  - Set a number of environment variables to help manage your deployment.
+  - Push your project to Azure.
+  - Run the initial set of migrations to set up the remote database.
+  - Open your deployed project in a new browser tab.
 """
 
 
