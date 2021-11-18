@@ -14,6 +14,7 @@ from django.conf import settings
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
+from simple_deploy.management.commands.utils.deploy_azure import AzureDeployer
 
 
 class Command(BaseCommand):
@@ -53,6 +54,10 @@ class Command(BaseCommand):
             self.stdout.write("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
             hd.deploy()
+        elif self.platform == 'azure':
+            self.stdout.write("  Targeting Azure deployment...")
+            ad = AzureDeployer(self)
+            ad.deploy()
         else:
             raise CommandError("That platform is not currently supported.")
 
