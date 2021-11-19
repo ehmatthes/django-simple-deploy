@@ -27,14 +27,10 @@ class AzureDeployer:
         self._confirm_preliminary()
 
         self._prep_automate_all()
-        return
-        self._get_heroku_app_info()
-        self._set_heroku_env_var()
         self._inspect_project()
         self.sd._add_simple_deploy_req()
-        self._generate_procfile()
-        self._add_gunicorn()
         self._check_allowed_hosts()
+        return
         self._configure_db()
         self._configure_static_files()
         self._conclude_automate_all()
@@ -89,117 +85,61 @@ class AzureDeployer:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
             self.stdout.write(d_msgs.cancel_automate_all)
-
-
-    def _get_heroku_app_info(self):
-        """Get info about the Heroku app we're pushing to."""
-        # We assume the user has already run 'heroku create', or --automate-all
-        #   has run it. If it hasn't been run, we'll quit and tell them to do so.
-        self.stdout.write("  Inspecting Heroku app...")
-        apps_info = subprocess.run(["heroku", "apps:info"], capture_output=True)
-
-        # Turn stdout info into a list of strings that we can then parse.
-        #   If no app exists, stdout is empty and the output went to stderr.
-        apps_info = apps_info.stdout.decode().split('\n')
-        self.heroku_app_name = apps_info[0].removeprefix('=== ')
-
-        if self.heroku_app_name:
-            self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")
-        else:
-            # Let user know they need to run `heroku create`.
-            raise CommandError(dh_msgs.no_heroku_app_detected)
-
-
-    def _set_heroku_env_var(self):
-        """Set a config var to indicate when we're in the Heroku environment.
-        This is mostly used to modify settings for the deployed project.
-        """
-        self.stdout.write("  Setting Heroku environment variable...")
-        subprocess.run(["heroku", "config:set", "ON_HEROKU=1"])
-        self.stdout.write("    Set ON_HEROKU=1.")
-        self.stdout.write("    This is used to define Heroku-specific settings.")
+            sys.exit()
 
 
     def _inspect_project(self):
         """Inspect the project, and pull information needed by multiple steps.
         """
-
         # Get platform-agnostic information about the project.
         self.sd._inspect_project()
 
-        self._get_heroku_settings()
+        self._get_azure_settings()
 
 
-    def _get_heroku_settings(self):
-        """Get any heroku-specific settings that are already in place.
+    def _get_azure_settings(self):
+        """Get any azure-specific settings that are already in place.
         """
-        # If any heroku settings have already been written, we don't want to
+        # If any azure settings have already been written, we don't want to
         #  add them again. This assumes a section at the end, starting with a
-        #  check for 'ON_HEROKU' in os.environ.
+        #  check for 'ON_AZURE' in os.environ.
 
         with open(self.sd.settings_path) as f:
             settings_lines = f.readlines()
 
-        self.found_heroku_settings = False
-        self.current_heroku_settings_lines = []
+        self.found_azure_settings = False
+        self.current_azure_settings_lines = []
         for line in settings_lines:
-            if "if 'ON_HEROKU' in os.environ:" in line:
-                self.found_heroku_settings = True
-            if self.found_heroku_settings:
-                self.current_heroku_settings_lines.append(line)
-
-
-    def _generate_procfile(self):
-        """Create Procfile, if none present."""
-
-        #   Procfile should be in project root, if present.
-        self.stdout.write(f"\n  Looking in {self.sd.project_root} for Procfile...")
-        procfile_present = 'Procfile' in os.listdir(self.sd.project_root)
-
-        if procfile_present:
-            self.stdout.write("    Found existing Procfile.")
-        else:
-            self.stdout.write("    No Procfile found. Generating Procfile...")
-            proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
-
-            with open(f"{self.sd.project_root}/Procfile", 'w') as f:
-                f.write(proc_command)
-
-            self.stdout.write("    Generated Procfile with following process:")
-            self.stdout.write(f"      {proc_command}")
-
-
-    def _add_gunicorn(self):
-        """Add gunicorn to project requirements."""
-        self.stdout.write("\n  Looking for gunicorn...")
-
-        if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('gunicorn')
-        elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('gunicorn')
+            if "if 'ON_AZURE' in os.environ:" in line:
+                self.found_azure_settings = True
+            if self.found_azure_settings:
+                self.current_azure_settings_lines.append(line)
 
 
     def _check_allowed_hosts(self):
-        """Make sure project can be served from heroku."""
-        # This method is specific to Heroku, but the error message is not.
+        """Make sure project can be served from azure."""
+        # This method is specific to Azure, but the error message is not.
 
-        self.stdout.write("\n  Making sure project can be served from Heroku...")
-        heroku_host = f"{self.heroku_app_name}.herokuapp.com"
+        self.stdout.write("\n  Making sure project can be served from Azure...")
 
-        if heroku_host in settings.ALLOWED_HOSTS:
-            self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS.")
-        elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
-            # This is a generic entry that allows serving from any heroku URL.
-            self.stdout.write("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
+        # DEV: This should use the full app URL.
+        #   Use the azurewebsites domain for now.
+        azure_host = '.azurewebsites.net'
+
+        if azure_host in settings.ALLOWED_HOSTS:
+            self.stdout.write(f"    Found {azure_host} in ALLOWED_HOSTS.")
+        elif '.azurewebsites.net' in settings.ALLOWED_HOSTS:
+            # This is a generic entry that allows serving from any Azure URL.
+            self.stdout.write("    Found '.azurewebsites.net' in ALLOWED_HOSTS.")
         elif not settings.ALLOWED_HOSTS:
-            new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
-            msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
-            msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
-            self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+            new_setting = f"ALLOWED_HOSTS.append('{azure_host}')"
+            msg_added = f"    Added {azure_host} to ALLOWED_HOSTS for the deployed project."
+            msg_already_set = f"    Found {azure_host} in ALLOWED_HOSTS for the deployed project."
+            self._add_azure_setting(new_setting, msg_added, msg_already_set)
         else:
             # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
             #   contain the current Heroku URL.
-            msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
+            msg = d_msgs.allowed_hosts_not_empty_msg(azure_host)
             raise CommandError(msg)
 
 
@@ -302,9 +242,14 @@ class AzureDeployer:
 
 
     def _conclude_automate_all(self):
-        """Finish automating the push to Heroku."""
+        """Finish automating the push to Azure."""
+        # All az cli commands are issued here, after the project has been
+        #   configured.
         if not self.sd.automate_all:
             return
+
+        # DEV: Run through everything that's done in deploy_heroku.py in 
+        #   private standalone repo.
 
         self.stdout.write("\n\nCommitting and pushing project...")
 
@@ -361,36 +306,36 @@ class AzureDeployer:
 
     # --- Utility methods ---
 
-    def _check_current_heroku_settings(self, heroku_setting):
-        """Check if a setting has already been defined in the heroku-specific
+    def _check_current_azure_settings(self, azure_setting):
+        """Check if a setting has already been defined in the azure-specific
         settings section.
         """
-        return any(heroku_setting in line for line in self.current_heroku_settings_lines)
+        return any(azure_setting in line for line in self.current_azure_settings_lines)
 
 
-    def _add_heroku_setting(self, new_setting, msg_added='',
+    def _add_azure_setting(self, new_setting, msg_added='',
             msg_already_set=''):
-        """Add a new setting to the heroku-specific settings, if not already
+        """Add a new setting to the azure-specific settings, if not already
         present.
         """
-        already_set = self._check_current_heroku_settings(new_setting)
+        already_set = self._check_current_azure_settings(new_setting)
         if not already_set:
             with open(self.sd.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
+                self._prep_azure_setting(f)
                 f.write(f"\n    {new_setting}")
                 self.stdout.write(msg_added)
         else:
             self.stdout.write(msg_already_set)
 
 
-    def _prep_heroku_setting(self, f_settings):
-        """Add a block for Heroku-specific settings, if it doesn't already
+    def _prep_azure_setting(self, f_settings):
+        """Add a block for Azure-specific settings, if it doesn't already
         exist.
         """
-        if not self.found_heroku_settings:
+        if not self.found_azure_settings:
             # DEV: Should check if `import os` already exists in settings file.
             f_settings.write("\nimport os")
-            f_settings.write("\nif 'ON_HEROKU' in os.environ:")
+            f_settings.write("\nif 'ON_AZURE' in os.environ:")
 
             # Won't need to add these lines anymore.
-            self.found_heroku_settings = True
+            self.found_azure_settings = True
