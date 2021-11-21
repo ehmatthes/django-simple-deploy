@@ -289,70 +289,70 @@ class AzureDeployer:
         self.stdout.write("    Created Postgres database...")
 
         # Sometimes seems to need a moment after creating the db.
-        print("Sleeping 60s after building db...")
-        print('-'*60)
+        self.stdout.write("Sleeping 60s after building db...")
+        self.stdout.write('-'*60)
         for _ in range(60):
             time.sleep(1)
-            print('.', end='')
-        print('\n  Finished sleeping.')
+            self.stdout.write('.', end='')
+        self.stdout.write('\n  Finished sleeping.')
 
-        print("\nCreating app...")
+        self.stdout.write("\nCreating app...")
         cmd_str = f"az webapp create --resource-group SimpleDeployGroup --plan SimpleDeployPlan --name {app_name} --runtime PYTHON:3.8 --deployment-local-git"
         cmd_parts = cmd_str.split(' ')
         output = subprocess.run(cmd_parts, capture_output=True)
-        print("  Created app.")
+        self.stdout.write("  Created app.")
 
-        print("  Parsing output...")
+        self.stdout.write("  Parsing output...")
         output_str = output.stdout.decode()
         create_output_str = output_str
-        print(output_str)
+        self.stdout.write(output_str)
 
         output_str = output_str.replace('null', '""')
         output_str = output_str.replace('\\', '\\\\')
         create_output_dict = json.loads(output_str)
-        print("    Parsed output from create command.")
+        self.stdout.write("    Parsed output from create command.")
 
         # Get credentials for pushing the repository.
-        print("Getting publish credentials...")
+        self.stdout.write("Getting publish credentials...")
         cmd_str = f"az webapp deployment list-publishing-profiles --resource-group SimpleDeployGroup --name {app_name}"
         cmd_parts = cmd_str.split(' ')
         output = subprocess.run(cmd_parts, capture_output=True)
         output_str = output.stdout.decode()
-        print(output_str)
+        self.stdout.write(output_str)
         publish_output_list = json.loads(output_str)
 
         # Get username, password, and build correct git uri.
         username = publish_output_list[0]['userName']
         password = publish_output_list[0]['userPWD']
-        print(f"  username: {username}")
-        print(f"  password: {password}")
+        self.stdout.write(f"  username: {username}")
+        self.stdout.write(f"  password: {password}")
 
-        print("Building git url and push command...")
+        self.stdout.write("Building git url and push command...")
         re_git_url = r'"deploymentLocalGitUrl": "https://(.*)@(.*).scm.azurewebsites.net/(.*).git",'
         m = re.search(re_git_url, create_output_str)
 
         git_url = f'https://{username}:{password}@{m.group(2).lower()}.scm.azurewebsites.net:443/{m.group(3).lower()}.git'
         push_command = f"git push {git_url} initial_deploy:master"
 
-        print('  git url:', git_url)
-        print('  push command:', push_command)
-        print("  Build git url and push command.")
+        self.stdout.write('  git url:', git_url)
+        self.stdout.write('  push command:', push_command)
+        self.stdout.write("  Build git url and push command.")
 
         # Set post-deploy script.
-        print("Setting post-deploy script...")
+        self.stdout.write("Setting post-deploy script...")
         cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings POST_BUILD_COMMAND=run_migration.sh"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        print("  Set post-deploy script.")
+        self.stdout.write("  Set post-deploy script.")
 
         # Set ON_AZURE app setting.
-        print("Setting ON_AZURE...")
+        self.stdout.write("Setting ON_AZURE...")
         cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings ON_AZURE=1"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        print("  Set ON_AZURE.")
+        self.stdout.write("  Set ON_AZURE.")
 
-        print("Setting env vars for db connection...")
+        self.stdout.write("Setting env vars for db connection...")
         cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBHOST={db_server_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
@@ -368,46 +368,46 @@ class AzureDeployer:
         cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBPASS={db_password}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        print("  Set env vars for db.")
+        self.stdout.write("  Set env vars for db.")
 
         # Try sleeping after setting env vars?
-        print("Sleeping 30s after setting db env vars...")
-        print('-'*30)
+        self.stdout.write("Sleeping 30s after setting db env vars...")
+        self.stdout.write('-'*30)
         for _ in range(30):
             time.sleep(1)
-            print('.', end='')
-        print('\n  Finished sleeping.')
+            self.stdout.write('.', end='')
+        self.stdout.write('\n  Finished sleeping.')
 
         # Set git remote.
-        print("Setting git remote...")
+        self.stdout.write("Setting git remote...")
         cmd_str = f"git remote add azure {git_url}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        print("  Set git remote.")
+        self.stdout.write("  Set git remote.")
 
         # Push to azure.
         # DEV: Will need to get current branch here.
-        print("Pushing to remote...")
+        self.stdout.write("Pushing to remote...")
         # cmd_str = "git push azure initial_deploy:master"
         cmd_str = push_command
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        print("  Pushed to remote.")
+        self.stdout.write("  Pushed to remote.")
 
         # And try sleeping before opening in browser, because sometimes needs a refresh after showing generic screen.
-        print("Sleeping 30s before opening in browser...")
-        print('-'*30)
+        self.stdout.write("Sleeping 30s before opening in browser...")
+        self.stdout.write('-'*30)
         for _ in range(30):
             time.sleep(1)
-            print('.', end='')
-        print('\n  Finished sleeping.')
+            self.stdout.write('.', end='')
+        self.stdout.write('\n  Finished sleeping.')
 
         # Open in browser.
-        print("Opening in browser...")
+        self.stdout.write("Opening in browser...")
         cmd_str = f"az webapp browse --resource-group SimpleDeployGroup --name {app_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        print("  Opened in browser.")
+        self.stdout.write("  Opened in browser.")
 
 
 
@@ -432,7 +432,7 @@ class AzureDeployer:
 
         # DEV:
         # - Say something about DEBUG setting.
-        #   - Should also consider setting DEBUG = False in the Heroku-specific
+        #   - Should also consider setting DEBUG = False in the Azure-specific
         #     settings.
         # - Mention that this script should not need to be run again, unless
         #   creating a new deployment.
@@ -441,11 +441,16 @@ class AzureDeployer:
 
         if self.sd.automate_all:
             # Show how to make future deployments.
-            msg = dh_msgs.success_msg_automate_all(self.heroku_app_name,
+            # DEV: Replace this with actual project name:
+            self.azure_app_name = 'SAMPLE_APP_NAME'
+            self.current_branch = 'CURRENT_BRANCH'
+            msg = da_msgs.success_msg_automate_all(self.azure_app_name,
                     self.current_branch)
         else:
             # Show steps to finish the deployment process.
-            msg = dh_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
+            # DEV: Replace with correct name.
+            self.azure_app_name = 'SAMPLE_APP_NAME'
+            msg = da_msgs.success_msg(self.sd.using_pipenv, self.azure_app_name)
 
         self.stdout.write(msg)
 

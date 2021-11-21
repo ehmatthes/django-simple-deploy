@@ -92,6 +92,8 @@ def success_msg_automate_all(heroku_app_name, current_branch):
 
     msg = dedent(f"""
 
+        ***** UPDATE FOR AZURE *****
+
         --- Your project should now be deployed on Heroku. ---
 
         It should have opened up in a new browser tab.
