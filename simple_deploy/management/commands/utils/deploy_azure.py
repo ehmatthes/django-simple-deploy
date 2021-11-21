@@ -30,8 +30,8 @@ class AzureDeployer:
         self._inspect_project()
         self.sd._add_simple_deploy_req()
         self._check_allowed_hosts()
-        return
         self._configure_db()
+        return
         self._configure_static_files()
         self._conclude_automate_all()
         self._show_success_message()
@@ -144,42 +144,40 @@ class AzureDeployer:
 
 
     def _configure_db(self):
-        """Add required db-related packages, and modify settings for Heroku db.
+        """Add required db-related packages, and modify settings for Postgres db.
         """
-        self.stdout.write("\n  Configuring project for Heroku database...")
+        self.stdout.write("\n  Configuring project for Azure Postgres database...")
         self._add_db_packages()
         self._add_db_settings()
 
 
     def _add_db_packages(self):
-        """Add packages required for the Heroku db."""
+        """Add packages required for the Azure Postgres db."""
         self.stdout.write("    Adding db-related packages...")
 
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
+        # Note: I don't think the 2.9 issue is a problem on Azure, from separate
+        #   testing. I'll remove this note after it's clear that 2.9 is okay,
+        #   and we'll probably use psycopg3 anyway.
         if self.sd.using_req_txt:
             self.sd._add_req_txt_pkg('psycopg2<2.9')
-            self.sd._add_req_txt_pkg('dj-database-url')
         elif self.sd.using_pipenv:
             self.sd._add_pipenv_pkg('psycopg2', version="<2.9")
-            self.sd._add_pipenv_pkg('dj-database-url')
 
 
     def _add_db_settings(self):
-        """Add settings for Heroku db."""
-        self.stdout.write("   Checking Heroku db settings...")
-
-        # Import dj-database-url.
-        new_setting = "import dj_database_url"
-        msg_added = "    Added import statement for dj-database-url."
-        msg_already_set = "    Found import statement for dj-database-url."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        """Add settings for Azure db."""
+        self.stdout.write("   Checking Azure db settings...")
 
         # Configure db.
-        new_setting = "DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}"
-        msg_added = "    Added setting to configure Postgres on Heroku."
-        msg_already_set = "    Found setting to configure Postgres on Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        # DEV: This is written as one line, to keep _get_azure_settings() working
+        #   as it's currently written. Rewrite this as a block, and update get settings()
+        #   to work with multiline settings.
+        new_setting = "DATABASES = {'default': {'ENGINE': 'django.db.backends.postgresql', 'NAME': os.environ['DBNAME'], 'HOST': os.environ['DBHOST'] + '.postgres.database.azure.com', 'USER': os.environ['DBUSER'] + '@' + hostname, 'PASSWORD': os.environ['DBPASS']}}"
+        msg_added = "    Added setting to configure Postgres on Azure."
+        msg_already_set = "    Found setting to configure Postgres on Azure."
+        self._add_azure_setting(new_setting, msg_added, msg_already_set)
 
 
     def _configure_static_files(self):
