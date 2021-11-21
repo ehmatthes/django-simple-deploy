@@ -278,10 +278,10 @@ class AzureDeployer:
         # Ensure db password has appropriate complexity, and is entirely distinct from other credentials.
         db_password = ''.join(random.choices(string.ascii_letters + string.digits + '!@#$%^&*', k=32))
 
-        self.stdout.write("    DB server name:", db_server_name)
-        self.stdout.write("    DB name:", db_name)
-        self.stdout.write("    DB user:", db_user)
-        self.stdout.write("    DB password:", db_password)
+        self.stdout.write(f"    DB server name: {db_server_name}")
+        self.stdout.write(f"    DB name: {db_name}")
+        self.stdout.write(f"    DB user: {db_user}")
+        self.stdout.write(f"    DB password: {db_password}")
 
         cmd_str = f"az postgres up --resource-group SimpleDeployGroup --location {location} --sku-name {db_sku} --server-name {db_server_name} --database-name {db_name} --admin-user {db_user} --admin-password {db_password}"
         cmd_parts = cmd_str.split(' ')
@@ -290,10 +290,10 @@ class AzureDeployer:
 
         # Sometimes seems to need a moment after creating the db.
         self.stdout.write("Sleeping 60s after building db...")
-        self.stdout.write('-'*60)
+        print('-'*60)
         for _ in range(60):
             time.sleep(1)
-            self.stdout.write('.', end='')
+            print('.', end='')
         self.stdout.write('\n  Finished sleeping.')
 
         self.stdout.write("\nCreating app...")
@@ -334,8 +334,8 @@ class AzureDeployer:
         git_url = f'https://{username}:{password}@{m.group(2).lower()}.scm.azurewebsites.net:443/{m.group(3).lower()}.git'
         push_command = f"git push {git_url} initial_deploy:master"
 
-        self.stdout.write('  git url:', git_url)
-        self.stdout.write('  push command:', push_command)
+        self.stdout.write(f'  git url: {git_url}')
+        self.stdout.write(f'  push command: {push_command}')
         self.stdout.write("  Build git url and push command.")
 
         # Set post-deploy script.
@@ -372,10 +372,10 @@ class AzureDeployer:
 
         # Try sleeping after setting env vars?
         self.stdout.write("Sleeping 30s after setting db env vars...")
-        self.stdout.write('-'*30)
+        print('-'*30)
         for _ in range(30):
             time.sleep(1)
-            self.stdout.write('.', end='')
+            print('.', end='')
         self.stdout.write('\n  Finished sleeping.')
 
         # Set git remote.
@@ -396,10 +396,10 @@ class AzureDeployer:
 
         # And try sleeping before opening in browser, because sometimes needs a refresh after showing generic screen.
         self.stdout.write("Sleeping 30s before opening in browser...")
-        self.stdout.write('-'*30)
+        print('-'*30)
         for _ in range(30):
             time.sleep(1)
-            self.stdout.write('.', end='')
+            print('.', end='')
         self.stdout.write('\n  Finished sleeping.')
 
         # Open in browser.
