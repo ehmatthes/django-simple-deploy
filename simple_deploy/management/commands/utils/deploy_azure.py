@@ -31,8 +31,8 @@ class AzureDeployer:
         self.sd._add_simple_deploy_req()
         self._check_allowed_hosts()
         self._configure_db()
-        return
         self._configure_static_files()
+        return
         self._conclude_automate_all()
         self._show_success_message()
 
@@ -181,9 +181,9 @@ class AzureDeployer:
 
 
     def _configure_static_files(self):
-        """Configure static files for Heroku deployment."""
+        """Configure static files for Azure deployment."""
 
-        self.stdout.write("\n  Configuring static files for Heroku deployment...")
+        self.stdout.write("\n  Configuring static files for Azure deployment...")
 
         # Add whitenoise to requirements.
         self.stdout.write("    Adding staticfiles-related packages...")
@@ -194,49 +194,26 @@ class AzureDeployer:
 
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
-        self._add_static_file_directory()
 
 
     def _add_static_file_settings(self):
         """Add all settings needed to manage static files."""
         self.stdout.write("    Configuring static files settings...")
 
+        new_setting = "MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')"
+        msg_added = "    Added whitenoise to MIDDLEWARE."
+        msg_already_set = "    Found whitenoise in MIDDLEWARE."
+        self._add_azure_setting(new_setting, msg_added, msg_already_set)
+
+        new_setting = "STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'"
+        msg_added = "    Added STATICFILES_STORAGE setting for Azure."
+        msg_already_set = "    Found STATICFILES_STORAGE setting for Azure."
+        self._add_azure_setting(new_setting, msg_added, msg_already_set)
+
         new_setting = "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')"
-        msg_added = "    Added STATIC_ROOT setting for Heroku."
-        msg_already_set = "    Found STATIC_ROOT setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-        new_setting = "STATIC_URL = '/static/'"
-        msg_added = "    Added STATIC_URL setting for Heroku."
-        msg_already_set = "    Found STATIC_URL setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-        new_setting = "STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)"
-        msg_added = "    Added STATICFILES_DIRS setting for Heroku."
-        msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-
-    def _add_static_file_directory(self):
-        """Create a folder for static files, if it doesn't already exist.
-        """
-        self.stdout.write("    Checking for static files directory...")
-
-        # Make sure there's a static files directory.
-        static_files_dir = f"{self.sd.project_root}/static"
-        if os.path.exists(static_files_dir):
-            if os.listdir(static_files_dir):
-                self.stdout.write("    Found non-empty static files directory.")
-                return
-        else:
-            os.makedirs(static_files_dir)
-            self.stdout.write("    Created empty static files directory.")
-
-        # Add a placeholder file to the empty static files directory.
-        placeholder_file = f"{static_files_dir}/placeholder.txt"
-        with open(placeholder_file, 'w') as f:
-            f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
-        self.stdout.write("    Added placeholder file to static files directory.")
+        msg_added = "    Added STATIC_ROOT setting for Azure."
+        msg_already_set = "    Found STATIC_ROOT setting for Azure."
+        self._add_azure_setting(new_setting, msg_added, msg_already_set)
 
 
     def _conclude_automate_all(self):
