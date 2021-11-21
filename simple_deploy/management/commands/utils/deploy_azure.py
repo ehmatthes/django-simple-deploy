@@ -1,6 +1,6 @@
 """Manages all Azure-specific aspects of the deployment process."""
 
-import sys, os, re, subprocess
+import sys, os, re, subprocess, random, string, json, time
 
 from django.conf import settings
 from django.core.management.base import CommandError
@@ -32,8 +32,8 @@ class AzureDeployer:
         self._check_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
-        return
         self._conclude_automate_all()
+        return
         self._show_success_message()
 
 
@@ -218,13 +218,11 @@ class AzureDeployer:
 
     def _conclude_automate_all(self):
         """Finish automating the push to Azure."""
+
         # All az cli commands are issued here, after the project has been
         #   configured.
         if not self.sd.automate_all:
             return
-
-        # DEV: Run through everything that's done in deploy_heroku.py in 
-        #   private standalone repo.
 
         self.stdout.write("\n\nCommitting and pushing project...")
 
@@ -233,27 +231,200 @@ class AzureDeployer:
         self.stdout.write("  Committing changes...")
         subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
 
-        self.stdout.write("  Pushing to heroku...")
+        self.stdout.write("  Pushing to Azure...")
 
-        # Get the current branch name. Get the first line of status output,
-        #   and keep everything after "On branch ".
-        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
-        self.current_branch = git_status.stdout.split('\n')[0][10:]
+        # DEV: Refactor this.
+        # Parameters for Azure deployment.
+        location = 'westus2'
+        # B3 has worked best so far; try P1V2 (0.10/hr) or P2V2 (0.20/hr) 
+        plan_sku = 'P2V2'
+        db_sku = 'B_Gen5_1'
+
+        self.stdout.write("  Adding db-up to Azure CLI...")
+        cmd_str = "az extension add --name db-up"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        self.stdout.write("    Added db-up.")
+
+        # Create a group with a location that works for free plans.
+        self.stdout.write("  Creating group...")
+        cmd_str = f"az group create --location {location} --name SimpleDeployGroup"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        self.stdout.write("    Created group.")
+
+        # Create a plan on the specified tier.
+        self.stdout.write(f"\n  Creating Azure {plan_sku} plan...")
+        # Note: I keep getting "error in sideband demultiplexer" errors. I think it's because
+        #   I'm using the free tier too often. Try paid plans.
+        cmd_str = f"az appservice plan create --resource-group SimpleDeployGroup --name SimpleDeployPlan --sku {plan_sku} --is-linux"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        self.stdout.write("    Created plan.")
+
+        # Create an app using git deployment. Parse output for git deployment uri.
+        self.stdout.write("\n  Creating app name...")
+        unique_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
+        project_name_slug = self.sd.project_name.replace('_', '-')
+        app_name = f"{project_name_slug}-{unique_string}"
+        self.stdout.write(f"    Created name: {app_name}")
+
+        # Create the db.
+        self.stdout.write("  Creating Postgres database...")
+
+        db_server_name = f"sd-pg-server-{unique_string}"
+        db_name = f"sd-db-{unique_string}"
+        db_user = f"sd_db_admin_{unique_string}"
+        # Ensure db password has appropriate complexity, and is entirely distinct from other credentials.
+        db_password = ''.join(random.choices(string.ascii_letters + string.digits + '!@#$%^&*', k=32))
+
+        self.stdout.write("    DB server name:", db_server_name)
+        self.stdout.write("    DB name:", db_name)
+        self.stdout.write("    DB user:", db_user)
+        self.stdout.write("    DB password:", db_password)
+
+        cmd_str = f"az postgres up --resource-group SimpleDeployGroup --location {location} --sku-name {db_sku} --server-name {db_server_name} --database-name {db_name} --admin-user {db_user} --admin-password {db_password}"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        self.stdout.write("    Created Postgres database...")
+
+        # Sometimes seems to need a moment after creating the db.
+        print("Sleeping 60s after building db...")
+        print('-'*60)
+        for _ in range(60):
+            time.sleep(1)
+            print('.', end='')
+        print('\n  Finished sleeping.')
+
+        print("\nCreating app...")
+        cmd_str = f"az webapp create --resource-group SimpleDeployGroup --plan SimpleDeployPlan --name {app_name} --runtime PYTHON:3.8 --deployment-local-git"
+        cmd_parts = cmd_str.split(' ')
+        output = subprocess.run(cmd_parts, capture_output=True)
+        print("  Created app.")
+
+        print("  Parsing output...")
+        output_str = output.stdout.decode()
+        create_output_str = output_str
+        print(output_str)
+
+        output_str = output_str.replace('null', '""')
+        output_str = output_str.replace('\\', '\\\\')
+        create_output_dict = json.loads(output_str)
+        print("    Parsed output from create command.")
+
+        # Get credentials for pushing the repository.
+        print("Getting publish credentials...")
+        cmd_str = f"az webapp deployment list-publishing-profiles --resource-group SimpleDeployGroup --name {app_name}"
+        cmd_parts = cmd_str.split(' ')
+        output = subprocess.run(cmd_parts, capture_output=True)
+        output_str = output.stdout.decode()
+        print(output_str)
+        publish_output_list = json.loads(output_str)
+
+        # Get username, password, and build correct git uri.
+        username = publish_output_list[0]['userName']
+        password = publish_output_list[0]['userPWD']
+        print(f"  username: {username}")
+        print(f"  password: {password}")
+
+        print("Building git url and push command...")
+        re_git_url = r'"deploymentLocalGitUrl": "https://(.*)@(.*).scm.azurewebsites.net/(.*).git",'
+        m = re.search(re_git_url, create_output_str)
+
+        git_url = f'https://{username}:{password}@{m.group(2).lower()}.scm.azurewebsites.net:443/{m.group(3).lower()}.git'
+        push_command = f"git push {git_url} initial_deploy:master"
+
+        print('  git url:', git_url)
+        print('  push command:', push_command)
+        print("  Build git url and push command.")
+
+        # Set post-deploy script.
+        print("Setting post-deploy script...")
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings POST_BUILD_COMMAND=run_migration.sh"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        print("  Set post-deploy script.")
+
+        # Set ON_AZURE app setting.
+        print("Setting ON_AZURE...")
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings ON_AZURE=1"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        print("  Set ON_AZURE.")
+
+        print("Setting env vars for db connection...")
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBHOST={db_server_name}"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBNAME={db_name}"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBUSER={db_user}"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBPASS={db_password}"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        print("  Set env vars for db.")
+
+        # Try sleeping after setting env vars?
+        print("Sleeping 30s after setting db env vars...")
+        print('-'*30)
+        for _ in range(30):
+            time.sleep(1)
+            print('.', end='')
+        print('\n  Finished sleeping.')
+
+        # Set git remote.
+        print("Setting git remote...")
+        cmd_str = f"git remote add azure {git_url}"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        print("  Set git remote.")
+
+        # Push to azure.
+        # DEV: Will need to get current branch here.
+        print("Pushing to remote...")
+        # cmd_str = "git push azure initial_deploy:master"
+        cmd_str = push_command
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        print("  Pushed to remote.")
+
+        # And try sleeping before opening in browser, because sometimes needs a refresh after showing generic screen.
+        print("Sleeping 30s before opening in browser...")
+        print('-'*30)
+        for _ in range(30):
+            time.sleep(1)
+            print('.', end='')
+        print('\n  Finished sleeping.')
+
+        # Open in browser.
+        print("Opening in browser...")
+        cmd_str = f"az webapp browse --resource-group SimpleDeployGroup --name {app_name}"
+        cmd_parts = cmd_str.split(' ')
+        subprocess.run(cmd_parts)
+        print("  Opened in browser.")
+
+
+
+
+        # DEV: Still useful in cleaning up this method:
+
+        # # Get the current branch name. Get the first line of status output,
+        # #   and keep everything after "On branch ".
+        # git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
+        # self.current_branch = git_status.stdout.split('\n')[0][10:]
 
         # Push current local branch to Heroku main branch.
-        self.stdout.write(f"    Pushing branch {self.current_branch}...")
-        if self.current_branch in ('main', 'master'):
-            subprocess.run(['git', 'push', 'heroku', self.current_branch])
-        else:
-            subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'])
-
-        # Run initial set of migrations.
-        self.stdout.write("  Migrating deployed app...")
-        subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'])
-
-        # Open Heroku app, so it simply appears in user's browser.
-        self.stdout.write("  Opening deployed app in a new browser tab...")
-        subprocess.run(['heroku', 'open'])
+        # self.stdout.write(f"    Pushing branch {self.current_branch}...")
+        # if self.current_branch in ('main', 'master'):
+        #     subprocess.run(['git', 'push', 'heroku', self.current_branch])
+        # else:
+        #     subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'])
 
 
     def _show_success_message(self):
