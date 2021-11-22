@@ -64,7 +64,9 @@ class Command(BaseCommand):
          # Get project name. There are a number of ways to get the project
         #   name; for now we'll assume the root url config file has not
         #   been moved from the default location.
-        self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
+        # DEV: Use this code when we can require Python >=3.9.
+        # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
+        self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
 
         self.project_root = settings.BASE_DIR
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
