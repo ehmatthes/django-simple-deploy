@@ -77,7 +77,9 @@ class HerokuDeployer:
         # Turn stdout info into a list of strings that we can then parse.
         #   If no app exists, stdout is empty and the output went to stderr.
         apps_info = apps_info.stdout.decode().split('\n')
-        self.heroku_app_name = apps_info[0].removeprefix('=== ')
+        # DEV: Use this code when we can require Python >=3.9.
+        # self.heroku_app_name = apps_info[0].removeprefix('=== ')
+        self.heroku_app_name = apps_info[0].replace('=== ', '')
 
         if self.heroku_app_name:
             self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")

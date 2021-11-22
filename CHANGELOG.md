@@ -6,9 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
+### 0.1.12
+
+- Unreleased.
+
 ### 0.1.11
 
-- Unreleased
+- Supports Python 3.8, because Azure is still on 3.8.
 
 ### 0.1.10
 
