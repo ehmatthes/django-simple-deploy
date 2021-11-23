@@ -174,7 +174,7 @@ class AzureDeployer:
         # DEV: This is written as one line, to keep _get_azure_settings() working
         #   as it's currently written. Rewrite this as a block, and update get settings()
         #   to work with multiline settings.
-        new_setting = "DATABASES = {'default': {'ENGINE': 'django.db.backends.postgresql', 'NAME': os.environ['DBNAME'], 'HOST': os.environ['DBHOST'] + '.postgres.database.azure.com', 'USER': os.environ['DBUSER'] + '@' + hostname, 'PASSWORD': os.environ['DBPASS']}}"
+        new_setting = "DATABASES = {'default': {'ENGINE': 'django.db.backends.postgresql', 'NAME': os.environ['DBNAME'], 'HOST': os.environ['DBHOST'] + '.postgres.database.azure.com', 'USER': os.environ['DBUSER'] + '@' + os.environ['DBHOST'], 'PASSWORD': os.environ['DBPASS']}}"
         msg_added = "    Added setting to configure Postgres on Azure."
         msg_already_set = "    Found setting to configure Postgres on Azure."
         self._add_azure_setting(new_setting, msg_added, msg_already_set)
