@@ -224,8 +224,20 @@ class AzureDeployer:
         if not self.sd.automate_all:
             return
 
-        self.stdout.write("\n\nCommitting and pushing project...")
+        # Add a migration script, since we'll be handling the initial migration.
+        self.stdout.write("  Adding script to run initial migration...")
+        run_migration_file = f'{self.sd.project_root}/run_azure_migration.sh'
+        with open(run_migration_file, 'w') as f:
+            f.write('python manage.py migrate\n')
 
+        # Make script executable.
+        # DEV: I don't think this is necessary.
+        # cmd_str = f"chmod a+x {run_migration_file}"
+        # cmd_parts = cmd_str.split(' ')
+        # subprocess.run(cmd_parts)
+        # self.stdout.write("    Added migration script.")
+
+        self.stdout.write("\n\nCommitting changes...")
         self.stdout.write("  Adding changes...")
         subprocess.run(['git', 'add', '.'])
         self.stdout.write("  Committing changes...")
@@ -340,7 +352,7 @@ class AzureDeployer:
 
         # Set post-deploy script.
         self.stdout.write("Setting post-deploy script...")
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings POST_BUILD_COMMAND=run_migration.sh"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings POST_BUILD_COMMAND=run_azure_migration.sh"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("  Set post-deploy script.")
