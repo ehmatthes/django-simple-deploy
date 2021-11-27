@@ -51,7 +51,7 @@ platform="heroku"
 # - test_automate_all
 cli_sd_options=""
 
-while getopts t:d:o:p flag
+while getopts t:d:o:p: flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
