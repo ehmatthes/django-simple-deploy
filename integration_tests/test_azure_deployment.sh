@@ -12,9 +12,29 @@ fi
 
 echo "Running manage.py simple_deploy..."
 if [ "$test_automate_all" = true ]; then
-    python manage.py simple_deploy --automate-all --platform azure
+    # Save the output for processing, but display as it's running because it takes a long time.
+    output=$(python manage.py simple_deploy --automate-all --platform azure | tee /dev/tty)
 else
     python manage.py simple_deploy --platform azure
+fi
+
+# Get app name, and db server name.
+app_name_pattern='(learning-log-[a-zA-Z0-9]{16}\.azurewebsites\.net)'
+db_pattern='(sd-pg-server-[a-zA-Z0-9]{16})'
+
+echo "Getting app name and db name..."
+if [[ "$output" =~ $app_name_pattern ]]; then
+    app_name="${BASH_REMATCH[1]}"
+    echo "  App name: $app_name"
+else
+    echo "  Couldn't determine app name."
+fi
+
+if [[ "$output" =~ $db_pattern ]]; then
+    db_server_name="${BASH_REMATCH[1]}"
+    echo "  DB server name: $db_server_name"
+else
+    echo "  Couldn't find db server name."
 fi
 
 # After running simple_deploy, need to regenerate the lock file.
@@ -77,11 +97,14 @@ if [ "$tear_down" = true ]; then
     echo ""
     echo "Cleaning up:"
 
+    echo "  Destroying Azure db..."
+    az postgres db delete --name $db_server_name
+    echo "  Destroying Azure app..."
+    az webapp delete --resource-group SimpleDeployGroup --name $app_name
+    echo "  Destroying Azure plan..."
+    az appservices plan delete --name SimpleDeployPlan
+    echo "  Destroyed Azure resources."
 
-    # echo "  Destroying Heroku app $app_name..."
-    # heroku apps:destroy --app "$app_name" --confirm "$app_name"
-
-    
     echo "  Destroying temporary directory..."
     rm -rf "$tmp_dir"
     echo "...removed temporary directory: $tmp_dir"
