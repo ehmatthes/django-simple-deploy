@@ -76,6 +76,9 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     $poetry_cmd add requests
 fi
 
+# Define url for testing, from app_name.
+app_url="http://$app_name.azurewebsites.net"
+
 cd "$script_dir"
 python integration_tests/test_deployed_app_functionality.py "$app_url"
 
@@ -103,7 +106,7 @@ if [ "$tear_down" = true ]; then
     echo "Cleaning up:"
 
     echo "  Destroying Azure db..."
-    az postgres db delete --resource-group SimpleDeployGroup --server-name $db_server_name
+    az postgres db delete --resource-group SimpleDeployGroup --name $db_server_name
     echo "  Destroying Azure app..."
     az webapp delete --resource-group SimpleDeployGroup --name $app_name
     echo "  Destroying Azure plan..."
