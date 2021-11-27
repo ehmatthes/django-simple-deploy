@@ -343,8 +343,18 @@ class AzureDeployer:
         re_git_url = r'"deploymentLocalGitUrl": "https://(.*)@(.*).scm.azurewebsites.net/(.*).git",'
         m = re.search(re_git_url, create_output_str)
 
+
+
+        # Get the current branch name. Get the first line of status output,
+        #   and keep everything after "On branch ".
+        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
+        self.current_branch = git_status.stdout.split('\n')[0][10:]
+
         git_url = f'https://{username}:{password}@{m.group(2).lower()}.scm.azurewebsites.net:443/{m.group(3).lower()}.git'
-        push_command = f"git push {git_url} initial_deploy:master"
+        push_command = f"git push {git_url} {self.current_branch}:master"
+
+
+
 
         self.stdout.write(f'  git url: {git_url}')
         self.stdout.write(f'  push command: {push_command}')
