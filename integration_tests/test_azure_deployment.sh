@@ -102,7 +102,7 @@ if [ "$tear_down" = true ]; then
     echo "  Destroying Azure app..."
     az webapp delete --resource-group SimpleDeployGroup --name $app_name
     echo "  Destroying Azure plan..."
-    az appservices plan delete --name SimpleDeployPlan
+    az appservice plan delete --name SimpleDeployPlan
     echo "  Destroyed Azure resources."
 
     echo "  Destroying temporary directory..."
