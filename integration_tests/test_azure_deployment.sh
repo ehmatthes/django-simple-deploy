@@ -24,7 +24,7 @@ else
 fi
 
 # Get app name, and db server name.
-app_name_pattern='(learning-log-[a-zA-Z0-9]{16}\.azurewebsites\.net)'
+app_name_pattern='(learning-log-[a-zA-Z0-9]{16})\.azurewebsites\.net)'
 db_pattern='(sd-pg-server-[a-zA-Z0-9]{16})'
 
 echo "Getting app name and db name..."
@@ -78,6 +78,7 @@ fi
 
 # Define url for testing, from app_name.
 app_url="http://$app_name.azurewebsites.net"
+echo "    app url:$app_url"
 
 cd "$script_dir"
 python integration_tests/test_deployed_app_functionality.py "$app_url"
@@ -106,7 +107,7 @@ if [ "$tear_down" = true ]; then
     echo "Cleaning up:"
 
     echo "  Destroying Azure db..."
-    az postgres db delete --resource-group SimpleDeployGroup --name $db_server_name
+    az postgres db delete --resource-group SimpleDeployGroup --name $db_server_name --server-name $db_server_name.postgres.database.azure.com
     echo "  Destroying Azure app..."
     az webapp delete --resource-group SimpleDeployGroup --name $app_name
     echo "  Destroying Azure plan..."
