@@ -7,3 +7,4 @@ include simple_deploy/management/commands/utils/deploy_heroku.py
 include simple_deploy/management/commands/utils/deploy_azure.py
 include simple_deploy/management/commands/utils/deploy_messages.py
 include simple_deploy/management/commands/utils/deploy_messages_heroku.py
+include simple_deploy/management/commands/utils/deploy_messages_azure.py
