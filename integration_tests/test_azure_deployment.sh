@@ -73,12 +73,16 @@ while true; do
 done
 
 # Teardown
-# if [ "$tear_down" = true ]; then
-#     echo ""
-#     echo "Cleaning up:"
-#     echo "  Destroying Heroku app $app_name..."
-#     heroku apps:destroy --app "$app_name" --confirm "$app_name"
-#     echo "  Destroying temporary directory..."
-#     rm -rf "$tmp_dir"
-#     echo "...removed temporary directory: $tmp_dir"
-# fi
+if [ "$tear_down" = true ]; then
+    echo ""
+    echo "Cleaning up:"
+
+
+    # echo "  Destroying Heroku app $app_name..."
+    # heroku apps:destroy --app "$app_name" --confirm "$app_name"
+
+    
+    echo "  Destroying temporary directory..."
+    rm -rf "$tmp_dir"
+    echo "...removed temporary directory: $tmp_dir"
+fi
