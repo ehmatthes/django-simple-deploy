@@ -11,6 +11,11 @@ if [ "$test_automate_all" != true ]; then
 fi
 
 echo "Running manage.py simple_deploy..."
+# This captures the output of all the work simple_deploy does, so it will contain
+#   both the app name and the db server name, and any other information we should need as well.
+# If any of this information is difficult to pull, we can generate whatever output is needed 
+#   for testing from within simple_deploy. End users will not have any issue with output
+#   whose sole purpose is for testing.
 if [ "$test_automate_all" = true ]; then
     # Save the output for processing, but display as it's running because it takes a long time.
     output=$(python manage.py simple_deploy --automate-all --platform azure | tee /dev/tty)
@@ -102,7 +107,7 @@ if [ "$tear_down" = true ]; then
     echo "  Destroying Azure app..."
     az webapp delete --resource-group SimpleDeployGroup --name $app_name
     echo "  Destroying Azure plan..."
-    az appservice plan delete --name SimpleDeployPlan
+    az appservice plan delete --resource-group SimpleDeployGroup --name SimpleDeployPlan
     echo "  Destroyed Azure resources."
 
     echo "  Destroying temporary directory..."
