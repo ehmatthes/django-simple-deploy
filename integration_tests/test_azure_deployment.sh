@@ -24,7 +24,7 @@ else
 fi
 
 # Get app name, and db server name.
-app_name_pattern='(learning-log-[a-zA-Z0-9]{16})\.azurewebsites\.net)'
+app_name_pattern='  "defaultHostName": "(learning-log-[a-zA-Z0-9]{16})\.azurewebsites\.net",'
 db_pattern='(sd-pg-server-[a-zA-Z0-9]{16})'
 
 echo "Getting app name and db name..."
