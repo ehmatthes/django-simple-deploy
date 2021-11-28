@@ -78,7 +78,7 @@ fi
 
 # Define url for testing, from app_name.
 app_url="http://$app_name.azurewebsites.net"
-echo "    app url:$app_url"
+echo "    app url: $app_url"
 
 cd "$script_dir"
 python integration_tests/test_deployed_app_functionality.py "$app_url"
