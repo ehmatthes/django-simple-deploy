@@ -107,7 +107,7 @@ if [ "$tear_down" = true ]; then
     echo "Cleaning up:"
 
     echo "  Destroying Azure resources..."
-    az group delete SimpleDeployGroup
+    az group delete --name SimpleDeployGroup
     echo "  Destroyed Azure resources."
 
     # echo "  Destroying Azure db..."
