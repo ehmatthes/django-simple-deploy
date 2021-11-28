@@ -77,7 +77,7 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
 fi
 
 # Define url for testing, from app_name.
-app_url="http://$app_name.azurewebsites.net"
+app_url="http://$app_name.azurewebsites.net/"
 echo "    app url: $app_url"
 
 cd "$script_dir"
