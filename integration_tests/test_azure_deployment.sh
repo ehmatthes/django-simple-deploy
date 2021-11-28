@@ -106,13 +106,17 @@ if [ "$tear_down" = true ]; then
     echo ""
     echo "Cleaning up:"
 
-    echo "  Destroying Azure db..."
-    az postgres db delete --resource-group SimpleDeployGroup --name $db_server_name --server-name $db_server_name.postgres.database.azure.com
-    echo "  Destroying Azure app..."
-    az webapp delete --resource-group SimpleDeployGroup --name $app_name
-    echo "  Destroying Azure plan..."
-    az appservice plan delete --resource-group SimpleDeployGroup --name SimpleDeployPlan
+    echo "  Destroying Azure resources..."
+    az group delete SimpleDeployGroup
     echo "  Destroyed Azure resources."
+
+    # echo "  Destroying Azure db..."
+    # az postgres db delete --resource-group SimpleDeployGroup --name $db_server_name --server-name $db_server_name.postgres.database.azure.com
+    # echo "  Destroying Azure app..."
+    # az webapp delete --resource-group SimpleDeployGroup --name $app_name
+    # echo "  Destroying Azure plan..."
+    # az appservice plan delete --resource-group SimpleDeployGroup --name SimpleDeployPlan
+    # echo "  Destroyed Azure resources."
 
     echo "  Destroying temporary directory..."
     rm -rf "$tmp_dir"
