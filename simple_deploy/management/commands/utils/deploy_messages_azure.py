@@ -109,7 +109,8 @@ def success_msg_automate_all(azure_app_name, current_branch):
         - You should be able to ssh into your server with the command:
             az webapp ssh --resource-group SimpleDeployGroup --name {azure_app_name}
           This should allow you to run management commands.
-        - You should also be able to use a browser-based ssh session at `https://{azure_app_name}.scm.azurewebsites.net`.
+        - You should also be able to use a browser-based ssh session at:
+            https://{azure_app_name}.scm.azurewebsites.net
         - If you know more about Azure deployments, please get in touch and help
           clean up the automated deployment process on Azure.
         - You should look at your Azure dashboard and make sure you understand what
