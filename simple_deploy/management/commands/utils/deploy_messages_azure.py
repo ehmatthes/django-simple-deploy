@@ -10,7 +10,7 @@ from django.conf import settings
 require_automate_all = """
 ***** Azure deployments require the --automate-all flag. *****
 
-- Support for deploying to Azure is in a preliminary phase at this point.
+- Support for deploying to Azure is in an exploratory phase at this point.
 - Deploying to Azure without full atomation requires a significant number
   of steps, to the point where using simple_deploy doesn't help much.
 - You would need to create a number of resources such as a database, and 
@@ -25,7 +25,7 @@ require_automate_all = """
 confirm_preliminary = """
 ***** Azure deployments are experimental at this point ***
 
-- Support for deploying to Azure is in a preliminary phase at this point.
+- Support for deploying to Azure is in an exploratory phase at this point.
 - You should only be using this project to deploy to Azure at this point if
   you are interested in helping to develop or test the simple_deploy project.
 - You should look at the deploy_azure.py script before running this command,
@@ -103,7 +103,7 @@ def success_msg_automate_all(azure_app_name, current_branch):
         commit your changes and then run the following command:
         {push_command}
 
-        *** Azure support is preliminary at this point. ***
+        *** Azure support is in an exploratory phase at this point. ***
         - The above command should push your changes to Azure, but you will 
           need to manually restart your server to use these changes.
         - You should be able to ssh into your server with the command:
