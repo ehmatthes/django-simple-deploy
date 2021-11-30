@@ -19,7 +19,7 @@ require_automate_all = """
   own using Azure.
 - If you want to use simple_deploy with Azure, you can rerun this command with
   the `--automate-all` argument. You may also want to consider deploying to
-  Heroku instead, which this project has better support for at this point.
+  Heroku instead, which simple_deploy has better support for at this point.
 """
 
 confirm_preliminary = """
