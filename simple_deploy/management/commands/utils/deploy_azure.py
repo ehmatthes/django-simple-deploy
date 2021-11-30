@@ -424,10 +424,14 @@ class AzureDeployer:
     def _pause(self, pause_length):
         """Sometimes need to pause a moment after creating a resource."""
         self.stdout.write(f"  Sleeping {pause_length}s after building resource...")
-        print('-'*60)
-        for _ in range(60):
-            time.sleep(1)
-            print('.', end='')
+        time.sleep(pause_length)
+
+        # DEV: How make this loop work with stdout.write()?
+        # print('-'*60)
+        # for _ in range(60):
+        #     time.sleep(1)
+        #     print('.', end='')
+
         self.stdout.write('\n    Finished sleeping.')
 
 
