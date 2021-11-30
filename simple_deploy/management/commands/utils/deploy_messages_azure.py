@@ -8,6 +8,7 @@ from django.conf import settings
 
 
 require_automate_all = """
+
 ***** Azure deployments require the --automate-all flag. *****
 
 - Support for deploying to Azure is in an exploratory phase at this point.
