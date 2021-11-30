@@ -496,7 +496,7 @@ class AzureDeployer:
         self.current_branch = git_status.stdout.split('\n')[0][10:]
 
         self.git_url = f'https://{username}:{password}@{m.group(2).lower()}.scm.azurewebsites.net:443/{m.group(3).lower()}.git'
-        self.push_command = f"git push {git_url} {self.current_branch}:master"
+        self.push_command = f"git push {self.git_url} {self.current_branch}:master"
 
         self.stdout.write(f'    git url: {self.git_url}')
         self.stdout.write(f'    push command: {self.push_command}')
