@@ -67,8 +67,10 @@ confirm_automate_all = """
 # These need to be generated in functions, to display information that's 
 #   determined as the script runs.
 
-def success_msg(using_pipenv, heroku_app_name):
+def success_msg(using_pipenv, azure_app_name):
     """Success message, when not using --automate-all flag."""
+    # DEV: Compose this message if we end up supporting a configuration-only
+    #  deployment process for Azure.
 
     # You can't use backslashes in f-strings, so this is the cleanest way I
     #   can add a pipenv line when needed.
@@ -76,57 +78,43 @@ def success_msg(using_pipenv, heroku_app_name):
 
     msg = dedent(f"""
 
-        --- Your project is now configured for deployment on Heroku. ---
-        
-        To deploy your project, you will need to:
-        - Commit the changes made in the configuration process.
-        - Push the changes to Heroku.
-        - Migrate the database on Heroku.
-        
-        The following commands should finish your initial deployment:{newline + '        $ pipenv lock' if using_pipenv else ''}
-        $ git add .
-        $ git commit -am "Configured for Heroku deployment."
-        $ git push heroku main
-        $ heroku run python manage.py migrate
-        
-        After this, you can see your project by running 'heroku open'.
-        Or, you can visit https://{heroku_app_name}.herokuapp.com.
-
     """)
     return msg
 
 
-def success_msg_automate_all(heroku_app_name, current_branch):
+def success_msg_automate_all(azure_app_name, current_branch):
     """Success message, when using --automate-all."""
 
-    # Set correct command for pushing to heroku.
-    if current_branch in ('main', 'master'):
-        push_command = f"$ git push heroku {current_branch}"
-    else:
-        push_command = f"$ git push heroku {current_branch}:main"
+    # Set correct command for pushing to azure.
+    push_command = f"$ git push azure {current_branch}:master"
 
     msg = dedent(f"""
 
-        ***** UPDATE FOR AZURE *****
-
-        --- Your project should now be deployed on Heroku. ---
+        --- Your project should now be deployed on Azure. ---
 
         It should have opened up in a new browser tab.
-        - If you see the message "There's nothing here, yet"
-          try waiting a moment and then refreshing your browser.
+        - If you see a generic Azure page, try waiting a moment and then
+          refreshing your browser.
         - Sometimes when the process is automated there's a little lag
           before the project is fully deployed.
-        - You can also visit your project at {heroku_app_name}.herokuapp.com.
+        - You can also visit your project at http://{azure_app_name}.azurewebsites.net.
 
-        If you make further changes and want to push them to Heroku,
+        If you make further changes and want to push them to Azure,
         commit your changes and then run the following command:
         {push_command}
 
-        Also, if you haven't already done so you should review the
-        documentation for Python deployments on Heroku at:
-        - https://devcenter.heroku.com/categories/python-support
-        - This documentation will help you understand how to maintain
-          your deployment.
+        *** Azure support is preliminary at this point. ***
+        - The above command should push your changes to Azure, but you will 
+          need to manually restart your server to use these changes.
+        - You should be able to ssh into your server with the command
+          `az webapp ssh`. This should allow you to run management commands.
+        - You should also be able to use a browser-based ssh session at `https://{azure_app_name}.scm.azurewebsites.net`.
+        - If you know more about Azure deployments, please get in touch and help
+          clean up the automated deployment process on Azure.
+        - You should look at your Azure dashboard and make sure you understand what
+          new resources were created, and how much they are costing. It's your
+          responsibility to delete any resources you don't want, otherwise they
+          will continue to accrue charges.        
 
     """)
     return msg

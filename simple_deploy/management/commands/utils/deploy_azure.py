@@ -284,8 +284,8 @@ class AzureDeployer:
         self.stdout.write("\n  Creating app name...")
         unique_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))
         project_name_slug = self.sd.project_name.replace('_', '-')
-        app_name = f"{project_name_slug}-{unique_string}"
-        self.stdout.write(f"    Created name: {app_name}")
+        self.app_name = f"{project_name_slug}-{unique_string}"
+        self.stdout.write(f"    Created name: {self.app_name}")
 
         # Create the db.
         self.stdout.write("  Creating Postgres database...")
@@ -315,7 +315,7 @@ class AzureDeployer:
         self.stdout.write('\n  Finished sleeping.')
 
         self.stdout.write("\nCreating app...")
-        cmd_str = f"az webapp create --resource-group SimpleDeployGroup --plan SimpleDeployPlan --name {app_name} --runtime PYTHON:3.8 --deployment-local-git"
+        cmd_str = f"az webapp create --resource-group SimpleDeployGroup --plan SimpleDeployPlan --name {self.app_name} --runtime PYTHON:3.8 --deployment-local-git"
         cmd_parts = cmd_str.split(' ')
         output = subprocess.run(cmd_parts, capture_output=True)
         self.stdout.write("  Created app.")
@@ -332,7 +332,7 @@ class AzureDeployer:
 
         # Get credentials for pushing the repository.
         self.stdout.write("Getting publish credentials...")
-        cmd_str = f"az webapp deployment list-publishing-profiles --resource-group SimpleDeployGroup --name {app_name}"
+        cmd_str = f"az webapp deployment list-publishing-profiles --resource-group SimpleDeployGroup --name {self.app_name}"
         cmd_parts = cmd_str.split(' ')
         output = subprocess.run(cmd_parts, capture_output=True)
         output_str = output.stdout.decode()
@@ -363,32 +363,32 @@ class AzureDeployer:
 
         # Set post-deploy script.
         self.stdout.write("Setting post-deploy script...")
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings POST_BUILD_COMMAND=run_azure_migration.sh"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings POST_BUILD_COMMAND=run_azure_migration.sh"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("  Set post-deploy script.")
 
         # Set ON_AZURE app setting.
         self.stdout.write("Setting ON_AZURE...")
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings ON_AZURE=1"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings ON_AZURE=1"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("  Set ON_AZURE.")
 
         self.stdout.write("Setting env vars for db connection...")
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBHOST={db_server_name}"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBHOST={db_server_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
 
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBNAME={db_name}"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBNAME={db_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
 
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBUSER={db_user}"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBUSER={db_user}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
 
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {app_name} --settings DBPASS={db_password}"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBPASS={db_password}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("  Set env vars for db.")
@@ -427,7 +427,7 @@ class AzureDeployer:
 
         # Open in browser.
         self.stdout.write("Opening in browser...")
-        cmd_str = f"az webapp browse --resource-group SimpleDeployGroup --name {app_name}"
+        cmd_str = f"az webapp browse --resource-group SimpleDeployGroup --name {self.app_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("  Opened in browser.")
@@ -448,15 +448,13 @@ class AzureDeployer:
         if self.sd.automate_all:
             # Show how to make future deployments.
             # DEV: Replace this with actual project name:
-            self.azure_app_name = 'SAMPLE_APP_NAME'
-            self.current_branch = 'CURRENT_BRANCH'
-            msg = da_msgs.success_msg_automate_all(self.azure_app_name,
+            msg = da_msgs.success_msg_automate_all(self.app_name,
                     self.current_branch)
         else:
             # Show steps to finish the deployment process.
-            # DEV: Replace with correct name.
-            self.azure_app_name = 'SAMPLE_APP_NAME'
-            msg = da_msgs.success_msg(self.sd.using_pipenv, self.azure_app_name)
+            # DEV: This block should not be reached until we support a
+            #   configuration-only approach for Azure.
+            msg = da_msgs.success_msg(self.sd.using_pipenv, self.app_name)
 
         self.stdout.write(msg)
 
