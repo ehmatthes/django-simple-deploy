@@ -252,7 +252,7 @@ class AzureDeployer:
         self._install_dbup()
         self._create_azure_group(location)
         self._create_azure_plan(plan_sku)
-        unique_string = self._create_azure_app()
+        unique_string = self._create_azure_app_name()
 
         # Now that we have an app name, modify ALLOWED_HOSTS.
         self._check_allowed_hosts()
@@ -373,9 +373,8 @@ class AzureDeployer:
         self.stdout.write("    Created plan.")
 
 
-    def _create_azure_app(self):
-        """Create an app using git deployment. Parse output for git
-        deployment uri.
+    def _create_azure_app_name(self):
+        """Create a unique app name for deployment.
         """
         self.stdout.write("\n  Creating app name...")
         unique_string = ''.join(random.choices(string.ascii_letters + string.digits, k=16))

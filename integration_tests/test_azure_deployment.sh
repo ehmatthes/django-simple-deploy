@@ -107,8 +107,9 @@ if [ "$tear_down" = true ]; then
     echo "Cleaning up:"
 
     echo "  Destroying Azure resources..."
+    echo "    Deleting SimpleDeployGroup..."
     az group delete --name SimpleDeployGroup
-    echo "  Destroyed Azure resources."
+    echo "    Destroyed Azure resources."
 
     # echo "  Destroying Azure db..."
     # az postgres db delete --resource-group SimpleDeployGroup --name $db_server_name --server-name $db_server_name.postgres.database.azure.com
