@@ -40,7 +40,6 @@ class AzureDeployer:
         self._configure_db()
         self._configure_static_files()
         self._conclude_automate_all()
-        return
         self._show_success_message()
 
 

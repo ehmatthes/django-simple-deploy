@@ -52,7 +52,7 @@ Testing options
 ---
 
 ```
-./integration_tests/autoconfigure_deploy_test.sh -t [pypi|current_branch] -d [req_txt|poetry|pipenv] -o [automate_all] -p [heroku]
+./integration_tests/autoconfigure_deploy_test.sh -t [pypi|current_branch] -d [req_txt|poetry|pipenv] -o [automate_all] -p [heroku|azure]
 ```
 
 Testing poetry has been problematic for me due to caching issues. If you see errors about installing requirements to the temporary environment created during the tests, try clearing the cache manually before running the tests:

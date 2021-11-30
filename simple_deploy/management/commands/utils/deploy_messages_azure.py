@@ -106,8 +106,9 @@ def success_msg_automate_all(azure_app_name, current_branch):
         *** Azure support is preliminary at this point. ***
         - The above command should push your changes to Azure, but you will 
           need to manually restart your server to use these changes.
-        - You should be able to ssh into your server with the command
-          `az webapp ssh`. This should allow you to run management commands.
+        - You should be able to ssh into your server with the command:
+            az webapp ssh --resource-group SimpleDeployGroup --name {azure_app_name}
+          This should allow you to run management commands.
         - You should also be able to use a browser-based ssh session at `https://{azure_app_name}.scm.azurewebsites.net`.
         - If you know more about Azure deployments, please get in touch and help
           clean up the automated deployment process on Azure.
