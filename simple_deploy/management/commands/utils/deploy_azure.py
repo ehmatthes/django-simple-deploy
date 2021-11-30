@@ -258,7 +258,7 @@ class AzureDeployer:
         self._check_allowed_hosts()
 
         self._commit_changes()
-        self._create_azure_db(unique_string)
+        self._create_azure_db(location, db_sku, unique_string)
         self._pause(60)
         creation_output = self._create_azure_app()
         self._parse_creation_output(creation_output)
@@ -388,14 +388,14 @@ class AzureDeployer:
 
     def _commit_changes(self):
         """Commit changes in preparation for push to Azure server."""
-        self.stdout.write("\n\nCommitting changes...")
-        self.stdout.write("  Adding changes...")
+        self.stdout.write("  Committing changes before deployment...")
+        self.stdout.write("    Adding changes...")
         subprocess.run(['git', 'add', '.'])
-        self.stdout.write("  Committing changes...")
+        self.stdout.write("    Committing changes...")
         subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
 
 
-    def _create_azure_db(self, unique_string):
+    def _create_azure_db(self, location, db_sku, unique_string):
         """Create an Azure Postgres database."""
         # Note that this is significantly more expensive than what many 
         #   people may want for their first deployment. This should be
@@ -404,18 +404,18 @@ class AzureDeployer:
 
         self.stdout.write("  Creating Postgres database...")
 
-        db_server_name = f"sd-pg-server-{unique_string}"
-        db_name = f"sd-db-{unique_string}"
-        db_user = f"sd_db_admin_{unique_string}"
+        self.db_server_name = f"sd-pg-server-{unique_string}"
+        self.db_name = f"sd-db-{unique_string}"
+        self.db_user = f"sd_db_admin_{unique_string}"
         # Ensure db password has appropriate complexity, and is entirely distinct from other credentials.
-        db_password = ''.join(random.choices(string.ascii_letters + string.digits + '!@#$%^&*', k=32))
+        self.db_password = ''.join(random.choices(string.ascii_letters + string.digits + '!@#$%^&*', k=32))
 
-        self.stdout.write(f"    DB server name: {db_server_name}")
-        self.stdout.write(f"    DB name: {db_name}")
-        self.stdout.write(f"    DB user: {db_user}")
-        self.stdout.write(f"    DB password: {db_password}")
+        self.stdout.write(f"    DB server name: {self.db_server_name}")
+        self.stdout.write(f"    DB name: {self.db_name}")
+        self.stdout.write(f"    DB user: {self.db_user}")
+        self.stdout.write(f"    DB password: {self.db_password}")
 
-        cmd_str = f"az postgres up --resource-group SimpleDeployGroup --location {location} --sku-name {db_sku} --server-name {db_server_name} --database-name {db_name} --admin-user {db_user} --admin-password {db_password}"
+        cmd_str = f"az postgres up --resource-group SimpleDeployGroup --location {location} --sku-name {db_sku} --server-name {self.db_server_name} --database-name {self.db_name} --admin-user {self.db_user} --admin-password {self.db_password}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("    Created Postgres database...")
@@ -423,21 +423,21 @@ class AzureDeployer:
 
     def _pause(self, pause_length):
         """Sometimes need to pause a moment after creating a resource."""
-        self.stdout.write(f"Sleeping {pause_length}s after building resource...")
+        self.stdout.write(f"  Sleeping {pause_length}s after building resource...")
         print('-'*60)
         for _ in range(60):
             time.sleep(1)
             print('.', end='')
-        self.stdout.write('\n  Finished sleeping.')
+        self.stdout.write('\n    Finished sleeping.')
 
 
     def _create_azure_app(self):
         """Create an Azure appservice app."""
-        self.stdout.write("\nCreating app...")
+        self.stdout.write("  Creating app...")
         cmd_str = f"az webapp create --resource-group SimpleDeployGroup --plan SimpleDeployPlan --name {self.app_name} --runtime PYTHON:3.8 --deployment-local-git"
         cmd_parts = cmd_str.split(' ')
         output = subprocess.run(cmd_parts, capture_output=True)
-        self.stdout.write("  Created app.")
+        self.stdout.write("    Created app.")
 
         return output
 
@@ -454,6 +454,9 @@ class AzureDeployer:
         self.stdout.write("  Parsing output...")
         output_str = output.stdout.decode()
         create_output_str = output_str
+        # DEV: This is used by testing script test_azure_deployment.sh.
+        #   Should probably replace this with just the information that the
+        #   testing script needs, which would simplify that script as well.
         self.stdout.write(output_str)
 
         # DEV: I don't think this is currently being used.
@@ -463,7 +466,7 @@ class AzureDeployer:
         self.stdout.write("    Parsed output from create command.")
 
         # Get credentials for pushing the repository.
-        self.stdout.write("Getting publish credentials...")
+        self.stdout.write("    Getting publish credentials...")
         cmd_str = f"az webapp deployment list-publishing-profiles --resource-group SimpleDeployGroup --name {self.app_name}"
         cmd_parts = cmd_str.split(' ')
         output = subprocess.run(cmd_parts, capture_output=True)
@@ -474,12 +477,12 @@ class AzureDeployer:
         # Get username, password, and build correct git uri.
         username = publish_output_list[0]['userName']
         password = publish_output_list[0]['userPWD']
-        self.stdout.write(f"  username: {username}")
-        self.stdout.write(f"  password: {password}")
+        self.stdout.write(f"      username: {username}")
+        self.stdout.write(f"      password: {password}")
 
         # DEV: Rather than running this re against entire output string, run it against
         #   the deploymentLocalGitUrl pulled from the output json dict.
-        self.stdout.write("Building git url and push command...")
+        self.stdout.write("    Building git url and push command...")
         re_git_url = r'"deploymentLocalGitUrl": "https://(.*)@(.*).scm.azurewebsites.net/(.*).git",'
         m = re.search(re_git_url, create_output_str)
 
@@ -491,58 +494,58 @@ class AzureDeployer:
         self.git_url = f'https://{username}:{password}@{m.group(2).lower()}.scm.azurewebsites.net:443/{m.group(3).lower()}.git'
         self.push_command = f"git push {git_url} {self.current_branch}:master"
 
-        self.stdout.write(f'  git url: {self.git_url}')
-        self.stdout.write(f'  push command: {self.push_command}')
-        self.stdout.write("  Build git url and push command.")
+        self.stdout.write(f'    git url: {self.git_url}')
+        self.stdout.write(f'    push command: {self.push_command}')
+        self.stdout.write("    Built git url and push command.")
 
 
     def _set_post_deploy_script(self):
         """Set post-deploy script, which currently only runs initial
         migration.
         """
-        self.stdout.write("Setting post-deploy script...")
+        self.stdout.write("  Setting post-deploy script...")
         cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings POST_BUILD_COMMAND=run_azure_migration.sh"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        self.stdout.write("  Set post-deploy script.")
+        self.stdout.write("    Set post-deploy script.")
 
 
     def _set_azure_env_vars(self):
         """Set all environment variables that Azure will need."""
 
         # Set ON_AZURE app setting.
-        self.stdout.write("Setting ON_AZURE...")
+        self.stdout.write("  Setting ON_AZURE...")
         cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings ON_AZURE=1"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        self.stdout.write("  Set ON_AZURE.")
+        self.stdout.write("    Set ON_AZURE.")
 
-        self.stdout.write("Setting env vars for db connection...")
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBHOST={db_server_name}"
+        self.stdout.write("  Setting env vars for db connection...")
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBHOST={self.db_server_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
 
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBNAME={db_name}"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBNAME={self.db_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
 
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBUSER={db_user}"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBUSER={self.db_user}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
 
-        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBPASS={db_password}"
+        cmd_str = f"az webapp config appsettings set --resource-group SimpleDeployGroup --name {self.app_name} --settings DBPASS={self.db_password}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        self.stdout.write("  Set env vars for db.")
+        self.stdout.write("    Set env vars for db.")
 
 
     def _set_git_remote(self):
         """Add a git remote address for azure."""
-        self.stdout.write("Setting git remote...")
-        cmd_str = f"git remote add azure {git_url}"
+        self.stdout.write("  Setting git remote...")
+        cmd_str = f"git remote add azure {self.git_url}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        self.stdout.write("  Set git remote.")
+        self.stdout.write("    Set git remote.")
 
 
     def _push_azure(self):
@@ -551,17 +554,17 @@ class AzureDeployer:
         #   credentials in it. If we call a simple
         #   `git push azure main:master`, the script will pause and ask
         #   for a username/ password.
-        self.stdout.write("Pushing to remote...")
+        self.stdout.write("  Pushing to remote...")
         cmd_str = self.push_command
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        self.stdout.write("  Pushed to remote.")
+        self.stdout.write("    Pushed to remote.")
 
 
     def _open_azure_app(self):
         """Open newly-deployed app in browser."""
-        self.stdout.write("Opening in browser...")
+        self.stdout.write("  Opening in browser...")
         cmd_str = f"az webapp browse --resource-group SimpleDeployGroup --name {self.app_name}"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
-        self.stdout.write("  Opened in browser.")
+        self.stdout.write("    Opened in browser.")
