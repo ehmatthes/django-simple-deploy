@@ -36,7 +36,11 @@ class AzureDeployer:
         self._prep_automate_all()
         self._inspect_project()
         self.sd._add_simple_deploy_req()
-        self._check_allowed_hosts()
+
+        # While only supporting automate-all, this will be called after we
+        #   know the app name.
+        # self._check_allowed_hosts()
+
         self._configure_db()
         self._configure_static_files()
         self._conclude_automate_all()
@@ -136,7 +140,7 @@ class AzureDeployer:
 
         # DEV: This should use the full app URL.
         #   Use the azurewebsites domain for now.
-        azure_host = '.azurewebsites.net'
+        azure_host = f'{self.app_name}.azurewebsites.net'
 
         if azure_host in settings.ALLOWED_HOSTS:
             self.stdout.write(f"    Found {azure_host} in ALLOWED_HOSTS.")
@@ -242,12 +246,6 @@ class AzureDeployer:
         with open(run_migration_file, 'w') as f:
             f.write('python manage.py migrate\n')
 
-        self.stdout.write("\n\nCommitting changes...")
-        self.stdout.write("  Adding changes...")
-        subprocess.run(['git', 'add', '.'])
-        self.stdout.write("  Committing changes...")
-        subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
-
         self.stdout.write("  Pushing to Azure...")
 
         # DEV: Refactor this.
@@ -285,6 +283,17 @@ class AzureDeployer:
         project_name_slug = self.sd.project_name.replace('_', '-')
         self.app_name = f"{project_name_slug}-{unique_string}"
         self.stdout.write(f"    Created name: {self.app_name}")
+
+        # Now that we have an app name, modify ALLOWED_HOSTS.
+        self._check_allowed_hosts()
+
+        # We won't make any more changes to the local project, so commit
+        #   changes here.
+        self.stdout.write("\n\nCommitting changes...")
+        self.stdout.write("  Adding changes...")
+        subprocess.run(['git', 'add', '.'])
+        self.stdout.write("  Committing changes...")
+        subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
 
         # Create the db.
         self.stdout.write("  Creating Postgres database...")
