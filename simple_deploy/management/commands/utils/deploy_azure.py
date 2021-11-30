@@ -416,10 +416,11 @@ class AzureDeployer:
         subprocess.run(cmd_parts)
         self.stdout.write("  Set git remote.")
 
-        # Push to azure.
-        # DEV: Use the branch name and remote, not the raw push command.
+        # Push to azure. We need to use the push command constructed earlier,
+        #   which has credentials in it. If we call a simple
+        #   `git push azure main:master`, the script will pause and ask
+        #   for a username/ password.
         self.stdout.write("Pushing to remote...")
-        # cmd_str = "git push azure initial_deploy:master"
         cmd_str = push_command
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
