@@ -243,13 +243,6 @@ class AzureDeployer:
         with open(run_migration_file, 'w') as f:
             f.write('python manage.py migrate\n')
 
-        # Make script executable.
-        # DEV: I don't think this is necessary.
-        # cmd_str = f"chmod a+x {run_migration_file}"
-        # cmd_parts = cmd_str.split(' ')
-        # subprocess.run(cmd_parts)
-        # self.stdout.write("    Added migration script.")
-
         self.stdout.write("\n\nCommitting changes...")
         self.stdout.write("  Adding changes...")
         subprocess.run(['git', 'add', '.'])
@@ -356,8 +349,6 @@ class AzureDeployer:
         re_git_url = r'"deploymentLocalGitUrl": "https://(.*)@(.*).scm.azurewebsites.net/(.*).git",'
         m = re.search(re_git_url, create_output_str)
 
-
-
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
         git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
@@ -365,9 +356,6 @@ class AzureDeployer:
 
         git_url = f'https://{username}:{password}@{m.group(2).lower()}.scm.azurewebsites.net:443/{m.group(3).lower()}.git'
         push_command = f"git push {git_url} {self.current_branch}:master"
-
-
-
 
         self.stdout.write(f'  git url: {git_url}')
         self.stdout.write(f'  push command: {push_command}')
@@ -421,7 +409,7 @@ class AzureDeployer:
         self.stdout.write("  Set git remote.")
 
         # Push to azure.
-        # DEV: Will need to get current branch here.
+        # DEV: Use the branch name and remote, not the raw push command.
         self.stdout.write("Pushing to remote...")
         # cmd_str = "git push azure initial_deploy:master"
         cmd_str = push_command
@@ -443,23 +431,6 @@ class AzureDeployer:
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("  Opened in browser.")
-
-
-
-
-        # DEV: Still useful in cleaning up this method:
-
-        # # Get the current branch name. Get the first line of status output,
-        # #   and keep everything after "On branch ".
-        # git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
-        # self.current_branch = git_status.stdout.split('\n')[0][10:]
-
-        # Push current local branch to Heroku main branch.
-        # self.stdout.write(f"    Pushing branch {self.current_branch}...")
-        # if self.current_branch in ('main', 'master'):
-        #     subprocess.run(['git', 'push', 'heroku', self.current_branch])
-        # else:
-        #     subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'])
 
 
     def _show_success_message(self):
