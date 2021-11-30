@@ -1,5 +1,11 @@
 """Manages all Azure-specific aspects of the deployment process."""
 
+# Only works with --automate-all flag, because configuration-only approach
+#   requires user to do so much manually, that simple_deploy doesn't contribute
+#   meaningfully to the deployment process. Leaving the structure in place to 
+#   consider configuration-only, if a clear process for that can be outlined.
+
+
 import sys, os, re, subprocess, random, string, json, time
 
 from django.conf import settings
