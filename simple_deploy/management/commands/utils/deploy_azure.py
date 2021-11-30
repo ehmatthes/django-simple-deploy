@@ -24,6 +24,7 @@ class AzureDeployer:
     def deploy(self, *args, **options):
         self.stdout.write("Configuring project for deployment to Azure...")
 
+        self._require_automate_all()
         self._confirm_preliminary()
 
         self._prep_automate_all()
@@ -35,6 +36,18 @@ class AzureDeployer:
         self._conclude_automate_all()
         return
         self._show_success_message()
+
+
+    def _require_automate_all(self):
+        """Azure deployment requires automate all for now."""
+
+        if self.sd.automate_all:
+            return
+
+        # User did not choose automate-all, inform them that's required
+        #   for Azure deployment for now and then exit..
+        self.stdout.write(da_msgs.require_automate_all)
+        sys.exit()
 
 
     def _confirm_preliminary(self):

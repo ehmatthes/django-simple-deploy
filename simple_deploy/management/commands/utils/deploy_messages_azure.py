@@ -7,6 +7,21 @@ from textwrap import dedent
 from django.conf import settings
 
 
+require_automate_all = """
+***** Azure deployments require the --automate-all flag. *****
+
+- Support for deploying to Azure is in a preliminary phase at this point.
+- Deploying to Azure without full atomation requires a significant number
+  of steps, to the point where using simple_deploy doesn't help much.
+- You would need to create a number of resources such as a database, and 
+  then provide connection information for those resources. If you're comfortable
+  doing these steps, you're not far off from doing a full deployment on your
+  own using Azure.
+- If you want to use simple_deploy with Azure, you can rerun this command with
+  the `--automate-all` argument. You may also want to consider deploying to
+  Heroku instead, which this project has better support for at this point.
+"""
+
 confirm_preliminary = """
 ***** Azure deployments are experimental at this point ***
 
