@@ -259,15 +259,15 @@ class AzureDeployer:
 
         self._commit_changes()
         self._create_azure_db(location, db_sku, unique_string)
-        self._pause(60)
+        self._pause(10)
         creation_output = self._create_azure_app()
         self._parse_creation_output(creation_output)
         self._set_post_deploy_script()
         self._set_azure_env_vars()
-        self._pause(30)
+        self._pause(10)
         self._set_git_remote()
         self._push_azure()        
-        self._pause(30)
+        self._pause(10)
         self._open_azure_app()
 
 
