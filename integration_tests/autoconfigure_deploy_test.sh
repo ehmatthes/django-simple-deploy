@@ -35,10 +35,13 @@
 #    automate_all
 # p: Platform to push to.
 #    heroku, azure
+# s: Azure plan sku to use.
+#    F1, B1, S1, P1V2, P2V2
+#    See documentation of cli args for simple_deploy.py.
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|pipenv|poetry] -p [heroku|azure]
+#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|pipenv|poetry] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
 
 
 # --- Get CLI arguments. ---

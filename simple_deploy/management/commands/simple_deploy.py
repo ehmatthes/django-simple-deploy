@@ -33,13 +33,22 @@ class Command(BaseCommand):
             help="Which platform do you want to deploy to?",
             default='heroku')
 
-        # B3 has worked best so far; try P1V2 (0.10/hr) or P2V2 (0.20/hr).
-        # Default should be low-cost, so everyone trying an expensive plan
+        # Default is a free plan, so everyone trying a more expensive plan
         #   is doing so explicitly.
-        # As of 12/1/2021, D1 shared plan is $9.49/mo; B1 is $54.75/mo.
+        # If you are testing deployments repeatedly, you'll probably run out
+        #   of free minutes.
+        # The D1 shared plan won't work, because this script requires a linux
+        #   appservice plan. Shared plans are Windows-only.
+        # I've been doing most of my testing using the P2V2 plan, which is 
+        #   $300/month. At $0.40/hr, my costs have been less than $5 after tens
+        #   of deployments, being vigilant about ensuring resources are destroyed
+        #   immediately after testing. For testing, also consider:
+        #      P1V2, S1, B1.
+        # Prices described here are current as of 12/1/2021.
+        # See plans at: https://azure.microsoft.com/en-us/pricing/details/app-service/linux/
         parser.add_argument('--azure-plan-sku', type=str,
             help="Which plan sku should be used when creating Azure resources?",
-            default='D1')
+            default='F1')
 
 
     def handle(self, *args, **options):
