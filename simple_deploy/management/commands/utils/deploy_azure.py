@@ -135,11 +135,10 @@ class AzureDeployer:
     def _check_allowed_hosts(self):
         """Make sure project can be served from azure."""
         # This method is specific to Azure, but the error message is not.
+        # This method must be called after we know the app name/ deployed url.
 
         self.stdout.write("\n  Making sure project can be served from Azure...")
 
-        # DEV: This should use the full app URL.
-        #   Use the azurewebsites domain for now.
         azure_host = f'{self.app_name}.azurewebsites.net'
 
         if azure_host in settings.ALLOWED_HOSTS:
@@ -154,7 +153,7 @@ class AzureDeployer:
             self._add_azure_setting(new_setting, msg_added, msg_already_set)
         else:
             # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
-            #   contain the current Heroku URL.
+            #   contain the current Azure URL.
             msg = d_msgs.allowed_hosts_not_empty_msg(azure_host)
             raise CommandError(msg)
 
@@ -259,15 +258,15 @@ class AzureDeployer:
 
         self._commit_changes()
         self._create_azure_db(location, db_sku, unique_string)
-        self._pause(10)
+        self._pause(0)
         creation_output = self._create_azure_app()
         self._parse_creation_output(creation_output)
         self._set_post_deploy_script()
         self._set_azure_env_vars()
-        self._pause(10)
+        self._pause(0)
         self._set_git_remote()
         self._push_azure()        
-        self._pause(10)
+        self._pause(30)
         self._open_azure_app()
 
 
