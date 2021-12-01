@@ -33,6 +33,14 @@ class Command(BaseCommand):
             help="Which platform do you want to deploy to?",
             default='heroku')
 
+        # B3 has worked best so far; try P1V2 (0.10/hr) or P2V2 (0.20/hr).
+        # Default should be low-cost, so everyone trying an expensive plan
+        #   is doing so explicitly.
+        # As of 12/1/2021, D1 shared plan is $9.49/mo; B1 is $54.75/mo.
+        parser.add_argument('--azure-plan-sku', type=str,
+            help="Which plan sku should be used when creating Azure resources?",
+            default='D1')
+
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -44,6 +52,7 @@ class Command(BaseCommand):
         """Parse cli options."""
         self.automate_all = options['automate_all']
         self.platform = options['platform']
+        self.azure_plan_sku = options['azure_plan_sku']
 
         if self.automate_all:
             self.stdout.write("Automating all steps...")

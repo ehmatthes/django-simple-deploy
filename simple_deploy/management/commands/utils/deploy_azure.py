@@ -243,14 +243,12 @@ class AzureDeployer:
 
         # Parameters for Azure deployment.
         location = 'westus2'
-        # B3 has worked best so far; try P1V2 (0.10/hr) or P2V2 (0.20/hr) 
-        plan_sku = 'P2V2'
         db_sku = 'B_Gen5_1'
 
         self._add_migration_script()
         self._install_dbup()
         self._create_azure_group(location)
-        self._create_azure_plan(plan_sku)
+        self._create_azure_plan()
         unique_string = self._create_azure_app_name()
 
         # Now that we have an app name, modify ALLOWED_HOSTS.
@@ -361,9 +359,9 @@ class AzureDeployer:
         self.stdout.write("    Created group.")
 
 
-    def _create_azure_plan(self, plan_sku):
+    def _create_azure_plan(self):
         """Create a plan on the specified tier."""
-        self.stdout.write(f"\n  Creating Azure {plan_sku} plan...")
+        self.stdout.write(f"\n  Creating Azure {self.sd.azure_plan_sku} plan...")
         # Note: I keep getting "error in sideband demultiplexer" errors. I think it's because
         #   I'm using the free tier too often. Try paid plans.
         cmd_str = f"az appservice plan create --resource-group SimpleDeployGroup --name SimpleDeployPlan --sku {plan_sku} --is-linux"

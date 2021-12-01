@@ -19,7 +19,7 @@ echo "Running manage.py simple_deploy..."
 if [ "$test_automate_all" = true ]; then
     # Save the output for processing, but display as it's running because it takes a long time.
     #   When debugging, it's sometimes helpful to not store the output and see more immediately.
-    output=$(python manage.py simple_deploy --automate-all --platform azure | tee /dev/tty)
+    output=$(python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 else
     python manage.py simple_deploy --platform azure
 fi

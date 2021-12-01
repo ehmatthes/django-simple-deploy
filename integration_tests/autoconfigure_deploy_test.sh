@@ -51,13 +51,14 @@ platform="heroku"
 # - test_automate_all
 cli_sd_options=""
 
-while getopts t:d:o:p: flag
+while getopts t:d:o:p:s: flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
         d) dep_man_approach=${OPTARG};;
         o) cli_sd_options=${OPTARG};;
         p) platform=${OPTARG};;
+        s) azure_plan_sku=${OPTARG};;
     esac
 done
 
