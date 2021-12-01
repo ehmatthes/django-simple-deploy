@@ -364,7 +364,7 @@ class AzureDeployer:
         self.stdout.write(f"\n  Creating Azure {self.sd.azure_plan_sku} plan...")
         # Note: I keep getting "error in sideband demultiplexer" errors. I think it's because
         #   I'm using the free tier too often. Try paid plans.
-        cmd_str = f"az appservice plan create --resource-group SimpleDeployGroup --name SimpleDeployPlan --sku {plan_sku} --is-linux"
+        cmd_str = f"az appservice plan create --resource-group SimpleDeployGroup --name SimpleDeployPlan --sku {self.sd.azure_plan_sku} --is-linux"
         cmd_parts = cmd_str.split(' ')
         subprocess.run(cmd_parts)
         self.stdout.write("    Created plan.")
