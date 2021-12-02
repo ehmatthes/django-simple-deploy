@@ -20,10 +20,8 @@ Prerequisites
 
 If you haven't already done so, make an account on the platform you want to use, and install the appropriate CLI:
 
-- For Heroku deployments:
-    - Install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
-- For Azure deployments:
-    - Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
+- For Heroku deployments, install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
+- For Azure deployments, install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
 
 ### Use Git
 
@@ -37,24 +35,26 @@ Make sure your project is running in a virtual environment, and you have either:
 - Or, used Poetry to manage your project's requirements using a `pyproject.toml` file;
 - Or, used Pipenv to create a `Pipfile`.
 
-Quick start: using `--automate-all`
+Quick start: using `--automate-all` on Heroku or Azure
 ---
 
 The `--automate-all` flag allows you to deploy your project in just three steps:
-- Install `django-simple-deploy`.
+- Install `django-simple-deploy`:
     - With pip: `$ pip install django-simple-deploy`
     - With Poetry: `$ poetry add django-simple-deploy`
     - With Pipenv: `$ pipenv install django-simple-deploy`
-- Add `simple_deploy` to `INSTALLED_APPS`;
+- Add `simple_deploy` to `INSTALLED_APPS`.
 - Run `simple_deploy`:
-    - For a Heroku deployment: `python manage.py simple_deploy --automate-all`.
+    - For a Heroku deployment: `python manage.py simple_deploy --automate-all`
     - For an Azure deployment: `python manage.py simple_deploy --automate-all --platform azure`
 
 This will take care of creating a new app, configuring your project for deployment, committing all changes, pushing the project to your platform's servers, running the initial migration, and opening the project in a new browser tab.
 
 The default Heroku deployment should be free unless you already have more than the minimum allowed apps. The default Azure deployment uses a Postgres database that costs $0.034/hour ($24.82/month, as of 12/1/21).
 
-Quick start: using `requirements.txt`
+Azure deployments can only be done with the `--automate-all` flag. If you don't automate everything, there's so much to do manually that it's not worth using `simple_deploy`.
+
+Quick start: using `requirements.txt` on Heroku, without `--automate-all`
 ---
 
 If you've met the prerequisites, you can deploy your project using the following steps:
@@ -80,7 +80,7 @@ The following commands will deploy your project:
 
 After running this last command, you should see your project open in a browser. :)
 
-Quick start: using Poetry
+Quick start: using Poetry on Heroku, without `--automate-all`
 ---
 
 If you've met the prerequisites, you can deploy your project using the following steps:
@@ -106,7 +106,7 @@ The following commands will deploy your project:
 
 After running this last command, you should see your project open in a browser. :)
 
-Quick start: using Pipenv
+Quick start: using Pipenv on Heroku, without using `automate-all`
 ---
 
 If you've met the prerequisites, you can deploy your project using the following steps:
