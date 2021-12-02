@@ -30,18 +30,18 @@
 # t: Target for testing.
 #    current_branch, pypi
 # d: Dependency management approach that's being tested.
-#    req_txt, pipenv, poetry
-# o: Options for the simple_deploy run.
-#    automate_all
+#    req_txt, poetry, pipenv
 # p: Platform to push to.
 #    heroku, azure
+# o: Options for the simple_deploy run.
+#    automate_all
 # s: Azure plan sku to use.
 #    F1, B1, S1, P1V2, P2V2
 #    See documentation of cli args for simple_deploy.py.
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|pipenv|poetry] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
+#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
 
 
 # --- Get CLI arguments. ---
