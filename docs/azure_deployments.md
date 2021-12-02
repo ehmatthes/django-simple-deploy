@@ -22,13 +22,13 @@ Detailed description of Azure deployments
 
 Automating deployment to Azure works a little differently than deploying to Heroku. Azure requires you to create some resources before pushing code to the server. Here's a breakdown of what django-simple-deploy does to push your project to Azure. You can see all of this in the file `simple_deploy/management/commands/utils/deploy_azure.py`.
 
-### Requires --automate-all
+#### Requires --automate-all
 
 When deploying to Azure, there are so many steps to do that only taking care of configuration doesn't help that much. Heroku encapsulates a lot of work in their `heroku create` command. Azure does not have a similar command; they require you to make a 'plan', then a 'resource group', and then a number of other steps before you can even configure your code and push your project to the server.
 
 Because of all this, Azure deployments only work using the `--automate-all` flag. Anyone who doesn't want to use this flag should be ready to dig into the Azure documentation and deploy without using django-simple-deploy.
 
-### Acknowledge the preliminary status of Azure deployments with django-simple-deploy
+#### Acknowledge the preliminary status of Azure deployments with django-simple-deploy
 
 The django-simple-deploy project only has preliminary support for Azure deployments at this point. We really want to make this clear to users, so users must acknowledge this before running the deployment script.
 
