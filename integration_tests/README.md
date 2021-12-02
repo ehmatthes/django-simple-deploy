@@ -55,9 +55,23 @@ To test the latest release on PyPI instead of the current branch, use the `-t py
 Other testing options
 ---
 
+Here are all the flags and options for each flag. The first option listed for each flag is the default:
+
 ```
 ./integration_tests/autoconfigure_deploy_test.sh -t [current_branch|pypi] -d [req_txt|poetry|pipenv] -p [heroku|azure] -o [automate_all] -s [F1|B1|S1|P1V2|P2V2]
 ```
+
+- `-t`: Target for testing.
+    - `current_branch`, `pypi`
+- `-d`: Dependency management approach that's being tested.
+    - `req_txt`, `poetry`, `pipenv`
+- `-p`: Platform to push to.
+    - `heroku`, `azure`
+- `-o`: Options for the simple_deploy run.
+    - `automate_all`
+- `-s`: Azure plan sku to use.
+    - `F1`, `B1`, `S1`, `P1V2`, `P2V2`
+    - See documentation of cli args in simple_deploy.py.
 
 ### Testing against Poetry
 
