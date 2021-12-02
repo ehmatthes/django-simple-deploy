@@ -28,7 +28,8 @@ Table of Contents
     - [Push the project](#push-the-project)
     - [Open the app](#open-the-app)
     - [Print a success message](#print-a-success-message)
-- [Contributing](#contributing)    
+- [Contributing](#contributing)
+    - [Development](#development)
 
 How to make an Azure deployment
 ---
@@ -130,3 +131,17 @@ Contributing
 ---
 
 If you are familiar with deploying Django projects to Azure and have feedback about this script, I would love to hear your thoughts. I've spent a lot more time working with Heroku than Azure, and would be very happy to improve this process. Please [open an issue](https://github.com/ehmatthes/django-simple-deploy/issue) if you have any suggestions or feedback.
+
+#### Development
+
+If you are modifying this script and running it repeatedly on the same project, be aware that the script creates a free plan on Azure by default. This is exactly what we want for end users, but it doesn't always work well for development. The free plan has a significant limit on CPU minutes, and repeated deployments can use up those minutes quickly. This results in failed deployments that have nothing to do with the script itself.
+
+If you want to push to a paid plan, you can use the `--azure-plan-sku` cli argument to do so:
+
+```
+$ python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku B1
+```
+
+Be aware that every run will create a whole new set of resources, which will generate costs quickly if you don't destroy these resources immediately after testing.
+
+If you're interested in development, have a look at the [testing documentation](../integration_tests/README.md).
