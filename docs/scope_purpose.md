@@ -13,6 +13,7 @@ Table of Contents
 - [Project goals](#project-goals)
     - [What this project will do](#what-this-project-will-do)
     - [What this project will not do](#what-this-project-will-not-do)
+- [Feedback](#feedback)
 
 Vision
 ---
@@ -76,3 +77,8 @@ It's just as important to state what this project does not intend to do:
 - This project will not support overly complex deployments:
     - There are a number of more complex third-party packages that do aim to facilitate the development and deployment of complex Django projects. This is not one of those projects, and has no intention of becoming one.
     - The main red flag about which features to not support are features involving payments, and external service providers. For example, the project does not aim to support complex authentication services or workflows.
+
+Feedback
+---
+
+This project is young, so if you have any feedback about what you read here please feel free to [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues).
