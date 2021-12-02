@@ -10,7 +10,7 @@ If you have a relatively simple Django project that runs locally, you can deploy
 By default, the above command will deploy your project to Heroku. You can use the `--platform` argument to deploy to Azure instead:
 
 ```
-$ python manage.py simple-deploy --automate-all --platform azure
+$ python manage.py simple_deploy --automate-all --platform azure
 ```
 
 Prerequisites
