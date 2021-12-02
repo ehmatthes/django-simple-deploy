@@ -8,6 +8,15 @@ Table of Contents
 
 - []()
 
+How to make an Azure deployment
+---
+
+This is covered in the [main readme](../README.md), but it's worth repeating here. Here are the three steps to deploy your project to Azure:
+
+- `$ pip install django-simple-deploy`
+- Add `simple_deploy` to `INSTALLED_APPS`.
+- `$ python manage.py simple_deploy --automate-all --platform azure`
+
 Detailed description of Azure deployments
 ---
 

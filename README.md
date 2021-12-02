@@ -42,7 +42,7 @@ If you haven't already done so, make an account on the platform you want to use,
 
 ### Use Git
 
-Also, make sure you're using [Git](https://git-scm.com) to track your project.
+Also, make sure you're using [Git](https://git-scm.com) to track your project. You should commit all changes to your project before running simple_deploy, so you can easily revert the changes that simple_deploy makes if you need to.
 
 ### Identify dependencies
 
