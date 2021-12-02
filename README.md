@@ -15,6 +15,15 @@ By default, the above command will deploy your project to Heroku. You can use th
 $ python manage.py simple_deploy --automate-all --platform azure
 ```
 
+Table of Contents
+---
+
+- [Prerequisites](#prerequisites)
+    - [Cloud platform account](#cloud-platform-account)
+    - [Use Git](#use-git)
+- [Quick start: using `--automate-all` on Heroku or Azure](#quick-start-using---automate-all-on-heroku-or-azure)
+
+
 Prerequisites
 ---
 
