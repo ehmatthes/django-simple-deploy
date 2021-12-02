@@ -3,6 +3,16 @@ Heroku Deployments
 
 This page discusses Heroku deployments in more detail. Before reading this page, make sure you've read the relevant parts of the [main readme file](../README.md). Use of the `--automate-all` flag is covered in the main readme.
 
+Table of Contents
+---
+
+- [Configuration-only use](#configuration-only-use)
+    - [Using requirements.txt, without --automate-all](#using-requirementstxt-without---automate-all)
+    - [Using Poetry, without --automate-all](#using-poetry-without-automate-all)
+    - [Using Pipenv, without --automate-all](#using-pipenv-without-automate-all)
+- [Detailed description of configuration-only deployment](#detailed-description-of-configuration-only-deployment)    
+- [Ongoing development](#ongoing-development)
+
 Configuration-only use
 ---
 
@@ -58,7 +68,7 @@ The following commands will deploy your project:
 
 After running this last command, you should see your project open in a browser. :)
 
-### Using Pipenv, without using `automate-all`
+### Using Pipenv, without `automate-all`
 
 If you've met the prerequisites, you can deploy your project using the following steps:
 
