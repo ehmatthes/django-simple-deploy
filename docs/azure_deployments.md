@@ -28,6 +28,7 @@ Table of Contents
     - [Push the project](#push-the-project)
     - [Open the app](#open-the-app)
     - [Print a success message](#print-a-success-message)
+- [Contributing](#contributing)    
 
 How to make an Azure deployment
 ---
@@ -124,3 +125,8 @@ The script calls `az webapp browse` to open the new app in a new browser tab.
 #### Print a success message
 
 The final output provides some helpful information such as the URL for the deployed project, and how to open an ssh session for the project.
+
+Contributing
+---
+
+If you are familiar with deploying Django projects to Azure and have feedback about this script, I would love to hear your thoughts. I've spent a lot more time working with Heroku than Azure, and would be very happy to improve this process. Please [open an issue](https://github.com/ehmatthes/django-simple-deploy/issue) if you have any suggestions or feedback.
