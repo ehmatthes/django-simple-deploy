@@ -16,7 +16,20 @@ $ python manage.py simple_deploy --automate-all --platform azure
 Prerequisites
 ---
 
-If you haven't already done so, install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli) and make sure you're using [Git](https://git-scm.com) to track your project.
+### Cloud platform account
+
+If you haven't already done so, make an account on the platform you want to use, and install the appropriate CLI:
+
+- For Heroku deployments:
+    - Install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
+- For Azure deployments:
+    - Install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
+
+### Use Git
+
+Also, make sure you're using [Git](https://git-scm.com) to track your project.
+
+### Identify dependencies
 
 Make sure your project is running in a virtual environment, and you have either:
 
@@ -33,9 +46,13 @@ The `--automate-all` flag allows you to deploy your project in just three steps:
     - With Poetry: `$ poetry add django-simple-deploy`
     - With Pipenv: `$ pipenv install django-simple-deploy`
 - Add `simple_deploy` to `INSTALLED_APPS`;
-- Run `python manage.py simple_deploy --automate-all`.
+- Run `simple_deploy`:
+    - For a Heroku deployment: `python manage.py simple_deploy --automate-all`.
+    - For an Azure deployment: `python manage.py simple_deploy --automate-all --platform azure`
 
-This will take care of creating a new Heroku app, configuring your project for deployment, committing all changes, pushing the project to Heroku's servers, running the initial migration, and opening the project in a new browser tab.
+This will take care of creating a new app, configuring your project for deployment, committing all changes, pushing the project to your platform's servers, running the initial migration, and opening the project in a new browser tab.
+
+The default Heroku deployment should be free unless you already have more than the minimum allowed apps. The default Azure deployment uses a Postgres database that costs $0.034/hour ($24.82/month, as of 12/1/21).
 
 Quick start: using `requirements.txt`
 ---
