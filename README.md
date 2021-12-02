@@ -63,6 +63,17 @@ If it doesn't work
 
 If anything doesn't work, this project will try to tell you what to do in order to deploy successfully. If it doesn't work and you think it should, feel free to [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues). If the deployment fails and you want to undo all of these changes, you should be able to check out your last commit before starting this process and pick up your deployment efforts from there. You can also uninstall this package with the command `pip uninstall django-simple-deploy`. If you do this, make sure to remove `simple_deploy` from `INSTALLED_APPS`.
 
+Understanding costs
+---
+
+Every cloud provider charges something for a deployment that's expected to be available at all times, and that's a perfectly reasonable policy. Platforms should provide a free or low-cost option for people who are learning to make deployments. Each platform differs in how they approach offering this kind of support.
+
+The django-simple-deploy project tries to use the lowest-cost option on each platform that's supported, but ultimately the cost of any deployment is entirely your responsibility. Whatever platform you choose, make sure you understand how to access the provider's dashboard, and be diligent about knowing your current and ongoing costs.
+
+This project will make some references to specific plans and their costs, but those plans and costs can change at any time. Again, it is your responsiblity to verify anything you read here, and make sure you're not incurring more charges than you anticipated.
+
+If you see anything here that is inaccurate, please [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues).
+
 Contributing
 ---
 
