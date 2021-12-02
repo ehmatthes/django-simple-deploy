@@ -6,7 +6,28 @@ This page discusses Azure deployments in more detail. Before reading this page, 
 Table of Contents
 ---
 
-- []()
+- [How to make an Azure deployment](#how-to-make-an-azure-deployment)
+- [Detailed description of Azure deployments](#detailed-description-of-azure-deployments)
+    - [Require --automate-all](#require---automate-all)
+    - [Acknowledge the preliminary status of Azure deployments with django-simple-deploy](#acknowledge-the-preliminary-status-of-azure-deployments-with-django-simple-deploy)
+    - [Add the django-simple-deploy requirement](#add-the-django-simple-deploy-requirement)
+    - [Configure the database](#configure-the-database)
+    - [Configure static files](#configure-static-files)
+    - [Add a migration script](#add-a-migration-script)
+    - [Add the db-up Azure CLI extension](#add-the-db-up-azure-cli-extension)
+    - [Create an Azure resource group](#create-an-azure-resource-group)
+    - [Create an Azure App Service plan](#create-an-azure-app-service-plan)
+    - [Create a unique app name](#create-a-unique-app-name)
+    - [Modify `ALLOWED_HOSTS`](#modify-allowed_hosts)
+    - [Commit changes to the project](#commit-changes-to-the-project)
+    - [Create an Azure Postgres database](#create-an-azure-postgres-database)
+    - [Create an Azure app](#create-an-azure-app)
+    - [Set a post-deploy script](#set-a-post-deploy-script)
+    - [Set Azure environment variables](#set-azure-environment-variables)
+    - [Set an `azure` Git remote](#set-an-azure-git-remote)
+    - [Push the project](#push-the-project)
+    - [Open the app](#open-the-app)
+    - [Print a success message](#print-a-success-message)
 
 How to make an Azure deployment
 ---
