@@ -6,9 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.1
 ---
 
-### 0.1.12
+### 0.2.1
 
 - Unreleased.
+
+### 0.2.0
+
+- Preliminary support for Azure deployments.
 
 ### 0.1.11
 
