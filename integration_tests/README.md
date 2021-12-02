@@ -7,7 +7,19 @@ My current get-something-up-and-running approach is to start in Bash to do the s
 
 If you want to run these tests, you'll need an account on the platform you're testing against. The test will create an app under your account, and it should prompt you to destroy that app if the test runs successfully. If the test script fails, it may exit before destroying some deployed resources. You should  verify that the app and any related resources were actually destroyed, especially if these resources will accrue charges on your account.
 
-*Note: Every Azure deployment will accrue charges, because it creates a Postgres database. There are no free Postgres databases that I'm aware of on Azure.* 
+*Note: Every Azure deployment will accrue charges, because it creates a Postgres database. There are no free Postgres databases that I'm aware of on Azure.*
+
+Table of Contents
+---
+
+- [Running the integration tests](#running-the-integration-tests)
+- [Actual steps](#actual-steps)
+- [Testing the latest PyPI release](#testing-the-latest-pypi-release)
+- [Other testing options](#other-testing-options)
+    - [Testing against Poetry](#testing-against-poetry)
+- [Testing other platforms](#testing-other-platforms)
+    - [Testing Azure deployments](#testing-azure-deployments)
+- [Don't modify testing script while running](#dont-modify-testing-script-while-running)
 
 Running the integration tests
 ---
