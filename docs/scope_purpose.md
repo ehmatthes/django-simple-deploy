@@ -51,4 +51,24 @@ What this project will do
 ---
 
 This project will continue to evolve in the following directions:
-- 
+- Support a small number of platforms, focusing on providers that:
+    - Offer free or low-cost trial deployments.
+    - Offer a CLI or API that makes it straightforward to automate the deployment process.
+- Make reasonable decisions on behalf of end-users about which deployment options to use:
+    - One of the challenges of reading providers' documentation is all of the different choices you have to make during the deployment process. The `simple_deploy` process uses the cheapest resources possible that are appropriate for initial deployments.
+    - Note: These resources are not always free, and it is entirely the users' responsibility to understand and monitor any charges they may be accruing through use of this project.
+- Generate project-specific documentation to help users understand their initial deployment:
+    - Right now the project just generates output as it runs.
+    - The project will likely generate a number of files that record what was done, and offer suggestions for how to carry out subsequent deployments. It should also include a number of links to specific parts of the provider's documentation, to help users better understand the platform they've chosen.
+
+What this project will not do
+---
+
+It's just as important to state what this project does not intend to do:
+- This project will not support every cloud provider that supports Django:
+    - This would be a daunting goal to keep up with.
+    - The main goal is to help people understand and make an initial deployment, from a small number of providers that support automated deployment processes.
+    - We are serving end users, not providers. Providers will benefit from a mature project like this, but they are not the core audience for the project.
+- This project will not support overly complex deployments:
+    - There are a number of more complex third-party packages that do aim to facilitate the development and deployment of complex Django projects. This is not one of those projects, and has no intention of becoming one.
+    - The main red flag about which features to not support are features involving payments, and external service providers. For example, the project does not aim to support complex authentication services or workflows.
