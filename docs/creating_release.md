@@ -10,7 +10,7 @@ Building a package
 - Use [build](https://pypa-build.readthedocs.io/en/stable/index.html) instead of [invoking setup.py directly](https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html).
 - In root directory of this project, run `python -m build`.
 
-Making a new relase
+Making a new release
 ---
 
 - Make sure version number has been bumped.
