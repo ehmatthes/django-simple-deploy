@@ -7,10 +7,12 @@ Table of Contents
 ---
 
 - [Vision](#vision)
-- [Who this project is for](#who-this-project-is-for)
-- [Who this project is not for](#who-this-project-is-not-for)
-- [What this project will do](#what-this-project-will-do)
-- [What this project will not do](#what-this-project-will-not-do)
+- [Audience](#audience)
+    - [Who this project is for](#who-this-project-is-for)
+    - [Who this project is not for](#who-this-project-is-not-for)
+- [Project goals](#project-goals)
+    - [What this project will do](#what-this-project-will-do)
+    - [What this project will not do](#what-this-project-will-not-do)
 
 Vision
 ---
@@ -21,8 +23,10 @@ What if people new to Django didn't have to dig into a platform's documentation 
 
 The management command `python manage.py simple_deploy --automate-all` allows you to push your project to a cloud provider in three steps, as shown in the [main readme](../README.md). There's still plenty to learn about deployment, but this project allows people to see their project deployed before they dig into their provider's documentation.
 
-Who this project is for
+Audience
 ---
+
+### Who this project is for
 
 It's tempting to think that a project like this is just for beginners. But that's a pretty limiting view. Here are all the users who might appreciate a well-implemented project like this:
 
@@ -37,8 +41,7 @@ It's tempting to think that a project like this is just for beginners. But that'
 - Platform providers who want to give users the simplest way possible to get a demo project deployed.
   - This project will need some maturity before it can be used in this way, but it's a good thing to think about ahead of time. This approach allows potential new users to have a deployed project up and running that they can then examine, rather than having to wade through documentation first and then see their project deployed.
 
-Who this project is not for
----
+### Who this project is not for
 
 - Someone running a business.
     - This project will never be meant to support mission-critical projects.
@@ -47,8 +50,10 @@ Who this project is not for
 - Overly complex projects.
     - The `django-simple-deploy` project is tested against a basic Django project, and it will be developed to support as many Django features and use-cases as possible. But if your project has a degree of complexity that makes initial deployments using `simple_deploy` fail, you should probably be digging into your provider's documentation.        
 
-What this project will do
+Project goals
 ---
+
+### What this project will do
 
 This project will continue to evolve in the following directions:
 - Support a small number of platforms, focusing on providers that:
@@ -61,8 +66,7 @@ This project will continue to evolve in the following directions:
     - Right now the project just generates output as it runs.
     - The project will likely generate a number of files that record what was done, and offer suggestions for how to carry out subsequent deployments. It should also include a number of links to specific parts of the provider's documentation, to help users better understand the platform they've chosen.
 
-What this project will not do
----
+### What this project will not do
 
 It's just as important to state what this project does not intend to do:
 - This project will not support every cloud provider that supports Django:
