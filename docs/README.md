@@ -7,6 +7,7 @@ To understand this project, please start at the [main readme](../README.md) if y
     - [Heroku deployments](heroku_deployments.md)
     - [Azure deployments](azure_deployments.md)
 - Documentation for contributors:
+    - [Scope and Purpose](scope_purpose.md)
     - [Development process](development_process.md)
     - [Testing](../integration_tests/README.md)    
 - Documentation for maintainers:    
