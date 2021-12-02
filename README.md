@@ -21,8 +21,12 @@ Table of Contents
 - [Prerequisites](#prerequisites)
     - [Cloud platform account](#cloud-platform-account)
     - [Use Git](#use-git)
+    - [Identify dependencies](#identify-dependencies)
 - [Quick start: using `--automate-all` on Heroku or Azure](#quick-start-using---automate-all-on-heroku-or-azure)
-
+- [If it doesn't work](#if-it-doesnt-work)
+- [Understanding costs](#understanding-costs)
+- [Contributing](#contributing)
+- [Good luck, and please be mindful](#good-luck-and-please-be-mindful)
 
 Prerequisites
 ---
