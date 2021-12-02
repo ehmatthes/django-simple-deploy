@@ -1,6 +1,8 @@
 django-simple-deploy
 ===
 
+*Initial Django deployments made easy*
+
 This app gives you a management command that configures your project for an initial deployment. It targets Heroku and Azure at the moment, and can be expanded to target other platforms as well.
 
 If you have a relatively simple Django project that runs locally, you can deploy your project in a few short steps. The only change you'll need to make to your project is to add this app to `INSTALLED_APPS`.
