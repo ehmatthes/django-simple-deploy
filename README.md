@@ -54,7 +54,7 @@ The default Heroku deployment should be free unless you already have more than t
 
 Azure deployments can only be done with the `--automate-all` flag. If you don't automate everything, there's so much to do manually that it's not worth using `simple_deploy`.
 
-Read [more about Heroku deployments](docs/heroku_deployments.md), or [more about Azure deployments]().
+Read more about [Heroku deployments](docs/heroku_deployments.md), or more about [Azure deployments]().
 
 If it doesn't work
 ----

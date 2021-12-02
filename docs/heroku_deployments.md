@@ -6,7 +6,7 @@ This page discusses Heroku deployments in more detail. Before reading this page,
 Configuration-only use
 ---
 
-If you don't use the `--automate-all` flag, django-simple-deploy will configure your project, and leave you to review the changes, commit them, push the project to Heroku, and run the initial migration. You will also need to run `heroku create` before running simple_deploy.
+If you don't use the `--automate-all` flag django-simple-deploy will configure your project, and leave you to review the changes, commit them, push the project to Heroku, and run the initial migration. You will also need to run `heroku create` before running simple_deploy. These steps should be straightforward, and can all be done from the command line as shown below.
 
 ### Using `requirements.txt`, without `--automate-all`
 
