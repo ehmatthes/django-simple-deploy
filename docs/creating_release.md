@@ -15,7 +15,8 @@ Making a new relase
 
 - Make sure version number has been bumped.
 - Make an entry in changelog.md.
-- Commit all changes.
+- Commit all changes on development branch.
+- Create a PR on GitHub, accept the PR, and pull changes to main locally.
 - Delete everything in dist/.
 - Run `python -m build`
 - Push to test.pypi with twine:
