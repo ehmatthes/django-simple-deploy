@@ -10,12 +10,13 @@ Building a package
 - Use [build](https://pypa-build.readthedocs.io/en/stable/index.html) instead of [invoking setup.py directly](https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html).
 - In root directory of this project, run `python -m build`.
 
-Making a new relase
+Making a new release
 ---
 
 - Make sure version number has been bumped.
 - Make an entry in changelog.md.
-- Commit all changes.
+- Commit all changes on development branch.
+- Create a PR on GitHub, accept the PR, and pull changes to main locally.
 - Delete everything in dist/.
 - Run `python -m build`
 - Push to test.pypi with twine:

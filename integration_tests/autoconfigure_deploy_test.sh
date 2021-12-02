@@ -30,13 +30,18 @@
 # t: Target for testing.
 #    current_branch, pypi
 # d: Dependency management approach that's being tested.
-#    req_txt, pipenv, poetry
+#    req_txt, poetry, pipenv
+# p: Platform to push to.
+#    heroku, azure
 # o: Options for the simple_deploy run.
 #    automate_all
+# s: Azure plan sku to use.
+#    F1, B1, S1, P1V2, P2V2
+#    See documentation of cli args for simple_deploy.py.
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|pipenv|poetry]
+#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
 
 
 # --- Get CLI arguments. ---
@@ -49,13 +54,14 @@ platform="heroku"
 # - test_automate_all
 cli_sd_options=""
 
-while getopts t:d:o:p flag
+while getopts t:d:o:p:s: flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
         d) dep_man_approach=${OPTARG};;
         o) cli_sd_options=${OPTARG};;
         p) platform=${OPTARG};;
+        s) azure_plan_sku=${OPTARG};;
     esac
 done
 
@@ -213,5 +219,9 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" lea
 #   access to any variables defined in the calling script.
 
 if [ "$platform" = 'heroku' ]; then
-        source $script_dir/integration_tests/test_heroku_deployment.sh
+    source $script_dir/integration_tests/test_heroku_deployment.sh
+elif [ "$platform" = 'azure' ]; then
+    source $script_dir/integration_tests/test_azure_deployment.sh
+else
+    echo "  That platform is not supported."
 fi

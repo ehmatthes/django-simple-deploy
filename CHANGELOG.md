@@ -3,12 +3,19 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
-0.1
+0.2 - Supporting Heroku & Azure
 ---
 
-### 0.1.12
+### 0.2.1
 
 - Unreleased.
+
+### 0.2.0
+
+- Preliminary support for Azure deployments.
+
+0.1 - Supporting Heroku
+---
 
 ### 0.1.11
 

@@ -14,6 +14,7 @@ from django.conf import settings
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
+from simple_deploy.management.commands.utils.deploy_azure import AzureDeployer
 
 
 class Command(BaseCommand):
@@ -32,6 +33,23 @@ class Command(BaseCommand):
             help="Which platform do you want to deploy to?",
             default='heroku')
 
+        # Default is a free plan, so everyone trying a more expensive plan
+        #   is doing so explicitly.
+        # If you are testing deployments repeatedly, you'll probably run out
+        #   of free minutes.
+        # The D1 shared plan won't work, because this script requires a linux
+        #   appservice plan. Shared plans are Windows-only.
+        # I've been doing most of my testing using the P2V2 plan, which is 
+        #   $300/month. At $0.40/hr, my costs have been less than $5 after tens
+        #   of deployments, being vigilant about ensuring resources are destroyed
+        #   immediately after testing. For testing, also consider:
+        #      P1V2, S1, B1.
+        # Prices described here are current as of 12/1/2021.
+        # See plans at: https://azure.microsoft.com/en-us/pricing/details/app-service/linux/
+        parser.add_argument('--azure-plan-sku', type=str,
+            help="Which plan sku should be used when creating Azure resources?",
+            default='F1')
+
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -43,6 +61,7 @@ class Command(BaseCommand):
         """Parse cli options."""
         self.automate_all = options['automate_all']
         self.platform = options['platform']
+        self.azure_plan_sku = options['azure_plan_sku']
 
         if self.automate_all:
             self.stdout.write("Automating all steps...")
@@ -53,6 +72,10 @@ class Command(BaseCommand):
             self.stdout.write("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
             hd.deploy()
+        elif self.platform == 'azure':
+            self.stdout.write("  Targeting Azure deployment...")
+            ad = AzureDeployer(self)
+            ad.deploy()
         else:
             raise CommandError("That platform is not currently supported.")
 
