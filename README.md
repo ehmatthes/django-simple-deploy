@@ -29,6 +29,7 @@ Table of Contents
 - [Good luck, and please be mindful](#good-luck-and-please-be-mindful)
 - More about [Heroku deployments](docs/heroku_deployments.md)
 - More about [Azure deployments](docs/azure_deployments.md)
+- Additional [documentation](docs/)
 
 Prerequisites
 ---
