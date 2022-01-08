@@ -49,6 +49,7 @@
 target="current_branch"
 dep_man_approach="req_txt"
 platform="heroku"
+azure_plan_sku="F1"
 
 # Options:
 # - test_automate_all
