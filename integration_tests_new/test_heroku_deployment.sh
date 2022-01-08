@@ -79,8 +79,9 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     $poetry_cmd add requests
 fi
 
-cd "$script_dir"
-python integration_tests/test_deployed_app_functionality.py "$app_url"
+# cd "$script_dir"
+# python integration_tests_new/test_deployed_app_functionality.py --url "$app_url"
+python test_deployed_app_functionality.py --url "$app_url"
 
 # Clarify which branch was tested.
 if [ "$target" = pypi ]; then
