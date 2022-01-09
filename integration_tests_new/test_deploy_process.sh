@@ -226,7 +226,7 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blo
 if [ "$platform" = 'heroku' ]; then
     source $script_dir/integration_tests_new/test_heroku_deployment.sh
 elif [ "$platform" = 'azure' ]; then
-    source $script_dir/integration_tests/test_azure_deployment.sh
+    source $script_dir/integration_tests_new/test_azure_deployment.sh
 else
     echo "  That platform is not supported."
 fi
