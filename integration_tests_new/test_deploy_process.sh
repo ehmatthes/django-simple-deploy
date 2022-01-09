@@ -132,6 +132,8 @@ cd "$tmp_dir/"
 if [ "$dep_man_approach" = 'req_txt' ]; then
     # DEV: Sort out how to work with different versions of project.
     # cd "req_txt_unpinned"
+    # Remove Pipfile. DEV: Will need to remove pyproject.toml as well.
+    rm Pipfile
     python3 -m venv b_env
     source b_env/bin/activate
     pip install --upgrade pip
