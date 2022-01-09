@@ -78,7 +78,7 @@ echo "\n  Testing functionality of deployed app..."
 #     python3 -m pipenv install requests --skip-lock
 # elif [ "$dep_man_approach" = 'poetry' ]; then
 #     $poetry_cmd add requests
-fi
+# fi
 
 # cd "$script_dir"
 # python integration_tests_new/test_deployed_app_functionality.py --url "$app_url"
