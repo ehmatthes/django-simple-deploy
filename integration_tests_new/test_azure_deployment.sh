@@ -6,10 +6,10 @@
 
 # Skip if testing --automate-all
 # DEV: Why is this here when testing azure?!
-if [ "$test_automate_all" != true ]; then
-    echo "Running heroku create..."
-    heroku create
-fi
+# if [ "$test_automate_all" != true ]; then
+#     echo "Running heroku create..."
+#     heroku create
+# fi
 
 echo "Running manage.py simple_deploy..."
 # This captures the output of all the work simple_deploy does, so it will contain
@@ -22,7 +22,8 @@ if [ "$test_automate_all" = true ]; then
     #   When debugging, it's sometimes helpful to not store the output and see more immediately.
     output=$(python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 else
-    python manage.py simple_deploy --platform azure
+    # python manage.py simple_deploy --platform azure
+    output=$(python manage.py simple_deploy --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 fi
 
 # Get app name, and db server name.
@@ -49,19 +50,19 @@ if [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv lock
 fi
 
-# Skip if testing --automate-all.
-if [ "$test_automate_all" != true ]; then
-    echo "\n\nCommitting changes..."
-    git add .
-    git commit -am "Configured for deployment."
+# # Skip if testing --automate-all.
+# if [ "$test_automate_all" != true ]; then
+#     echo "\n\nCommitting changes..."
+#     git add .
+#     git commit -am "Configured for deployment."
 
-    echo "Pushing to heroku..."
-    # DEV: There should probably be a variable to track which branch we're using on the test repository.
-    # git push heroku main
-    git push heroku main
-    heroku run python manage.py migrate
-    heroku open
-fi
+#     echo "Pushing to heroku..."
+#     # DEV: There should probably be a variable to track which branch we're using on the test repository.
+#     # git push heroku main
+#     git push heroku main
+#     heroku run python manage.py migrate
+#     heroku open
+# fi
 
 # Call Python script for functional testing of app.
 #   May want to prompt for this.
