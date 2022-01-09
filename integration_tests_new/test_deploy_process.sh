@@ -144,10 +144,12 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     # This test usually runs inside a venv for the overall django-simple-deploy
     #   project. Pipenv will install to that environment unless we create a venv
     #   for it to use.
-    cd "pipenv_unpinned"
+    # cd "pipenv_unpinned"
+    # DEV: Will need to remove pyproject.toml as well.
+    rm requirements.txt
 
-    python3 -m venv ll_env
-    source ll_env/bin/activate
+    python3 -m venv b_env
+    source b_env/bin/activate
 
     pip install --upgrade pip
     pip install pipenv

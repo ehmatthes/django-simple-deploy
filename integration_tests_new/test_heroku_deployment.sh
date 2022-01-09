@@ -70,13 +70,14 @@ echo "\n  Testing functionality of deployed app..."
 
 # Need requests to run functionality tests.
 #   This uses the same venv that was built for deploying the project.
-if [ "$dep_man_approach" = 'req_txt' ]; then
-    pip install requests
-elif [ "$dep_man_approach" = 'pipenv' ]; then
-    # We won't do anything further that needs a lock file.
-    python3 -m pipenv install requests --skip-lock
-elif [ "$dep_man_approach" = 'poetry' ]; then
-    $poetry_cmd add requests
+# DEV: Skip this for now; sample project already has requests.
+# if [ "$dep_man_approach" = 'req_txt' ]; then
+#     pip install requests
+# elif [ "$dep_man_approach" = 'pipenv' ]; then
+#     # We won't do anything further that needs a lock file.
+#     python3 -m pipenv install requests --skip-lock
+# elif [ "$dep_man_approach" = 'poetry' ]; then
+#     $poetry_cmd add requests
 fi
 
 # cd "$script_dir"
