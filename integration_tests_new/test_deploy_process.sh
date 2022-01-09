@@ -130,10 +130,10 @@ echo "  Building Python environment..."
 cd "$tmp_dir/"
 
 if [ "$dep_man_approach" = 'req_txt' ]; then
-    # DEV: Sort out how to work with different versions of project.
-    # cd "req_txt_unpinned"
-    # Remove Pipfile. DEV: Will need to remove pyproject.toml as well.
+    # Remove other dependency files.
     rm Pipfile
+    rm pyproject.toml
+
     python3 -m venv b_env
     source b_env/bin/activate
     pip install --upgrade pip
@@ -144,9 +144,10 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     # This test usually runs inside a venv for the overall django-simple-deploy
     #   project. Pipenv will install to that environment unless we create a venv
     #   for it to use.
-    # cd "pipenv_unpinned"
-    # DEV: Will need to remove pyproject.toml as well.
+
+    # Remove other dependency files.
     rm requirements.txt
+    rm pyproject.toml
 
     python3 -m venv b_env
     source b_env/bin/activate
@@ -156,7 +157,9 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     # We'll only lock once, just before committing for deployment.
     python3 -m pipenv install --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
-    cd "poetry_unpinned"
+    # Remove other dependency files.
+    rm requirements.txt
+    rm Pipfile
 
     poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
 
