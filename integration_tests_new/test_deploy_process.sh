@@ -182,14 +182,14 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     # $poetry_cmd cache clear --all pypi --no-interaction
     #
     # This should pipe 'y' to the command, but it doesn't seem to work.
-    #   (It was failing when run after creating ll_env, maybe it works better
+    #   (It was failing when run after creating b_env, maybe it works better
     #   before making the new venv?)
     yes | $poetry_cmd cache clear --all pypi
 
     # Make a new venv in this tmp project directory, so Poetry will use it,
     #   and we can destroy it at the end of testing.
-    python3 -m venv ll_env
-    source ll_env/bin/activate
+    python3 -m venv b_env
+    source b_env/bin/activate
 
     $poetry_cmd install
 
