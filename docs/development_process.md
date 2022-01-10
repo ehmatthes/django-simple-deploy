@@ -1,15 +1,16 @@
 Development process
 ===
 
-Developing an app that focuses on deployment involves a different kind of workflow than I have used on other projects. Often times the work needs to be done in conjunction with a sample project that exists outside this main directory.
+Developing an app that focuses on deployment involves a different kind of workflow than I have used on other projects. Often times the work needs to be done in conjunction with a sample project.
 
 Quick start
 ---
 
 - Make a sample Django project in a location outside this repository.
   - It needs to be managed by Git, and it's much easier to not deal with a repo-in-a-repo, or submodules.
-  - I'm using a copy of the [Learning Log project](https://github.com/ehmatthes/learning_log_heroku_test) from Python Crash Course, but long term we should make a standard generic blog app specifically for development and testing work on this project.
-- In that project, install django-simple-deploy from your local version of this repository. If this repo is in ~/projects/django-simple-deploy/, that would look like this:
+  - That said, the sample project should be the same for everyone working on the project.
+  - There is a sample blog project in [sample_project](../sample_project/). To work on django-simple-deploy, make a copy of the blog project in a location outside the django-simple-deploy project.
+- In the blog project, install django-simple-deploy from your local version of this repository. If this repo is in ~/projects/django-simple-deploy/, that would look like this:
 ```
 (venv)$ pip install -e ~/projects/django-simple-deploy/
 ```
