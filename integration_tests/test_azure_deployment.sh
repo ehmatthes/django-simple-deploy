@@ -5,10 +5,11 @@
 
 
 # Skip if testing --automate-all
-if [ "$test_automate_all" != true ]; then
-    echo "Running heroku create..."
-    heroku create
-fi
+# DEV: Why is this here when testing azure?!
+# if [ "$test_automate_all" != true ]; then
+#     echo "Running heroku create..."
+#     heroku create
+# fi
 
 echo "Running manage.py simple_deploy..."
 # This captures the output of all the work simple_deploy does, so it will contain
@@ -21,11 +22,12 @@ if [ "$test_automate_all" = true ]; then
     #   When debugging, it's sometimes helpful to not store the output and see more immediately.
     output=$(python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 else
-    python manage.py simple_deploy --platform azure
+    # python manage.py simple_deploy --platform azure
+    output=$(python manage.py simple_deploy --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 fi
 
 # Get app name, and db server name.
-app_name_pattern='  "defaultHostName": "(learning-log-[a-zA-Z0-9]{16})\.azurewebsites\.net",'
+app_name_pattern='  "defaultHostName": "(blog-[a-zA-Z0-9]{16})\.azurewebsites\.net",'
 db_pattern='(sd-pg-server-[a-zA-Z0-9]{16})'
 
 echo "Getting app name and db name..."
@@ -48,41 +50,42 @@ if [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv lock
 fi
 
-# Skip if testing --automate-all.
-if [ "$test_automate_all" != true ]; then
-    echo "\n\nCommitting changes..."
-    git add .
-    git commit -am "Configured for deployment."
+# # Skip if testing --automate-all.
+# if [ "$test_automate_all" != true ]; then
+#     echo "\n\nCommitting changes..."
+#     git add .
+#     git commit -am "Configured for deployment."
 
-    echo "Pushing to heroku..."
-    # DEV: There should probably be a variable to track which branch we're using on the test repository.
-    # git push heroku main
-    git push heroku main
-    heroku run python manage.py migrate
-    heroku open
-fi
+#     echo "Pushing to heroku..."
+#     # DEV: There should probably be a variable to track which branch we're using on the test repository.
+#     # git push heroku main
+#     git push heroku main
+#     heroku run python manage.py migrate
+#     heroku open
+# fi
 
 # Call Python script for functional testing of app.
 #   May want to prompt for this.
 echo "\n  Testing functionality of deployed app..."
 
+# DEV: already installed requests
 # Need requests to run functionality tests.
-#   This uses the same venv that was built for deploying the project.
-if [ "$dep_man_approach" = 'req_txt' ]; then
-    pip install requests
-elif [ "$dep_man_approach" = 'pipenv' ]; then
-    # We won't do anything further that needs a lock file.
-    python3 -m pipenv install requests --skip-lock
-elif [ "$dep_man_approach" = 'poetry' ]; then
-    $poetry_cmd add requests
-fi
+# #   This uses the same venv that was built for deploying the project.
+# if [ "$dep_man_approach" = 'req_txt' ]; then
+#     pip install requests
+# elif [ "$dep_man_approach" = 'pipenv' ]; then
+#     # We won't do anything further that needs a lock file.
+#     python3 -m pipenv install requests --skip-lock
+# elif [ "$dep_man_approach" = 'poetry' ]; then
+#     $poetry_cmd add requests
+# fi
 
 # Define url for testing, from app_name.
 app_url="http://$app_name.azurewebsites.net/"
 echo "    app url: $app_url"
 
-cd "$script_dir"
-python integration_tests/test_deployed_app_functionality.py "$app_url"
+# cd "$script_dir"
+python test_deployed_app_functionality.py --url "$app_url"
 
 # Clarify which branch was tested.
 if [ "$target" = pypi ]; then
