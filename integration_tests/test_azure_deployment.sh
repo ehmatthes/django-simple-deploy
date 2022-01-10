@@ -4,9 +4,8 @@
 #   to all variables defined in autoconfigure_deploy_test.sh.
 #
 # The Azure deployment process only works with the --automate-all flag. If this
-#   test is run without that flag, present a message and exit.
-#   DEV: Should offer to destroy tmp resources in this case, or exit before building
-#        the test environment.
+#   test is run without that flag, present a message and exit. (This should already
+#   happen in hte test_deploy_process.sh script.)
 
 
 echo "Running manage.py simple_deploy..."
@@ -15,15 +14,10 @@ echo "Running manage.py simple_deploy..."
 # If any of this information is difficult to pull, we can generate whatever output is needed 
 #   for testing from within simple_deploy. End users will not have any issue with output
 #   whose sole purpose is for testing.
-if [ "$test_automate_all" = true ]; then
-    # Save the output for processing, but display as it's running because it takes a long time.
-    #   When debugging, it's sometimes helpful to not store the output and see more immediately.
-    output=$(python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
-else
-    echo "*** Azure deployment only works with the --automate-all flag."
-    echo "*** You may want to run the test again with the \`-o automate_all\` option."
-    exit
-fi
+
+# Save the output for processing, but display as it's running because it takes a long time.
+#   When debugging, it's sometimes helpful to not store the output and see more immediately.
+output=$(python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 
 # Get app name, and db server name.
 app_name_pattern='  "defaultHostName": "(blog-[a-zA-Z0-9]{16})\.azurewebsites\.net",'

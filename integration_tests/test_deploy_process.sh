@@ -66,6 +66,15 @@ do
     esac
 done
 
+# --- Exit if testing Azure without automate_all. ---
+if [ "$platform" = 'azure' ]; then
+    if [ "$cli_sd_options" != 'automate_all' ]; then
+        echo "*** Azure deployment only works with the --automate-all flag."
+        echo "*** You may want to run the test again with the \`-o automate_all\` option."
+        exit
+    fi
+fi
+
 # --- Make sure user is okay with building a temp environment in $HOME. ---
 echo ""
 echo "This test will build a temporary directory in your home folder."
