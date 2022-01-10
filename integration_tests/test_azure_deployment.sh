@@ -68,23 +68,10 @@ fi
 #   May want to prompt for this.
 echo "\n  Testing functionality of deployed app..."
 
-# DEV: already installed requests
-# Need requests to run functionality tests.
-# #   This uses the same venv that was built for deploying the project.
-# if [ "$dep_man_approach" = 'req_txt' ]; then
-#     pip install requests
-# elif [ "$dep_man_approach" = 'pipenv' ]; then
-#     # We won't do anything further that needs a lock file.
-#     python3 -m pipenv install requests --skip-lock
-# elif [ "$dep_man_approach" = 'poetry' ]; then
-#     $poetry_cmd add requests
-# fi
-
 # Define url for testing, from app_name.
 app_url="http://$app_name.azurewebsites.net/"
 echo "    app url: $app_url"
 
-# cd "$script_dir"
 python test_deployed_app_functionality.py --url "$app_url"
 
 # Clarify which branch was tested.
