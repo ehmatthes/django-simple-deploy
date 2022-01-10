@@ -21,7 +21,7 @@ if [ "$test_automate_all" = true ]; then
     output=$(python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 else
     echo "*** Azure deployment only works with the --automate-all flag."
-    echo "*** You may want to run the test again with the `-o automate_all` option."
+    echo "*** You may want to run the test again with the \`-o automate_all\` option."
     exit
 fi
 
