@@ -1,0 +1,20 @@
+{% extends "blogs/base.html" %}
+
+{% block content %}
+
+  <h2>Latest Posts</h2>
+  <h4 class="ps-4 fw-light">from all public blogs</h4>
+  <ul class="list-group">
+    {% for post in public_posts %}
+      <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="ms-2 me-auto">
+          <div class=""><a class="text-decoration-none" href="{% url 'blogs:post' post.id %}">{{ post.title }}</a></div>
+          <span class="p-2">{{ post.blog }}</span>
+        </div>
+      </li>
+    {% empty %}
+      There are no public posts yet.
+    {% endfor %}
+  </ul>
+
+{% endblock content %}

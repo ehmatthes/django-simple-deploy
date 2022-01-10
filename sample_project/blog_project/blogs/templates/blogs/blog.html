@@ -1,0 +1,28 @@
+{% extends "blogs/base.html" %}
+
+{% block content %}
+
+  <h2>{{ blog.title }} <span class="fs-4 fw-light">{{ blog.owner }}</span></h2>
+  <h3 class="mt-4">Posts</h3>
+  <ul class="list-group">
+    {% for post in posts %}
+      <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="ms-2 me-auto">
+          <div class=""><a class="text-decoration-none" href="{% url 'blogs:post' post.id %}">{{ post.title }}</a></div>
+          <span class="p-2">{{ post.date_added|date:'M d, Y H:i' }}</span>
+        </div>
+      </li>
+    {% empty %}
+      There are no posts yet.
+    {% endfor %}
+  </ul>
+
+  {% if user.is_authenticated %}
+    {% if user == blog.owner %}
+      <div class="clearfix">
+        <a class="btn btn-primary btn-md mt-4 float-end" role="button" href="{% url 'blogs:new_post' blog.id %}">Create a new post</a>
+      </div>
+    {% endif %}
+  {% endif %}
+
+{% endblock content %}

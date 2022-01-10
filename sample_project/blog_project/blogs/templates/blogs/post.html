@@ -1,0 +1,13 @@
+{% extends "blogs/base.html" %}
+
+{% block content %}
+
+  <h2>{{ post.title }}</h2>
+  <p class="ps-2 fs-5 fw-light">{{ post.date_added|date:'M d, Y H:i' }} by <span class="fs-6 fw-normal">{{ blog.owner }}</span></p>
+
+  <hr />
+  <p>{{ post.body|linebreaks }}</p>
+
+  <p class="text-end"><a href="{% url 'blogs:blog' blog.id %}">{{ blog.title }}</a></p>
+
+{% endblock content %}

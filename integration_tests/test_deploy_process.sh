@@ -7,7 +7,7 @@
 
 # Overall approach:
 # - Create a temporary working location, outside of any existing git repo.
-# - Clone the test instance of the LL project.
+# - Copy the sample project to the tmp directory.
 # - Build a Python venv.
 # - Follow the deploy steps.
 # - Run automated availability and functionality tests.
@@ -20,10 +20,10 @@
 # Usage
 #
 # Test the latest pushed version of the current branch:
-#   $ ./integration_tests/autoconfigure_deploy_test.sh
+#   $ ./integration_tests/test_deploy_process.sh
 #
 # Test the most recent PyPI release:
-#   $ ./integration_tests/autoconfigure_deploy_test.sh test_pypi_release
+#   $ ./integration_tests/test_deploy_process.sh test_pypi_release
 
 
 # --- Get options for current test run. --
@@ -41,7 +41,7 @@
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./autconfigure_deploy_test.sh -t [pypi, current_branch] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
+#  $ ./test_deploy_process.sh -t [pypi, current_branch] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
 
 
 # --- Get CLI arguments. ---
@@ -49,6 +49,7 @@
 target="current_branch"
 dep_man_approach="req_txt"
 platform="heroku"
+azure_plan_sku="F1"
 
 # Options:
 # - test_automate_all
@@ -64,6 +65,15 @@ do
         s) azure_plan_sku=${OPTARG};;
     esac
 done
+
+# --- Exit if testing Azure without automate_all. ---
+if [ "$platform" = 'azure' ]; then
+    if [ "$cli_sd_options" != 'automate_all' ]; then
+        echo "*** Azure deployment only works with the --automate-all flag."
+        echo "*** You may want to run the test again with the \`-o automate_all\` option."
+        exit
+    fi
+fi
 
 # --- Make sure user is okay with building a temp environment in $HOME. ---
 echo ""
@@ -109,17 +119,16 @@ fi
 echo "  Installing from: $install_address"
 
 # Make tmp location and clone LL test repo.
-echo "\nBuilding temp environment and cloning LL project:"
+echo "\nBuilding temp environment and copying sample project:"
 
 script_dir=$(pwd)
 tmp_dir="$HOME/tmp_django_simple_deploy_test"
 mkdir "$tmp_dir"
 echo "  Made temporary directory: $tmp_dir"
-
-echo "  Cloning LL project into tmp directory..."
-# The cloned repository has several versions of the test project.
-#   All testing options work with this same repository.
-git clone  https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
+echo "  copying sample project into tmp directory..."
+# Reminder: trailing slash on source dir copies contents, without making parent folder
+#   in destination directory.
+rsync -ar sample_project/blog_project/ $tmp_dir
 
 # Need a Python environment for configuring the test Django project.
 # This environment might need to be deactivated before running the Python testing
@@ -127,15 +136,15 @@ git clone  https://github.com/ehmatthes/learning_log_heroku_test.git $tmp_dir
 echo "  Building Python environment..."
 
 # cd'ing into the version of the project we're testing.
-#   We also get rid of the git repository from cloning, so we can use git on just
-#   the version of the project we're testing.
 cd "$tmp_dir/"
-rm -rf .git/
 
 if [ "$dep_man_approach" = 'req_txt' ]; then
-    cd "req_txt_unpinned"
-    python3 -m venv ll_env
-    source ll_env/bin/activate
+    # Remove other dependency files.
+    rm Pipfile
+    rm pyproject.toml
+
+    python3 -m venv b_env
+    source b_env/bin/activate
     pip install --upgrade pip
     pip install -r requirements.txt
     # We may have installed from unpinned dependencies, so pin them now for Heroku.
@@ -144,17 +153,22 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     # This test usually runs inside a venv for the overall django-simple-deploy
     #   project. Pipenv will install to that environment unless we create a venv
     #   for it to use.
-    cd "pipenv_unpinned"
 
-    python3 -m venv ll_env
-    source ll_env/bin/activate
+    # Remove other dependency files.
+    rm requirements.txt
+    rm pyproject.toml
+
+    python3 -m venv b_env
+    source b_env/bin/activate
 
     pip install --upgrade pip
     pip install pipenv
     # We'll only lock once, just before committing for deployment.
     python3 -m pipenv install --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
-    cd "poetry_unpinned"
+    # Remove other dependency files.
+    rm requirements.txt
+    rm Pipfile
 
     poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
 
@@ -177,14 +191,14 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     # $poetry_cmd cache clear --all pypi --no-interaction
     #
     # This should pipe 'y' to the command, but it doesn't seem to work.
-    #   (It was failing when run after creating ll_env, maybe it works better
+    #   (It was failing when run after creating b_env, maybe it works better
     #   before making the new venv?)
     yes | $poetry_cmd cache clear --all pypi
 
     # Make a new venv in this tmp project directory, so Poetry will use it,
     #   and we can destroy it at the end of testing.
-    python3 -m venv ll_env
-    source ll_env/bin/activate
+    python3 -m venv b_env
+    source b_env/bin/activate
 
     $poetry_cmd install
 
@@ -209,7 +223,7 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
 fi
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
-sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" learning_log/settings.py
+sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
 
 
 # --- Test platform-specific deployment processes. ---
