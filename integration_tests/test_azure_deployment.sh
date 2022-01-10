@@ -2,14 +2,12 @@
 #
 # This is sourced by autoconfigure_deploy_test.sh, so this script has access
 #   to all variables defined in autoconfigure_deploy_test.sh.
+#
+# The Azure deployment process only works with the --automate-all flag. If this
+#   test is run without that flag, present a message and exit.
+#   DEV: Should offer to destroy tmp resources in this case, or exit before building
+#        the test environment.
 
-
-# Skip if testing --automate-all
-# DEV: Why is this here when testing azure?!
-# if [ "$test_automate_all" != true ]; then
-#     echo "Running heroku create..."
-#     heroku create
-# fi
 
 echo "Running manage.py simple_deploy..."
 # This captures the output of all the work simple_deploy does, so it will contain
@@ -22,8 +20,9 @@ if [ "$test_automate_all" = true ]; then
     #   When debugging, it's sometimes helpful to not store the output and see more immediately.
     output=$(python manage.py simple_deploy --automate-all --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
 else
-    # python manage.py simple_deploy --platform azure
-    output=$(python manage.py simple_deploy --platform azure --azure-plan-sku $azure_plan_sku | tee /dev/tty)
+    echo "*** Azure deployment only works with the --automate-all flag."
+    echo "*** You may want to run the test again with the `-o automate_all` option."
+    exit
 fi
 
 # Get app name, and db server name.
@@ -49,20 +48,6 @@ fi
 if [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv lock
 fi
-
-# # Skip if testing --automate-all.
-# if [ "$test_automate_all" != true ]; then
-#     echo "\n\nCommitting changes..."
-#     git add .
-#     git commit -am "Configured for deployment."
-
-#     echo "Pushing to heroku..."
-#     # DEV: There should probably be a variable to track which branch we're using on the test repository.
-#     # git push heroku main
-#     git push heroku main
-#     heroku run python manage.py migrate
-#     heroku open
-# fi
 
 # Call Python script for functional testing of app.
 #   May want to prompt for this.
@@ -101,14 +86,6 @@ if [ "$tear_down" = true ]; then
     echo "    Deleting SimpleDeployGroup..."
     az group delete --name SimpleDeployGroup
     echo "    Destroyed Azure resources."
-
-    # echo "  Destroying Azure db..."
-    # az postgres db delete --resource-group SimpleDeployGroup --name $db_server_name --server-name $db_server_name.postgres.database.azure.com
-    # echo "  Destroying Azure app..."
-    # az webapp delete --resource-group SimpleDeployGroup --name $app_name
-    # echo "  Destroying Azure plan..."
-    # az appservice plan delete --resource-group SimpleDeployGroup --name SimpleDeployPlan
-    # echo "  Destroyed Azure resources."
 
     echo "  Destroying temporary directory..."
     rm -rf "$tmp_dir"
