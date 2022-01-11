@@ -22,25 +22,25 @@ if [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv lock
 fi
 
-# Heroku (and assume other platforms) needs a copy of requirements with
-#   the same django-simple-deploy we're testing against.
-#   Modify django-simple-deploy to match install_address.
-#   This is important to verify, so we'll routinely include it in the test output.
-#   This is only needed if we're testing against a GitHub repo.
-#   Note: Pipenv and Poetry specify install address, so this modification is
-#     not necessary for either of those approaches.
-if [ "$target" = 'current_branch' ]; then
-    if [ "$dep_man_approach" = 'req_txt' ]; then
-        echo "\nOriginal requirements.txt; should see django-simple-deploy:"
-        cat requirements.txt
+# # Heroku (and assume other platforms) needs a copy of requirements with
+# #   the same django-simple-deploy we're testing against.
+# #   Modify django-simple-deploy to match install_address.
+# #   This is important to verify, so we'll routinely include it in the test output.
+# #   This is only needed if we're testing against a GitHub repo.
+# #   Note: Pipenv and Poetry specify install address, so this modification is
+# #     not necessary for either of those approaches.
+# if [ "$target" = 'current_branch' ]; then
+#     if [ "$dep_man_approach" = 'req_txt' ]; then
+#         echo "\nOriginal requirements.txt; should see django-simple-deploy:"
+#         cat requirements.txt
 
-        echo "  Modifying requirements.txt to require the current branch version on Heroku..."
-        sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
+#         echo "  Modifying requirements.txt to require the current branch version on Heroku..."
+#         sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
 
-        echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
-        cat requirements.txt
-    fi
-fi
+#         echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
+#         cat requirements.txt
+#     fi
+# fi
 
 # Skip if testing --automate-all.
 if [ "$test_automate_all" != true ]; then
