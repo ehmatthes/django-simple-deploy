@@ -1,10 +1,5 @@
 # Test the simple_deploy process for deployment on Heroku.
 
-# This tests the latest push on the current branch.
-#   It does NOT test the local version of the code.
-#   This is because Heroku needs to install the code for the full integration
-#   test to work, and Heroku can't install code directly from a local machine.
-
 # Overall approach:
 # - Create a temporary working location, outside of any existing git repo.
 # - Copy the sample project to the tmp directory.
@@ -19,11 +14,11 @@
 
 # Usage
 #
-# Test the latest pushed version of the current branch:
+# Test the current local version of the project:
 #   $ ./integration_tests/test_deploy_process.sh
 #
 # Test the most recent PyPI release:
-#   $ ./integration_tests/test_deploy_process.sh test_pypi_release
+#   $ ./integration_tests/test_deploy_process.sh -t pypi
 
 
 # --- Get options for current test run. --
@@ -94,38 +89,10 @@ if [ "$cli_sd_options" = 'automate_all' ]; then
     test_automate_all=true
 fi
 
-# Get current branch and remote Git address, so we know which version 
-#   of the app to test against.
-echo "\nExamining current branch..."
-current_branch=$(git status | head -n 1)
-current_branch=${current_branch:10}
-echo "  Current branch: $current_branch"
-
-# Script dir is needed for local installation of this package.
-script_dir=$(pwd)
-if [ "$target" = pypi ]; then
-    # Install address is just the package name, which will be pulled from PyPI.
-    # Note: I believe this is just for req_txt approach.
-    install_address="django-simple-deploy"
-else
-    # Install address is the git remote address with the current branch name.
-    remote_address=$(git remote get-url origin)
-    install_address="git+$remote_address@$current_branch"
-    # DEV: Should be able to install local development version.
-    install_address="$script_dir"
-
-    # Pipenv also needs something about the egg:
-    if [ "$dep_man_approach" = 'pipenv' ]; then
-        install_address="$install_address#egg=django-simple-deploy"
-    fi
-fi
-
-echo "  Installing from: $install_address"
-
 # Make tmp location and clone LL test repo.
 echo "\nBuilding temp environment and copying sample project:"
 
-
+script_dir=$(pwd)
 tmp_dir="$HOME/tmp_django_simple_deploy_test"
 mkdir "$tmp_dir"
 echo "  Made temporary directory: $tmp_dir"
@@ -216,11 +183,35 @@ git add .
 git commit -am "Initial commit."
 
 # Now install django-simple-deploy, just as a user would.
-#   Except, we'll install the version from the current branch.
+# - Install local dev version by default. This leaves a build/ dir
+#   in the project repo, which we'll try to clean up.
+# - If test targets pypi, install from there.
+echo "  Installing django-simple-deploy..."
+
+# Define $dependency_string for the package management system that's being
+#   tested. For example:
+#   - pip install $script_dir
+#   - pip install django-simple-deploy
+if [ "$target" = pypi ]; then
+    # Dependency string is just the package name.
+    # Note: I believe this is just for req_txt approach.
+    dependency_string="django-simple-deploy"
+else
+    dependency_string="$script_dir"
+
+    # Pipenv also needs something about the egg:
+    # DEV: This may only be for testing locally now.
+    if [ "$dep_man_approach" = 'pipenv' ]; then
+        install_address="$install_address#egg=django-simple-deploy"
+    fi
+fi
+
+echo "  Dependency string: $dependency_string"
+
 if [ "$dep_man_approach" = 'req_txt' ]; then
-    echo "  Installing django-simple-deploy..."
-    pip install $install_address
+    pip install $dependency_string
     # Clean up build/ dir that pip leaves behind.
+    # DEV: Can these three commands be combined? Exit after trying this.
     cd "$script_dir/"
     rm -rf build/
     cd "$tmp_dir/"
@@ -232,7 +223,6 @@ fi
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
-
 
 # --- Test platform-specific deployment processes. ---
 
