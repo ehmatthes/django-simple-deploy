@@ -140,7 +140,9 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     pip install --upgrade pip
     pip install pipenv
     # We'll only lock once, just before committing for deployment.
-    python3 -m pipenv install --skip-lock
+    # DEV: Remove this line if it works.
+    # python3 -m pipenv install --skip-lock
+    pipenv install --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
     # Remove other dependency files.
     rm requirements.txt
@@ -191,8 +193,7 @@ git commit -am "Initial commit."
 # --- Use django-simple-deploy as a user would. ---
 
 # Now install django-simple-deploy, just as a user would.
-# - Install local dev version by default. This leaves a build/ dir
-#   in the project repo, which we'll try to clean up.
+# - Install local dev version by default.
 # - If test targets pypi, install from there.
 echo "  Installing django-simple-deploy..."
 
@@ -206,24 +207,27 @@ if [ "$target" = pypi ]; then
     dependency_string="django-simple-deploy"
 else
     dependency_string="$script_dir"
-
-    # # Pipenv also needs something about the egg:
-    # # DEV: This may only be for testing locally now.
-    # if [ "$dep_man_approach" = 'pipenv' ]; then
-    #     install_address="$install_address#egg=django-simple-deploy"
-    # fi
 fi
-echo "  Dependency string: $dependency_string"
 
 if [ "$dep_man_approach" = 'req_txt' ]; then
     pip install $dependency_string
-    # Clean up build/ dir that pip leaves behind.
-    rm -rf "$script_dir/build/"
 elif [ "$dep_man_approach" = 'pipenv' ]; then
-    python3 -m pipenv install $install_address --skip-lock
+    pipenv install $dependency_string --skip-lock
+    # When users install from pypi, their Pipfile works on the remote platform.
+    # This Pipfile will not, because it now has a local path for django-simple-deploy.
+    # Remove the local path from Pipfile: django-simple-deploy = {path = "$script_dir"} and replace with "*"
+    # This is my awkward-but-works bash way to bring double quotes and variable values into a sed re.
+    version_spec='"*"'
+    script_dir_str='"'
+    script_dir_str+=$script_dir
+    script_dir_str+='"'
+    sed -i "" "s#django-simple-deploy = {path = $script_dir_str}#django-simple-deploy = $version_spec#" Pipfile
 elif [ "$dep_man_approach" = 'poetry' ]; then
     $poetry_cmd add $install_address
 fi
+
+# Clean up build/ dir that pip leaves behind.
+rm -rf "$script_dir/build/"
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
