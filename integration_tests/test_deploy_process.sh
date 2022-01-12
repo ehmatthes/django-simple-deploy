@@ -101,6 +101,8 @@ current_branch=$(git status | head -n 1)
 current_branch=${current_branch:10}
 echo "  Current branch: $current_branch"
 
+# Script dir is needed for local installation of this package.
+script_dir=$(pwd)
 if [ "$target" = pypi ]; then
     # Install address is just the package name, which will be pulled from PyPI.
     # Note: I believe this is just for req_txt approach.
@@ -109,6 +111,8 @@ else
     # Install address is the git remote address with the current branch name.
     remote_address=$(git remote get-url origin)
     install_address="git+$remote_address@$current_branch"
+    # DEV: Should be able to install local development version.
+    install_address="$script_dir"
 
     # Pipenv also needs something about the egg:
     if [ "$dep_man_approach" = 'pipenv' ]; then
@@ -121,7 +125,7 @@ echo "  Installing from: $install_address"
 # Make tmp location and clone LL test repo.
 echo "\nBuilding temp environment and copying sample project:"
 
-script_dir=$(pwd)
+
 tmp_dir="$HOME/tmp_django_simple_deploy_test"
 mkdir "$tmp_dir"
 echo "  Made temporary directory: $tmp_dir"
@@ -216,6 +220,10 @@ git commit -am "Initial commit."
 if [ "$dep_man_approach" = 'req_txt' ]; then
     echo "  Installing django-simple-deploy..."
     pip install $install_address
+    # Clean up build/ dir that pip leaves behind.
+    cd "$script_dir/"
+    rm -rf build/
+    cd "$tmp_dir/"
 elif [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv install $install_address --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
