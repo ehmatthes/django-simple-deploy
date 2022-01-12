@@ -39,7 +39,7 @@
 #  $ ./test_deploy_process.sh -t [pypi, current_branch] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
 
 
-# --- Get CLI arguments. ---
+# --- Process CLI arguments. ---
 
 target="current_branch"
 dep_man_approach="req_txt"
@@ -61,7 +61,14 @@ do
     esac
 done
 
+# Only one possibility for cli_sd_options right now.
+if [ "$cli_sd_options" = 'automate_all' ]; then
+    test_automate_all=true
+fi
+
+
 # --- Exit if testing Azure without automate_all. ---
+
 if [ "$platform" = 'azure' ]; then
     if [ "$cli_sd_options" != 'automate_all' ]; then
         echo "*** Azure deployment only works with the --automate-all flag."
@@ -70,7 +77,10 @@ if [ "$platform" = 'azure' ]; then
     fi
 fi
 
-# --- Make sure user is okay with building a temp environment in $HOME. ---
+
+# --- Copy sample project to tmp location in $HOME and build testing venv. ---
+
+# Make sure user is okay with building a temp environment in $HOME.
 echo ""
 echo "This test will build a temporary directory in your home folder."
 echo "  It will also create an app on your account for the selected platform."
@@ -84,12 +94,7 @@ while true; do
     esac
 done
 
-# Only one possibility for cli_sd_options right now.
-if [ "$cli_sd_options" = 'automate_all' ]; then
-    test_automate_all=true
-fi
-
-# Make tmp location and clone LL test repo.
+# Make tmp location and copy sample project.
 echo "\nBuilding temp environment and copying sample project:"
 
 script_dir=$(pwd)
@@ -182,6 +187,9 @@ git init
 git add .
 git commit -am "Initial commit."
 
+
+# --- Use django-simple-deploy as a user would. ---
+
 # Now install django-simple-deploy, just as a user would.
 # - Install local dev version by default. This leaves a build/ dir
 #   in the project repo, which we'll try to clean up.
@@ -223,6 +231,7 @@ fi
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
+
 
 # --- Test platform-specific deployment processes. ---
 
