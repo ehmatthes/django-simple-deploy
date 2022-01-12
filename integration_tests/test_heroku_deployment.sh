@@ -40,8 +40,6 @@ if [ "$test_automate_all" != true ]; then
     git commit -am "Configured for deployment."
 
     echo "Pushing to heroku..."
-    # DEV: There should probably be a variable to track which branch we're using on the test repository.
-    # git push heroku main
     git push heroku main
     heroku run python manage.py migrate
     heroku open
@@ -61,11 +59,11 @@ echo "\n  Testing functionality of deployed app..."
 
 python test_deployed_app_functionality.py --url "$app_url"
 
-# Clarify which branch was tested.
+# Clarify which version was tested.
 if [ "$target" = pypi ]; then
     echo "\n --- Finished testing latest release from PyPI. ---"
 else
-    echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+    echo "\n--- Finished testing local development version. ---"
 fi
 
 # Check if user wants to destroy temp files.

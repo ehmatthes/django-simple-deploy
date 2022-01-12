@@ -58,11 +58,11 @@ echo "    app url: $app_url"
 
 python test_deployed_app_functionality.py --url "$app_url"
 
-# Clarify which branch was tested.
+# Clarify which version was tested.
 if [ "$target" = pypi ]; then
     echo "\n --- Finished testing latest release from PyPI. ---"
 else
-    echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+    echo "\n--- Finished testing local development version. ---"
 fi
 
 # Check if user wants to destroy temp files.

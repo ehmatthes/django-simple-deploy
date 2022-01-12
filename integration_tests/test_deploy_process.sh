@@ -23,7 +23,7 @@
 
 # --- Get options for current test run. --
 # t: Target for testing.
-#    current_branch, pypi
+#    development_version, pypi
 # d: Dependency management approach that's being tested.
 #    req_txt, poetry, pipenv
 # p: Platform to push to.
@@ -36,12 +36,12 @@
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./test_deploy_process.sh -t [pypi, current_branch] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
+#  $ ./test_deploy_process.sh -t [pypi, development_version] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
 
 
 # --- Process CLI arguments. ---
 
-target="current_branch"
+target="development_version"
 dep_man_approach="req_txt"
 platform="heroku"
 azure_plan_sku="F1"
