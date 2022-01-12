@@ -196,10 +196,10 @@ git commit -am "Initial commit."
 # - If test targets pypi, install from there.
 echo "  Installing django-simple-deploy..."
 
-# Define $dependency_string for the package management system that's being
-#   tested. For example:
-#   - pip install $script_dir
-#   - pip install django-simple-deploy
+# Define $dependency_string for the package management system that's being tested.
+#   For example:
+#   - local test: pip install $script_dir
+#   - pypi test: pip install django-simple-deploy
 if [ "$target" = pypi ]; then
     # Dependency string is just the package name.
     # Note: I believe this is just for req_txt approach.
@@ -207,22 +207,18 @@ if [ "$target" = pypi ]; then
 else
     dependency_string="$script_dir"
 
-    # Pipenv also needs something about the egg:
-    # DEV: This may only be for testing locally now.
-    if [ "$dep_man_approach" = 'pipenv' ]; then
-        install_address="$install_address#egg=django-simple-deploy"
-    fi
+    # # Pipenv also needs something about the egg:
+    # # DEV: This may only be for testing locally now.
+    # if [ "$dep_man_approach" = 'pipenv' ]; then
+    #     install_address="$install_address#egg=django-simple-deploy"
+    # fi
 fi
-
 echo "  Dependency string: $dependency_string"
 
 if [ "$dep_man_approach" = 'req_txt' ]; then
     pip install $dependency_string
     # Clean up build/ dir that pip leaves behind.
-    # DEV: Can these three commands be combined? Exit after trying this.
-    cd "$script_dir/"
-    rm -rf build/
-    cd "$tmp_dir/"
+    rm -rf "$script_dir/build/"
 elif [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv install $install_address --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
