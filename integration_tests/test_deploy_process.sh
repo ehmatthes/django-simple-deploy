@@ -140,8 +140,6 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     pip install --upgrade pip
     pip install pipenv
     # We'll only lock once, just before committing for deployment.
-    # DEV: Remove this line if it works.
-    # python3 -m pipenv install --skip-lock
     pipenv install --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
     # Remove other dependency files.
@@ -197,15 +195,13 @@ git commit -am "Initial commit."
 # - If test targets pypi, install from there.
 echo "  Installing django-simple-deploy..."
 
-# Define $dependency_string for the package management system that's being tested.
-#   For example:
-#   - local test: pip install $script_dir
-#   - pypi test: pip install django-simple-deploy
+# Define $dependency_string for based on whether we're testing the local 
+#   development version or the pypi version.
 if [ "$target" = pypi ]; then
     # Dependency string is just the package name.
-    # Note: I believe this is just for req_txt approach.
     dependency_string="django-simple-deploy"
 else
+    # Install from the local directory.
     dependency_string="$script_dir"
 fi
 
@@ -216,7 +212,8 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     # When users install from pypi, their Pipfile works on the remote platform.
     # This Pipfile will not, because it now has a local path for django-simple-deploy.
     # Remove the local path from Pipfile: django-simple-deploy = {path = "$script_dir"} and replace with "*"
-    # This is my awkward-but-works bash way to bring double quotes and variable values into a sed re.
+    # DEV: This is my awkward-but-works bash way to bring double quotes and variable values into a sed re.
+    #   This can probably be collapsed into one sed line.
     version_spec='"*"'
     script_dir_str='"'
     script_dir_str+=$script_dir
