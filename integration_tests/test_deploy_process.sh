@@ -220,7 +220,15 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     script_dir_str+='"'
     sed -i "" "s#django-simple-deploy = {path = $script_dir_str}#django-simple-deploy = $version_spec#" Pipfile
 elif [ "$dep_man_approach" = 'poetry' ]; then
-    $poetry_cmd add $install_address
+    # Poetry throws an error if I try to install from a local directory using this command:
+    # $poetry_cmd add $dependency_string
+    # So, workaround since we only need the development version installed locally, not on Heroku:
+    #   Use pip to install the appropriate version here, just like in the req_txt block.
+    #   Then manually add django-simple-deploy to pyproject.toml, so the remote version
+    #   will just install from pypi.
+    pip install $dependency_string
+    version_spec='"*"'
+    sed -i "" "s#requests#django-simple-deploy = $version_spec\nrequests#" pyproject.toml
 fi
 
 # Clean up build/ dir that pip leaves behind.
