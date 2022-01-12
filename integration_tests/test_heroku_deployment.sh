@@ -3,10 +3,16 @@
 # This is sourced by autoconfigure_deploy_test.sh, so this script has access
 #   to all variables defined in autoconfigure_deploy_test.sh.
 #
-# Note: The test process uses the current development version of django-simple-deploy
+# Note: The test process installs the current development version of django-simple-deploy
 #   to deploy the sample project. Heroku installs the latest pypi release, but never
 #   uses it. It's listed in INSTALLED_APPS, so it needs to be able to be installed,
 #   but it's never used on Heroku.
+#
+# This script is fairly short, because the deployment process is really simple using
+#   django-simple-deploy. This script really just runs the simple_deploy command, and
+#   a little more if not using automate_all, and then calls a separate script to test
+#   the deployed app. It then offers to tear down the local tmp project and the
+#   newly-deployed app.
 
 
 # Skip if testing --automate-all
