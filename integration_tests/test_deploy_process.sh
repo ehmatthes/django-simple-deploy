@@ -233,6 +233,7 @@ fi
 
 # Clean up build/ dir that pip leaves behind.
 rm -rf "$script_dir/build/"
+rm -rf "$script_dir/django_simple_deploy.egg-info/"
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
