@@ -8,9 +8,9 @@
 #   happen in hte test_deploy_process.sh script.)
 #
 # Note: The test process uses the current development version of django-simple-deploy
-#   to deploy the sample project. Heroku installs the latest pypi release, but never
+#   to deploy the sample project. Azure installs the latest pypi release, but never
 #   uses it. It's listed in INSTALLED_APPS, so it needs to be able to be installed,
-#   but it's never used on Heroku.
+#   but it's never used on Azure.
 
 
 echo "Running manage.py simple_deploy..."

@@ -24,20 +24,10 @@ Table of Contents
 Running the integration tests
 ---
 
-The tests run against the latest pushed version of the current branch you're working in. So if you want to work on this project:
+The tests run against your local version of this project. So if you want to work on this project:
 - Clone the repository, and make a virtual environment from the `requirements.txt` file.
-- Check out a new branch.
-- Commit your changes and push your branch.
-- Run the tests.
-
-Run the test file:
-- `$ cd integration_tests`
-- `$ ./test_deploy_process.sh`
-
-I believe this also works from the root folder:
-- `$ ./integration_tests/test_deploy_process.sh`
-
-Note: I believe this approach works for anyone, on any fork. If it's not working for you, please open an issue.
+- Make any changes to the project you're interested in.
+- Run the tests: `$ ./integration_tests/test_deploy_process.sh`
 
 Actual steps
 ---
@@ -53,12 +43,10 @@ $ python3 -m venv venv
 (venv)$ ./integration_tests/test_deploy_process.sh
 ```
 
-As noted in the above section, this will test against the latest pushed version of the current branch that's checked out.
-
 Testing the latest PyPI release
 ---
 
-To test the latest release on PyPI instead of the current branch, use the `-t pypi` argument:
+To test the latest release on PyPI instead of your local version of the project, use the `-t pypi` argument:
 
 ```
 (venv)$ ./integration_tests/test_deploy_process.sh -t pypi
@@ -70,11 +58,11 @@ Other testing options
 Here are all the flags and options for each flag. The first option listed for each flag is the default:
 
 ```
-./integration_tests/test_deploy_process.sh -t [current_branch|pypi] -d [req_txt|poetry|pipenv] -p [heroku|azure] -o [automate_all] -s [F1|B1|S1|P1V2|P2V2]
+./integration_tests/test_deploy_process.sh -t [development_version|pypi] -d [req_txt|poetry|pipenv] -p [heroku|azure] -o [automate_all] -s [F1|B1|S1|P1V2|P2V2]
 ```
 
 - `-t`: Target for testing.
-    - `current_branch`, `pypi`
+    - `development_version`, `pypi`
 - `-d`: Dependency management approach that's being tested.
     - `req_txt`, `poetry`, `pipenv`
 - `-p`: Platform to push to.
