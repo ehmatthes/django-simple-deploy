@@ -9,7 +9,7 @@ A Code of Conduct is only meaningful when the community around a project actuall
 
 That said, this is the kind of project that is likely to almost exclusively attract people who are clearly committed to helping others. So welcome to the community, and please help make it a healthy, welcoming, and respectful one.
 
-- Eric
+\- Eric
 
 ## Our Pledge
 
