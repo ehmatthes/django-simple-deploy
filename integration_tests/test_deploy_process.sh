@@ -1,10 +1,5 @@
 # Test the simple_deploy process for deployment on Heroku.
 
-# This tests the latest push on the current branch.
-#   It does NOT test the local version of the code.
-#   This is because Heroku needs to install the code for the full integration
-#   test to work, and Heroku can't install code directly from a local machine.
-
 # Overall approach:
 # - Create a temporary working location, outside of any existing git repo.
 # - Copy the sample project to the tmp directory.
@@ -19,16 +14,16 @@
 
 # Usage
 #
-# Test the latest pushed version of the current branch:
+# Test the current local version of the project:
 #   $ ./integration_tests/test_deploy_process.sh
 #
 # Test the most recent PyPI release:
-#   $ ./integration_tests/test_deploy_process.sh test_pypi_release
+#   $ ./integration_tests/test_deploy_process.sh -t pypi
 
 
 # --- Get options for current test run. --
 # t: Target for testing.
-#    current_branch, pypi
+#    development_version, pypi
 # d: Dependency management approach that's being tested.
 #    req_txt, poetry, pipenv
 # p: Platform to push to.
@@ -41,12 +36,12 @@
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./test_deploy_process.sh -t [pypi, current_branch] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
+#  $ ./test_deploy_process.sh -t [pypi, development_version] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
 
 
-# --- Get CLI arguments. ---
+# --- Process CLI arguments. ---
 
-target="current_branch"
+target="development_version"
 dep_man_approach="req_txt"
 platform="heroku"
 azure_plan_sku="F1"
@@ -66,7 +61,14 @@ do
     esac
 done
 
+# Only one possibility for cli_sd_options right now.
+if [ "$cli_sd_options" = 'automate_all' ]; then
+    test_automate_all=true
+fi
+
+
 # --- Exit if testing Azure without automate_all. ---
+
 if [ "$platform" = 'azure' ]; then
     if [ "$cli_sd_options" != 'automate_all' ]; then
         echo "*** Azure deployment only works with the --automate-all flag."
@@ -75,7 +77,10 @@ if [ "$platform" = 'azure' ]; then
     fi
 fi
 
-# --- Make sure user is okay with building a temp environment in $HOME. ---
+
+# --- Copy sample project to tmp location in $HOME and build testing venv. ---
+
+# Make sure user is okay with building a temp environment in $HOME.
 echo ""
 echo "This test will build a temporary directory in your home folder."
 echo "  It will also create an app on your account for the selected platform."
@@ -89,36 +94,7 @@ while true; do
     esac
 done
 
-# Only one possibility for cli_sd_options right now.
-if [ "$cli_sd_options" = 'automate_all' ]; then
-    test_automate_all=true
-fi
-
-# Get current branch and remote Git address, so we know which version 
-#   of the app to test against.
-echo "\nExamining current branch..."
-current_branch=$(git status | head -n 1)
-current_branch=${current_branch:10}
-echo "  Current branch: $current_branch"
-
-if [ "$target" = pypi ]; then
-    # Install address is just the package name, which will be pulled from PyPI.
-    # Note: I believe this is just for req_txt approach.
-    install_address="django-simple-deploy"
-else
-    # Install address is the git remote address with the current branch name.
-    remote_address=$(git remote get-url origin)
-    install_address="git+$remote_address@$current_branch"
-
-    # Pipenv also needs something about the egg:
-    if [ "$dep_man_approach" = 'pipenv' ]; then
-        install_address="$install_address#egg=django-simple-deploy"
-    fi
-fi
-
-echo "  Installing from: $install_address"
-
-# Make tmp location and clone LL test repo.
+# Make tmp location and copy sample project.
 echo "\nBuilding temp environment and copying sample project:"
 
 script_dir=$(pwd)
@@ -164,7 +140,7 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     pip install --upgrade pip
     pip install pipenv
     # We'll only lock once, just before committing for deployment.
-    python3 -m pipenv install --skip-lock
+    pipenv install --skip-lock
 elif [ "$dep_man_approach" = 'poetry' ]; then
     # Remove other dependency files.
     rm requirements.txt
@@ -211,16 +187,53 @@ git init
 git add .
 git commit -am "Initial commit."
 
+
+# --- Use django-simple-deploy as a user would. ---
+
 # Now install django-simple-deploy, just as a user would.
-#   Except, we'll install the version from the current branch.
-if [ "$dep_man_approach" = 'req_txt' ]; then
-    echo "  Installing django-simple-deploy..."
-    pip install $install_address
-elif [ "$dep_man_approach" = 'pipenv' ]; then
-    python3 -m pipenv install $install_address --skip-lock
-elif [ "$dep_man_approach" = 'poetry' ]; then
-    $poetry_cmd add $install_address
+# - Install local dev version by default.
+# - If test targets pypi, install from there.
+echo "  Installing django-simple-deploy..."
+
+# Define $dependency_string for based on whether we're testing the local 
+#   development version or the pypi version.
+if [ "$target" = pypi ]; then
+    # Dependency string is just the package name.
+    dependency_string="django-simple-deploy"
+else
+    # Install from the local directory.
+    dependency_string="$script_dir"
 fi
+
+if [ "$dep_man_approach" = 'req_txt' ]; then
+    pip install $dependency_string
+elif [ "$dep_man_approach" = 'pipenv' ]; then
+    pipenv install $dependency_string --skip-lock
+    # When users install from pypi, their Pipfile works on the remote platform.
+    # This Pipfile will not, because it now has a local path for django-simple-deploy.
+    # Remove the local path from Pipfile: django-simple-deploy = {path = "$script_dir"} and replace with "*"
+    # DEV: This is my awkward-but-works bash way to bring double quotes and variable values into a sed re.
+    #   This can probably be collapsed into one sed line.
+    version_spec='"*"'
+    script_dir_str='"'
+    script_dir_str+=$script_dir
+    script_dir_str+='"'
+    sed -i "" "s#django-simple-deploy = {path = $script_dir_str}#django-simple-deploy = $version_spec#" Pipfile
+elif [ "$dep_man_approach" = 'poetry' ]; then
+    # Poetry throws an error if I try to install from a local directory using this command:
+    # $poetry_cmd add $dependency_string
+    # So, workaround since we only need the development version installed locally, not on Heroku:
+    #   Use pip to install the appropriate version here, just like in the req_txt block.
+    #   Then manually add django-simple-deploy to pyproject.toml, so the remote version
+    #   will just install from pypi.
+    pip install $dependency_string
+    version_spec='"*"'
+    sed -i "" "s#requests#django-simple-deploy = $version_spec\nrequests#" pyproject.toml
+fi
+
+# Clean up build/ dir that pip leaves behind.
+rm -rf "$script_dir/build/"
+rm -rf "$script_dir/django_simple_deploy.egg-info/"
 
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py

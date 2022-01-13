@@ -2,6 +2,17 @@
 #
 # This is sourced by autoconfigure_deploy_test.sh, so this script has access
 #   to all variables defined in autoconfigure_deploy_test.sh.
+#
+# Note: The test process installs the current development version of django-simple-deploy
+#   to deploy the sample project. Heroku installs the latest pypi release, but never
+#   uses it. It's listed in INSTALLED_APPS, so it needs to be able to be installed,
+#   but it's never used on Heroku.
+#
+# This script is fairly short, because the deployment process is really simple using
+#   django-simple-deploy. This script really just runs the simple_deploy command, and
+#   a little more if not using automate_all, and then calls a separate script to test
+#   the deployed app. It then offers to tear down the local tmp project and the
+#   newly-deployed app.
 
 
 # Skip if testing --automate-all
@@ -22,26 +33,6 @@ if [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv lock
 fi
 
-# Heroku (and assume other platforms) needs a copy of requirements with
-#   the same django-simple-deploy we're testing against.
-#   Modify django-simple-deploy to match install_address.
-#   This is important to verify, so we'll routinely include it in the test output.
-#   This is only needed if we're testing against a GitHub repo.
-#   Note: Pipenv and Poetry specify install address, so this modification is
-#     not necessary for either of those approaches.
-if [ "$target" = 'current_branch' ]; then
-    if [ "$dep_man_approach" = 'req_txt' ]; then
-        echo "\nOriginal requirements.txt; should see django-simple-deploy:"
-        cat requirements.txt
-
-        echo "  Modifying requirements.txt to require the current branch version on Heroku..."
-        sed -i "" "s|django-simple-deploy|$install_address|" requirements.txt
-
-        echo "\nModified requirements.txt; should see django-simple-deploy address you're trying to test:"
-        cat requirements.txt
-    fi
-fi
-
 # Skip if testing --automate-all.
 if [ "$test_automate_all" != true ]; then
     echo "\n\nCommitting changes..."
@@ -49,8 +40,6 @@ if [ "$test_automate_all" != true ]; then
     git commit -am "Configured for deployment."
 
     echo "Pushing to heroku..."
-    # DEV: There should probably be a variable to track which branch we're using on the test repository.
-    # git push heroku main
     git push heroku main
     heroku run python manage.py migrate
     heroku open
@@ -70,11 +59,11 @@ echo "\n  Testing functionality of deployed app..."
 
 python test_deployed_app_functionality.py --url "$app_url"
 
-# Clarify which branch was tested.
+# Clarify which version was tested.
 if [ "$target" = pypi ]; then
     echo "\n --- Finished testing latest release from PyPI. ---"
 else
-    echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+    echo "\n--- Finished testing local development version. ---"
 fi
 
 # Check if user wants to destroy temp files.

@@ -6,6 +6,11 @@
 # The Azure deployment process only works with the --automate-all flag. If this
 #   test is run without that flag, present a message and exit. (This should already
 #   happen in hte test_deploy_process.sh script.)
+#
+# Note: The test process uses the current development version of django-simple-deploy
+#   to deploy the sample project. Azure installs the latest pypi release, but never
+#   uses it. It's listed in INSTALLED_APPS, so it needs to be able to be installed,
+#   but it's never used on Azure.
 
 
 echo "Running manage.py simple_deploy..."
@@ -53,11 +58,11 @@ echo "    app url: $app_url"
 
 python test_deployed_app_functionality.py --url "$app_url"
 
-# Clarify which branch was tested.
+# Clarify which version was tested.
 if [ "$target" = pypi ]; then
     echo "\n --- Finished testing latest release from PyPI. ---"
 else
-    echo "\n--- Finished testing pushed version of simple_deploy.py on branch $current_branch. ---"
+    echo "\n--- Finished testing local development version. ---"
 fi
 
 # Check if user wants to destroy temp files.
