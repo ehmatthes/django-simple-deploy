@@ -4,6 +4,7 @@ import sys, os, re, subprocess
 
 from django.conf import settings
 from django.core.management.base import CommandError
+from django.core.management.utils import get_random_secret_key
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
@@ -33,6 +34,7 @@ class HerokuDeployer:
         self._check_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
+        self._configure_secret_key()
         self._conclude_automate_all()
         self._show_success_message()
 
@@ -277,6 +279,23 @@ class HerokuDeployer:
         with open(placeholder_file, 'w') as f:
             f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
         self.stdout.write("    Added placeholder file to static files directory.")
+
+
+    def _configure_secret_key(self):
+        """Use an env var to manage the secret key."""
+        # Generate a new key.
+        new_secret_key = get_random_secret_key()
+
+        # Set the new key as an env var on Heroku.
+        self.stdout.write("  Setting new secret key for Heroku...")
+        subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"])
+        self.stdout.write("    Set SECRET_KEY config variable.")
+
+        # Modify settings to use the env var's value as the secret key.
+        new_setting = "SECRET_KEY = os.getenv('SECRET_KEY')"
+        msg_added = "    Added SECRET_KEY setting for Heroku."
+        msg_already_set = "    Found SECRET_KEY setting for Heroku."
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
 
     def _conclude_automate_all(self):
