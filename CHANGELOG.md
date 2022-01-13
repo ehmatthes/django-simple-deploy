@@ -9,6 +9,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 ### 0.2.1
 
 - Unreleased.
+- Simplified the integration testing scripts significantly.
+- Added brief roadmap.
 
 ### 0.2.0
 
