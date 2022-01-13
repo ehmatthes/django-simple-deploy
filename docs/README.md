@@ -8,6 +8,7 @@ To understand this project, please start at the [main readme](../README.md) if y
     - [Azure deployments](azure_deployments.md)
 - Documentation for contributors:
     - [Scope and Purpose](scope_purpose.md)
+    - [Roadmap](roadmap.md)
     - [Development process](development_process.md)
     - [Testing](../integration_tests/README.md)    
 - Documentation for maintainers:    
