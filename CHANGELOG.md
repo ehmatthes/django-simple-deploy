@@ -10,7 +10,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 - Unreleased.
 - Simplified the integration testing scripts significantly.
-- Added brief roadmap.
+- Added brief [roadmap](docs/roadmap.md).
+- Added brief [contributing guide](docs/contributing.md).
 
 ### 0.2.0
 

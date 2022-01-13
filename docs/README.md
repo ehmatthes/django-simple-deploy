@@ -10,6 +10,7 @@ To understand this project, please start at the [main readme](../README.md) if y
     - [Scope and Purpose](scope_purpose.md)
     - [Roadmap](roadmap.md)
     - [Development process](development_process.md)
-    - [Testing](../integration_tests/README.md)    
+    - [Testing](../integration_tests/README.md)
+    - [Contributing](contributing.md)
 - Documentation for maintainers:    
     - [Creating a new release](creating_release.md)
