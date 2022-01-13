@@ -12,5 +12,6 @@ To understand this project, please start at the [main readme](../README.md) if y
     - [Development process](development_process.md)
     - [Testing](../integration_tests/README.md)
     - [Contributing](contributing.md)
+    - [Code of Conduct](code_of_conduct.md)
 - Documentation for maintainers:    
     - [Creating a new release](creating_release.md)

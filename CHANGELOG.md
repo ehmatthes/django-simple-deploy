@@ -12,6 +12,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 - Simplified the integration testing scripts significantly.
 - Added brief [roadmap](docs/roadmap.md).
 - Added brief [contributing guide](docs/contributing.md).
+- Added a [Code of Conduct](docs/code_of_conduct.md).
 
 ### 0.2.0
 
