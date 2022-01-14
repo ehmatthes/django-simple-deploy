@@ -14,6 +14,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 - Added brief [contributing guide](docs/contributing.md).
 - Added a [Code of Conduct](docs/code_of_conduct.md).
 - SECRET_KEY on Heroku uses a config variable.
+- DEBUG on Heroku uses a config variable.
 
 ### 0.2.0
 
