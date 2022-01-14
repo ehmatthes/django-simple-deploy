@@ -13,7 +13,7 @@ Building a package
 Making a new release
 ---
 
-- Make sure version number has been bumped.
+- Make sure version number has been bumped in `setup.cfg`.
 - Make an entry in changelog.md.
 - Commit all changes on development branch.
 - Create a PR on GitHub, accept the PR, and pull changes to main locally.

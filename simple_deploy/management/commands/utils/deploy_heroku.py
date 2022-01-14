@@ -292,6 +292,7 @@ class HerokuDeployer:
         # Here we use 'TRUE' and 'FALSE'. Then a simple test:
         #    os.environ.get('DEBUG') == 'TRUE'
         # returns the bool value True for 'TRUE', and False for 'FALSE'.
+        # Taken from: https://stackoverflow.com/a/56828137/748891
 
         self.stdout.write("  Setting DEBUG env var...")
         subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"])
