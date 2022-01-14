@@ -34,6 +34,7 @@ class HerokuDeployer:
         self._check_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
+        self._configure_debug()
         self._configure_secret_key()
         self._conclude_automate_all()
         self._show_success_message()
@@ -279,6 +280,28 @@ class HerokuDeployer:
         with open(placeholder_file, 'w') as f:
             f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
         self.stdout.write("    Added placeholder file to static files directory.")
+
+
+    def _configure_debug(self):
+        """Use an env var to manage DEBUG setting, and set to False."""
+
+        # Config variables are strings, which always causes confusion for people
+        #   when setting boolean env vars. A good habit is to use something other than
+        #   True or False, so it's clear we're not trying to use Python's default
+        #   boolean values.
+        # Here we use 'TRUE' and 'FALSE'. Then a simple test:
+        #    os.environ.get('DEBUG') == 'TRUE'
+        # returns the bool value True for 'TRUE', and False for 'FALSE'.
+
+        self.stdout.write("  Setting DEBUG env var...")
+        subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"])
+        self.stdout.write("    Set DEBUG config variable to FALSE.")
+
+        # Modify settings to use the DEBUG config variable.
+        new_setting = "DEBUG = os.getenv('DEBUG') == 'TRUE'"
+        msg_added = "    Added DEBUG setting for Heroku."
+        msg_already_set = "    Found DEBUG setting for Heroku."
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
 
     def _configure_secret_key(self):
