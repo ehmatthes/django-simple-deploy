@@ -70,21 +70,20 @@ class Command(BaseCommand):
         # This is a True-to-disable option; turn it into a more intuitive flag.
         self.log_output = not(options['no_logging'])
 
-        if self.automate_all:
-            self.stdout.write("Automating all steps...")
-        else:
-            self.stdout.write("Only configuring for deployment...")
-
         if self.log_output:
             self._start_logging()
-        sys.exit()
+
+        if self.automate_all:
+            self.write_output("Automating all steps...")
+        else:
+            self.write_output("Only configuring for deployment...")
 
         if self.platform == 'heroku':
-            self.stdout.write("  Targeting Heroku deployment...")
+            self.write_output("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
             hd.deploy()
         elif self.platform == 'azure':
-            self.stdout.write("  Targeting Azure deployment...")
+            self.write_output("  Targeting Azure deployment...")
             ad = AzureDeployer(self)
             ad.deploy()
         else:
@@ -97,7 +96,6 @@ class Command(BaseCommand):
                 filename='simple_deploy_log_verbose.log',
                 format='%(asctime)s %(levelname)s: %(message)s')
         self.write_output("Hello custom logger.")
-        sys.exit()
 
 
     def write_output(self, msg, log_level='INFO'):
@@ -183,7 +181,7 @@ class Command(BaseCommand):
         # This step isn't needed for Pipenv users, because when they install
         #   django-simple-deploy it's automatically added to Pipfile.
         if self.using_req_txt:
-            self.stdout.write("\n  Looking for django-simple-deploy in requirements.txt...")
+            self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
             self._add_req_txt_pkg('django-simple-deploy')
 
 
@@ -225,7 +223,7 @@ class Command(BaseCommand):
         pkg_present = any(root_package_name in r for r in self.requirements)
 
         if pkg_present:
-            self.stdout.write(f"    Found {root_package_name} in requirements file.")
+            self.write_output(f"    Found {root_package_name} in requirements file.")
         else:
             with open(self.req_txt_path, 'a') as f:
                 # Align comments, so we don't make req_txt file ugly.
@@ -233,7 +231,7 @@ class Command(BaseCommand):
                 tab_string = ' ' * (30 - len(package_name))
                 f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
 
-            self.stdout.write(f"    Added {package_name} to requirements.txt.")
+            self.write_output(f"    Added {package_name} to requirements.txt.")
 
 
     def _add_pipenv_pkg(self, package_name, version=""):
@@ -241,7 +239,7 @@ class Command(BaseCommand):
         pkg_present = any(package_name in r for r in self.requirements)
 
         if pkg_present:
-            self.stdout.write(f"    Found {package_name} in Pipfile.")
+            self.write_output(f"    Found {package_name} in Pipfile.")
         else:
             self._write_pipfile_pkg(package_name, version)
 
@@ -268,4 +266,4 @@ class Command(BaseCommand):
         with open(self.pipfile_path, 'w') as f:
             f.write(pipfile_text)
 
-        self.stdout.write(f"    Added {package_name} to Pipfile.")
+        self.write_output(f"    Added {package_name} to Pipfile.")
