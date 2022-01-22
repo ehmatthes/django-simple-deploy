@@ -7,7 +7,7 @@
 # - Each helper gets a reference to this command object.
 
 
-import sys, os, re, subprocess
+import sys, os, re, subprocess, logging
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
@@ -21,6 +21,16 @@ class Command(BaseCommand):
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
     """
+
+    # def __init__(self):
+    #     """Initialize logger."""
+    #     super().__init__()
+    #     dump_logger = logging.basicConfig(level=logging.INFO,
+    #             filename='simple_deploy_log_verbose.log',
+    #             format='%(asctime)s %(levelname)s:%(message)s')
+    #     # logging.info("Hello")
+    #     sys.exit()
+
 
     def add_arguments(self, parser):
         """Define CLI options."""
@@ -50,6 +60,11 @@ class Command(BaseCommand):
             help="Which plan sku should be used when creating Azure resources?",
             default='F1')
 
+        # Allow users to not generate logging artifacts.
+        parser.add_argument('--no-logging',
+            help="Do you want a record of simple_deploy's output?",
+            action='store_true')
+
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -68,6 +83,10 @@ class Command(BaseCommand):
         else:
             self.stdout.write("Only configuring for deployment...")
 
+        if not options['no_logging']:
+            self._start_logging()
+        sys.exit()
+
         if self.platform == 'heroku':
             self.stdout.write("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
@@ -78,6 +97,15 @@ class Command(BaseCommand):
             ad.deploy()
         else:
             raise CommandError("That platform is not currently supported.")
+
+
+    def _start_logging(self):
+        """Set up for logging."""
+        dump_logger = logging.basicConfig(level=logging.INFO,
+                filename='simple_deploy_log_verbose.log',
+                format='%(asctime)s %(levelname)s:%(message)s')
+        # logging.info("Hello")
+        sys.exit()
 
 
     def _inspect_project(self):
