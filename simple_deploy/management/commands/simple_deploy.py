@@ -98,15 +98,23 @@ class Command(BaseCommand):
         self.write_output("Hello custom logger.")
 
 
-    def write_output(self, msg, log_level='INFO'):
-        """Write output to the appropriate places."""
+    def write_output(self, output_obj, log_level='INFO'):
+        """Write output to the appropriate places.
+        Output may be a string, or an instance of subprocess.CompletedProcess.
+        """
+
+        if isinstance(output_obj, subprocess.CompletedProcess):# type(output_obj == subprocess.CompletedProcess):
+            output_str = output_obj.stdout.decode()
+        elif isinstance(output_obj, str):
+            output_str = output_obj
+
 
         # Always write to console.
-        self.stdout.write(msg)
+        self.stdout.write(output_str)
 
         # Log when appropriate.
         if self.log_output:
-            logging.info(msg)
+            logging.info(output_str)
 
 
     def _inspect_project(self):

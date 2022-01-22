@@ -45,6 +45,20 @@ class HerokuDeployer:
         # This is platform-specific, because we want to specify exactly what
         #   will be automated.
 
+
+
+        # output = subprocess.run(['heroku', 'apps:info'], capture_output=True)
+        # # print(output.stderr.decode())
+        # self.sd.write_output(output.stderr.decode())
+        # print(type(output))
+        # sys.exit()
+
+
+
+
+
+
+
         # Skip this prep work if --automate-all not used.
         if not self.sd.automate_all:
             return
@@ -62,7 +76,8 @@ class HerokuDeployer:
 
         if confirmed.lower() in ('y', 'yes'):
             self.sd.write_output("  Running `heroku create`...")
-            subprocess.run(['heroku', 'create'])
+            output = subprocess.run(['heroku', 'create'], capture_output=True)
+            self.sd.write_output(output)
         else:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
@@ -76,6 +91,7 @@ class HerokuDeployer:
         #   has run it. If it hasn't been run, we'll quit and tell them to do so.
         self.sd.write_output("  Inspecting Heroku app...")
         apps_info = subprocess.run(["heroku", "apps:info"], capture_output=True)
+        self.sd.write_output(apps_info)
 
         # Turn stdout info into a list of strings that we can then parse.
         #   If no app exists, stdout is empty and the output went to stderr.
@@ -96,7 +112,9 @@ class HerokuDeployer:
         This is mostly used to modify settings for the deployed project.
         """
         self.sd.write_output("  Setting Heroku environment variable...")
-        subprocess.run(["heroku", "config:set", "ON_HEROKU=1"])
+        output = subprocess.run(["heroku", "config:set", "ON_HEROKU=1"],
+                capture_output=True)
+        self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
 
