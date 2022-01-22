@@ -6,9 +6,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.2 - Supporting Heroku & Azure
 ---
 
-### 0.2.1
+### 0.2.2
 
 - Unreleased.
+
+### 0.2.1
+
 - Simplified the integration testing scripts significantly.
 - Added brief [roadmap](docs/roadmap.md).
 - Added brief [contributing guide](docs/contributing.md).
