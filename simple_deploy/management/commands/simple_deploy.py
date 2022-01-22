@@ -22,16 +22,6 @@ class Command(BaseCommand):
     Configure as much as possible automatically.
     """
 
-    # def __init__(self):
-    #     """Initialize logger."""
-    #     super().__init__()
-    #     dump_logger = logging.basicConfig(level=logging.INFO,
-    #             filename='simple_deploy_log_verbose.log',
-    #             format='%(asctime)s %(levelname)s:%(message)s')
-    #     # logging.info("Hello")
-    #     sys.exit()
-
-
     def add_arguments(self, parser):
         """Define CLI options."""
 
@@ -60,7 +50,7 @@ class Command(BaseCommand):
             help="Which plan sku should be used when creating Azure resources?",
             default='F1')
 
-        # Allow users to not generate logging artifacts.
+        # Allow users to skip logging.
         parser.add_argument('--no-logging',
             help="Do you want a record of simple_deploy's output?",
             action='store_true')
@@ -77,13 +67,15 @@ class Command(BaseCommand):
         self.automate_all = options['automate_all']
         self.platform = options['platform']
         self.azure_plan_sku = options['azure_plan_sku']
+        # This is a True-to-disable option; turn it into a more intuitive flag.
+        self.log_output = not(options['no_logging'])
 
         if self.automate_all:
             self.stdout.write("Automating all steps...")
         else:
             self.stdout.write("Only configuring for deployment...")
 
-        if not options['no_logging']:
+        if self.log_output:
             self._start_logging()
         sys.exit()
 
@@ -103,9 +95,20 @@ class Command(BaseCommand):
         """Set up for logging."""
         dump_logger = logging.basicConfig(level=logging.INFO,
                 filename='simple_deploy_log_verbose.log',
-                format='%(asctime)s %(levelname)s:%(message)s')
-        # logging.info("Hello")
+                format='%(asctime)s %(levelname)s: %(message)s')
+        self.write_output("Hello custom logger.")
         sys.exit()
+
+
+    def write_output(self, msg, log_level='INFO'):
+        """Write output to the appropriate places."""
+
+        # Always write to console.
+        self.stdout.write(msg)
+
+        # Log when appropriate.
+        if self.log_output:
+            logging.info(msg)
 
 
     def _inspect_project(self):
