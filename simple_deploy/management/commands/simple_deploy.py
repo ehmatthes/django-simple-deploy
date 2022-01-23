@@ -89,7 +89,9 @@ class Command(BaseCommand):
             ad = AzureDeployer(self)
             ad.deploy()
         else:
-            raise CommandError("That platform is not currently supported.")
+            error_msg = f"The platform {self.platform} is not currently supported."
+            self.write_output(error_msg)
+            raise CommandError(error_msg)
 
 
     def _start_logging(self):

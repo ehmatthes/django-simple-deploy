@@ -90,6 +90,7 @@ class HerokuDeployer:
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
         else:
             # Let user know they need to run `heroku create`.
+            self.sd.write_output(dh_msgs.no_heroku_app_detected)
             raise CommandError(dh_msgs.no_heroku_app_detected)
 
 
