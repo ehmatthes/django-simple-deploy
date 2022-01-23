@@ -72,6 +72,8 @@ class Command(BaseCommand):
 
         if self.log_output:
             self._start_logging()
+            # Log the options used for this run.
+            self.write_output(f"CLI args: {options}\n")
 
         if self.automate_all:
             self.write_output("Automating all steps...")
@@ -95,7 +97,7 @@ class Command(BaseCommand):
         dump_logger = logging.basicConfig(level=logging.INFO,
                 filename='simple_deploy_log_verbose.log',
                 format='%(asctime)s %(levelname)s: %(message)s')
-        self.write_output("Hello custom logger.")
+        self.write_output("Logging run of `manage.py simple_deploy`...\n")
 
 
     def write_output(self, output_obj, log_level='INFO'):
@@ -115,9 +117,9 @@ class Command(BaseCommand):
         # Always write to console.
         self.stdout.write(output_str)
 
-        # Log when appropriate.
+        # Log when appropriate. Log as a series of single lines, for better
+        #   log file parsing.
         if self.log_output:
-            # logging.info(output_str)
             for line in output_str.splitlines():
                 logging.info(line)
 
