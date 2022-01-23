@@ -144,12 +144,13 @@ class Command(BaseCommand):
         #   now that's only the `git push heroku` call. That call writes to
         #   stderr; I'm not sure how to stream both stdout and stderr.
         #     This will also be needed for long-running steps on other platforms,
-        #   which may or may not write to stderr.
+        #   which may or may not write to stderr. Adding a parameter
+        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
+        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
+        #   topic date back to Python2/3 days.
         cmd_parts = cmd.split()
-        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,# stderr=subprocess.PIPE,
+        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
             bufsize=1, universal_newlines=True) as p:
-            # for line in p.stdout:
-            #     self.write_output(line)
             for line in p.stderr:
                 self.write_output(line)
 
