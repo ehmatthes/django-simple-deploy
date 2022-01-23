@@ -138,10 +138,19 @@ class Command(BaseCommand):
 
     def execute_command(self, cmd):
         """Execute command, and stream output while logging."""
+        # DEV: This only captures stderr right now.
+        #   This is used for commands that run long enough that we don't
+        #   want to use a simple subprocess.run(capture_output=True). Right
+        #   now that's only the `git push heroku` call. That call writes to
+        #   stderr; I'm not sure how to stream both stdout and stderr.
+        #     This will also be needed for long-running steps on other platforms,
+        #   which may or may not write to stderr.
         cmd_parts = cmd.split()
-        with subprocess.Popen(cmd_parts, stdout=subprocess.PIPE, bufsize=1,
-                universal_newlines=True) as p:
-            for line in p.stdout:
+        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,# stderr=subprocess.PIPE,
+            bufsize=1, universal_newlines=True) as p:
+            # for line in p.stdout:
+            #     self.write_output(line)
+            for line in p.stderr:
                 self.write_output(line)
 
         if p.returncode != 0:
