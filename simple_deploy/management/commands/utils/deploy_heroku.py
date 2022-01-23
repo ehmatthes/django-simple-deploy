@@ -358,13 +358,19 @@ class HerokuDeployer:
         # Push current local branch to Heroku main branch.
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
-            output = subprocess.run(['git', 'push', 'heroku', self.current_branch],
-                    capture_output=True)
-            self.sd.write_output(output)
+            # output = subprocess.run(['git', 'push', 'heroku', self.current_branch],
+            #         capture_output=True)
+            # self.sd.write_output(output)
+
+            cmd = f"git push heroku {self.current_branch}"
+            self.sd.execute_command(cmd)
         else:
-            output = subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'],
-                    capture_output=True)
-            self.sd.write_output(output)
+            # output = subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'],
+            #         capture_output=True)
+            # self.sd.write_output(output)
+
+            cmd = f"git push heroku {self.current_branch}:main"
+            self.sd.execute_command(cmd)
 
 
 

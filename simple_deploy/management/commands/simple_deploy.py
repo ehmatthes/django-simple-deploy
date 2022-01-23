@@ -136,6 +136,18 @@ class Command(BaseCommand):
             return line
 
 
+    def execute_command(self, cmd):
+        """Execute command, and stream output while logging."""
+        cmd_parts = cmd.split()
+        with subprocess.Popen(cmd_parts, stdout=subprocess.PIPE, bufsize=1,
+                universal_newlines=True) as p:
+            for line in p.stdout:
+                self.write_output(line)
+
+        if p.returncode != 0:
+            raise CalledProcessError(p.returncode, p.args)
+
+
     def _inspect_project(self):
         """Inspect the project, and pull information needed by multiple steps.
         """
