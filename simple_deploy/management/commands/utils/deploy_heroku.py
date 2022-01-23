@@ -354,28 +354,18 @@ class HerokuDeployer:
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
 
-
-
         # Push current local branch to Heroku main branch.
+        # This process usually takes a minute or two, which is longer than we
+        #   want users to wait for console output. So rather than capturing
+        #   output with subprocess.run(), we use Popen and stream while logging.
+        # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
-            # output = subprocess.run(['git', 'push', 'heroku', self.current_branch],
-            #         capture_output=True)
-            # self.sd.write_output(output)
-
             cmd = f"git push heroku {self.current_branch}"
             self.sd.execute_command(cmd)
         else:
-            # output = subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'],
-            #         capture_output=True)
-            # self.sd.write_output(output)
-
             cmd = f"git push heroku {self.current_branch}:main"
             self.sd.execute_command(cmd)
-
-
-
-
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
