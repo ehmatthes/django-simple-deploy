@@ -364,6 +364,16 @@ class HerokuDeployer:
                     capture_output=True)
             self.sd.write_output(output)
 
+
+
+
+        print('\n---- output from pushing main ----')
+        print(output)
+        print('\n---- end output ----')
+
+
+
+
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
         output = subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'],

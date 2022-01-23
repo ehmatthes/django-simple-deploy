@@ -103,18 +103,23 @@ class Command(BaseCommand):
         Output may be a string, or an instance of subprocess.CompletedProcess.
         """
 
+        # Extract the subprocess output as a string.
         if isinstance(output_obj, subprocess.CompletedProcess):
+            # Assume output is either stdout or stderr.
             output_str = output_obj.stdout.decode()
+            if not output_str:
+                output_str = output_obj.stderr.decode()
         elif isinstance(output_obj, str):
             output_str = output_obj
-
 
         # Always write to console.
         self.stdout.write(output_str)
 
         # Log when appropriate.
         if self.log_output:
-            logging.info(output_str)
+            # logging.info(output_str)
+            for line in output_str.splitlines():
+                logging.info(line)
 
 
     def _inspect_project(self):
