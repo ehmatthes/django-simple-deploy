@@ -103,7 +103,7 @@ class Command(BaseCommand):
         Output may be a string, or an instance of subprocess.CompletedProcess.
         """
 
-        if isinstance(output_obj, subprocess.CompletedProcess):# type(output_obj == subprocess.CompletedProcess):
+        if isinstance(output_obj, subprocess.CompletedProcess):
             output_str = output_obj.stdout.decode()
         elif isinstance(output_obj, str):
             output_str = output_obj
@@ -158,7 +158,8 @@ class Command(BaseCommand):
             #   not affect the user's local environment.
             export_cmd_parts = ['poetry', 'export', '-f', 'requirements.txt',
                     '--output', 'requirements.txt', '--without-hashes']
-            subprocess.run(export_cmd_parts)
+            output = subprocess.run(export_cmd_parts, capture_output=True)
+            self.write_output(output)
             self.using_req_txt = True
 
 

@@ -45,20 +45,6 @@ class HerokuDeployer:
         # This is platform-specific, because we want to specify exactly what
         #   will be automated.
 
-
-
-        # output = subprocess.run(['heroku', 'apps:info'], capture_output=True)
-        # # print(output.stderr.decode())
-        # self.sd.write_output(output.stderr.decode())
-        # print(type(output))
-        # sys.exit()
-
-
-
-
-
-
-
         # Skip this prep work if --automate-all not used.
         if not self.sd.automate_all:
             return
@@ -313,7 +299,8 @@ class HerokuDeployer:
         # Taken from: https://stackoverflow.com/a/56828137/748891
 
         self.sd.write_output("  Setting DEBUG env var...")
-        subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"])
+        output = subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"], capture_output=True)
+        self.sd.write_output(output)
         self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
         # Modify settings to use the DEBUG config variable.
@@ -330,7 +317,9 @@ class HerokuDeployer:
 
         # Set the new key as an env var on Heroku.
         self.sd.write_output("  Setting new secret key for Heroku...")
-        subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"])
+        output = subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"],
+                capture_output=True)
+        self.sd.write_output(output)
         self.sd.write_output("    Set SECRET_KEY config variable.")
 
         # Modify settings to use the env var's value as the secret key.
@@ -348,31 +337,44 @@ class HerokuDeployer:
         self.sd.write_output("\n\nCommitting and pushing project...")
 
         self.sd.write_output("  Adding changes...")
-        subprocess.run(['git', 'add', '.'])
+        output = subprocess.run(['git', 'add', '.'], capture_output=True)
+        self.sd.write_output(output)
         self.sd.write_output("  Committing changes...")
-        subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
+        output = subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'],
+                capture_output=True)
+        self.sd.write_output(output)
 
         self.sd.write_output("  Pushing to heroku...")
 
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
-        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
-        self.current_branch = git_status.stdout.split('\n')[0][10:]
+        git_status = subprocess.run(['git', 'status'], capture_output=True)
+        self.sd.write_output(git_status)
+        status_str = git_status.stdout.decode()
+        self.current_branch = status_str.split('\n')[0][10:]
 
         # Push current local branch to Heroku main branch.
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
-            subprocess.run(['git', 'push', 'heroku', self.current_branch])
+            output = subprocess.run(['git', 'push', 'heroku', self.current_branch],
+                    capture_output=True)
+            self.sd.write_output(output)
         else:
-            subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'])
+            output = subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'],
+                    capture_output=True)
+            self.sd.write_output(output)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
-        subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'])
+        output = subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'],
+                capture_output=True)
+        self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
-        subprocess.run(['heroku', 'open'])
+        output = subprocess.run(['heroku', 'open'],
+                capture_output=True)
+        self.sd.write_output(output)
 
 
     def _show_success_message(self):
