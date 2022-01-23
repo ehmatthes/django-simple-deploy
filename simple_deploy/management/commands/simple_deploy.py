@@ -137,12 +137,21 @@ class Command(BaseCommand):
 
 
     def execute_command(self, cmd):
-        """Execute command, and stream output while logging."""
+        """Execute command, and stream output while logging.
+        This method is intended for commands that run long enough that we 
+        can't use a simple subprocess.run(capture_output=True), which doesn't
+        stream any output until the command is finished. That works for logging,
+        but makes it seem as if the deployment is hanging. This is an issue
+        especially on platforms like Azure that have some steps that take minutes
+        to run.
+        """
+
         # DEV: This only captures stderr right now.
         #   This is used for commands that run long enough that we don't
         #   want to use a simple subprocess.run(capture_output=True). Right
         #   now that's only the `git push heroku` call. That call writes to
         #   stderr; I'm not sure how to stream both stdout and stderr.
+        #
         #     This will also be needed for long-running steps on other platforms,
         #   which may or may not write to stderr. Adding a parameter
         #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
