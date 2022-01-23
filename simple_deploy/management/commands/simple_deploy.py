@@ -121,7 +121,19 @@ class Command(BaseCommand):
         #   log file parsing.
         if self.log_output:
             for line in output_str.splitlines():
+                # Strip secret key from any line that holds it.
+                line = self._strip_secret_key(line)
                 logging.info(line)
+
+
+    def _strip_secret_key(self, line):
+        """Strip secret key value from log file lines."""
+        if 'SECRET_KEY:' in line:
+            new_line = line.split('SECRET_KEY:')[0]
+            new_line += 'SECRET_KEY: *value hidden*'
+            return new_line
+        else:
+            return line
 
 
     def _inspect_project(self):

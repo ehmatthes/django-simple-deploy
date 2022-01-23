@@ -353,6 +353,8 @@ class HerokuDeployer:
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
 
+
+
         # Push current local branch to Heroku main branch.
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
@@ -363,6 +365,10 @@ class HerokuDeployer:
             output = subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'],
                     capture_output=True)
             self.sd.write_output(output)
+
+
+
+
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
