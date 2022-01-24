@@ -6,9 +6,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.2 - Supporting Heroku & Azure
 ---
 
-### 0.2.2
+### 0.2.3
 
 - Unreleased.
+
+### 0.2.2
+
 - Writes verbose log file; adds log directory to .gitignore.
 
 ### 0.2.1

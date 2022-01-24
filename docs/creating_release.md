@@ -29,7 +29,7 @@ Making a new release
 ```
 - Test the released package:
 ```
-(venv)$ ./integration_tests/autoconfigure_deploy_test.sh -t pypi -d [req_txt|poetry|pipenv]
+(venv)$ ./integration_tests/test_deploy_process.sh -t pypi -d [req_txt|poetry|pipenv]
 ```
 
 Deleting branches
