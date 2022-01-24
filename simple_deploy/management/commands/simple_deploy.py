@@ -8,6 +8,7 @@
 
 
 import sys, os, re, subprocess, logging
+from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
@@ -73,7 +74,7 @@ class Command(BaseCommand):
         if self.log_output:
             self._start_logging()
             # Log the options used for this run.
-            self.write_output(f"CLI args: {options}\n")
+            self.write_output(f"CLI args: {options}", write_to_console=False)
 
         if self.automate_all:
             self.write_output("Automating all steps...")
@@ -96,10 +97,59 @@ class Command(BaseCommand):
 
     def _start_logging(self):
         """Set up for logging."""
-        dump_logger = logging.basicConfig(level=logging.INFO,
-                filename='simple_deploy_log_verbose.log',
+        # Create a log directory if needed. Then create the log file, and 
+        #   log the creation of the log directory if it happened.
+        created_log_dir = self._create_log_dir()
+
+        verbose_log_path = self.log_dir_path / 'simple_deploy_log_verbose.log'
+        verbose_logger = logging.basicConfig(level=logging.INFO,
+                filename=verbose_log_path,
                 format='%(asctime)s %(levelname)s: %(message)s')
-        self.write_output("Logging run of `manage.py simple_deploy`...\n")
+
+        self.write_output("Logging run of `manage.py simple_deploy`...",
+                write_to_console=False)
+
+        if created_log_dir:
+            self.write_output(f"Created {self.log_dir_path}.")
+
+        # Make sure log directory is in .gitignore.
+        self._ignore_sd_logs()
+
+
+    def _create_log_dir(self):
+        """Create a directory to hold log files, if not already present.
+        Returns True if created directory, False if directory was already
+          present. Can't log from here, because log file has not been
+          created yet.
+        """
+        self.log_dir_path = settings.BASE_DIR / Path('simple_deploy_logs')
+        if not self.log_dir_path.exists():
+            self.log_dir_path.mkdir()
+            return True
+        else:
+            return False
+
+    def _ignore_sd_logs(self):
+        """Add log dir to .gitignore.
+        Adds a .gitignore file if one is not found.
+        """
+        ignore_msg = "\n\n# Ignore logs from simple_deploy."
+        ignore_msg += "\nsimple_deploy_logs/\n"
+
+        gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
+        if not gitignore_path.exists():
+            # Make the .gitignore file, and add log directory.
+            gitignore_path.write_text(ignore_msg)
+            self.write_output("No .gitignore file found; created .gitignore.")
+            self.write_output("Added simple_deploy_logs/ to .gitignore.")
+        else:
+            # Append log directory to .gitignore if it's not already there.
+            with open(gitignore_path, 'r+') as f:
+                gitignore_contents = f.read()
+                # print('gitignore:', gitignore_contents)
+                if 'simple_deploy_logs/' not in gitignore_contents:
+                    f.write(ignore_msg)
+                    self.write_output("Added simple_deploy_logs/ to .gitignore")
 
 
     def write_output(self, output_obj, log_level='INFO', write_to_console=True):
