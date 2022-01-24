@@ -102,7 +102,7 @@ class Command(BaseCommand):
         self.write_output("Logging run of `manage.py simple_deploy`...\n")
 
 
-    def write_output(self, output_obj, log_level='INFO'):
+    def write_output(self, output_obj, log_level='INFO', write_to_console=True):
         """Write output to the appropriate places.
         Output may be a string, or an instance of subprocess.CompletedProcess.
         """
@@ -116,8 +116,10 @@ class Command(BaseCommand):
         elif isinstance(output_obj, str):
             output_str = output_obj
 
-        # Always write to console.
-        self.stdout.write(output_str)
+        # Almost always write to console. Input from prompts is not streamed
+        #   because user just typed it into the console.
+        if write_to_console:
+            self.stdout.write(output_str)
 
         # Log when appropriate. Log as a series of single lines, for better
         #   log file parsing.

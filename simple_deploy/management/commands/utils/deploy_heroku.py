@@ -58,8 +58,8 @@ class HerokuDeployer:
             prompt = "\nAre you sure you want to do this? (yes|no) "
             self.sd.write_output(prompt)
             confirmed = input()
-            self.sd.write_output(confirmed)
-            
+            self.sd.write_output(confirmed, write_to_console=False)
+
             if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
                 self.sd.write_output("  Please answer yes or no.")
 
