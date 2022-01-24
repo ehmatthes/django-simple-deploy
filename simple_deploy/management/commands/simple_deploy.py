@@ -8,6 +8,7 @@
 
 
 import sys, os, re, subprocess, logging
+from datetime import datetime
 from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
@@ -99,9 +100,22 @@ class Command(BaseCommand):
         """Set up for logging."""
         # Create a log directory if needed. Then create the log file, and 
         #   log the creation of the log directory if it happened.
+        # In many libraries, one log file is created and then that file is
+        #   appended to, and it's on the user to manage log sizes.
+        # In this project, the user is expected to use run simple_deploy
+        #   once, or maybe a couple times if they make a mistake and it exits.
+        #   For example, deploying to Azure without --automate-all, or configuring
+        #   for Heroku without first running `heroku create`.
+        # So, we should never have runaway log creation. It could be really
+        #   helpful to see how many logs are created, and it's also simpler
+        #   to review what happened if every log file represents a single run.
+        # To create a new log file each time simple_deploy is run, we append
+        #   a timestamp to the log filename.
         created_log_dir = self._create_log_dir()
 
-        verbose_log_path = self.log_dir_path / 'simple_deploy_log_verbose.log'
+        timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
+        log_filename = f"simple_deploy_{timestamp}.log"
+        verbose_log_path = self.log_dir_path / log_filename
         verbose_logger = logging.basicConfig(level=logging.INFO,
                 filename=verbose_log_path,
                 format='%(asctime)s %(levelname)s: %(message)s')
