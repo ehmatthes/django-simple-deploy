@@ -15,6 +15,8 @@ By default, the above command will deploy your project to Heroku. You can use th
 $ python manage.py simple_deploy --automate-all --platform azure
 ```
 
+All output is captured and written to a log file stored in `simple_deploy_logs/`, which is placed at the project's root directory.
+
 Table of Contents
 ---
 
@@ -78,6 +80,12 @@ If it doesn't work
 ----
 
 If anything doesn't work, this project will try to tell you what to do in order to deploy successfully. If it doesn't work and you think it should, feel free to [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues). If the deployment fails and you want to undo all of these changes, you should be able to check out your last commit before starting this process and pick up your deployment efforts from there. You can also uninstall this package with the command `pip uninstall django-simple-deploy`. If you do this, make sure to remove `simple_deploy` from `INSTALLED_APPS`.
+
+If you've lost the terminal output after running `manage.py simple_deploy`, you can find the output in the `simple_deploy_logs/` directory. If you need to disable logging, you can use the `--no-logging` flag:
+
+```
+$ python manage.py simple_deploy --no-logging
+```
 
 Understanding costs
 ---

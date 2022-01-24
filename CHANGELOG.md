@@ -9,7 +9,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 ### 0.2.2
 
 - Unreleased.
-- Writes verbose log file.
+- Writes verbose log file; adds log directory to .gitignore.
 
 ### 0.2.1
 
