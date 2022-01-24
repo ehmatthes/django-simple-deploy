@@ -6,6 +6,7 @@ To understand this project, please start at the [main readme](../README.md) if y
 - Documentation for end users:
     - [Heroku deployments](heroku_deployments.md)
     - [Azure deployments](azure_deployments.md)
+    - [Full list of CLI arguments](cli_args.md)
 - Documentation for contributors:
     - [Scope and Purpose](scope_purpose.md)
     - [Roadmap](roadmap.md)

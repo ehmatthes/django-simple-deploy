@@ -9,6 +9,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 ### 0.2.3
 
 - Unreleased.
+- Added documentation of [full set of CLI arguments](docs/cli_args.md).
 
 ### 0.2.2
 
