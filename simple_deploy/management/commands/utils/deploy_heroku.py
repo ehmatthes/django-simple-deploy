@@ -22,7 +22,7 @@ class HerokuDeployer:
 
 
     def deploy(self, *args, **options):
-        self.stdout.write("Configuring project for deployment to Heroku...")
+        self.sd.write_output("Configuring project for deployment to Heroku...")
 
         self._prep_automate_all()
         self._get_heroku_app_info()
@@ -50,23 +50,27 @@ class HerokuDeployer:
             return
 
         # Confirm the user knows exactly what will be automated.
-        self.stdout.write(dh_msgs.confirm_automate_all)
+        self.sd.write_output(dh_msgs.confirm_automate_all)
 
         # Get confirmation.
         confirmed = ''
         while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
             prompt = "\nAre you sure you want to do this? (yes|no) "
-            confirmed = input(prompt)
+            self.sd.write_output(prompt)
+            confirmed = input()
+            self.sd.write_output(confirmed, write_to_console=False)
+
             if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-                self.stdout.write("  Please answer yes or no.")
+                self.sd.write_output("  Please answer yes or no.")
 
         if confirmed.lower() in ('y', 'yes'):
-            self.stdout.write("  Running `heroku create`...")
-            subprocess.run(['heroku', 'create'])
+            self.sd.write_output("  Running `heroku create`...")
+            output = subprocess.run(['heroku', 'create'], capture_output=True)
+            self.sd.write_output(output)
         else:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
-            self.stdout.write(d_msgs.cancel_automate_all)
+            self.sd.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
 
@@ -74,8 +78,9 @@ class HerokuDeployer:
         """Get info about the Heroku app we're pushing to."""
         # We assume the user has already run 'heroku create', or --automate-all
         #   has run it. If it hasn't been run, we'll quit and tell them to do so.
-        self.stdout.write("  Inspecting Heroku app...")
+        self.sd.write_output("  Inspecting Heroku app...")
         apps_info = subprocess.run(["heroku", "apps:info"], capture_output=True)
+        self.sd.write_output(apps_info)
 
         # Turn stdout info into a list of strings that we can then parse.
         #   If no app exists, stdout is empty and the output went to stderr.
@@ -85,9 +90,10 @@ class HerokuDeployer:
         self.heroku_app_name = apps_info[0].replace('=== ', '')
 
         if self.heroku_app_name:
-            self.stdout.write(f"    Found Heroku app: {self.heroku_app_name}")
+            self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
         else:
             # Let user know they need to run `heroku create`.
+            self.sd.write_output(dh_msgs.no_heroku_app_detected)
             raise CommandError(dh_msgs.no_heroku_app_detected)
 
 
@@ -95,10 +101,12 @@ class HerokuDeployer:
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
-        self.stdout.write("  Setting Heroku environment variable...")
-        subprocess.run(["heroku", "config:set", "ON_HEROKU=1"])
-        self.stdout.write("    Set ON_HEROKU=1.")
-        self.stdout.write("    This is used to define Heroku-specific settings.")
+        self.sd.write_output("  Setting Heroku environment variable...")
+        output = subprocess.run(["heroku", "config:set", "ON_HEROKU=1"],
+                capture_output=True)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set ON_HEROKU=1.")
+        self.sd.write_output("    This is used to define Heroku-specific settings.")
 
 
     def _inspect_project(self):
@@ -134,25 +142,25 @@ class HerokuDeployer:
         """Create Procfile, if none present."""
 
         #   Procfile should be in project root, if present.
-        self.stdout.write(f"\n  Looking in {self.sd.project_root} for Procfile...")
+        self.sd.write_output(f"\n  Looking in {self.sd.project_root} for Procfile...")
         procfile_present = 'Procfile' in os.listdir(self.sd.project_root)
 
         if procfile_present:
-            self.stdout.write("    Found existing Procfile.")
+            self.sd.write_output("    Found existing Procfile.")
         else:
-            self.stdout.write("    No Procfile found. Generating Procfile...")
+            self.sd.write_output("    No Procfile found. Generating Procfile...")
             proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
 
             with open(f"{self.sd.project_root}/Procfile", 'w') as f:
                 f.write(proc_command)
 
-            self.stdout.write("    Generated Procfile with following process:")
-            self.stdout.write(f"      {proc_command}")
+            self.sd.write_output("    Generated Procfile with following process:")
+            self.sd.write_output(f"      {proc_command}")
 
 
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
-        self.stdout.write("\n  Looking for gunicorn...")
+        self.sd.write_output("\n  Looking for gunicorn...")
 
         if self.sd.using_req_txt:
             self.sd._add_req_txt_pkg('gunicorn')
@@ -164,14 +172,14 @@ class HerokuDeployer:
         """Make sure project can be served from heroku."""
         # This method is specific to Heroku, but the error message is not.
 
-        self.stdout.write("\n  Making sure project can be served from Heroku...")
+        self.sd.write_output("\n  Making sure project can be served from Heroku...")
         heroku_host = f"{self.heroku_app_name}.herokuapp.com"
 
         if heroku_host in settings.ALLOWED_HOSTS:
-            self.stdout.write(f"    Found {heroku_host} in ALLOWED_HOSTS.")
+            self.sd.write_output(f"    Found {heroku_host} in ALLOWED_HOSTS.")
         elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
             # This is a generic entry that allows serving from any heroku URL.
-            self.stdout.write("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
+            self.sd.write_output("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
         elif not settings.ALLOWED_HOSTS:
             new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
             msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
@@ -187,14 +195,14 @@ class HerokuDeployer:
     def _configure_db(self):
         """Add required db-related packages, and modify settings for Heroku db.
         """
-        self.stdout.write("\n  Configuring project for Heroku database...")
+        self.sd.write_output("\n  Configuring project for Heroku database...")
         self._add_db_packages()
         self._add_db_settings()
 
 
     def _add_db_packages(self):
         """Add packages required for the Heroku db."""
-        self.stdout.write("    Adding db-related packages...")
+        self.sd.write_output("    Adding db-related packages...")
 
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
@@ -208,7 +216,7 @@ class HerokuDeployer:
 
     def _add_db_settings(self):
         """Add settings for Heroku db."""
-        self.stdout.write("   Checking Heroku db settings...")
+        self.sd.write_output("   Checking Heroku db settings...")
 
         # Import dj-database-url.
         new_setting = "import dj_database_url"
@@ -226,10 +234,10 @@ class HerokuDeployer:
     def _configure_static_files(self):
         """Configure static files for Heroku deployment."""
 
-        self.stdout.write("\n  Configuring static files for Heroku deployment...")
+        self.sd.write_output("\n  Configuring static files for Heroku deployment...")
 
         # Add whitenoise to requirements.
-        self.stdout.write("    Adding staticfiles-related packages...")
+        self.sd.write_output("    Adding staticfiles-related packages...")
         if self.sd.using_req_txt:
             self.sd._add_req_txt_pkg('whitenoise')
         elif self.sd.using_pipenv:
@@ -242,7 +250,7 @@ class HerokuDeployer:
 
     def _add_static_file_settings(self):
         """Add all settings needed to manage static files."""
-        self.stdout.write("    Configuring static files settings...")
+        self.sd.write_output("    Configuring static files settings...")
 
         new_setting = "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')"
         msg_added = "    Added STATIC_ROOT setting for Heroku."
@@ -263,23 +271,23 @@ class HerokuDeployer:
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist.
         """
-        self.stdout.write("    Checking for static files directory...")
+        self.sd.write_output("    Checking for static files directory...")
 
         # Make sure there's a static files directory.
         static_files_dir = f"{self.sd.project_root}/static"
         if os.path.exists(static_files_dir):
             if os.listdir(static_files_dir):
-                self.stdout.write("    Found non-empty static files directory.")
+                self.sd.write_output("    Found non-empty static files directory.")
                 return
         else:
             os.makedirs(static_files_dir)
-            self.stdout.write("    Created empty static files directory.")
+            self.sd.write_output("    Created empty static files directory.")
 
         # Add a placeholder file to the empty static files directory.
         placeholder_file = f"{static_files_dir}/placeholder.txt"
         with open(placeholder_file, 'w') as f:
             f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
-        self.stdout.write("    Added placeholder file to static files directory.")
+        self.sd.write_output("    Added placeholder file to static files directory.")
 
 
     def _configure_debug(self):
@@ -294,9 +302,10 @@ class HerokuDeployer:
         # returns the bool value True for 'TRUE', and False for 'FALSE'.
         # Taken from: https://stackoverflow.com/a/56828137/748891
 
-        self.stdout.write("  Setting DEBUG env var...")
-        subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"])
-        self.stdout.write("    Set DEBUG config variable to FALSE.")
+        self.sd.write_output("  Setting DEBUG env var...")
+        output = subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"], capture_output=True)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
         # Modify settings to use the DEBUG config variable.
         new_setting = "DEBUG = os.getenv('DEBUG') == 'TRUE'"
@@ -311,9 +320,11 @@ class HerokuDeployer:
         new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
-        self.stdout.write("  Setting new secret key for Heroku...")
-        subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"])
-        self.stdout.write("    Set SECRET_KEY config variable.")
+        self.sd.write_output("  Setting new secret key for Heroku...")
+        output = subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"],
+                capture_output=True)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set SECRET_KEY config variable.")
 
         # Modify settings to use the env var's value as the secret key.
         new_setting = "SECRET_KEY = os.getenv('SECRET_KEY')"
@@ -327,34 +338,49 @@ class HerokuDeployer:
         if not self.sd.automate_all:
             return
 
-        self.stdout.write("\n\nCommitting and pushing project...")
+        self.sd.write_output("\n\nCommitting and pushing project...")
 
-        self.stdout.write("  Adding changes...")
-        subprocess.run(['git', 'add', '.'])
-        self.stdout.write("  Committing changes...")
-        subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'])
+        self.sd.write_output("  Adding changes...")
+        output = subprocess.run(['git', 'add', '.'], capture_output=True)
+        self.sd.write_output(output)
+        self.sd.write_output("  Committing changes...")
+        output = subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'],
+                capture_output=True)
+        self.sd.write_output(output)
 
-        self.stdout.write("  Pushing to heroku...")
+        self.sd.write_output("  Pushing to heroku...")
 
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
-        git_status = subprocess.run(['git', 'status'], capture_output=True, text=True)
-        self.current_branch = git_status.stdout.split('\n')[0][10:]
+        git_status = subprocess.run(['git', 'status'], capture_output=True)
+        self.sd.write_output(git_status)
+        status_str = git_status.stdout.decode()
+        self.current_branch = status_str.split('\n')[0][10:]
 
         # Push current local branch to Heroku main branch.
-        self.stdout.write(f"    Pushing branch {self.current_branch}...")
+        # This process usually takes a minute or two, which is longer than we
+        #   want users to wait for console output. So rather than capturing
+        #   output with subprocess.run(), we use Popen and stream while logging.
+        # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
+        self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
-            subprocess.run(['git', 'push', 'heroku', self.current_branch])
+            cmd = f"git push heroku {self.current_branch}"
+            self.sd.execute_command(cmd)
         else:
-            subprocess.run(['git', 'push', 'heroku', f'{self.current_branch}:main'])
+            cmd = f"git push heroku {self.current_branch}:main"
+            self.sd.execute_command(cmd)
 
         # Run initial set of migrations.
-        self.stdout.write("  Migrating deployed app...")
-        subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'])
+        self.sd.write_output("  Migrating deployed app...")
+        output = subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'],
+                capture_output=True)
+        self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
-        self.stdout.write("  Opening deployed app in a new browser tab...")
-        subprocess.run(['heroku', 'open'])
+        self.sd.write_output("  Opening deployed app in a new browser tab...")
+        output = subprocess.run(['heroku', 'open'],
+                capture_output=True)
+        self.sd.write_output(output)
 
 
     def _show_success_message(self):
@@ -377,7 +403,7 @@ class HerokuDeployer:
             # Show steps to finish the deployment process.
             msg = dh_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
 
-        self.stdout.write(msg)
+        self.sd.write_output(msg)
 
 
     # --- Utility methods ---
@@ -399,9 +425,9 @@ class HerokuDeployer:
             with open(self.sd.settings_path, 'a') as f:
                 self._prep_heroku_setting(f)
                 f.write(f"\n    {new_setting}")
-                self.stdout.write(msg_added)
+                self.sd.write_output(msg_added)
         else:
-            self.stdout.write(msg_already_set)
+            self.sd.write_output(msg_already_set)
 
 
     def _prep_heroku_setting(self, f_settings):

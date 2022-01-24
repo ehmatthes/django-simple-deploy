@@ -7,7 +7,9 @@
 # - Each helper gets a reference to this command object.
 
 
-import sys, os, re, subprocess
+import sys, os, re, subprocess, logging
+from datetime import datetime
+from pathlib import Path
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
@@ -50,6 +52,11 @@ class Command(BaseCommand):
             help="Which plan sku should be used when creating Azure resources?",
             default='F1')
 
+        # Allow users to skip logging.
+        parser.add_argument('--no-logging',
+            help="Do you want a record of simple_deploy's output?",
+            action='store_true')
+
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -62,22 +69,171 @@ class Command(BaseCommand):
         self.automate_all = options['automate_all']
         self.platform = options['platform']
         self.azure_plan_sku = options['azure_plan_sku']
+        # This is a True-to-disable option; turn it into a more intuitive flag.
+        self.log_output = not(options['no_logging'])
+
+        if self.log_output:
+            self._start_logging()
+            # Log the options used for this run.
+            self.write_output(f"CLI args: {options}", write_to_console=False)
 
         if self.automate_all:
-            self.stdout.write("Automating all steps...")
+            self.write_output("Automating all steps...")
         else:
-            self.stdout.write("Only configuring for deployment...")
+            self.write_output("Only configuring for deployment...")
 
         if self.platform == 'heroku':
-            self.stdout.write("  Targeting Heroku deployment...")
+            self.write_output("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
             hd.deploy()
         elif self.platform == 'azure':
-            self.stdout.write("  Targeting Azure deployment...")
+            self.write_output("  Targeting Azure deployment...")
             ad = AzureDeployer(self)
             ad.deploy()
         else:
-            raise CommandError("That platform is not currently supported.")
+            error_msg = f"The platform {self.platform} is not currently supported."
+            self.write_output(error_msg)
+            raise CommandError(error_msg)
+
+
+    def _start_logging(self):
+        """Set up for logging."""
+        # Create a log directory if needed. Then create the log file, and 
+        #   log the creation of the log directory if it happened.
+        # In many libraries, one log file is created and then that file is
+        #   appended to, and it's on the user to manage log sizes.
+        # In this project, the user is expected to use run simple_deploy
+        #   once, or maybe a couple times if they make a mistake and it exits.
+        #   For example, deploying to Azure without --automate-all, or configuring
+        #   for Heroku without first running `heroku create`.
+        # So, we should never have runaway log creation. It could be really
+        #   helpful to see how many logs are created, and it's also simpler
+        #   to review what happened if every log file represents a single run.
+        # To create a new log file each time simple_deploy is run, we append
+        #   a timestamp to the log filename.
+        created_log_dir = self._create_log_dir()
+
+        timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
+        log_filename = f"simple_deploy_{timestamp}.log"
+        verbose_log_path = self.log_dir_path / log_filename
+        verbose_logger = logging.basicConfig(level=logging.INFO,
+                filename=verbose_log_path,
+                format='%(asctime)s %(levelname)s: %(message)s')
+
+        self.write_output("Logging run of `manage.py simple_deploy`...",
+                write_to_console=False)
+
+        if created_log_dir:
+            self.write_output(f"Created {self.log_dir_path}.")
+
+        # Make sure log directory is in .gitignore.
+        self._ignore_sd_logs()
+
+
+    def _create_log_dir(self):
+        """Create a directory to hold log files, if not already present.
+        Returns True if created directory, False if directory was already
+          present. Can't log from here, because log file has not been
+          created yet.
+        """
+        self.log_dir_path = settings.BASE_DIR / Path('simple_deploy_logs')
+        if not self.log_dir_path.exists():
+            self.log_dir_path.mkdir()
+            return True
+        else:
+            return False
+
+    def _ignore_sd_logs(self):
+        """Add log dir to .gitignore.
+        Adds a .gitignore file if one is not found.
+        """
+        ignore_msg = "# Ignore logs from simple_deploy."
+        ignore_msg += "\nsimple_deploy_logs/\n"
+
+        gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
+        if not gitignore_path.exists():
+            # Make the .gitignore file, and add log directory.
+            gitignore_path.write_text(ignore_msg)
+            self.write_output("No .gitignore file found; created .gitignore.")
+            self.write_output("Added simple_deploy_logs/ to .gitignore.")
+        else:
+            # Append log directory to .gitignore if it's not already there.
+            # In r+ mode, a single read moves file pointer to end of file,
+            #   setting up for appending.
+            with open(gitignore_path, 'r+') as f:
+                gitignore_contents = f.read()
+                if 'simple_deploy_logs/' not in gitignore_contents:
+                    f.write(f"\n\n{ignore_msg}")
+                    self.write_output("Added simple_deploy_logs/ to .gitignore")
+
+
+    def write_output(self, output_obj, log_level='INFO', write_to_console=True):
+        """Write output to the appropriate places.
+        Output may be a string, or an instance of subprocess.CompletedProcess.
+        """
+
+        # Extract the subprocess output as a string.
+        if isinstance(output_obj, subprocess.CompletedProcess):
+            # Assume output is either stdout or stderr.
+            output_str = output_obj.stdout.decode()
+            if not output_str:
+                output_str = output_obj.stderr.decode()
+        elif isinstance(output_obj, str):
+            output_str = output_obj
+
+        # Almost always write to console. Input from prompts is not streamed
+        #   because user just typed it into the console.
+        if write_to_console:
+            self.stdout.write(output_str)
+
+        # Log when appropriate. Log as a series of single lines, for better
+        #   log file parsing.
+        if self.log_output:
+            for line in output_str.splitlines():
+                # Strip secret key from any line that holds it.
+                line = self._strip_secret_key(line)
+                logging.info(line)
+
+
+    def _strip_secret_key(self, line):
+        """Strip secret key value from log file lines."""
+        if 'SECRET_KEY:' in line:
+            new_line = line.split('SECRET_KEY:')[0]
+            new_line += 'SECRET_KEY: *value hidden*'
+            return new_line
+        else:
+            return line
+
+
+    def execute_command(self, cmd):
+        """Execute command, and stream output while logging.
+        This method is intended for commands that run long enough that we 
+        can't use a simple subprocess.run(capture_output=True), which doesn't
+        stream any output until the command is finished. That works for logging,
+        but makes it seem as if the deployment is hanging. This is an issue
+        especially on platforms like Azure that have some steps that take minutes
+        to run.
+        """
+
+        # DEV: This only captures stderr right now.
+        #   This is used for commands that run long enough that we don't
+        #   want to use a simple subprocess.run(capture_output=True). Right
+        #   now that's only the `git push heroku` call. That call writes to
+        #   stderr; I'm not sure how to stream both stdout and stderr.
+        #
+        #     This will also be needed for long-running steps on other platforms,
+        #   which may or may not write to stderr. Adding a parameter
+        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
+        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
+        #   topic date back to Python2/3 days.
+        cmd_parts = cmd.split()
+        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
+            bufsize=1, universal_newlines=True) as p:
+            for line in p.stderr:
+                self.write_output(line)
+
+        if p.returncode != 0:
+            raise CalledProcessError(p.returncode, p.args)
 
 
     def _inspect_project(self):
@@ -121,7 +277,8 @@ class Command(BaseCommand):
             #   not affect the user's local environment.
             export_cmd_parts = ['poetry', 'export', '-f', 'requirements.txt',
                     '--output', 'requirements.txt', '--without-hashes']
-            subprocess.run(export_cmd_parts)
+            output = subprocess.run(export_cmd_parts, capture_output=True)
+            self.write_output(output)
             self.using_req_txt = True
 
 
@@ -152,7 +309,7 @@ class Command(BaseCommand):
         # This step isn't needed for Pipenv users, because when they install
         #   django-simple-deploy it's automatically added to Pipfile.
         if self.using_req_txt:
-            self.stdout.write("\n  Looking for django-simple-deploy in requirements.txt...")
+            self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
             self._add_req_txt_pkg('django-simple-deploy')
 
 
@@ -194,7 +351,7 @@ class Command(BaseCommand):
         pkg_present = any(root_package_name in r for r in self.requirements)
 
         if pkg_present:
-            self.stdout.write(f"    Found {root_package_name} in requirements file.")
+            self.write_output(f"    Found {root_package_name} in requirements file.")
         else:
             with open(self.req_txt_path, 'a') as f:
                 # Align comments, so we don't make req_txt file ugly.
@@ -202,7 +359,7 @@ class Command(BaseCommand):
                 tab_string = ' ' * (30 - len(package_name))
                 f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
 
-            self.stdout.write(f"    Added {package_name} to requirements.txt.")
+            self.write_output(f"    Added {package_name} to requirements.txt.")
 
 
     def _add_pipenv_pkg(self, package_name, version=""):
@@ -210,7 +367,7 @@ class Command(BaseCommand):
         pkg_present = any(package_name in r for r in self.requirements)
 
         if pkg_present:
-            self.stdout.write(f"    Found {package_name} in Pipfile.")
+            self.write_output(f"    Found {package_name} in Pipfile.")
         else:
             self._write_pipfile_pkg(package_name, version)
 
@@ -237,4 +394,4 @@ class Command(BaseCommand):
         with open(self.pipfile_path, 'w') as f:
             f.write(pipfile_text)
 
-        self.stdout.write(f"    Added {package_name} to Pipfile.")
+        self.write_output(f"    Added {package_name} to Pipfile.")
