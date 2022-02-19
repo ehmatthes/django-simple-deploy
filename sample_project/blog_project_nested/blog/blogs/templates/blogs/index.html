@@ -1,0 +1,15 @@
+{% extends "blogs/base.html" %}
+
+{% block content %}
+  
+  <div class="p-3 mb-4 bg-light rounded-3">
+    <div class="container-fluid py-2">
+      <h1 class="display-4 pb-2">BlogMaker Lite</h1>
+      <p class="col-md-10 fs-4">BlogMaker Lite makes your world better by letting you share your thoughts with  the world. Make a blog today, and let us in on your thoughts and reflections!</p>
+      {% if not user.is_authenticated %}
+        <a class="btn btn-primary btn-lg mt-1" role="button" href="{% url 'users:register' %}">Register &raquo;</a>
+      {% endif %}
+    </div>
+  </div>
+  
+{% endblock content %}

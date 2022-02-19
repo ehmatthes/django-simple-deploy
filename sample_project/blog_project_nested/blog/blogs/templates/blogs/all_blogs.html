@@ -1,0 +1,39 @@
+{% extends "blogs/base.html" %}
+
+{% block content %}
+
+  <h2>Public Blogs</h2>
+  <ul class="list-group">
+    {% for blog in public_blogs %}
+      <li class="list-group-item d-flex justify-content-between align-items-start">
+        <div class="ms-2 me-auto">
+          <div class=""><a class="text-decoration-none" href="{% url 'blogs:blog' blog.id %}">{{ blog.title }}</a></div>
+          <span class="p-2">{{ blog.owner }}</span>
+        </div>
+      </li>
+    {% empty %}
+      There are no public blogs yet.
+    {% endfor %}
+  </ul>
+
+  {% if user.is_authenticated %}
+    <h2 class="pt-4 border-top border-2 mt-5">My blogs</h2>
+    <ul class="list-group">
+      {% for blog in user_blogs %}
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+          <div class="ms-2 me-auto">
+            <div class=""><a class="text-decoration-none" href="{% url 'blogs:blog' blog.id %}">{{ blog.title }}</a></div>
+          </div>
+        </li>
+      {% empty %}
+        You don't have any blogs yet.
+      {% endfor %}
+    </ul>
+
+    <div class="clearfix">
+      <a class="btn btn-primary btn-md mt-4 float-end" role="button" href="{% url 'blogs:new_blog' %}">Create a new blog</a>
+    </div>
+
+  {% endif %}
+
+{% endblock content %}
