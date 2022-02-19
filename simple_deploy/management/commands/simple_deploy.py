@@ -238,6 +238,17 @@ class Command(BaseCommand):
 
     def _inspect_project(self):
         """Inspect the project, and pull information needed by multiple steps.
+        - Find out if this is a nested project, with the structure set up by
+            `django-admin startproject project_name`
+          or a project started with manage.py at the root level
+            `django-admin startproject .`
+          This matters for knowing where manage.py is, and knowing where the
+            .git dir is likely to be.
+        - Determine project name.
+        - Find significant paths: settings, project root, .git/ location.
+        - Get the dependency management approach: requirements.txt, Pipenv, or
+            Poetry.
+        - Get the current requirements.
         """
 
          # Get project name. There are a number of ways to get the project
@@ -247,7 +258,22 @@ class Command(BaseCommand):
         # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
         self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
 
+        # Get project root, from settings.
         self.project_root = settings.BASE_DIR
+
+        # Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
+        if Path(self.project_root / '.git').exists():
+            self.git_path = Path(self.project_root / '.git')
+            self.write_output(f"  Found .git dir at {self.git_path}.")
+        elif (Path(self.project_root).parent / Path('.git')).exists():
+            self.git_path = Path(self.project_root).parent / Path('.git')
+            self.write_output(f"  Found .git dir at {self.git_path}.")
+        else:
+            error_msg = "Could not find a .git/ directory."
+            error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
+            self.write_output(error_msg)
+            raise CommandError(error_msg)
+
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
         self._get_dep_man_approach()
