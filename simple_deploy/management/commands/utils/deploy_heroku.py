@@ -93,7 +93,8 @@ class HerokuDeployer:
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
         else:
             # Let user know they need to run `heroku create`.
-            self.sd.write_output(dh_msgs.no_heroku_app_detected)
+            self.sd.write_output(dh_msgs.no_heroku_app_detected,
+                write_to_console=False)
             raise CommandError(dh_msgs.no_heroku_app_detected)
 
 
@@ -189,6 +190,7 @@ class HerokuDeployer:
             # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
             #   contain the current Heroku URL.
             msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
+            self.write_output(msg, write_to_console=False)
             raise CommandError(msg)
 
 

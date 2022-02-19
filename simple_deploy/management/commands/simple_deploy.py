@@ -100,7 +100,7 @@ class Command(BaseCommand):
             ad.deploy()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
-            self.write_output(error_msg)
+            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
 
@@ -290,7 +290,7 @@ class Command(BaseCommand):
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
-            self.write_output(error_msg)
+            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
         # sys.exit()
