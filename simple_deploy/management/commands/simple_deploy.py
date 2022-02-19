@@ -244,6 +244,9 @@ class Command(BaseCommand):
             `django-admin startproject .`
           This matters for knowing where manage.py is, and knowing where the
             .git dir is likely to be.
+          Assume the .git directory is in the topmost directory; the location
+            of .git/ relative to settings.py indicates whether or not this is
+            a nested project.
         - Determine project name.
         - Find significant paths: settings, project root, .git/ location.
         - Get the dependency management approach: requirements.txt, Pipenv, or
@@ -262,12 +265,16 @@ class Command(BaseCommand):
         self.project_root = settings.BASE_DIR
 
         # Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
+        #   If it's in BASE_DIR.parent, this is a project with a nested
+        #   directory structure.
         if Path(self.project_root / '.git').exists():
             self.git_path = Path(self.project_root / '.git')
             self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.nested_project = False
         elif (Path(self.project_root).parent / Path('.git')).exists():
             self.git_path = Path(self.project_root).parent / Path('.git')
             self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
