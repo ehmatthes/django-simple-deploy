@@ -81,9 +81,9 @@ class Command(BaseCommand):
             # Log the options used for this run.
             self.write_output(f"CLI args: {options}", write_to_console=False)
 
-        # Examine project structure here; if it's a structure we don't recognize,
-        #   we want to be able to exit before making any remote calls.
-        self._check_project_structure()
+        # Inspect project here. If there's anything we can't work with locally,
+        #   we want to recognize that now and exit before making any remote calls.
+        self._inspect_project()
 
         if self.automate_all:
             self.write_output("Automating all steps...")
@@ -244,17 +244,20 @@ class Command(BaseCommand):
             raise CalledProcessError(p.returncode, p.args)
 
 
-    def _check_project_structure(self):
-        """Find out if this is a nested project or not.
-        A nested project has the structure set up by:
-          `django-admin startproject project_name`
-        A non-nested project has manage.py at the root level, started by:
-          `django-admin startproject .`
-        This matters for knowing where manage.py is, and knowing where the
-          .git dir is likely to be.
-        Assume the .git directory is in the topmost directory; the location
-          of .git/ relative to settings.py indicates whether or not this is
-          a nested project.
+    def _inspect_project(self):
+        """Find out everything we need to know about the project, before
+        making any remote calls.
+
+        - Find out if this is a nested project or not.
+          A nested project has the structure set up by:
+            `django-admin startproject project_name`
+          A non-nested project has manage.py at the root level, started by:
+            `django-admin startproject .`
+          This matters for knowing where manage.py is, and knowing where the
+            .git dir is likely to be.
+          Assume the .git directory is in the topmost directory; the location
+            of .git/ relative to settings.py indicates whether or not this is
+            a nested project.
         - Determine project name.
         - Find significant paths: settings, project root, .git/ location.
         - Get the dependency management approach: requirements.txt, Pipenv, or
