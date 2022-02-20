@@ -293,6 +293,11 @@ class Command(BaseCommand):
             self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
+        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
+
+        self._get_dep_man_approach()
+        self._get_current_requirements()
+
         # sys.exit()
 
 
@@ -314,10 +319,10 @@ class Command(BaseCommand):
         - Get the current requirements.
         """
 
-        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
+        # self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
-        self._get_dep_man_approach()
-        self._get_current_requirements()
+        # self._get_dep_man_approach()
+        # self._get_current_requirements()
 
 
     def _get_dep_man_approach(self):
