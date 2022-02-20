@@ -141,9 +141,6 @@ class Command(BaseCommand):
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
 
-        # Make sure log directory is in .gitignore.
-        self._ignore_sd_logs()
-
 
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
@@ -165,7 +162,9 @@ class Command(BaseCommand):
         ignore_msg = "# Ignore logs from simple_deploy."
         ignore_msg += "\nsimple_deploy_logs/\n"
 
-        gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
+        # Assume .gitignore is in same directory as .git/ directory.
+        # gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
+        gitignore_path = self.git_path / '.gitignore'
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
             gitignore_path.write_text(ignore_msg)
@@ -178,8 +177,9 @@ class Command(BaseCommand):
             with open(gitignore_path, 'r+') as f:
                 gitignore_contents = f.read()
                 if 'simple_deploy_logs/' not in gitignore_contents:
-                    f.write(f"\n\n{ignore_msg}")
+                    f.write(f"\n{ignore_msg}")
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
+        sys.exit()
 
 
     def write_output(self, output_obj, log_level='INFO', write_to_console=True):
@@ -281,6 +281,11 @@ class Command(BaseCommand):
         # Find .git location.
         self._find_git_dir()
 
+        # Now that we know where git dir is, we can ignore log directory.
+        if self.log_output:
+            # Make sure log directory is in .gitignore.
+            self._ignore_sd_logs()
+
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
         self._get_dep_man_approach()
@@ -305,11 +310,11 @@ class Command(BaseCommand):
         # DEV: This docstring came from a couple different methods; clean it up.
         """
         if Path(self.project_root / '.git').exists():
-            self.git_path = Path(self.project_root / '.git')
+            self.git_path = Path(self.project_root)
             self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = False
         elif (Path(self.project_root).parent / Path('.git')).exists():
-            self.git_path = Path(self.project_root).parent / Path('.git')
+            self.git_path = Path(self.project_root).parent
             self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
