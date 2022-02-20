@@ -179,7 +179,6 @@ class Command(BaseCommand):
                 if 'simple_deploy_logs/' not in gitignore_contents:
                     f.write(f"\n{ignore_msg}")
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
-        sys.exit()
 
 
     def write_output(self, output_obj, log_level='INFO', write_to_console=True):
@@ -248,7 +247,7 @@ class Command(BaseCommand):
                 self.write_output(line)
 
         if p.returncode != 0:
-            raise CalledProcessError(p.returncode, p.args)
+            raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
     def _inspect_project(self):
