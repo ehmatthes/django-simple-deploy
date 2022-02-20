@@ -90,6 +90,13 @@ class Command(BaseCommand):
         else:
             self.write_output("Only configuring for deployment...")
 
+        self._check_platform()        
+
+
+    def _check_platform(self):
+        """Find out which platform we're targeting, and call the appropriate
+        platform-specific script.
+        """
         if self.platform == 'heroku':
             self.write_output("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
@@ -248,17 +255,9 @@ class Command(BaseCommand):
         """Find out everything we need to know about the project, before
         making any remote calls.
 
-        - Find out if this is a nested project or not.
-          A nested project has the structure set up by:
-            `django-admin startproject project_name`
-          A non-nested project has manage.py at the root level, started by:
-            `django-admin startproject .`
-          This matters for knowing where manage.py is, and knowing where the
-            .git dir is likely to be.
-          Assume the .git directory is in the topmost directory; the location
-            of .git/ relative to settings.py indicates whether or not this is
-            a nested project.
         - Determine project name.
+        - Find .git/ directory.
+        - Find out if this is a nested project or not.
         - Find significant paths: settings, project root, .git/ location.
         - Get the dependency management approach: requirements.txt, Pipenv, or
             Poetry.
@@ -279,9 +278,32 @@ class Command(BaseCommand):
         # Get project root, from settings.
         self.project_root = settings.BASE_DIR
 
-        # Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
-        #   If it's in BASE_DIR.parent, this is a project with a nested
-        #   directory structure.
+        # Find .git location.
+        self._find_git_dir()
+
+        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
+
+        self._get_dep_man_approach()
+        self._get_current_requirements()
+
+
+    def _find_git_dir(self):
+        """Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
+        If it's in BASE_DIR.parent, this is a project with a nested
+          directory structure.
+
+        This method also sets self.nested_project. A nested project has the
+          structure set up by:
+           `django-admin startproject project_name`
+        A non-nested project has manage.py at the root level, started by:
+           `django-admin startproject .`
+        This matters for knowing where manage.py is, and knowing where the
+         .git dir is likely to be.
+        Assume the .git directory is in the topmost directory; the location
+         of .git/ relative to settings.py indicates whether or not this is
+         a nested project.
+        # DEV: This docstring came from a couple different methods; clean it up.
+        """
         if Path(self.project_root / '.git').exists():
             self.git_path = Path(self.project_root / '.git')
             self.write_output(f"  Found .git dir at {self.git_path}.")
@@ -295,11 +317,6 @@ class Command(BaseCommand):
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
             self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
-
-        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
-
-        self._get_dep_man_approach()
-        self._get_current_requirements()
 
 
     def _get_dep_man_approach(self):
