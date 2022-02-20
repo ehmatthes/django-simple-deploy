@@ -27,7 +27,6 @@ class HerokuDeployer:
         self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
-        # self._inspect_project()
         self._get_heroku_settings()
         self.sd._add_simple_deploy_req()
         self._generate_procfile()
@@ -109,16 +108,6 @@ class HerokuDeployer:
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
-
-
-    def _inspect_project(self):
-        """Inspect the project, and pull information needed by multiple steps.
-        """
-
-        # Get platform-agnostic information about the project.
-        self.sd._inspect_project()
-
-        self._get_heroku_settings()
 
 
     def _get_heroku_settings(self):

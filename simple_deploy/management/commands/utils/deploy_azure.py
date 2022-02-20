@@ -34,7 +34,7 @@ class AzureDeployer:
         self._confirm_preliminary()
 
         self._prep_automate_all()
-        self._inspect_project()
+        self._get_azure_settings()
         self.sd._add_simple_deploy_req()
 
         # While only supporting automate-all, this will be called after we
@@ -102,15 +102,6 @@ class AzureDeployer:
             #   wanting to automate means they want to configure.
             self.stdout.write(d_msgs.cancel_automate_all)
             sys.exit()
-
-
-    def _inspect_project(self):
-        """Inspect the project, and pull information needed by multiple steps.
-        """
-        # Get platform-agnostic information about the project.
-        self.sd._inspect_project()
-
-        self._get_azure_settings()
 
 
     def _get_azure_settings(self):

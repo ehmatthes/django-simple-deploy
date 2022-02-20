@@ -298,32 +298,6 @@ class Command(BaseCommand):
         self._get_dep_man_approach()
         self._get_current_requirements()
 
-        # sys.exit()
-
-
-    def _inspect_project(self):
-        """Inspect the project, and pull information needed by multiple steps.
-        - Find out if this is a nested project, with the structure set up by
-            `django-admin startproject project_name`
-          or a project started with manage.py at the root level
-            `django-admin startproject .`
-          This matters for knowing where manage.py is, and knowing where the
-            .git dir is likely to be.
-          Assume the .git directory is in the topmost directory; the location
-            of .git/ relative to settings.py indicates whether or not this is
-            a nested project.
-        - Determine project name.
-        - Find significant paths: settings, project root, .git/ location.
-        - Get the dependency management approach: requirements.txt, Pipenv, or
-            Poetry.
-        - Get the current requirements.
-        """
-
-        # self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
-
-        # self._get_dep_man_approach()
-        # self._get_current_requirements()
-
 
     def _get_dep_man_approach(self):
         """Identify which dependency management approach the project uses.
