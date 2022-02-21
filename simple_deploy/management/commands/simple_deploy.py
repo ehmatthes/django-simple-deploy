@@ -278,7 +278,7 @@ class Command(BaseCommand):
         #   topic date back to Python2/3 days.
         cmd_parts = cmd.split()
         with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
-            bufsize=1, universal_newlines=True) as p:
+            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
             for line in p.stderr:
                 self.write_output(line)
 
@@ -293,8 +293,10 @@ class Command(BaseCommand):
         """
         if os.name == 'nt':
             self.on_windows = True
+            self.use_shell = True
         else:
             self.on_windows = False
+            self.use_shell = False
 
 
     def _inspect_project(self):
