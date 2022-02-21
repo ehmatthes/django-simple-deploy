@@ -81,6 +81,9 @@ class Command(BaseCommand):
             # Log the options used for this run.
             self.write_output(f"CLI args: {options}", write_to_console=False)
 
+        # Inspect system; we'll run some system commands differently on Windows.
+        self._inspect_system()
+
         # Inspect project here. If there's anything we can't work with locally,
         #   we want to recognize that now and exit before making any remote calls.
         self._inspect_project()
@@ -154,6 +157,7 @@ class Command(BaseCommand):
             return True
         else:
             return False
+
 
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
@@ -248,6 +252,15 @@ class Command(BaseCommand):
 
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
+
+
+    def _inspect_system(self):
+        """Find out if we're on Windows, and make Windows-specific settings.
+        """
+        if os.name == 'nt':
+            self.use_shell = True
+        else:
+            self.use_shell = False
 
 
     def _inspect_project(self):
