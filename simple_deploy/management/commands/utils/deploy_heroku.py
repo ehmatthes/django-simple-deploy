@@ -65,7 +65,7 @@ class HerokuDeployer:
 
         if confirmed.lower() in ('y', 'yes'):
             self.sd.write_output("  Running `heroku create`...")
-            output = subprocess.run(['heroku', 'create'], capture_output=True)
+            output = self.sd.execute_subp_run(cmd)
             self.sd.write_output(output)
         else:
             # Quit and have the user run the command again; don't assume not
