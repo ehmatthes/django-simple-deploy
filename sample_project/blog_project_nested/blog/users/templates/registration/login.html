@@ -1,0 +1,21 @@
+{% extends "blogs/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+
+  <h2>Log in to your account</h2>
+
+  {% if form.errors %}
+    <p class="fs-4">Your username and password didn't match. Please try again.</p>
+  {% endif %}
+
+  <form method="post" action="{% url 'users:login' %}">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+
+    {% bootstrap_button button_type="submit" content="Log in" %}
+    <input type="hidden" name="next"
+      value="{% url 'blogs:index' %}" />
+  </form>
+
+{% endblock content %}

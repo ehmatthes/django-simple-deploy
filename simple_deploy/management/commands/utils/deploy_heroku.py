@@ -27,7 +27,7 @@ class HerokuDeployer:
         self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
-        self._inspect_project()
+        self._get_heroku_settings()
         self.sd._add_simple_deploy_req()
         self._generate_procfile()
         self._add_gunicorn()
@@ -93,7 +93,8 @@ class HerokuDeployer:
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
         else:
             # Let user know they need to run `heroku create`.
-            self.sd.write_output(dh_msgs.no_heroku_app_detected)
+            self.sd.write_output(dh_msgs.no_heroku_app_detected,
+                write_to_console=False)
             raise CommandError(dh_msgs.no_heroku_app_detected)
 
 
@@ -107,16 +108,6 @@ class HerokuDeployer:
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
-
-
-    def _inspect_project(self):
-        """Inspect the project, and pull information needed by multiple steps.
-        """
-
-        # Get platform-agnostic information about the project.
-        self.sd._inspect_project()
-
-        self._get_heroku_settings()
 
 
     def _get_heroku_settings(self):
@@ -142,16 +133,19 @@ class HerokuDeployer:
         """Create Procfile, if none present."""
 
         #   Procfile should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.project_root} for Procfile...")
-        procfile_present = 'Procfile' in os.listdir(self.sd.project_root)
+        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Procfile...")
+        procfile_present = 'Procfile' in os.listdir(self.sd.git_path)
 
         if procfile_present:
             self.sd.write_output("    Found existing Procfile.")
         else:
             self.sd.write_output("    No Procfile found. Generating Procfile...")
-            proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
+            if self.sd.nested_project:
+                proc_command = f"web: gunicorn {self.sd.project_name}.{self.sd.project_name}.wsgi --log-file -"
+            else:
+                proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
 
-            with open(f"{self.sd.project_root}/Procfile", 'w') as f:
+            with open(f"{self.sd.git_path}/Procfile", 'w') as f:
                 f.write(proc_command)
 
             self.sd.write_output("    Generated Procfile with following process:")
@@ -189,6 +183,7 @@ class HerokuDeployer:
             # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
             #   contain the current Heroku URL.
             msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
+            self.write_output(msg, write_to_console=False)
             raise CommandError(msg)
 
 
@@ -372,8 +367,14 @@ class HerokuDeployer:
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
-        output = subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'],
-                capture_output=True)
+        if self.sd.nested_project:
+            output = subprocess.run(
+                    ['heroku', 'run', 'python', f'{self.sd.project_name}/manage.py', 'migrate'],
+                    capture_output=True)
+        else:
+            output = subprocess.run(
+                    ['heroku', 'run', 'python', 'manage.py', 'migrate'],
+                    capture_output=True)
         self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.

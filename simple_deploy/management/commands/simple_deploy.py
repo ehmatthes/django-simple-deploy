@@ -61,6 +61,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
         self.stdout.write("Configuring project for deployment...")
+
+        # Most of the initial work is done in _parse_cli_options(), because
+        #   those options affect a lot of what we'll do. For example, we need
+        #   to know if we're logging before doing any real work.
         self._parse_cli_options(options)
 
 
@@ -77,11 +81,22 @@ class Command(BaseCommand):
             # Log the options used for this run.
             self.write_output(f"CLI args: {options}", write_to_console=False)
 
+        # Inspect project here. If there's anything we can't work with locally,
+        #   we want to recognize that now and exit before making any remote calls.
+        self._inspect_project()
+
         if self.automate_all:
             self.write_output("Automating all steps...")
         else:
             self.write_output("Only configuring for deployment...")
 
+        self._check_platform()        
+
+
+    def _check_platform(self):
+        """Find out which platform we're targeting, and call the appropriate
+        platform-specific script.
+        """
         if self.platform == 'heroku':
             self.write_output("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
@@ -92,7 +107,7 @@ class Command(BaseCommand):
             ad.deploy()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
-            self.write_output(error_msg)
+            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
 
@@ -126,9 +141,6 @@ class Command(BaseCommand):
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
 
-        # Make sure log directory is in .gitignore.
-        self._ignore_sd_logs()
-
 
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
@@ -150,7 +162,9 @@ class Command(BaseCommand):
         ignore_msg = "# Ignore logs from simple_deploy."
         ignore_msg += "\nsimple_deploy_logs/\n"
 
-        gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
+        # Assume .gitignore is in same directory as .git/ directory.
+        # gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
+        gitignore_path = self.git_path / '.gitignore'
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
             gitignore_path.write_text(ignore_msg)
@@ -163,7 +177,7 @@ class Command(BaseCommand):
             with open(gitignore_path, 'r+') as f:
                 gitignore_contents = f.read()
                 if 'simple_deploy_logs/' not in gitignore_contents:
-                    f.write(f"\n\n{ignore_msg}")
+                    f.write(f"\n{ignore_msg}")
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
 
 
@@ -233,25 +247,80 @@ class Command(BaseCommand):
                 self.write_output(line)
 
         if p.returncode != 0:
-            raise CalledProcessError(p.returncode, p.args)
+            raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
     def _inspect_project(self):
-        """Inspect the project, and pull information needed by multiple steps.
+        """Find out everything we need to know about the project, before
+        making any remote calls.
+
+        - Determine project name.
+        - Find .git/ directory.
+        - Find out if this is a nested project or not.
+        - Find significant paths: settings, project root, .git/ location.
+        - Get the dependency management approach: requirements.txt, Pipenv, or
+            Poetry.
+        - Get the current requirements.          
+
+        This method does the minimum introspection needed before making any
+          remote calls. Anything that would cause us to exit before making the
+          first remote call should be done here.
         """
 
-         # Get project name. There are a number of ways to get the project
+        # Get project name. There are a number of ways to get the project
         #   name; for now we'll assume the root url config file has not
         #   been moved from the default location.
         # DEV: Use this code when we can require Python >=3.9.
         # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
         self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
 
+        # Get project root, from settings.
         self.project_root = settings.BASE_DIR
+
+        # Find .git location.
+        self._find_git_dir()
+
+        # Now that we know where git dir is, we can ignore log directory.
+        if self.log_output:
+            # Make sure log directory is in .gitignore.
+            self._ignore_sd_logs()
+
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
         self._get_dep_man_approach()
         self._get_current_requirements()
+
+
+    def _find_git_dir(self):
+        """Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
+        If it's in BASE_DIR.parent, this is a project with a nested
+          directory structure.
+
+        This method also sets self.nested_project. A nested project has the
+          structure set up by:
+           `django-admin startproject project_name`
+        A non-nested project has manage.py at the root level, started by:
+           `django-admin startproject .`
+        This matters for knowing where manage.py is, and knowing where the
+         .git dir is likely to be.
+        Assume the .git directory is in the topmost directory; the location
+         of .git/ relative to settings.py indicates whether or not this is
+         a nested project.
+        # DEV: This docstring came from a couple different methods; clean it up.
+        """
+        if Path(self.project_root / '.git').exists():
+            self.git_path = Path(self.project_root)
+            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.nested_project = False
+        elif (Path(self.project_root).parent / Path('.git')).exists():
+            self.git_path = Path(self.project_root).parent
+            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.nested_project = True
+        else:
+            error_msg = "Could not find a .git/ directory."
+            error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
+            self.write_output(error_msg, write_to_console=False)
+            raise CommandError(error_msg)
 
 
     def _get_dep_man_approach(self):
@@ -261,16 +330,16 @@ class Command(BaseCommand):
 
         # In a simple project, I don't think we should find both Pipfile
         #   and requirements.txt. However, if there's both, prioritize Pipfile.
-        self.using_req_txt = 'requirements.txt' in os.listdir(self.project_root)
+        self.using_req_txt = 'requirements.txt' in os.listdir(self.git_path)
 
         # DEV: If both req_txt and Pipfile are found, could just use req.txt.
         #      That's Heroku's prioritization, I believe. Address this if
         #      anyone has such a project, and ask why they have both initially.
-        self.using_pipenv = 'Pipfile' in os.listdir(self.project_root)
+        self.using_pipenv = 'Pipfile' in os.listdir(self.git_path)
         if self.using_pipenv:
             self.using_req_txt = False
 
-        self.using_poetry = 'pyproject.toml' in os.listdir(self.project_root)
+        self.using_poetry = 'pyproject.toml' in os.listdir(self.git_path)
         if self.using_poetry:
             # Heroku does not recognize pyproject.toml, so we'll export to
             #   a requirements.txt file, and then work from that. This should
@@ -281,22 +350,28 @@ class Command(BaseCommand):
             self.write_output(output)
             self.using_req_txt = True
 
+        # Exit if we haven't found any requirements.
+        if not any((self.using_req_txt, self.using_pipenv)):
+            error_msg = f"Couldn't find any specified requirements in {self.git_path}."
+            self.write_output(error_msg, write_to_console=False)
+            raise CommandError(error_msg)
+
 
     def _get_current_requirements(self):
         """Get current project requirements, before adding any new ones.
         """
         if self.using_req_txt:
             # Build path to requirements.txt.
-            self.req_txt_path = f"{self.project_root}/requirements.txt"
+            self.req_txt_path = f"{self.git_path}/requirements.txt"
 
             # Get list of requirements, with versions.
-            with open(f"{self.project_root}/requirements.txt") as f:
+            with open(f"{self.git_path}/requirements.txt") as f:
                 requirements = f.readlines()
                 self.requirements = [r.rstrip() for r in requirements]
 
         if self.using_pipenv:
             # Build path to Pipfile.
-            self.pipfile_path = f"{self.project_root}/Pipfile"
+            self.pipfile_path = f"{self.git_path}/Pipfile"
 
             # Get list of requirements.
             self.requirements = self._get_pipfile_requirements()

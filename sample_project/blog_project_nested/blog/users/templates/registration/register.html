@@ -1,0 +1,16 @@
+{% extends "blogs/base.html" %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+
+  <h2>Register an account</h2>
+
+  <form method="post" action="{% url 'users:register' %}">
+    {% csrf_token %}
+    {% bootstrap_form form %}
+
+    {% bootstrap_button button_type="submit" content="Register" %}    
+    <input type="hidden" name="next" value="{% url 'blogs:index' %}" />
+  </form>
+
+{% endblock content %}
