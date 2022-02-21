@@ -80,7 +80,6 @@ class HerokuDeployer:
         # We assume the user has already run 'heroku create', or --automate-all
         #   has run it. If it hasn't been run, we'll quit and tell them to do so.
         self.sd.write_output("  Inspecting Heroku app...")
-        # apps_info = subprocess.run(["heroku", "apps:info"], capture_output=True)
         cmd = 'heroku apps:info'
         apps_info = self.sd.execute_subp_run(cmd)
         self.sd.write_output(apps_info)
@@ -106,8 +105,6 @@ class HerokuDeployer:
         This is mostly used to modify settings for the deployed project.
         """
         self.sd.write_output("  Setting Heroku environment variable...")
-        # output = subprocess.run(["heroku", "config:set", "ON_HEROKU=1"],
-                # capture_output=True)
         cmd = 'heroku config:set ON_HEROKU=1'
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
@@ -303,7 +300,6 @@ class HerokuDeployer:
         # Taken from: https://stackoverflow.com/a/56828137/748891
 
         self.sd.write_output("  Setting DEBUG env var...")
-        # output = subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"], capture_output=True)
         cmd = 'heroku config:set DEBUG=FALSE'
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
@@ -323,8 +319,6 @@ class HerokuDeployer:
 
         # Set the new key as an env var on Heroku.
         self.sd.write_output("  Setting new secret key for Heroku...")
-        # output = subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"],
-        #         capture_output=True)
         cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
@@ -345,7 +339,6 @@ class HerokuDeployer:
         self.sd.write_output("\n\nCommitting and pushing project...")
 
         self.sd.write_output("  Adding changes...")
-        # output = subprocess.run(['git', 'add', '.'], capture_output=True)
         cmd = 'git add .'
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
@@ -358,7 +351,6 @@ class HerokuDeployer:
 
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
-        # git_status = subprocess.run(['git', 'status'], capture_output=True)
         cmd = 'git status'
         git_status = self.sd.execute_subp_run(cmd)
         self.sd.write_output(git_status)
@@ -373,22 +365,15 @@ class HerokuDeployer:
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
             cmd = f"git push heroku {self.current_branch}"
-            self.sd.execute_command(cmd)
         else:
             cmd = f"git push heroku {self.current_branch}:main"
-            self.sd.execute_command(cmd)
+        self.sd.execute_command(cmd)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
         if self.sd.nested_project:
-            # output = subprocess.run(
-            #         ['heroku', 'run', 'python', f'{self.sd.project_name}/manage.py', 'migrate'],
-            #         capture_output=True)
             cmd = f"heroku run python {self.sd.project_name}/manage.py migrate"
         else:
-            # output = subprocess.run(
-            #         ['heroku', 'run', 'python', 'manage.py', 'migrate'],
-            #         capture_output=True)
             cmd = 'heroku run python manage.py migrate'
         output = self.sd.execute_subp_run(cmd)
 
@@ -396,8 +381,6 @@ class HerokuDeployer:
 
         # Open Heroku app, so it simply appears in user's browser.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
-        # output = subprocess.run(['heroku', 'open'],
-        #         capture_output=True)
         cmd = 'heroku open'
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
