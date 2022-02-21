@@ -330,16 +330,16 @@ class Command(BaseCommand):
 
         # In a simple project, I don't think we should find both Pipfile
         #   and requirements.txt. However, if there's both, prioritize Pipfile.
-        self.using_req_txt = 'requirements.txt' in os.listdir(self.project_root)
+        self.using_req_txt = 'requirements.txt' in os.listdir(self.git_path)
 
         # DEV: If both req_txt and Pipfile are found, could just use req.txt.
         #      That's Heroku's prioritization, I believe. Address this if
         #      anyone has such a project, and ask why they have both initially.
-        self.using_pipenv = 'Pipfile' in os.listdir(self.project_root)
+        self.using_pipenv = 'Pipfile' in os.listdir(self.git_path)
         if self.using_pipenv:
             self.using_req_txt = False
 
-        self.using_poetry = 'pyproject.toml' in os.listdir(self.project_root)
+        self.using_poetry = 'pyproject.toml' in os.listdir(self.git_path)
         if self.using_poetry:
             # Heroku does not recognize pyproject.toml, so we'll export to
             #   a requirements.txt file, and then work from that. This should
@@ -350,22 +350,28 @@ class Command(BaseCommand):
             self.write_output(output)
             self.using_req_txt = True
 
+        # Exit if we haven't found any requirements.
+        if not any((self.using_req_txt, self.using_pipenv)):
+            error_msg = f"Couldn't find any specified requirements in {self.git_path}."
+            self.write_output(error_msg, write_to_console=False)
+            raise CommandError(error_msg)
+
 
     def _get_current_requirements(self):
         """Get current project requirements, before adding any new ones.
         """
         if self.using_req_txt:
             # Build path to requirements.txt.
-            self.req_txt_path = f"{self.project_root}/requirements.txt"
+            self.req_txt_path = f"{self.git_path}/requirements.txt"
 
             # Get list of requirements, with versions.
-            with open(f"{self.project_root}/requirements.txt") as f:
+            with open(f"{self.git_path}/requirements.txt") as f:
                 requirements = f.readlines()
                 self.requirements = [r.rstrip() for r in requirements]
 
         if self.using_pipenv:
             # Build path to Pipfile.
-            self.pipfile_path = f"{self.project_root}/Pipfile"
+            self.pipfile_path = f"{self.git_path}/Pipfile"
 
             # Get list of requirements.
             self.requirements = self._get_pipfile_requirements()

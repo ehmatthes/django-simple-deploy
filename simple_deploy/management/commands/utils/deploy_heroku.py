@@ -133,16 +133,19 @@ class HerokuDeployer:
         """Create Procfile, if none present."""
 
         #   Procfile should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.project_root} for Procfile...")
-        procfile_present = 'Procfile' in os.listdir(self.sd.project_root)
+        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Procfile...")
+        procfile_present = 'Procfile' in os.listdir(self.sd.git_path)
 
         if procfile_present:
             self.sd.write_output("    Found existing Procfile.")
         else:
             self.sd.write_output("    No Procfile found. Generating Procfile...")
-            proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
+            if self.sd.nested_project:
+                proc_command = f"web: gunicorn {self.sd.project_name}.{self.sd.project_name}.wsgi --log-file -"
+            else:
+                proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
 
-            with open(f"{self.sd.project_root}/Procfile", 'w') as f:
+            with open(f"{self.sd.git_path}/Procfile", 'w') as f:
                 f.write(proc_command)
 
             self.sd.write_output("    Generated Procfile with following process:")
@@ -364,8 +367,14 @@ class HerokuDeployer:
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
-        output = subprocess.run(['heroku', 'run', 'python', 'manage.py', 'migrate'],
-                capture_output=True)
+        if self.sd.nested_project:
+            output = subprocess.run(
+                    ['heroku', 'run', 'python', f'{self.sd.project_name}/manage.py', 'migrate'],
+                    capture_output=True)
+        else:
+            output = subprocess.run(
+                    ['heroku', 'run', 'python', 'manage.py', 'migrate'],
+                    capture_output=True)
         self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
