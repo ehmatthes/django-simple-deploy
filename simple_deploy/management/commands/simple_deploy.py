@@ -223,6 +223,21 @@ class Command(BaseCommand):
             return line
 
 
+    def execute_subp_run(self, cmd):
+        """Execute subprocess.run() command.
+        We're running commands differently on Windows, so this method
+          takes a command and runs it appropriately on each system.
+        Returns: output of the command.
+        """
+        if self.on_windows:
+            output = subprocess.run(cmd, shell=True, capture_output=True)
+        else:
+            cmd_parts = cmd.split()
+            output = subprocess.run(cmd, capture_output=True)
+
+        return output
+
+
     def execute_command(self, cmd):
         """Execute command, and stream output while logging.
         This method is intended for commands that run long enough that we 
@@ -255,12 +270,14 @@ class Command(BaseCommand):
 
 
     def _inspect_system(self):
-        """Find out if we're on Windows, and make Windows-specific settings.
+        """Find out if we're on Windows, so other methods can run system
+        commands appropriately on each system. Note this is the user's system,
+        not the host platform we're targeting.
         """
         if os.name == 'nt':
-            self.use_shell = True
+            self.on_windows = True
         else:
-            self.use_shell = False
+            self.on_windows = False
 
 
     def _inspect_project(self):
