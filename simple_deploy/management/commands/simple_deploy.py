@@ -233,7 +233,7 @@ class Command(BaseCommand):
             output = subprocess.run(cmd, shell=True, capture_output=True)
         else:
             cmd_parts = cmd.split()
-            output = subprocess.run(cmd, capture_output=True)
+            output = subprocess.run(cmd_parts, capture_output=True)
 
         return output
 

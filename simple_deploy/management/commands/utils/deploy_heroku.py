@@ -65,6 +65,7 @@ class HerokuDeployer:
 
         if confirmed.lower() in ('y', 'yes'):
             self.sd.write_output("  Running `heroku create`...")
+            cmd = 'heroku create'
             output = self.sd.execute_subp_run(cmd)
             self.sd.write_output(output)
         else:
