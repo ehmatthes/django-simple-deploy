@@ -393,9 +393,8 @@ class Command(BaseCommand):
             # Heroku does not recognize pyproject.toml, so we'll export to
             #   a requirements.txt file, and then work from that. This should
             #   not affect the user's local environment.
-            export_cmd_parts = ['poetry', 'export', '-f', 'requirements.txt',
-                    '--output', 'requirements.txt', '--without-hashes']
-            output = subprocess.run(export_cmd_parts, capture_output=True)
+            cmd = 'poetry export -f requirements.txt --output requirements.txt --without-hashes'
+            output = self.execute_subp_run(cmd)
             self.write_output(output)
             self.using_req_txt = True
 
