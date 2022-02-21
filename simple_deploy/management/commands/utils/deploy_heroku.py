@@ -343,8 +343,12 @@ class HerokuDeployer:
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
         self.sd.write_output("  Committing changes...")
-        output = subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'],
-                capture_output=True)
+        # output = subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'],
+        #         capture_output=True)
+        # If we write this command as a string, the commit message will be split
+        #   incorrectly.
+        cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
+        output = self.sd.execute_subp_run_parts(cmd_parts)
         self.sd.write_output(output)
 
         self.sd.write_output("  Pushing to heroku...")

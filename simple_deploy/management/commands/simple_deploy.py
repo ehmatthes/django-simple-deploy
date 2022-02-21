@@ -223,6 +223,23 @@ class Command(BaseCommand):
             return line
 
 
+    def execute_subp_run_parts(self, cmd_parts):
+        """This is similar to execute_subp_run(), but it receives a list of
+        command parts rather than a string command. Having this separate method
+        is cleaner than having nested if statements in execute_subp_run().
+
+        DEV: May want to make execute_subp_run() examine cmd that's received,
+        and dispatch the work based on whether it receives a string or sequence.
+        """
+        if self.on_windows:
+            cmd_string = ' '.join(cmd_parts)
+            output = subprocess.run(cmd, shell=True, capture_output=True)
+        else:
+            output = subprocess.run(cmd_parts, capture_output=True)
+
+        return output
+
+
     def execute_subp_run(self, cmd):
         """Execute subprocess.run() command.
         We're running commands differently on Windows, so this method
