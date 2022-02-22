@@ -8,8 +8,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 ### 0.2.3
 
-- Unreleased.
 - Added documentation of [full set of CLI arguments](docs/cli_args.md).
+- Progress towards supporting projects with a nested directory structure.
+    - This is for projects started with `django-admin startproject project_name`, without a dot.
+    - Includes nested version of sample blog project.
+- Fixes bug on Windows, where system commands were not running.
+- Steadily improving internal structure.
 
 ### 0.2.2
 
