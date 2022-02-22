@@ -233,7 +233,7 @@ class Command(BaseCommand):
         """
         if self.on_windows:
             cmd_string = ' '.join(cmd_parts)
-            output = subprocess.run(cmd, shell=True, capture_output=True)
+            output = subprocess.run(cmd_string, shell=True, capture_output=True)
         else:
             output = subprocess.run(cmd_parts, capture_output=True)
 

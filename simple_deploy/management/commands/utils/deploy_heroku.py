@@ -5,6 +5,7 @@ import sys, os, re, subprocess
 from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
+from django.utils.crypto import get_random_string
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
@@ -315,7 +316,12 @@ class HerokuDeployer:
     def _configure_secret_key(self):
         """Use an env var to manage the secret key."""
         # Generate a new key.
-        new_secret_key = get_random_secret_key()
+        if self.sd.on_windows:
+            # Non-alphanumeric keys have been problematic on Windows.
+            new_secret_key = get_random_string(length=50,
+                    allowed_chars='abcdefghijklmnopqrstuvwxyz0123456789')
+        else:
+            new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
         self.sd.write_output("  Setting new secret key for Heroku...")
