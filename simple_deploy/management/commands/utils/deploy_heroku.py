@@ -110,6 +110,11 @@ class HerokuDeployer:
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
+
+        # Skip this entirely when unit testing.
+        if self.sd.local_test:
+            return
+
         self.sd.write_output("  Setting Heroku environment variable...")
         output = subprocess.run(["heroku", "config:set", "ON_HEROKU=1"],
                 capture_output=True)
@@ -305,10 +310,13 @@ class HerokuDeployer:
         # returns the bool value True for 'TRUE', and False for 'FALSE'.
         # Taken from: https://stackoverflow.com/a/56828137/748891
 
-        self.sd.write_output("  Setting DEBUG env var...")
-        output = subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"], capture_output=True)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set DEBUG config variable to FALSE.")
+        # When unit testing, don't set the heroku config var, but do make
+        #   the change to settings.
+        if not self.sd.local_test:
+            self.sd.write_output("  Setting DEBUG env var...")
+            output = subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"], capture_output=True)
+            self.sd.write_output(output)
+            self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
         # Modify settings to use the DEBUG config variable.
         new_setting = "DEBUG = os.getenv('DEBUG') == 'TRUE'"
@@ -323,11 +331,13 @@ class HerokuDeployer:
         new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
-        self.sd.write_output("  Setting new secret key for Heroku...")
-        output = subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"],
-                capture_output=True)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set SECRET_KEY config variable.")
+        #   Skip when unit testing.
+        if not self.sd.local_test:
+            self.sd.write_output("  Setting new secret key for Heroku...")
+            output = subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"],
+                    capture_output=True)
+            self.sd.write_output(output)
+            self.sd.write_output("    Set SECRET_KEY config variable.")
 
         # Modify settings to use the env var's value as the secret key.
         new_setting = "SECRET_KEY = os.getenv('SECRET_KEY')"
