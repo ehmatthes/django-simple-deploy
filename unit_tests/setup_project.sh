@@ -26,3 +26,8 @@ python3 -m venv b_env
 source b_env/bin/activate
 pip install --no-index --find-links="$sd_root_dir/vendor/" -r requirements.txt
 
+# Install local version of simple_deploy.
+pip install -e "$sd_root_dir/"
+
+# Make it easier to verify what was installed when developing this script.
+pip freeze > installed_packages.txt
