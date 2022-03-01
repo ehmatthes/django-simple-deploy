@@ -16,38 +16,7 @@ def run_command(cmd, use_shell=True):
 
 def test_tmp_dir(tmpdir):
 
-    sleep(1)
-
-
-    # run_command(f"cd {tmpdir}")
-    # run_command('touch hello_pytest.txt')
-
-
-
-    # cmd = f"cd {tmpdir}"
-    # subprocess.run(cmd.split())
-    # subprocess.run(['pwd'])
-    # # subprocess.run('python3 -m venv tmp_env')
-    # subprocess.run('touch hello_pytest.txt'.split())
-
-
-    # run_command('pwd')
-    # run_command(f'cd {tmpdir}')
-    # run_command('pwd')
-    # cmd = f"cp setup_project.sh {tmpdir}/setup_project.sh"
-    # run_command(cmd)
-
-    # # # cmd = f"cd {tmpdir} && chmod +x setup_project.sh"
-    # # # run_command(cmd)
-
-    # cmd = f"cd {tmpdir} && sh setup_project.sh"
-    # run_command(cmd)
-
-    # cmd = f"cd {tmpdir} && touch helloooooo.txt"
-    # run_command(cmd)
-
-    # # cmd = 'sh setup_project.sh'
-    # # run_command(cmd)
+    sleep(0.2)
 
     source_directory = Path(__file__).parent.parent / 'vendor'
 
