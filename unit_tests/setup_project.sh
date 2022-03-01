@@ -31,3 +31,9 @@ pip install -e "$sd_root_dir/"
 
 # Make it easier to verify what was installed when developing this script.
 pip freeze > installed_packages.txt
+
+# Add simple_deploy to INSTALLED_APPS.
+sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
+
+# Run configuration-only version of simple_deploy.
+python manage.py simple_deploy
