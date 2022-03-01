@@ -7,7 +7,7 @@ while getopts d:s: flag
 do
     case "${flag}" in
         d) tmp_dir=${OPTARG};;
-        s) src_dir=${OPTARG};;
+        s) sd_root_dir=${OPTARG};;
     esac
 done
 
@@ -22,7 +22,7 @@ rm pyproject.toml
 rm Pipfile
 
 # Build a venv and install requirements.
-python3 -m venv tmp_env
-source tmp_env/bin/activate
-pip install --no-index --find-links="$src_dir/" -r requirements.txt
+python3 -m venv b_env
+source b_env/bin/activate
+pip install --no-index --find-links="$sd_root_dir/vendor/" -r requirements.txt
 

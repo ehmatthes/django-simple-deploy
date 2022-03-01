@@ -18,9 +18,9 @@ def test_tmp_dir(tmpdir):
 
     sleep(0.2)
 
-    source_directory = Path(__file__).parent.parent / 'vendor'
+    sd_root_dir = Path(__file__).parent.parent
 
-    cmd = f'sh setup_project.sh -d {tmpdir} -s {source_directory}'
+    cmd = f'sh setup_project.sh -d {tmpdir} -s {sd_root_dir}'
     run_command(cmd)
 
     print(tmpdir)
