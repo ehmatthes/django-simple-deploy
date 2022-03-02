@@ -402,6 +402,7 @@ class HerokuDeployer:
         else:
             cmd = 'heroku run python manage.py migrate'
         output = self.sd.execute_subp_run(cmd)
+
         self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.

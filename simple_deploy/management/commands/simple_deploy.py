@@ -165,6 +165,7 @@ class Command(BaseCommand):
         else:
             return False
 
+
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
         Adds a .gitignore file if one is not found.
