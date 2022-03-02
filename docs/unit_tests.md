@@ -54,6 +54,7 @@ Unit testing roadmap
 
 Currently, unit testing only covers the default Heroku configuration work. The approach to adding more coverage is probably this:
 - Run a `git reset --hard` in the test instance repository to bring the test instance back to the state before running simple_deploy;
+    - First pass at this, related to simplifying `ALLOWED_HOSTS` setting, adds a tag `INITIAL_STATE` to the initial commit. Then a new `modify_allowed_hosts.sh` file resets back to this tagged commit, modifies the project, and runs simple_deploy again. See unit_tests/modify_allowed_hosts.sh.
 - Modify the test instance of the project in order to test a different pathway;
 - Run simple_deploy again;
 - Run a new series of tests.

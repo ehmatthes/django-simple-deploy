@@ -36,6 +36,7 @@ pip freeze > installed_packages.txt
 git init
 git add .
 git commit -am "Initial commit."
+git tag -am '' INITIAL_STATE
 
 # Add simple_deploy to INSTALLED_APPS.
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py

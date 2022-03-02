@@ -128,6 +128,10 @@ class AzureDeployer:
         # This method is specific to Azure, but the error message is not.
         # This method must be called after we know the app name/ deployed url.
 
+        # DEV: This should be simplified, like the corresponding method in 
+        #   deploy_heroku.py. Then, the error message can probably be removed
+        #   from deploy_messages.py.
+
         self.stdout.write("\n  Making sure project can be served from Azure...")
 
         azure_host = f'{self.app_name}.azurewebsites.net'
