@@ -57,6 +57,12 @@ class Command(BaseCommand):
             help="Do you want a record of simple_deploy's output?",
             action='store_true')
 
+        # If we're doing local unit testing, we need to avoid some network
+        #   calls.
+        parser.add_argument('--local-test',
+            help="Used for local unit testing, to avoid network calls.",
+            action='store_true')
+
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -75,6 +81,7 @@ class Command(BaseCommand):
         self.azure_plan_sku = options['azure_plan_sku']
         # This is a True-to-disable option; turn it into a more intuitive flag.
         self.log_output = not(options['no_logging'])
+        self.local_test = options['local_test']
 
         if self.log_output:
             self._start_logging()

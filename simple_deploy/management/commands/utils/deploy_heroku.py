@@ -80,17 +80,25 @@ class HerokuDeployer:
         """Get info about the Heroku app we're pushing to."""
         # We assume the user has already run 'heroku create', or --automate-all
         #   has run it. If it hasn't been run, we'll quit and tell them to do so.
-        self.sd.write_output("  Inspecting Heroku app...")
-        cmd = 'heroku apps:info'
-        apps_info = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(apps_info)
 
-        # Turn stdout info into a list of strings that we can then parse.
-        #   If no app exists, stdout is empty and the output went to stderr.
-        apps_info = apps_info.stdout.decode().split('\n')
-        # DEV: Use this code when we can require Python >=3.9.
-        # self.heroku_app_name = apps_info[0].removeprefix('=== ')
-        self.heroku_app_name = apps_info[0].replace('=== ', '')
+        # DEV: The testing approach here should be improved. We should be able
+        #   to easily test for a failed apps:info call. Also, probably want
+        #   to mock the output of apps:info rather than directly setting
+        #   heroku_app_name.
+        if self.sd.local_test:
+            self.heroku_app_name = 'sample-name-11894'
+        else:
+            self.sd.write_output("  Inspecting Heroku app...")
+            cmd = 'heroku apps:info'
+            apps_info = self.sd.execute_subp_run(cmd)
+            self.sd.write_output(apps_info)
+
+            # Turn stdout info into a list of strings that we can then parse.
+            #   If no app exists, stdout is empty and the output went to stderr.
+            apps_info = apps_info.stdout.decode().split('\n')
+            # DEV: Use this code when we can require Python >=3.9.
+            # self.heroku_app_name = apps_info[0].removeprefix('=== ')
+            self.heroku_app_name = apps_info[0].replace('=== ', '')
 
         if self.heroku_app_name:
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
@@ -105,6 +113,11 @@ class HerokuDeployer:
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
+
+        # Skip this entirely when unit testing.
+        if self.sd.local_test:
+            return
+
         self.sd.write_output("  Setting Heroku environment variable...")
         cmd = 'heroku config:set ON_HEROKU=1'
         output = self.sd.execute_subp_run(cmd)
@@ -300,11 +313,14 @@ class HerokuDeployer:
         # returns the bool value True for 'TRUE', and False for 'FALSE'.
         # Taken from: https://stackoverflow.com/a/56828137/748891
 
-        self.sd.write_output("  Setting DEBUG env var...")
-        cmd = 'heroku config:set DEBUG=FALSE'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set DEBUG config variable to FALSE.")
+        # When unit testing, don't set the heroku config var, but do make
+        #   the change to settings.
+        if not self.sd.local_test:
+            self.sd.write_output("  Setting DEBUG env var...")
+            cmd = 'heroku config:set DEBUG=FALSE'
+            output = self.sd.execute_subp_run(cmd)
+            self.sd.write_output(output)
+            self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
         # Modify settings to use the DEBUG config variable.
         new_setting = "DEBUG = os.getenv('DEBUG') == 'TRUE'"
@@ -324,11 +340,13 @@ class HerokuDeployer:
             new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
-        self.sd.write_output("  Setting new secret key for Heroku...")
-        cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set SECRET_KEY config variable.")
+        #   Skip when unit testing.
+        if not self.sd.local_test:
+            self.sd.write_output("  Setting new secret key for Heroku...")
+            cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
+            output = self.sd.execute_subp_run(cmd)
+            self.sd.write_output(output)
+            self.sd.write_output("    Set SECRET_KEY config variable.")
 
         # Modify settings to use the env var's value as the secret key.
         new_setting = "SECRET_KEY = os.getenv('SECRET_KEY')"
@@ -349,8 +367,6 @@ class HerokuDeployer:
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
         self.sd.write_output("  Committing changes...")
-        # output = subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'],
-        #         capture_output=True)
         # If we write this command as a string, the commit message will be split
         #   incorrectly.
         cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
