@@ -42,6 +42,8 @@ for deployment, run simple_deploy again without the --automate-all flag.
 
 def allowed_hosts_not_empty_msg(host):
     # This will be displayed as a CommandError.
+    # DEV: This should no longer be called from deploy_heroku.py, so it's only
+    #   here until the approach to ALLOWED_HOSTS in deploy_azure.py is simplified.
     msg = dedent(f"""
 
         Your ALLOWED_HOSTS setting is not empty, and it does not contain {host}.
