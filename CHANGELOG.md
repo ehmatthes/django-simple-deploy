@@ -14,6 +14,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Includes nested version of sample blog project.
 - Fixes bug on Windows, where system commands were not running.
 - Steadily improving internal structure.
+- Set up local unit testing (testing with no network calls).
+- Moved all testing documentation to docs/.
 
 ### 0.2.2
 
