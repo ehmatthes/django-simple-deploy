@@ -87,7 +87,8 @@ class HerokuDeployer:
             self.heroku_app_name = 'sample-name-11894'
         else:
             self.sd.write_output("  Inspecting Heroku app...")
-            apps_info = subprocess.run(["heroku", "apps:info"], capture_output=True)
+            cmd = 'heroku apps:info'
+            apps_info = self.sd.execute_subp_run(cmd)
             self.sd.write_output(apps_info)
 
             # Turn stdout info into a list of strings that we can then parse.
@@ -314,7 +315,8 @@ class HerokuDeployer:
         #   the change to settings.
         if not self.sd.local_test:
             self.sd.write_output("  Setting DEBUG env var...")
-            output = subprocess.run(["heroku", "config:set", f"DEBUG=FALSE"], capture_output=True)
+            cmd = 'heroku config:set DEBUG=FALSE'
+            output = self.sd.execute_subp_run(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
@@ -328,14 +330,19 @@ class HerokuDeployer:
     def _configure_secret_key(self):
         """Use an env var to manage the secret key."""
         # Generate a new key.
-        new_secret_key = get_random_secret_key()
+        if self.sd.on_windows:
+            # Non-alphanumeric keys have been problematic on Windows.
+            new_secret_key = get_random_string(length=50,
+                    allowed_chars='abcdefghijklmnopqrstuvwxyz0123456789')
+        else:
+            new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
         #   Skip when unit testing.
         if not self.sd.local_test:
             self.sd.write_output("  Setting new secret key for Heroku...")
-            output = subprocess.run(["heroku", "config:set", f"SECRET_KEY={new_secret_key}"],
-                    capture_output=True)
+            cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
+            output = self.sd.execute_subp_run(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set SECRET_KEY config variable.")
 
