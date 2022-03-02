@@ -18,6 +18,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 - Moved all testing documentation to docs/.
 - Simplified approach to the `ALLOWED_HOSTS` setting for Heroku deployments.
     - If the Heroku host is not found, append the Heroku host to `ALLOWED_HOSTS` in the Heroku-specific settings section, regardless of what else is in `ALLOWED_HOSTS`. This is motivated by reports from users who have followed tutorials that advise them to modify `ALLOWED_HOSTS` in a variety of ways. Appending our host in a Heroku-specific settings section should not cause any foreseeable problems.
+    - Also improved unit testing. Tests can be run against multiple versions of the sample project, by modifying the project after it's created. This does not add significantly to test runtimes.
 
 ### 0.2.2
 
