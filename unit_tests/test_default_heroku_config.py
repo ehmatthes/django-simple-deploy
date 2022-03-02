@@ -58,6 +58,7 @@ def test_generated_procfile(tmp_project):
     procfile_text = Path(tmp_project / 'Procfile').read_text()
     assert "web: gunicorn blog.wsgi --log-file -" in procfile_text
 
+
 # --- Test requirements.txt ---
 
 def test_requirements_txt_file(tmp_project):
@@ -68,3 +69,29 @@ def test_requirements_txt_file(tmp_project):
     assert "psycopg2<2.9                  # Added by simple_deploy command." in rt_text
     assert "dj-database-url               # Added by simple_deploy command." in rt_text
     assert "whitenoise                    # Added by simple_deploy command." in rt_text
+
+
+# --- Test logs ---
+
+def test_log_dir(tmp_project):
+    """Test that the log directory exists."""
+    log_path = Path(tmp_project / 'simple_deploy_logs')
+
+    assert log_path.exists()
+
+    # There should be exactly one log file.
+    log_files = sorted(log_path.glob('*'))
+    assert len(log_files) == 1
+    # assert len(list[log_path.glob('*.log')]) == 1
+
+    # Read log file.
+    log_file = log_files[0]
+    log_file_text = log_file.read_text()
+
+    # Spot check for opening log messages.
+    assert "INFO: Logging run of `manage.py simple_deploy`..." in log_file_text
+    assert "INFO: Configuring project for deployment to Heroku..." in log_file_text
+
+    # Spot check for success messages.
+    assert "INFO: --- Your project is now configured for deployment on Heroku. ---" in log_file_text
+    assert "INFO: Or, you can visit https://sample-name-11894.herokuapp.com." in log_file_text
