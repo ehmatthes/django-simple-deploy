@@ -74,15 +74,13 @@ def test_requirements_txt_file(tmp_project):
 # --- Test logs ---
 
 def test_log_dir(tmp_project):
-    """Test that the log directory exists."""
+    """Test that the log directory exists, and contains an appropriate log file."""
     log_path = Path(tmp_project / 'simple_deploy_logs')
-
     assert log_path.exists()
 
     # There should be exactly one log file.
     log_files = sorted(log_path.glob('*'))
     assert len(log_files) == 1
-    # assert len(list[log_path.glob('*.log')]) == 1
 
     # Read log file.
     log_file = log_files[0]
@@ -95,3 +93,27 @@ def test_log_dir(tmp_project):
     # Spot check for success messages.
     assert "INFO: --- Your project is now configured for deployment on Heroku. ---" in log_file_text
     assert "INFO: Or, you can visit https://sample-name-11894.herokuapp.com." in log_file_text
+
+def test_ignore_log_dir(tmp_project):
+    """Check that git is ignoring the log directory."""
+    gitignore_text = Path(tmp_project / '.gitignore').read_text()
+    assert 'simple_deploy_logs/' in gitignore_text
+
+
+# --- Test staticfile setup ---
+
+def test_static_dir(tmp_project):
+    """Test that static dir exists, and contains placeholder file."""
+    static_path = Path(tmp_project / 'static')
+    assert static_path.exists()
+
+    # There should be exactly one file in static/.
+    static_dir_files = sorted(static_path.glob('*'))
+    assert len(static_dir_files) == 1
+
+    # We should find placeholder.txt.
+    static_dir_file = static_dir_files[0]
+    assert static_dir_file.name == 'placeholder.txt'
+
+    # It should contain one line.
+    assert static_dir_file.read_text() == 'This is a placeholder file to make sure this folder is pushed to Heroku.'
