@@ -7,7 +7,7 @@ This app gives you a management command that configures your project for an init
 
 If you have a relatively simple Django project that runs locally, you can deploy your project in a few short steps. The only change you'll need to make to your project is to add this app to `INSTALLED_APPS`.
 
-![Simplest example of how to use django-simple-deploy](assets/simplest_example.png)
+![Simplest example of how to use django-simple-deploy](https://raw.githubusercontent.com/ehmatthes/django-simple-deploy/main/assets/simplest_example.png)
 
 By default, the above command will deploy your project to Heroku. You can use the `--platform` argument to deploy to Azure instead:
 
