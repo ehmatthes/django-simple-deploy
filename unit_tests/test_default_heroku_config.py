@@ -1,6 +1,7 @@
 """Simple unit tests for django-simple-deploy."""
 
 from pathlib import Path
+import subprocess
 
 import pytest
 
@@ -117,3 +118,21 @@ def test_static_dir(tmp_project):
 
     # It should contain one line.
     assert static_dir_file.read_text() == 'This is a placeholder file to make sure this folder is pushed to Heroku.'
+
+
+# --- Test Heroku host already in ALLOWED_HOSTS ---
+
+def test_heroku_host_in_allowed_hosts(tmp_project):
+    """Test that no ALLOWED_HOST entry in Heroku-specific settings if the
+    Heroku host is already in ALLOWED_HOSTS.
+    """
+    # Modify the test project, and rerun simple_deploy.
+    cmd = f'sh modify_allowed_hosts.sh -d {tmp_project}'
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
+
+    # Check that there's no ALLOWED_HOSTS setting in the Heroku-specific settings.
+    #   If we use the settings_text fixture, we'll get the original settings text
+    #   because it has module-level scope.
+    settings_text = Path(tmp_project / 'blog/settings.py').read_text()
+    assert "    ALLOWED_HOSTS.append('sample-name-11894.herokuapp.com')" not in settings_text
