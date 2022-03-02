@@ -6,6 +6,10 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.2 - Supporting Heroku & Azure
 ---
 
+### 0.2.5
+
+- Fix image loading issue in main README on PyPI.
+
 ### 0.2.4
 
 - Set up local unit testing (testing with no network calls).
