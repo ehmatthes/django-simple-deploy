@@ -180,7 +180,7 @@ class HerokuDeployer:
 
     def _check_allowed_hosts(self):
         """Make sure project can be served from heroku."""
-        # This method is specific to Heroku, but the error message is not.
+        # This method is specific to Heroku.
 
         self.sd.write_output("\n  Making sure project can be served from Heroku...")
         heroku_host = f"{self.heroku_app_name}.herokuapp.com"
@@ -190,17 +190,11 @@ class HerokuDeployer:
         elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
             # This is a generic entry that allows serving from any heroku URL.
             self.sd.write_output("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
-        elif not settings.ALLOWED_HOSTS:
+        else:
             new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
             msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
             msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
             self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-        else:
-            # Let user know there's a nonempty ALLOWED_HOSTS, that doesn't 
-            #   contain the current Heroku URL.
-            msg = d_msgs.allowed_hosts_not_empty_msg(heroku_host)
-            self.write_output(msg, write_to_console=False)
-            raise CommandError(msg)
 
 
     def _configure_db(self):
