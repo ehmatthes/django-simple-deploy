@@ -4,10 +4,15 @@ from pathlib import Path
 
 import pytest
 
+
+# --- Fixtures ---
+
 @pytest.fixture(scope='module')
 def settings_text(tmp_project):
     return Path(tmp_project / 'blog/settings.py').read_text()
 
+
+# --- Test modifications to settings.py ---
 
 def test_creates_heroku_specific_settings_section(settings_text):
     """Verify there's a Heroku-specific settings section."""
@@ -44,3 +49,22 @@ def test_debug_setting(settings_text):
 def test_secret_key_setting(settings_text):
     """Verify the SECRET_KEY setting is correct."""
     assert "    SECRET_KEY = os.getenv('SECRET_KEY')" in settings_text
+
+
+# --- Test Procfile ---
+
+def test_generated_procfile(tmp_project):
+    """Test that the generated Procfile is correct."""
+    procfile_text = Path(tmp_project / 'Procfile').read_text()
+    assert "web: gunicorn blog.wsgi --log-file -" in procfile_text
+
+# --- Test requirements.txt ---
+
+def test_requirements_txt_file(tmp_project):
+    """Test that the requirements.txt file is correct."""
+    rt_text = Path(tmp_project / 'requirements.txt').read_text()
+    assert "django-simple-deploy          # Added by simple_deploy command." in rt_text
+    assert "gunicorn                      # Added by simple_deploy command." in rt_text
+    assert "psycopg2<2.9                  # Added by simple_deploy command." in rt_text
+    assert "dj-database-url               # Added by simple_deploy command." in rt_text
+    assert "whitenoise                    # Added by simple_deploy command." in rt_text
