@@ -31,7 +31,7 @@ To run the unit tests:
 (venv) django-simple-deploy/unit_tests $ pytest
 ```
 
-Don't call pytest from the root directory, or pytest will try to run the [integration tests](integration_test.md) as well.
+Don't call pytest from the root directory, or pytest will try to run the [integration tests](integration_tests.md) as well.
 
 Updating packages in vendor/
 ---
