@@ -6,6 +6,14 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.2 - Supporting Heroku & Azure
 ---
 
+### 0.2.4
+
+- Set up local unit testing (testing with no network calls).
+- Moved all testing documentation to docs/.
+- Simplified approach to the `ALLOWED_HOSTS` setting for Heroku deployments.
+    - If the Heroku host is not found, append the Heroku host to `ALLOWED_HOSTS` in the Heroku-specific settings section, regardless of what else is in `ALLOWED_HOSTS`. This is motivated by reports from users who have followed tutorials that advise them to modify `ALLOWED_HOSTS` in a variety of ways. Appending our host in a Heroku-specific settings section should not cause any foreseeable problems.
+    - Also improved unit testing. Tests can be run against multiple versions of the sample project, by modifying the project after it's created. This does not add significantly to test runtimes.
+
 ### 0.2.3
 
 - Added documentation of [full set of CLI arguments](docs/cli_args.md).
@@ -14,11 +22,6 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Includes nested version of sample blog project.
 - Fixes bug on Windows, where system commands were not running.
 - Steadily improving internal structure.
-- Set up local unit testing (testing with no network calls).
-- Moved all testing documentation to docs/.
-- Simplified approach to the `ALLOWED_HOSTS` setting for Heroku deployments.
-    - If the Heroku host is not found, append the Heroku host to `ALLOWED_HOSTS` in the Heroku-specific settings section, regardless of what else is in `ALLOWED_HOSTS`. This is motivated by reports from users who have followed tutorials that advise them to modify `ALLOWED_HOSTS` in a variety of ways. Appending our host in a Heroku-specific settings section should not cause any foreseeable problems.
-    - Also improved unit testing. Tests can be run against multiple versions of the sample project, by modifying the project after it's created. This does not add significantly to test runtimes.
 
 ### 0.2.2
 
