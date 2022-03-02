@@ -88,6 +88,9 @@ class Command(BaseCommand):
             # Log the options used for this run.
             self.write_output(f"CLI args: {options}", write_to_console=False)
 
+        # Inspect system; we'll run some system commands differently on Windows.
+        self._inspect_system()
+
         # Inspect project here. If there's anything we can't work with locally,
         #   we want to recognize that now and exit before making any remote calls.
         self._inspect_project()
@@ -226,6 +229,38 @@ class Command(BaseCommand):
             return line
 
 
+    def execute_subp_run_parts(self, cmd_parts):
+        """This is similar to execute_subp_run(), but it receives a list of
+        command parts rather than a string command. Having this separate method
+        is cleaner than having nested if statements in execute_subp_run().
+
+        DEV: May want to make execute_subp_run() examine cmd that's received,
+        and dispatch the work based on whether it receives a string or sequence.
+        """
+        if self.on_windows:
+            cmd_string = ' '.join(cmd_parts)
+            output = subprocess.run(cmd_string, shell=True, capture_output=True)
+        else:
+            output = subprocess.run(cmd_parts, capture_output=True)
+
+        return output
+
+
+    def execute_subp_run(self, cmd):
+        """Execute subprocess.run() command.
+        We're running commands differently on Windows, so this method
+          takes a command and runs it appropriately on each system.
+        Returns: output of the command.
+        """
+        if self.on_windows:
+            output = subprocess.run(cmd, shell=True, capture_output=True)
+        else:
+            cmd_parts = cmd.split()
+            output = subprocess.run(cmd_parts, capture_output=True)
+
+        return output
+
+
     def execute_command(self, cmd):
         """Execute command, and stream output while logging.
         This method is intended for commands that run long enough that we 
@@ -249,12 +284,25 @@ class Command(BaseCommand):
         #   topic date back to Python2/3 days.
         cmd_parts = cmd.split()
         with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
-            bufsize=1, universal_newlines=True) as p:
+            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
             for line in p.stderr:
                 self.write_output(line)
 
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
+
+
+    def _inspect_system(self):
+        """Find out if we're on Windows, so other methods can run system
+        commands appropriately on each system. Note this is the user's system,
+        not the host platform we're targeting.
+        """
+        if os.name == 'nt':
+            self.on_windows = True
+            self.use_shell = True
+        else:
+            self.on_windows = False
+            self.use_shell = False
 
 
     def _inspect_project(self):
@@ -351,9 +399,8 @@ class Command(BaseCommand):
             # Heroku does not recognize pyproject.toml, so we'll export to
             #   a requirements.txt file, and then work from that. This should
             #   not affect the user's local environment.
-            export_cmd_parts = ['poetry', 'export', '-f', 'requirements.txt',
-                    '--output', 'requirements.txt', '--without-hashes']
-            output = subprocess.run(export_cmd_parts, capture_output=True)
+            cmd = 'poetry export -f requirements.txt --output requirements.txt --without-hashes'
+            output = self.execute_subp_run(cmd)
             self.write_output(output)
             self.using_req_txt = True
 

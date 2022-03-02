@@ -5,6 +5,7 @@ import sys, os, re, subprocess
 from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
+from django.utils.crypto import get_random_string
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
@@ -65,7 +66,8 @@ class HerokuDeployer:
 
         if confirmed.lower() in ('y', 'yes'):
             self.sd.write_output("  Running `heroku create`...")
-            output = subprocess.run(['heroku', 'create'], capture_output=True)
+            cmd = 'heroku create'
+            output = self.sd.execute_subp_run(cmd)
             self.sd.write_output(output)
         else:
             # Quit and have the user run the command again; don't assume not
@@ -117,8 +119,8 @@ class HerokuDeployer:
             return
 
         self.sd.write_output("  Setting Heroku environment variable...")
-        output = subprocess.run(["heroku", "config:set", "ON_HEROKU=1"],
-                capture_output=True)
+        cmd = 'heroku config:set ON_HEROKU=1'
+        output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
@@ -361,18 +363,22 @@ class HerokuDeployer:
         self.sd.write_output("\n\nCommitting and pushing project...")
 
         self.sd.write_output("  Adding changes...")
-        output = subprocess.run(['git', 'add', '.'], capture_output=True)
+        cmd = 'git add .'
+        output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
         self.sd.write_output("  Committing changes...")
-        output = subprocess.run(['git', 'commit', '-am', '"Configured project for deployment."'],
-                capture_output=True)
+        # If we write this command as a string, the commit message will be split
+        #   incorrectly.
+        cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
+        output = self.sd.execute_subp_run_parts(cmd_parts)
         self.sd.write_output(output)
 
         self.sd.write_output("  Pushing to heroku...")
 
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
-        git_status = subprocess.run(['git', 'status'], capture_output=True)
+        cmd = 'git status'
+        git_status = self.sd.execute_subp_run(cmd)
         self.sd.write_output(git_status)
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
@@ -385,27 +391,23 @@ class HerokuDeployer:
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ('main', 'master'):
             cmd = f"git push heroku {self.current_branch}"
-            self.sd.execute_command(cmd)
         else:
             cmd = f"git push heroku {self.current_branch}:main"
-            self.sd.execute_command(cmd)
+        self.sd.execute_command(cmd)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
         if self.sd.nested_project:
-            output = subprocess.run(
-                    ['heroku', 'run', 'python', f'{self.sd.project_name}/manage.py', 'migrate'],
-                    capture_output=True)
+            cmd = f"heroku run python {self.sd.project_name}/manage.py migrate"
         else:
-            output = subprocess.run(
-                    ['heroku', 'run', 'python', 'manage.py', 'migrate'],
-                    capture_output=True)
+            cmd = 'heroku run python manage.py migrate'
+        output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
-        output = subprocess.run(['heroku', 'open'],
-                capture_output=True)
+        cmd = 'heroku open'
+        output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 
 
