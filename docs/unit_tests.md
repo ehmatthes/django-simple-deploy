@@ -13,6 +13,14 @@ There is some testing cruft written into the main project. For example, we check
 
 If you have suggestions for how to improve the overall structure of these unit tests, or speed them up in any way, please open an issue or send an email and I will be happy to hear your thoughts. I'm sure someone with deeper Django, deployment, and Pytest experience than I have could improve on what I have started. That said, these tests are a good start at making sure ongoing development does not break current behavior.
 
+Table of Contents
+---
+
+- [Running unit tests](#running-unit-tests)
+- [Updating packages in vendor/](#updating-packages-in-vendor)
+- [Useful notes](#useful-notes)
+- [Unit testing roadmap](#unit-testing-roadmap)
+
 Running unit tests
 ---
 
@@ -23,7 +31,7 @@ To run the unit tests:
 (venv) django-simple-deploy/unit_tests $ pytest
 ```
 
-Don't call pytest from the root directory, or pytest will try to run the integration tests as well.
+Don't call pytest from the root directory, or pytest will try to run the [integration tests](integration_test.md) as well.
 
 Updating packages in vendor/
 ---
