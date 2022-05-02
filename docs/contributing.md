@@ -1,9 +1,7 @@
 Contributing
 ===
 
-First of all, thank you for your interest in contributing to this project. :)
-
-There are a number of ways you can get started:
+First of all, thank you for your interest in contributing to this project. There are a number of ways you can get started:
 - [Run a demo](#run-a-demo)
   - Download a simple Django blog project, and use django-simple-deploy to deploy the project.
 - [Run the unit tests](#run-the-unit-tests)
@@ -13,7 +11,7 @@ There are a number of ways you can get started:
 - Open an issue
   - Open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues), and share your thoughts about this project. Feel free to use issues for asking questions, sharing feedback, or reporting bugs.
 - Code of Conduct
-  - This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as a [Code of Conduct](docs/code_of_conduct.md).
+  - This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as a [Code of Conduct](code_of_conduct.md).
 
 If you want to begin contributing to the project, start with the section about running unit tests.
 
@@ -48,9 +46,9 @@ $ source b_env/bin/activate
 Run the unit tests
 ---
 
-For now, see the full documentation for [unit tests](docs/unit_tests.md).
+For now, see the full documentation for [unit tests](unit_tests.md).
 
 Run the integration tests
 ---
 
-For now, see the full documentation for [integration tests](docs/integration_tests.md).
+For now, see the full documentation for [integration tests](integration_tests.md).
