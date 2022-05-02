@@ -53,7 +53,7 @@ $ cd django-simple-deploy
 $ python3 -m venv dsd_env
 $ source dsd_env/bin/activate
 (dsd_env)$ pip install --upgrade pip
-(dsd_env)$ pip install requirements.txt
+(dsd_env)$ pip install -r requirements.txt
 ```
 
 Now you should be able to run the unit tests. The unit tests will copy the demo blog project from `sample_tests/` to a temporary directory, and run the tests against that demo project. Currently (5/2022), the tests take about 13 seconds on my system. To run the unit tests:
