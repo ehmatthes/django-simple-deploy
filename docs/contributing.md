@@ -10,8 +10,10 @@ There are a number of ways you can get started:
   - Set up a development environment for this project, and run the unit tests. This does not involve deployment to a platform.
 - [Run the integration tests](#run-the-integration-tests)
   - Set up a development environment, and run the integration tests. This requires an account on the platform you want to test against.    
-- [Open an issue](#open-an-issue)
-  - Open an issue, and share your thoughts about this project. Feel free to use issues for asking questions, sharing feedback, or reporting bugs.
+- Open an issue
+  - Open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues), and share your thoughts about this project. Feel free to use issues for asking questions, sharing feedback, or reporting bugs.
+- Code of Conduct
+  - This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as a [Code of Conduct](docs/code_of_conduct.md).
 
 Run a demo
 --
@@ -41,4 +43,12 @@ $ source b_env/bin/activate
   - If you have any questions or feedback about the process, please open an issue as well.
   - You probably want to destroy the test app. You can either use your platform's dashboard to do this, or use a cli command. For example `heroku apps:destroy app_name`.
 
+Run the unit tests
+---
 
+For now, see the full documentation for [unit tests](docs/unit_tests.md).
+
+Run the integration tests
+---
+
+For now, see the full documentation for [integration tests](docs/integration_tests.md).
