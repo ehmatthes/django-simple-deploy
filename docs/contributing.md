@@ -20,11 +20,13 @@ One of the best ways to get started is to use django-simple-deploy to deploy a w
 
 - Clone the [demo blog project](https://github.com/ehmatthes/dsd_blog) that's used for testing django-simple-deploy.
   - `$ git clone https://github.com/ehmatthes/dsd_blog.git`
-- Create a virtual environment, and install the requirements. (Call your virtual environment v_env, so it matches what's listed in .gitignore.)
+  - `$ cd dsd_blog`
+- Create a virtual environment, install the requirements, and migrate the project. (Call your virtual environment v_env, so it matches what's listed in .gitignore.)
 ```
 $ python3 -m venv b_env
 $ source b_env/bin/activate
 (b_env)$ pip install -r requirements.txt
+(b_env)$ python manage.py migrate
 ```
 - Run the project locally.
   - `(b_env)$ python manage.py runserver`
@@ -38,5 +40,5 @@ $ source b_env/bin/activate
   - If the deployment process did not work, please [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues).
   - If you have any questions or feedback about the process, please open an issue as well.
   - You probably want to destroy the test app. You can either use your platform's dashboard to do this, or use a cli command. For example `heroku apps:destroy app_name`.
-  
+
 
