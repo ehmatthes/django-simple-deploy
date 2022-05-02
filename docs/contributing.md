@@ -20,8 +20,8 @@ One of the best ways to get started is to use django-simple-deploy to deploy a w
 
 - Clone the [demo blog project](https://github.com/ehmatthes/dsd_blog) that's used for testing django-simple-deploy.
   - `$ git clone https://github.com/ehmatthes/dsd_blog.git`
-  - `$ cd dsd_blog`
-- Create a virtual environment, install the requirements, and migrate the project. (Call your virtual environment v_env, so it matches what's listed in .gitignore.)
+  - `$ cd dsd_blog/`
+- Create a virtual environment, install the requirements, and migrate the project. (Call your virtual environment b_env, so it matches what's listed in .gitignore.)
 ```
 $ python3 -m venv b_env
 $ source b_env/bin/activate
@@ -30,7 +30,7 @@ $ source b_env/bin/activate
 ```
 - Run the project locally.
   - `(b_env)$ python manage.py runserver`
-  - Play around with the project.
+  - Play around with the project, and verify that it works on your system.
 - Deploy the project using django-simple-deploy:
   - `pip install django-simple-deploy`
   - Add `simple_deploy` to `INSTALLED_APPS`.
