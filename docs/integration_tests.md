@@ -32,15 +32,16 @@ The tests run against your local version of this project. So if you want to work
 Actual steps
 ---
 
-The actual steps to start developing by running the integration test should look like this:
+The actual steps to start developing by running the integration test should look like this. Call your virtual environment `dsd_env`, so it matches what's in `.gitignore`:
 
 ```
 $ git clone https://github.com/ehmatthes/django-simple-deploy.git
 $ cd django-simple-deploy
-$ python3 -m venv venv
-(venv)$ pip install --upgrade pip
-(venv)$ pip install requirements.txt
-(venv)$ ./integration_tests/test_deploy_process.sh
+$ python3 -m venv dsd_env
+$ source dsd_env/bin/activate
+(dsd_env)$ pip install --upgrade pip
+(dsd_env)$ pip install requirements.txt
+(dsd_env)$ ./integration_tests/test_deploy_process.sh
 ```
 
 Testing the latest PyPI release
@@ -49,7 +50,7 @@ Testing the latest PyPI release
 To test the latest release on PyPI instead of your local version of the project, use the `-t pypi` argument:
 
 ```
-(venv)$ ./integration_tests/test_deploy_process.sh -t pypi
+(dsd_env)$ ./integration_tests/test_deploy_process.sh -t pypi
 ```
 
 Other testing options

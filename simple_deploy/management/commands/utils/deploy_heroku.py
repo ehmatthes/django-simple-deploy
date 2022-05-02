@@ -38,6 +38,7 @@ class HerokuDeployer:
         self._configure_debug()
         self._configure_secret_key()
         self._conclude_automate_all()
+        self._summarize_deployment()
         self._show_success_message()
 
 
@@ -406,6 +407,19 @@ class HerokuDeployer:
         self.sd.write_output(output)
 
 
+    def _summarize_deployment(self):
+        """Manage all tasks related to generating and showing the friendly
+        summary of the deployment.
+
+        This does not take the place of the platform's official documentation.
+          Instead, it gives the user a friendly entry into the platform's
+          official documentation. It also gives them a brief summary of some
+          followup steps they can take, for example making a second push, or
+          changing the URL of the deployed app.
+        """
+        self._generate_summary()
+
+
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
 
@@ -464,3 +478,14 @@ class HerokuDeployer:
 
             # Won't need to add these lines anymore.
             self.found_heroku_settings = True
+
+    def _generate_summary(self):
+        """Generate the friendly summary, which is html for now."""
+        # Generate the summary file.
+        path = self.sd.log_dir_path / 'deployment_summary.html'
+
+        summary_str = "<h2>Understanding your deployment</h2>"
+        path.write_text(summary_str)
+
+        msg = f"\n  Generated friendly summary: {path}"
+        self.sd.write_output(msg)
