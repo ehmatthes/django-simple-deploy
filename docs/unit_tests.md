@@ -27,8 +27,8 @@ Running unit tests
 To run the unit tests:
 
 ```
-(venv) django-simple-deploy $ cd unit_tests
-(venv) django-simple-deploy/unit_tests $ pytest
+(dsd_env) django-simple-deploy $ cd unit_tests
+(dsd_env) django-simple-deploy/unit_tests $ pytest
 ```
 
 Don't call pytest from the root directory, or pytest will try to run the [integration tests](integration_tests.md) as well.
@@ -39,7 +39,7 @@ Updating packages in vendor/
 The sole purpose of the vendor/ directory is to facilitate unit testing. To add a new package to the directory:
 
 ```
-(venv) $ pip download --dest vendor/ package_name
+(dsd_env) $ pip download --dest vendor/ package_name
 ```
 
 I haven't upgraded a package in vendor/ yet, but it should be straightforward. If nothing else, delete the existing package resource and run the above command again.
@@ -62,7 +62,7 @@ Currently, unit testing only covers the default Heroku configuration work. The a
 To do this, we'll probably need a main test file that specifies an order for these tests, and also allows the developer to select which unit tests to run. We probably want to be able to do something like the following:
 
 ```
-(venv) django-simple-deploy/unit_tests $ pytest --platform heroku
+(dsd_env) django-simple-deploy/unit_tests $ pytest --platform heroku
 ```
 
 Pytest should offer a number of ways to do this efficiently.

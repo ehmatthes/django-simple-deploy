@@ -23,7 +23,7 @@ One of the best ways to get started is to use django-simple-deploy to deploy a w
 - Clone the [demo blog project](https://github.com/ehmatthes/dsd_blog) that's used for testing django-simple-deploy.
   - `$ git clone https://github.com/ehmatthes/dsd_blog.git`
   - `$ cd dsd_blog/`
-- Create a virtual environment, install the requirements, and migrate the project. (Call your virtual environment b_env, so it matches what's listed in .gitignore.)
+- Create a virtual environment, install the requirements, and migrate the project. (Call your virtual environment `b_env`, so it matches what's listed in `.gitignore`.)
 ```
 $ python3 -m venv b_env
 $ source b_env/bin/activate
@@ -46,24 +46,21 @@ $ source b_env/bin/activate
 Run the unit tests
 ---
 
-Running the unit tests is the best way to start contributing to the project. This way you know your development environment is set up correctly.
-
-First, clone this repo and build the virtual environment for the project:
+Running the unit tests is the best way to start contributing to the project. This way you know your development environment is set up correctly. First, clone this repo and build the virtual environment for the project. (Call your virtual environment `dsd_env`, so it matches what's in `.gitignore`.):
 ```
 $ git clone https://github.com/ehmatthes/django-simple-deploy.git
 $ cd django-simple-deploy
-$ python3 -m venv venv
-(venv)$ pip install --upgrade pip
-(venv)$ pip install requirements.txt
+$ python3 -m venv dsd_env
+$ source dsd_env/bin/activate
+(dsd_env)$ pip install --upgrade pip
+(dsd_env)$ pip install requirements.txt
 ```
 
-Now you should be able to run the unit tests. The unit tests will copy the demo blog project from `sample_tests/` to a temporary directory, and run the tests against that demo project. Currently (5/2022), the tests take about 13 seconds on my system.
-
-To run the unit tests:
+Now you should be able to run the unit tests. The unit tests will copy the demo blog project from `sample_tests/` to a temporary directory, and run the tests against that demo project. Currently (5/2022), the tests take about 13 seconds on my system. To run the unit tests:
 
 ```
-(venv) django-simple-deploy $ cd unit_tests
-(venv) django-simple-deploy/unit_tests $ pytest
+(dsd_env) django-simple-deploy $ cd unit_tests
+(dsd_env) django-simple-deploy/unit_tests $ pytest
 ```
 
 Don't call pytest from the root directory, or pytest will try to run the [integration tests](integration_tests.md) as well.
