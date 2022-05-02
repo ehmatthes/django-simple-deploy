@@ -103,7 +103,7 @@ Contributing
 
 If you want to contribute to this project, feel free to [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues) and share how you'd like to help.
 
-You can also see the [contributing](docs/contributing.md) page. Here you'll see how to demo the project, how to run [unit](docs/unit_tests.md) and [integration tests](docs/integration_tests.md), and how to set up a development environment for the project.
+You can also see the [contributing](docs/contributing.md) page. Here you'll see how to demo the project, how to run unit and integration tests, and how to set up a development environment for the project.
 
 This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as a [Code of Conduct](docs/code_of_conduct.md).
 

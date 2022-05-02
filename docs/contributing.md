@@ -15,6 +15,8 @@ There are a number of ways you can get started:
 - Code of Conduct
   - This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as a [Code of Conduct](docs/code_of_conduct.md).
 
+If you want to begin contributing to the project, start with the section about running unit tests.
+
 Run a demo
 --
 
