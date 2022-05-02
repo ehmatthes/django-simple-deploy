@@ -46,7 +46,29 @@ $ source b_env/bin/activate
 Run the unit tests
 ---
 
-For now, see the full documentation for [unit tests](unit_tests.md).
+Running the unit tests is the best way to start contributing to the project. This way you know your development environment is set up correctly.
+
+First, clone this repo and build the virtual environment for the project:
+```
+$ git clone https://github.com/ehmatthes/django-simple-deploy.git
+$ cd django-simple-deploy
+$ python3 -m venv venv
+(venv)$ pip install --upgrade pip
+(venv)$ pip install requirements.txt
+```
+
+Now you should be able to run the unit tests. The unit tests will copy the demo blog project from `sample_tests/` to a temporary directory, and run the tests against that demo project. Currently (5/2022), the tests take about 13 seconds on my system.
+
+To run the unit tests:
+
+```
+(venv) django-simple-deploy $ cd unit_tests
+(venv) django-simple-deploy/unit_tests $ pytest
+```
+
+Don't call pytest from the root directory, or pytest will try to run the [integration tests](integration_tests.md) as well.
+
+For more information, see the full [unit tests](unit_tests.md) documentation.
 
 Run the integration tests
 ---
