@@ -493,12 +493,56 @@ class HerokuDeployer:
         """Generate the friendly summary, which is html for now."""
         # Generate the summary file.
         # Returns the path to the summary html file.
-        path = self.sd.log_dir_path / 'deployment_summary.html'
+        # path = self.sd.log_dir_path / 'deployment_summary.html'
 
-        summary_str = "<h2>Understanding your deployment</h2>"
-        path.write_text(summary_str)
+        # summary_str = "<h2>Understanding your deployment</h2>"
+        # path.write_text(summary_str)
+
+        # msg = f"\n  Generated friendly summary: {path}"
+        # self.sd.write_output(msg)
+
+        # return path
+
+
+
+        # from django.conf import settings
+        # print('---settings---', settings)
+        # print(settings.TEMPLATES)
+        # # settings.TEMPL
+        # # Django says not to do this, but this is running on a user's system,
+        # #   not in a multithreaded server environment so I think it might be okay.
+        # from pathlib import Path
+        # template_path = Path('summary_resources/')
+        # print('tp', template_path)
+        # print('tp', template_path.)
+        # settings.TEMPLATES[0]['DIRS'].append(template_path)
+        # print(settings.TEMPLATES)
+
+        from django.template.engine import Engine
+        current_engine = Engine.get_default()
+        print('ce', current_engine)
+
+        from django.template.loaders.app_directories import Loader
+        my_loader = Loader(current_engine)
+        my_template = my_loader.get_template('deployment_summary.html')
+
+
+        # print(help(Loader.get_template))
+        # my_template = Loader.get_template('deployment_summary.html')
+        # print('---mt---', my_template)
+
+
+
+        # Take 2: Generate summary from a template.
+        # Render template with any information necessary.
+        context = {'name': 'eric'}
+
+        from django.template.loader import render_to_string
+        rendered_string = render_to_string('deployment_summary.html', context)
+
+        path = self.sd.log_dir_path / 'deployment_summary.html'
+        path.write_text(rendered_string)
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)
-
         return path
