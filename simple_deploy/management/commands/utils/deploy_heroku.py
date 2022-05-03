@@ -6,6 +6,9 @@ from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
+from django.template.engine import Engine
+from django.template.loaders.app_directories import Loader
+from django.template.loader import render_to_string
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
@@ -490,28 +493,20 @@ class HerokuDeployer:
             self.found_heroku_settings = True
 
     def _generate_summary(self):
-        """Generate the friendly summary, which is html for now."""
-        # Generate the summary file.
-        # Returns the path to the summary html file.
-
-        from django.template.engine import Engine
-        current_engine = Engine.get_default()
-        print('ce', current_engine)
-
-        from django.template.loaders.app_directories import Loader
-        my_loader = Loader(current_engine)
+        """Generate the friendly summary, which is html for now.
+        Returns the path to the summary html file.
+        """
+        my_loader = Loader(Engine.get_default())
         my_template = my_loader.get_template('deployment_summary.html')
 
-
-        # Render template with any information necessary.
+        # Build context dict for template.
         context = {'name': 'eric'}
 
-        from django.template.loader import render_to_string
-        rendered_string = render_to_string('deployment_summary.html', context)
+        template_string = render_to_string('deployment_summary.html', context)
 
         path = self.sd.log_dir_path / 'deployment_summary.html'
-        path.write_text(rendered_string)
+        path.write_text(template_string)
 
-        msg = f"\n  Generated friendly summary: {path}"
+        msg = f"\n  Generated friendly deployment summary: {path}"
         self.sd.write_output(msg)
         return path
