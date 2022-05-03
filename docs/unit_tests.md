@@ -66,3 +66,5 @@ To do this, we'll probably need a main test file that specifies an order for the
 ```
 
 Pytest should offer a number of ways to do this efficiently.
+
+Also, this document should explain how the unit tests are built. See [#62](https://github.com/ehmatthes/django-simple-deploy/issues/62) for this information.
