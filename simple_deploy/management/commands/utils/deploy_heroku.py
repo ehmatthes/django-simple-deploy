@@ -506,7 +506,7 @@ class HerokuDeployer:
             'heroku_app_name': self.heroku_app_name,
             }
 
-        template_string = render_to_string('deployment_summary_2.html', context)
+        template_string = render_to_string('deployment_summary.html', context)
 
         path = self.sd.log_dir_path / 'deployment_summary.html'
         path.write_text(template_string)
