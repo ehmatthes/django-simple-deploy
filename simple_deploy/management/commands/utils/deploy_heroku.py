@@ -1,6 +1,6 @@
 """Manages all Heroku-specific aspects of the deployment process."""
 
-import sys, os, re, subprocess
+import sys, os, re, subprocess, webbrowser
 
 from django.conf import settings
 from django.core.management.base import CommandError
@@ -67,9 +67,11 @@ class HerokuDeployer:
 
         if confirmed.lower() in ('y', 'yes'):
             self.sd.write_output("  Running `heroku create`...")
-            cmd = 'heroku create'
-            output = self.sd.execute_subp_run(cmd)
-            self.sd.write_output(output)
+            # Don't actually run this if testing locally.
+            if not self.sd.local_test:
+                cmd = 'heroku create'
+                output = self.sd.execute_subp_run(cmd)
+                self.sd.write_output(output)
         else:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
@@ -378,6 +380,10 @@ class HerokuDeployer:
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
 
+        # Don't do any of the rest if we're testing locally.
+        if self.sd.local_test:
+            return
+
         # Push current local branch to Heroku main branch.
         # This process usually takes a minute or two, which is longer than we
         #   want users to wait for console output. So rather than capturing
@@ -417,7 +423,11 @@ class HerokuDeployer:
           followup steps they can take, for example making a second push, or
           changing the URL of the deployed app.
         """
-        self._generate_summary()
+        summary_html_path = self._generate_summary()
+
+        # Open in browser.
+        summary_url = summary_html_path.as_uri()
+        webbrowser.open(summary_url)
 
 
     def _show_success_message(self):
@@ -482,6 +492,7 @@ class HerokuDeployer:
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
         # Generate the summary file.
+        # Returns the path to the summary html file.
         path = self.sd.log_dir_path / 'deployment_summary.html'
 
         summary_str = "<h2>Understanding your deployment</h2>"
@@ -489,3 +500,5 @@ class HerokuDeployer:
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)
+
+        return path
