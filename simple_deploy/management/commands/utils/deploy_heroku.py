@@ -500,7 +500,11 @@ class HerokuDeployer:
         my_template = my_loader.get_template('deployment_summary.html')
 
         # Build context dict for template.
-        context = {'name': 'eric'}
+        project_url = f"https://{self.heroku_app_name}.herokuapp.com"
+        context = {
+            'project_url': project_url,
+            'heroku_app_name': self.heroku_app_name,
+            }
 
         template_string = render_to_string('deployment_summary.html', context)
 
