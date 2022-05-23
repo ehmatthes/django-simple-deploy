@@ -36,6 +36,7 @@ class PlatformshDeployer:
         self.sd._add_simple_deploy_req()
         self._get_platformsh_settings()
         self._generate_platform_app_yaml()
+        self._add_gunicorn()
         sys.exit()
 
 
@@ -43,7 +44,7 @@ class PlatformshDeployer:
         self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
-        self._add_gunicorn()
+
         self._check_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
@@ -76,91 +77,6 @@ class PlatformshDeployer:
             # Quit and invite the user to try another platform.
             self.stdout.write(plsh_msgs.cancel_plsh)
             sys.exit()
-
-
-    def _prep_automate_all(self):
-        """Do intial work for automating entire process."""
-        # This is platform-specific, because we want to specify exactly what
-        #   will be automated.
-
-        # Skip this prep work if --automate-all not used.
-        if not self.sd.automate_all:
-            return
-
-        # Confirm the user knows exactly what will be automated.
-        self.sd.write_output(dh_msgs.confirm_automate_all)
-
-        # Get confirmation.
-        confirmed = ''
-        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-            prompt = "\nAre you sure you want to do this? (yes|no) "
-            self.sd.write_output(prompt)
-            confirmed = input()
-            self.sd.write_output(confirmed, write_to_console=False)
-
-            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-                self.sd.write_output("  Please answer yes or no.")
-
-        if confirmed.lower() in ('y', 'yes'):
-            self.sd.write_output("  Running `heroku create`...")
-            cmd = 'heroku create'
-            output = self.sd.execute_subp_run(cmd)
-            self.sd.write_output(output)
-        else:
-            # Quit and have the user run the command again; don't assume not
-            #   wanting to automate means they want to configure.
-            self.sd.write_output(d_msgs.cancel_automate_all)
-            sys.exit()
-
-
-    def _get_heroku_app_info(self):
-        """Get info about the Heroku app we're pushing to."""
-        # We assume the user has already run 'heroku create', or --automate-all
-        #   has run it. If it hasn't been run, we'll quit and tell them to do so.
-
-        # DEV: The testing approach here should be improved. We should be able
-        #   to easily test for a failed apps:info call. Also, probably want
-        #   to mock the output of apps:info rather than directly setting
-        #   heroku_app_name.
-        if self.sd.local_test:
-            self.heroku_app_name = 'sample-name-11894'
-        else:
-            self.sd.write_output("  Inspecting Heroku app...")
-            cmd = 'heroku apps:info'
-            apps_info = self.sd.execute_subp_run(cmd)
-            self.sd.write_output(apps_info)
-
-            # Turn stdout info into a list of strings that we can then parse.
-            #   If no app exists, stdout is empty and the output went to stderr.
-            apps_info = apps_info.stdout.decode().split('\n')
-            # DEV: Use this code when we can require Python >=3.9.
-            # self.heroku_app_name = apps_info[0].removeprefix('=== ')
-            self.heroku_app_name = apps_info[0].replace('=== ', '')
-
-        if self.heroku_app_name:
-            self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
-        else:
-            # Let user know they need to run `heroku create`.
-            self.sd.write_output(dh_msgs.no_heroku_app_detected,
-                write_to_console=False)
-            raise CommandError(dh_msgs.no_heroku_app_detected)
-
-
-    def _set_heroku_env_var(self):
-        """Set a config var to indicate when we're in the Heroku environment.
-        This is mostly used to modify settings for the deployed project.
-        """
-
-        # Skip this entirely when unit testing.
-        if self.sd.local_test:
-            return
-
-        self.sd.write_output("  Setting Heroku environment variable...")
-        cmd = 'heroku config:set ON_HEROKU=1'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set ON_HEROKU=1.")
-        self.sd.write_output("    This is used to define Heroku-specific settings.")
 
 
     def _get_platformsh_settings(self):
@@ -213,32 +129,6 @@ class PlatformshDeployer:
             return path
 
 
-
-
-
-    def _generate_procfile(self):
-        """Create Procfile, if none present."""
-
-        #   Procfile should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Procfile...")
-        procfile_present = 'Procfile' in os.listdir(self.sd.git_path)
-
-        if procfile_present:
-            self.sd.write_output("    Found existing Procfile.")
-        else:
-            self.sd.write_output("    No Procfile found. Generating Procfile...")
-            if self.sd.nested_project:
-                proc_command = f"web: gunicorn {self.sd.project_name}.{self.sd.project_name}.wsgi --log-file -"
-            else:
-                proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
-
-            with open(f"{self.sd.git_path}/Procfile", 'w') as f:
-                f.write(proc_command)
-
-            self.sd.write_output("    Generated Procfile with following process:")
-            self.sd.write_output(f"      {proc_command}")
-
-
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.sd.write_output("\n  Looking for gunicorn...")
@@ -247,6 +137,36 @@ class PlatformshDeployer:
             self.sd._add_req_txt_pkg('gunicorn')
         elif self.sd.using_pipenv:
             self.sd._add_pipenv_pkg('gunicorn')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ------------- OLD HEROKU STUFF ------------
+# Remove after modifying for platformsh.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     def _check_allowed_hosts(self):
