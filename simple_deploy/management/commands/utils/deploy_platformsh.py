@@ -31,6 +31,7 @@ class PlatformshDeployer:
 
         self._confirm_preliminary()
         self.sd._add_simple_deploy_req()
+        self._get_platformsh_settings()
         sys.exit()
 
 
@@ -38,7 +39,6 @@ class PlatformshDeployer:
         self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
-        self._get_heroku_settings()
         self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
@@ -160,23 +160,27 @@ class PlatformshDeployer:
         self.sd.write_output("    This is used to define Heroku-specific settings.")
 
 
-    def _get_heroku_settings(self):
-        """Get any heroku-specific settings that are already in place.
+    def _get_platformsh_settings(self):
+        """Get any platformsh-specific settings that are already in place.
         """
-        # If any heroku settings have already been written, we don't want to
+        # If any platformsh settings have already been written, we don't want to
         #  add them again. This assumes a section at the end, starting with a
         #  check for 'ON_HEROKU' in os.environ.
 
         with open(self.sd.settings_path) as f:
             settings_lines = f.readlines()
 
-        self.found_heroku_settings = False
-        self.current_heroku_settings_lines = []
+        self.found_platformsh_settings = False
+        self.current_platformsh_settings_lines = []
         for line in settings_lines:
-            if "if 'ON_HEROKU' in os.environ:" in line:
-                self.found_heroku_settings = True
-            if self.found_heroku_settings:
-                self.current_heroku_settings_lines.append(line)
+            if "if config.is_valid_platform():" in line:
+                self.found_platformsh_settings = True
+            if self.found_platformsh_settings:
+                self.current_platformsh_settings_lines.append(line)
+
+        # DEV: Remove these lines.
+        print('--- platformsh settings: ---')
+        print(self.current_platformsh_settings_lines)
 
 
     def _generate_procfile(self):
