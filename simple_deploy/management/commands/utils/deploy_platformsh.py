@@ -10,6 +10,9 @@ from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
+from django.template.engine import Engine
+from django.template.loaders.app_directories import Loader
+from django.template.loader import render_to_string
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
@@ -32,6 +35,7 @@ class PlatformshDeployer:
         self._confirm_preliminary()
         self.sd._add_simple_deploy_req()
         self._get_platformsh_settings()
+        self._generate_platform_app_yaml()
         sys.exit()
 
 
@@ -39,7 +43,6 @@ class PlatformshDeployer:
         self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
-        self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
         self._configure_db()
@@ -181,6 +184,36 @@ class PlatformshDeployer:
         # DEV: Remove these lines.
         print('--- platformsh settings: ---')
         print(self.current_platformsh_settings_lines)
+
+
+    def _generate_platform_app_yaml(self):
+        """Create .platform.app.yaml file, if not present."""
+
+        # File should be in project root, if present.
+        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for .platform.app.yaml file...")
+        p_app_yaml_present = '.platform.app.yaml' in os.listdir(self.sd.git_path)
+
+        if p_app_yaml_present:
+            self.sd.write_output("    Found existing .platform.app.yaml file.")
+        else:
+            # Generate file from template.
+            self.sd.write_output("    No .platform.app.yaml file found. Generating file...")
+            my_loader = Loader(Engine.get_default())
+            my_template = my_loader.get_template('platform.app.yaml')
+
+            # Build context dict for template.
+            context = {'project_name': self.sd.project_name}
+            template_string = render_to_string('platform.app.yaml', context)
+
+            path = self.sd.project_root / '.platform.app.yaml'
+            path.write_text(template_string)
+
+            msg = f"\n    Generated .platform.app.yaml file: {path}"
+            self.sd.write_output(msg)
+            return path
+
+
+
 
 
     def _generate_procfile(self):
