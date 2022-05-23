@@ -37,15 +37,12 @@ class PlatformshDeployer:
         self._get_platformsh_settings()
         self._generate_platform_app_yaml()
         self._add_gunicorn()
+        self._add_platformshconfig()
+        self._check_allowed_hosts()
+
         sys.exit()
 
 
-
-        self._prep_automate_all()
-        self._get_heroku_app_info()
-        self._set_heroku_env_var()
-
-        self._check_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
         self._configure_debug()
@@ -129,6 +126,16 @@ class PlatformshDeployer:
             return path
 
 
+    def _add_platformshconfig(self):
+        """Add platformshconfig to project requirements."""
+        self.sd.write_output("\n  Looking for platformshconfig...")
+
+        if self.sd.using_req_txt:
+            self.sd._add_req_txt_pkg('platformshconfig')
+        elif self.sd.using_pipenv:
+            self.sd._add_pipenv_pkg('platformshconfig')
+
+
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.sd.write_output("\n  Looking for gunicorn...")
@@ -139,7 +146,65 @@ class PlatformshDeployer:
             self.sd._add_pipenv_pkg('gunicorn')
 
 
+    def _check_allowed_hosts(self):
+        """Make sure project can be served from platformsh."""
+        # This method is specific to platformsh.
 
+        self.sd.write_output("\n  Making sure project can be served from platform.sh...")
+
+        # DEV: Configure an ALLOWED_HOSTS entry that's specific to this deployment.
+        # Use '*' for now, to focus on more specific aspects of platformsh deployment.
+        platformsh_host = '*'
+
+        if platformsh_host in settings.ALLOWED_HOSTS:
+            self.sd.write_output(f"    Found {platformsh_host} in ALLOWED_HOSTS.")
+        else:
+            new_setting = f"ALLOWED_HOSTS.append('{platformsh_host}')"
+            msg_added = f"    Added {platformsh_host} to ALLOWED_HOSTS for the deployed project."
+            msg_already_set = f"    Found {platformsh_host} in ALLOWED_HOSTS for the deployed project."
+            self._add_platformsh_setting(new_setting, msg_added, msg_already_set)
+
+
+    # --- Utility methods ---
+
+    def _check_current_platformsh_settings(self, platformsh_setting):
+        """Check if a setting has already been defined in the platformsh-specific
+        settings section.
+        """
+        return any(platformsh_setting in line for line in self.current_platformsh_settings_lines)
+
+
+    def _add_platformsh_setting(self, new_setting, msg_added='',
+            msg_already_set=''):
+        """Add a new setting to the platformsh-specific settings, if not already
+        present.
+        """
+        already_set = self._check_current_platformsh_settings(new_setting)
+        if not already_set:
+            with open(self.sd.settings_path, 'a') as f:
+                self._prep_platformsh_setting(f)
+                f.write(f"\n    {new_setting}")
+                self.sd.write_output(msg_added)
+        else:
+            self.sd.write_output(msg_already_set)
+
+
+    def _prep_platformsh_setting(self, f_settings):
+        """Add a block for Platformsh-specific settings, if it doesn't already
+        exist.
+        """
+        if not self.found_platformsh_settings:
+            # DEV: Should check if `import os` already exists in settings file.
+            # DEV: Use a template or block string to write this section.
+            f_settings.write("\n\n# platform.sh settings")
+            f_settings.write("\nimport os")
+            f_settings.write("\nfrom platformshconfig import Config")
+            f_settings.write("\n\n# Import some platform.sh settings from environment.")
+            f_settings.write("\nconfig = Config()")
+            f_settings.write("\nif config.is_valid_platform():")
+
+            # Won't need to add these lines anymore.
+            self.found_platformsh_settings = True
 
 
 
@@ -169,23 +234,7 @@ class PlatformshDeployer:
 
 
 
-    def _check_allowed_hosts(self):
-        """Make sure project can be served from heroku."""
-        # This method is specific to Heroku.
 
-        self.sd.write_output("\n  Making sure project can be served from Heroku...")
-        heroku_host = f"{self.heroku_app_name}.herokuapp.com"
-
-        if heroku_host in settings.ALLOWED_HOSTS:
-            self.sd.write_output(f"    Found {heroku_host} in ALLOWED_HOSTS.")
-        elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
-            # This is a generic entry that allows serving from any heroku URL.
-            self.sd.write_output("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
-        else:
-            new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
-            msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
-            msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
-            self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
 
     def _configure_db(self):
@@ -433,49 +482,4 @@ class PlatformshDeployer:
         self.sd.write_output(msg)
 
 
-    # --- Utility methods ---
 
-    def _check_current_heroku_settings(self, heroku_setting):
-        """Check if a setting has already been defined in the heroku-specific
-        settings section.
-        """
-        return any(heroku_setting in line for line in self.current_heroku_settings_lines)
-
-
-    def _add_heroku_setting(self, new_setting, msg_added='',
-            msg_already_set=''):
-        """Add a new setting to the heroku-specific settings, if not already
-        present.
-        """
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.sd.settings_path, 'a') as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-                self.sd.write_output(msg_added)
-        else:
-            self.sd.write_output(msg_already_set)
-
-
-    def _prep_heroku_setting(self, f_settings):
-        """Add a block for Heroku-specific settings, if it doesn't already
-        exist.
-        """
-        if not self.found_heroku_settings:
-            # DEV: Should check if `import os` already exists in settings file.
-            f_settings.write("\nimport os")
-            f_settings.write("\nif 'ON_HEROKU' in os.environ:")
-
-            # Won't need to add these lines anymore.
-            self.found_heroku_settings = True
-
-    def _generate_summary(self):
-        """Generate the friendly summary, which is html for now."""
-        # Generate the summary file.
-        path = self.sd.log_dir_path / 'deployment_summary.html'
-
-        summary_str = "<h2>Understanding your deployment</h2>"
-        path.write_text(summary_str)
-
-        msg = f"\n  Generated friendly summary: {path}"
-        self.sd.write_output(msg)
