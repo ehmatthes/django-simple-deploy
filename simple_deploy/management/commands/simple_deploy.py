@@ -17,6 +17,7 @@ from django.conf import settings
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
 from simple_deploy.management.commands.utils.deploy_azure import AzureDeployer
+from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
 
 
 class Command(BaseCommand):
@@ -107,6 +108,7 @@ class Command(BaseCommand):
         """Find out which platform we're targeting, and call the appropriate
         platform-specific script.
         """
+        # DEV: This can be simplified using if self.platform in (target platforms)
         if self.platform == 'heroku':
             self.write_output("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
@@ -115,6 +117,10 @@ class Command(BaseCommand):
             self.write_output("  Targeting Azure deployment...")
             ad = AzureDeployer(self)
             ad.deploy()
+        elif self.platform == 'platform_sh':
+            self.write_output("  Targeting platform.sh deployment...")
+            pl_sh = PlatformshDeployer(self)
+            pl_sh.deploy()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             self.write_output(error_msg, write_to_console=False)
