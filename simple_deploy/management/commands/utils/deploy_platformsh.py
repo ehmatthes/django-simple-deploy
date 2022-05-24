@@ -43,9 +43,10 @@ class PlatformshDeployer:
         self._add_platformshconfig()
         self._add_gunicorn()
         self._add_psycopg2()
-        
+
         self._check_allowed_hosts()
         
+        # DEV: These could be refactored.
         self._make_platform_dir()
         self._generate_routes_yaml()
         self._generate_services_yaml()
@@ -201,7 +202,29 @@ class PlatformshDeployer:
 
     def _generate_routes_yaml(self):
         """Generate the .platform/routes.yaml file, if not present."""
-        pass
+
+        # File should be in self.platform_dir_path, if present.
+        self.sd.write_output(f"\n  Looking in {self.platform_dir_path} for routes.yaml file...")
+        routes_yaml_present = 'routes.yaml' in os.listdir(self.platform_dir_path)
+
+        if routes_yaml_present:
+            self.sd.write_output("    Found existing routes.yaml file.")
+        else:
+            # Generate file from template.
+            self.sd.write_output("    No routes.yaml file found. Generating file...")
+            my_loader = Loader(Engine.get_default())
+            my_template = my_loader.get_template('routes.yaml')
+
+            # Build context dict for template.
+            context = {'project_name': self.sd.project_name}
+            template_string = render_to_string('routes.yaml', context)
+
+            path = self.platform_dir_path / 'routes.yaml'
+            path.write_text(template_string)
+
+            msg = f"\n    Generated routes.yaml file: {path}"
+            self.sd.write_output(msg)
+            return path
 
 
     def _generate_services_yaml(self):

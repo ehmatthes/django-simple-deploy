@@ -1,0 +1,13 @@
+# The routes of the project.
+#
+# Each route describes how an incoming URL is going to be processed by Platform.sh.
+#
+# See https://docs.platform.sh/user_guide/reference/routes-yaml.html
+
+"https://{default}/":
+    type: upstream
+    upstream: "{{ project_name }}:http"
+
+"https://www.{default}/":
+    type: redirect
+    to: "https://{default}/"
