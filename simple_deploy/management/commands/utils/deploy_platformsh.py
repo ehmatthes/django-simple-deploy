@@ -5,6 +5,7 @@
 #  Internally, we won't use a space, ie platformsh or plsh.
 
 import sys, os, re, subprocess
+from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import CommandError
@@ -13,6 +14,7 @@ from django.utils.crypto import get_random_string
 from django.template.engine import Engine
 from django.template.loaders.app_directories import Loader
 from django.template.loader import render_to_string
+from django.utils.safestring import mark_safe
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
@@ -34,7 +36,8 @@ class PlatformshDeployer:
 
         self._confirm_preliminary()
         self.sd._add_simple_deploy_req()
-        self._get_platformsh_settings()
+
+        self._add_platformsh_settings()
 
         # DEV: Group this with later yaml generation methods.
         self._generate_platform_app_yaml()
@@ -44,8 +47,6 @@ class PlatformshDeployer:
         self._add_gunicorn()
         self._add_psycopg2()
 
-        self._check_allowed_hosts()
-        
         # DEV: These could be refactored.
         self._make_platform_dir()
         self._generate_routes_yaml()
@@ -85,6 +86,44 @@ class PlatformshDeployer:
             # Quit and invite the user to try another platform.
             self.stdout.write(plsh_msgs.cancel_plsh)
             sys.exit()
+
+
+    def _add_platformsh_settings(self):
+        """Add platformsh-specific settings."""
+        # The only project-specific setting is the ALLOWED_HOSTS; that makes
+        #   modifying settings *much* easier than for other platforms.
+        #   Just check if the settings are present, and if not, dump them in.
+
+        # DEV: Modify this to make a more specific ALLOWED_HOSTS entry.
+        #   For now, at proof of concept stage, it's just '*'.
+
+        self.sd.write_output("\n  Checking if platform.sh-specific settings present in settings.py...")
+
+        with open(self.sd.settings_path) as f:
+            settings_string = f.read()
+
+        if 'if config.is_valid_platform():' in settings_string:
+            self.sd.write_output("\n    Found platform.sh settings block in settings.py.")
+            return
+
+        # Add platformsh settings block.
+        # This comes from a template, which will make it easier to modify things
+        #   like ALLOWED_HOSTS. This approach may work better for other platforms
+        #   as well.
+        self.sd.write_output("    No platform.sh settings found in settings.py; adding settings...")
+        my_loader = Loader(Engine.get_default())
+        my_template = my_loader.get_template('platformsh_settings.py')
+
+        # Build context dict for template.
+        safe_settings_string = mark_safe(settings_string)
+        context = {'current_settings': safe_settings_string}
+        template_string = render_to_string('platformsh_settings.py', context)
+
+        path = Path(self.sd.settings_path)
+        path.write_text(template_string)
+
+        msg = f"    Modified settings.py file: {path}"
+        self.sd.write_output(msg)
 
 
     def _get_platformsh_settings(self):
