@@ -35,10 +35,16 @@ class PlatformshDeployer:
         self._confirm_preliminary()
         self.sd._add_simple_deploy_req()
         self._get_platformsh_settings()
+
+        # DEV: Group this with later yaml generation methods.
         self._generate_platform_app_yaml()
         self._add_gunicorn()
         self._add_platformshconfig()
         self._check_allowed_hosts()
+        
+        self._make_platform_dir()
+        self._generate_routes_yaml()
+        self._generate_services_yaml()
 
         sys.exit()
 
@@ -163,6 +169,31 @@ class PlatformshDeployer:
             msg_added = f"    Added {platformsh_host} to ALLOWED_HOSTS for the deployed project."
             msg_already_set = f"    Found {platformsh_host} in ALLOWED_HOSTS for the deployed project."
             self._add_platformsh_setting(new_setting, msg_added, msg_already_set)
+
+
+    def _make_platform_dir(self):
+        """Add a .platform directory, if it doesn't already exist."""
+
+        # Directory should be in project root, if present.
+        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for .platform/ directory...")
+
+        self.platform_dir_path = self.sd.git_path / '.platform'
+        if self.platform_dir_path.exists():
+            self.sd.write_output("    Found existing .platform/ directory.")
+        else:
+            self.platform_dir_path.mkdir()
+            self.sd.write_output(f"    Made .platform directory: {self.platform_dir_path}")
+
+
+    def _generate_routes_yaml(self):
+        """Generate the .platform/routes.yaml file, if not present."""
+        pass
+
+
+    def _generate_services_yaml(self):
+        """Generate the .platform/services.yaml file, if not present."""
+        pass
+
 
 
     # --- Utility methods ---
