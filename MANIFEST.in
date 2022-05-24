@@ -5,6 +5,12 @@ include simple_deploy/management/commands/simple_deploy.py
 include simple_deploy/management/commands/utils/__init__.py
 include simple_deploy/management/commands/utils/deploy_heroku.py
 include simple_deploy/management/commands/utils/deploy_azure.py
+include simple_deploy/management/commands/utils/deploy_platformsh.py
 include simple_deploy/management/commands/utils/deploy_messages.py
 include simple_deploy/management/commands/utils/deploy_messages_heroku.py
 include simple_deploy/management/commands/utils/deploy_messages_azure.py
+include simple_deploy/management/commands/utils/deploy_messages_platformsh.py
+include simple_deploy/templates/platform.app.yaml
+include simple_deploy/templates/routes.yaml
+include simple_deploy/templates/services.yaml
+include simple_deploy/templates/platformsh_settings.py
