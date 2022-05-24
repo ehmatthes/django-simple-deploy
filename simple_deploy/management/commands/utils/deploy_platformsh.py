@@ -38,8 +38,12 @@ class PlatformshDeployer:
 
         # DEV: Group this with later yaml generation methods.
         self._generate_platform_app_yaml()
-        self._add_gunicorn()
+
+        # DEV: These can be done in one pass.
         self._add_platformshconfig()
+        self._add_gunicorn()
+        self._add_psycopg2()
+        
         self._check_allowed_hosts()
         
         self._make_platform_dir()
@@ -150,6 +154,16 @@ class PlatformshDeployer:
             self.sd._add_req_txt_pkg('gunicorn')
         elif self.sd.using_pipenv:
             self.sd._add_pipenv_pkg('gunicorn')
+
+
+    def _add_psycopg2(self):
+        """Add psycopg2 to project requirements."""
+        self.sd.write_output("\n  Looking for psycopg2...")
+
+        if self.sd.using_req_txt:
+            self.sd._add_req_txt_pkg('psycopg2')
+        elif self.sd.using_pipenv:
+            self.sd._add_pipenv_pkg('psycopg2')
 
 
     def _check_allowed_hosts(self):
