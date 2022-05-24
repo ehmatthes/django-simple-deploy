@@ -3,6 +3,18 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
+0.3 - Supporting Heroku, Azure, & latform.sh
+
+### 0.3.0
+
+- Preliminary support for platform.sh
+    - If you have a platform.sh account, have installed the CLI, are using Git,
+    and have a `requirements.txt` file, running
+    `$ python manage.py simple_deploy --platform platform_sh`
+    should configure your project for deployment on Platform.sh.
+    - Then you'll need to commit changes, run `platform create`, and `platform push`.
+    - Project should open with `platform url`.
+
 0.2 - Supporting Heroku & Azure
 ---
 
