@@ -81,10 +81,16 @@ def test_log_dir(tmp_project):
 
     # There should be exactly one log file.
     log_files = sorted(log_path.glob('*'))
-    assert len(log_files) == 1
+    log_filenames = [lf.name for lf in log_files]
+    # Check for exactly the log files we expect to find.
+    assert 'deployment_summary.html' in log_filenames
+    # DEV: Add a regex text for a file like "simple_deploy_2022-07-09174245.log".
+    assert len(log_files) == 2
 
     # Read log file.
-    log_file = log_files[0]
+    # DEV: Look for specific log file; not sure this log file is always the second one.
+    #   We're looking for one similar to "simple_deploy_2022-07-09174245.log".
+    log_file = log_files[1]
     log_file_text = log_file.read_text()
 
     # Spot check for opening log messages.
