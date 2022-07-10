@@ -3,7 +3,17 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
-0.3 - Supporting Heroku, Azure, & latform.sh
+0.4 - Supporting Heroku & Platform.sh
+
+### 0.4.0
+
+- Removed support for Azure.
+  - See detailed rationale in [Stop supporting Azure](https://github.com/ehmatthes/django-simple-deploy/issues/83).
+  - Brief rationale: Focus django-simple-deploy on platforms like Heroku and Platform.sh where everything is contained in a single project, rather than a collection of services.
+  - May resume support at some point in the future, but the project needs to evolve further before resuming this support.
+  - Azure was used as a proof-of-concept to try supporting multiple platforms. Since then, I have had time to explore other platforms that are more suitable targets for django-simple-deploy.
+
+0.3 - Supporting Heroku, Azure, & Platform.sh
 
 ### 0.3.0
 
