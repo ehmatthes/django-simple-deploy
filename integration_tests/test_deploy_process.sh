@@ -27,16 +27,14 @@
 # d: Dependency management approach that's being tested.
 #    req_txt, poetry, pipenv
 # p: Platform to push to.
-#    heroku, azure
+#    heroku, _____
 # o: Options for the simple_deploy run.
 #    automate_all
-# s: Azure plan sku to use.
-#    F1, B1, S1, P1V2, P2V2
-#    See documentation of cli args for simple_deploy.py.
+
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./test_deploy_process.sh -t [pypi, development_version] -d [req_txt|poetry|pipenv] -p [heroku|azure] -s [F1|B1|S1|P1V2|P2V2]
+#  $ ./test_deploy_process.sh -t [pypi, development_version] -d [req_txt|poetry|pipenv] -p [heroku]
 
 
 # --- Process CLI arguments. ---
@@ -44,37 +42,24 @@
 target="development_version"
 dep_man_approach="req_txt"
 platform="heroku"
-azure_plan_sku="F1"
 
 # Options:
 # - test_automate_all
 cli_sd_options=""
 
-while getopts t:d:o:p:s: flag
+while getopts t:d:o:p: flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
         d) dep_man_approach=${OPTARG};;
         o) cli_sd_options=${OPTARG};;
         p) platform=${OPTARG};;
-        s) azure_plan_sku=${OPTARG};;
     esac
 done
 
 # Only one possibility for cli_sd_options right now.
 if [ "$cli_sd_options" = 'automate_all' ]; then
     test_automate_all=true
-fi
-
-
-# --- Exit if testing Azure without automate_all. ---
-
-if [ "$platform" = 'azure' ]; then
-    if [ "$cli_sd_options" != 'automate_all' ]; then
-        echo "*** Azure deployment only works with the --automate-all flag."
-        echo "*** You may want to run the test again with the \`-o automate_all\` option."
-        exit
-    fi
 fi
 
 
@@ -247,8 +232,9 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blo
 
 if [ "$platform" = 'heroku' ]; then
     source $script_dir/integration_tests/test_heroku_deployment.sh
-elif [ "$platform" = 'azure' ]; then
-    source $script_dir/integration_tests/test_azure_deployment.sh
+# DEV: Upcoming task to implement this test:
+# elif [ "$platform" = 'platformsh' ]; then
+#     source $script_dir/integration_tests/test_platformsh_deployment.sh
 else
     echo "  That platform is not supported."
 fi
