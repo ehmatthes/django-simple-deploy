@@ -9,7 +9,6 @@ Table of Contents
 - [All arguments](#all-arguments)
 - [Platform arguments](#platform-arguments)
     - [Deployment to Heroku](#deployment-to-heroku)
-    - [Deployment to Azure](#deployment-to-azure)
 - [Automation](#automation)
 - [Logging](#logging)    
 
@@ -21,8 +20,7 @@ The full list of arguments is shown here, with the default value listed first fo
 
 ```
 $ python manage.py simple_deploy
-    --platform [heroku|azure]
-    --azure-plan-sku [F1|B1|S1|P1V2|P2V2]
+    --platform [heroku|platform_sh]
     --automate-all
     --no-logging
 ```
@@ -30,7 +28,7 @@ $ python manage.py simple_deploy
 Platform arguments
 ---
 
-Right now, you can choose between two platforms: Heroku and Azure. Currently, development is focused on refining Heroku deployments; deployment to Azure is experimental.
+Right now, you can choose between two platforms: Heroku and Platform.sh.
 
 ### Deployment to Heroku
 
@@ -48,25 +46,9 @@ $ python manage.py simple_deploy --automate-all
 $ python manage.py simple_deploy --platform heroku --automate-all
 ```
 
-### Deployment to Azure
+### Deployment to Platform.sh
 
-Deployment to Azure is experimental. To deploy to Azure, you will need to specify the platform, and use the `--automate-all` flag:
-
-```
-$ python manage.py simple_deploy --platform azure --automate-all
-```
-
-If you run this command without the `--automate-all` flag, it will exit with a message to include the flag, and a brief explanation for why the flag is necessary.
-
-#### Azure plan arguments
-
-Azure seems to significantly impede the deployment process on the free plan at times. It can be beneficial to use a paid plan if you're trying Azure deployments. All Azure deployments incur a charge, because there is no free database offering on Azure. If you're experimenting with this, please make sure you understand Azure's billing process.
-
-The following command will deploy to the lowest level of the [Basic service plan](https://azure.microsoft.com/en-us/pricing/details/app-service/linux/):
-
-```
-$ python manage.py simple_deploy --platform azure --automate-all --azure-plan-sku B1
-```
+(Will be written shortly)
 
 Automation
 ---
