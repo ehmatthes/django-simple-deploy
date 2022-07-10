@@ -3,16 +3,16 @@ django-simple-deploy
 
 *Initial Django deployments made easy*
 
-This app gives you a management command that configures your project for an initial deployment. It targets Heroku and Azure at the moment, and can be expanded to target other platforms as well.
+This app gives you a management command that configures your project for an initial deployment. It targets [Heroku](https://heroku.com) and [Platform.sh](https://platform.sh) at the moment, and can be expanded to target other platforms as well.
 
 If you have a relatively simple Django project that runs locally, you can deploy your project in a few short steps. The only change you'll need to make to your project is to add this app to `INSTALLED_APPS`.
 
 ![Simplest example of how to use django-simple-deploy](https://raw.githubusercontent.com/ehmatthes/django-simple-deploy/main/assets/simplest_example.png)
 
-By default, the above command will deploy your project to Heroku. You can use the `--platform` argument to deploy to Azure instead:
+By default, the above command will deploy your project to Heroku. You can use the `--platform` argument to deploy to Platform.sh instead:
 
 ```
-$ python manage.py simple_deploy --automate-all --platform azure
+$ python manage.py simple_deploy --automate-all --platform platform_sh
 ```
 
 All output is captured and written to a log file stored in `simple_deploy_logs/`, which is placed at the project's root directory.
@@ -24,13 +24,12 @@ Table of Contents
     - [Cloud platform account](#cloud-platform-account)
     - [Use Git](#use-git)
     - [Identify dependencies](#identify-dependencies)
-- [Quick start: using `--automate-all` on Heroku or Azure](#quick-start-using---automate-all-on-heroku-or-azure)
+- [Quick start: using `--automate-all` on Heroku](#quick-start-using---automate-all-on-heroku)
 - [If it doesn't work](#if-it-doesnt-work)
 - [Understanding costs](#understanding-costs)
 - [Contributing](#contributing)
 - [Good luck, and please be mindful](#good-luck-and-please-be-mindful)
 - More about [Heroku deployments](docs/heroku_deployments.md)
-- More about [Azure deployments](docs/azure_deployments.md)
 - Additional [documentation](docs/)
 
 Prerequisites
@@ -41,7 +40,7 @@ Prerequisites
 If you haven't already done so, make an account on the platform you want to use, and install the appropriate CLI:
 
 - For Heroku deployments, install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
-- For Azure deployments, install the [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
+- For Platform.sh deployments, install the [Platform.sh CLI](https://docs.platform.sh/development/cli.html).
 
 ### Use Git
 
@@ -55,7 +54,7 @@ Make sure your project is running in a virtual environment, and you have either:
 - Or, used Poetry to manage your project's requirements using a `pyproject.toml` file;
 - Or, used Pipenv to create a `Pipfile`.
 
-Quick start: using `--automate-all` on Heroku or Azure
+Quick start: using `--automate-all` on Heroku
 ---
 
 The `--automate-all` flag allows you to deploy your project in just three steps:
@@ -66,15 +65,12 @@ The `--automate-all` flag allows you to deploy your project in just three steps:
 - Add `simple_deploy` to `INSTALLED_APPS`.
 - Run `simple_deploy`:
     - For a Heroku deployment: `python manage.py simple_deploy --automate-all`
-    - For an Azure deployment: `python manage.py simple_deploy --automate-all --platform azure`
 
 This will take care of creating a new app, configuring your project for deployment, committing all changes, pushing the project to your platform's servers, running the initial migration, and opening the project in a new browser tab.
 
-The default Heroku deployment should be free unless you already have more than the minimum allowed apps. The default Azure deployment uses a Postgres database that costs $0.034/hour ($24.82/month, as of 12/1/21).
+The default Heroku deployment should be free unless you already have more than the minimum allowed apps.
 
-Azure deployments can only be done with the `--automate-all` flag. If you don't automate everything, there's so much to do manually that it's not worth using `simple_deploy`.
-
-Read more about [Heroku deployments](docs/heroku_deployments.md), more about [Azure deployments](docs/azure_deployments.md), or see the [full set of CLI arguments](docs/cli_args.md).
+Read more about [Heroku deployments](docs/heroku_deployments.md), or see the [full set of CLI arguments](docs/cli_args.md).
 
 If it doesn't work
 ----
