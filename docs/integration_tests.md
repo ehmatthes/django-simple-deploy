@@ -7,8 +7,6 @@ My current get-something-up-and-running approach is to start in Bash to do the s
 
 If you want to run these tests, you'll need an account on the platform you're testing against. The test will create an app under your account, and it should prompt you to destroy that app if the test runs successfully. If the test script fails, it may exit before destroying some deployed resources. You should  verify that the app and any related resources were actually destroyed, especially if these resources will accrue charges on your account.
 
-*Note: Every Azure deployment will accrue charges, because it creates a Postgres database. There are no free Postgres databases that I'm aware of on Azure.*
-
 Table of Contents
 ---
 
@@ -18,7 +16,6 @@ Table of Contents
 - [Other testing options](#other-testing-options)
     - [Testing against Poetry](#testing-against-poetry)
 - [Testing other platforms](#testing-other-platforms)
-    - [Testing Azure deployments](#testing-azure-deployments)
 - [Don't modify testing script while running](#dont-modify-testing-script-while-running)
 
 Running the integration tests
@@ -59,7 +56,7 @@ Other testing options
 Here are all the flags and options for each flag. The first option listed for each flag is the default:
 
 ```
-./integration_tests/test_deploy_process.sh -t [development_version|pypi] -d [req_txt|poetry|pipenv] -p [heroku|azure] -o [automate_all] -s [F1|B1|S1|P1V2|P2V2]
+./integration_tests/test_deploy_process.sh -t [development_version|pypi] -d [req_txt|poetry|pipenv] -p [heroku] -o [automate_all]
 ```
 
 - `-t`: Target for testing.
@@ -67,12 +64,9 @@ Here are all the flags and options for each flag. The first option listed for ea
 - `-d`: Dependency management approach that's being tested.
     - `req_txt`, `poetry`, `pipenv`
 - `-p`: Platform to push to.
-    - `heroku`, `azure`
+    - `heroku`
 - `-o`: Options for the simple_deploy run.
     - `automate_all`
-- `-s`: Azure plan sku to use.
-    - `F1`, `B1`, `S1`, `P1V2`, `P2V2`
-    - See documentation of cli args in simple_deploy.py.
 
 ### Testing against Poetry
 
@@ -97,14 +91,6 @@ Testing other platforms
 ```
 $ ./integration_tests/test_deploy_process.sh -p heroku
 ```
-
-### Testing Azure deployments
-
-The results of a test deployment to Azure can be significantly impacted by the plan you're deploying to. The free plan has a limited number of CPU minutes, and if you're running low the push will just fail. Also, I believe Azure can limit CPU minutes further if they're seeing a higher load from other users.
-
-If you're seeing failures without a clear cause and you're using the default Azure plan (F1), consider testing against a paid plan. If you do this, it's your responsiblity to make sure resources created during test runs are actually destroyed.
-
-Also, be aware that every Azure deployment incurs a minimum cost. Database resources are charged at a minimum of 1 hour, so even if you destroy the resource immediately after the test runs, you'll incur a 1-hour charge for that database. Also, if you don't destroy the database, you'll have a set of databases running, each of which has a nontrivial cost if left running.
 
 Don't modify testing script while running
 ---

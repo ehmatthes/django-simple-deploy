@@ -16,7 +16,6 @@ from django.conf import settings
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
-from simple_deploy.management.commands.utils.deploy_azure import AzureDeployer
 from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
 
 
@@ -35,23 +34,6 @@ class Command(BaseCommand):
         parser.add_argument('--platform', type=str,
             help="Which platform do you want to deploy to?",
             default='heroku')
-
-        # Default is a free plan, so everyone trying a more expensive plan
-        #   is doing so explicitly.
-        # If you are testing deployments repeatedly, you'll probably run out
-        #   of free minutes.
-        # The D1 shared plan won't work, because this script requires a linux
-        #   appservice plan. Shared plans are Windows-only.
-        # I've been doing most of my testing using the P2V2 plan, which is 
-        #   $300/month. At $0.40/hr, my costs have been less than $5 after tens
-        #   of deployments, being vigilant about ensuring resources are destroyed
-        #   immediately after testing. For testing, also consider:
-        #      P1V2, S1, B1.
-        # Prices described here are current as of 12/1/2021.
-        # See plans at: https://azure.microsoft.com/en-us/pricing/details/app-service/linux/
-        parser.add_argument('--azure-plan-sku', type=str,
-            help="Which plan sku should be used when creating Azure resources?",
-            default='F1')
 
         # Allow users to skip logging.
         parser.add_argument('--no-logging',
@@ -79,7 +61,6 @@ class Command(BaseCommand):
         """Parse cli options."""
         self.automate_all = options['automate_all']
         self.platform = options['platform']
-        self.azure_plan_sku = options['azure_plan_sku']
         # This is a True-to-disable option; turn it into a more intuitive flag.
         self.log_output = not(options['no_logging'])
         self.local_test = options['local_test']
@@ -113,10 +94,6 @@ class Command(BaseCommand):
             self.write_output("  Targeting Heroku deployment...")
             hd = HerokuDeployer(self)
             hd.deploy()
-        elif self.platform == 'azure':
-            self.write_output("  Targeting Azure deployment...")
-            ad = AzureDeployer(self)
-            ad.deploy()
         elif self.platform == 'platform_sh':
             self.write_output("  Targeting platform.sh deployment...")
             pl_sh = PlatformshDeployer(self)
