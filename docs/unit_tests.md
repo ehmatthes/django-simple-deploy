@@ -11,7 +11,7 @@ This all takes about 13 seconds currently; most of that time is spent building t
 
 There is some testing cruft written into the main project. For example, we check for the `--local-test` flag, and skip some network calls such as setting Heroku environment variables.
 
-If you have suggestions for how to improve the overall structure of these unit tests, or speed them up in any way, please open an issue or send an email and I will be happy to hear your thoughts. I'm sure someone with deeper Django, deployment, and Pytest experience than I have could improve on what I have started. That said, these tests are a good start at making sure ongoing development does not break current behavior.
+If you have suggestions for how to improve the overall structure of these unit tests, or speed them up in any way, please open an issue or send an email and I will be happy to hear your thoughts. I'm sure someone with deeper Django, deployment, and pytest experience than I have could improve on what I have started. That said, these tests are a good start at making sure ongoing development does not break current behavior.
 
 Table of Contents
 ---
