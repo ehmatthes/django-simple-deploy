@@ -9,10 +9,10 @@ If you have a relatively simple Django project that runs locally, you can deploy
 
 ![Simplest example of how to use django-simple-deploy](https://raw.githubusercontent.com/ehmatthes/django-simple-deploy/main/assets/simplest_example.png)
 
-By default, the above command will deploy your project to Heroku. You can use the `--platform` argument to deploy to Platform.sh instead:
+The above command will deploy your project to Heroku. To deploy to Platform.sh, just change the `--platform` argument:
 
 ```
-$ python manage.py simple_deploy --automate-all --platform platform_sh
+$ python manage.py simple_deploy --platform platform_sh
 ```
 
 All output is captured and written to a log file stored in `simple_deploy_logs/`, which is placed at the project's root directory.
