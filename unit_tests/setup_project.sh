@@ -46,4 +46,6 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blo
 # How mock this call? Need to get output for `heroku apps:info`.
 
 # Run configuration-only version of simple_deploy.
-python manage.py simple_deploy --local-test --platform heroku
+# DEV: Trying to move this call to conftest, in order to test invalid
+#   versions of this command.
+# python manage.py simple_deploy --local-test --platform heroku

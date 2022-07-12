@@ -22,5 +22,10 @@ def tmp_project(tmpdir_factory):
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
+    # Call simple_deploy here, so we can test results of invalid calls.
+    cmd = f"sh call_sd_heroku.sh -d {tmp_proj_dir}"
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
+
     # Return the location of the temp project.
     return tmp_proj_dir
