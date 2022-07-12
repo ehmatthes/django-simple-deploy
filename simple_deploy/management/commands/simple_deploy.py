@@ -33,7 +33,7 @@ class Command(BaseCommand):
 
         parser.add_argument('--platform', type=str,
             help="Which platform do you want to deploy to?",
-            default='heroku')
+            default='')
 
         # Allow users to skip logging.
         parser.add_argument('--no-logging',
@@ -65,6 +65,8 @@ class Command(BaseCommand):
         self.log_output = not(options['no_logging'])
         self.local_test = options['local_test']
 
+        self._validate_command()
+
         if self.log_output:
             self._start_logging()
             # Log the options used for this run.
@@ -82,7 +84,15 @@ class Command(BaseCommand):
         else:
             self.write_output("Only configuring for deployment...")
 
-        self._check_platform()        
+        self._check_platform()
+
+
+    def _validate_command(self):
+        """Make sure the command has been called with a valid set of arguments.
+        """
+        if not self.platform:
+            self.write_output(d_msgs.requires_platform_flag, write_to_console=False)
+            raise CommandError(d_msgs.requires_platform_flag)
 
 
     def _check_platform(self):
