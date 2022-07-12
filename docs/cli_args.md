@@ -20,7 +20,7 @@ The full list of arguments is shown here, with the default value listed first fo
 
 ```
 $ python manage.py simple_deploy
-    --platform [heroku|platform_sh]
+    --platform [heroku|platform_sh]    # required
     --automate-all
     --no-logging
 ```
@@ -32,23 +32,27 @@ Right now, you can choose between two platforms: Heroku and Platform.sh.
 
 ### Deployment to Heroku
 
-These two commands are identical. They will configure the project for deployment to Heroku, but you will need to run some git commands:
+This command will configure the project for deployment to Heroku, but you will need to run some git commands:
 
 ```
-$ python manage.py simple_deploy
 $ python manage.py simple_deploy --platform heroku
 ```
 
-These two commands are identical; they will automate the entire process of pushing to Heroku, once you have installed django-simple-deploy and added simple_deploy to `INSTALLED_APPS`:
+This command will automate the entire process of pushing to Heroku, once you have installed django-simple-deploy and added simple_deploy to `INSTALLED_APPS`:
 
 ```
-$ python manage.py simple_deploy --automate-all
-$ python manage.py simple_deploy --platform heroku --automate-all
+$ python manage.py simple_deploy --automate-all --platform heroku
 ```
 
 ### Deployment to Platform.sh
 
-(Will be written shortly)
+This command will configure your project for deployment to Platform.sh:
+
+```
+$ python manage.py simple_deploy --platform platform_sh
+```
+
+The `--automate-all` flag is not yet supported for Platform.sh.
 
 Automation
 ---
@@ -56,7 +60,7 @@ Automation
 By default, simple_deploy configures your project for deployment but leaves it to you to actually push the project. If you want to have simple_deploy do everything for you, include the `--automate-all` flag:
 
 ```
-$ python manage.py simple_deploy --automate-all
+$ python manage.py simple_deploy --automate-all --platform heroku
 ```
 
 For more information about what `--automate-all` does for you, see the section "Configuration-only use" on the [Heroku documentation](heroku_deployments.md) page.
@@ -69,5 +73,5 @@ By default, simple_deploy generates a log file that's stored in a `simple_deploy
 If you want to disable logging, you can do so with the `--no-logging` flag:
 
 ```
-$ python manage.py simple_deploy --no-logging
+$ python manage.py simple_deploy --no-logging --platform platform_name
 ```
