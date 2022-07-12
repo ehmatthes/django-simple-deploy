@@ -5,6 +5,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 0.4 - Supporting Heroku & Platform.sh
 
+### 0.4.2
+
+- Requires `--platform` flag.
+    - There's no reason to have a default platform; deployment is a significant enough step that users should have a specific deployment target in mind. If the `--platform` flag is omitted, exit with a message displaying a list of platforms that are supported.
+
 ### 0.4.1
 
 - Simplified MANIFEST.in
