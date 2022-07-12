@@ -5,6 +5,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 0.4 - Supporting Heroku & Platform.sh
 
+### 0.4.1
+
+- Simplified MANIFEST.in
+    - No user-facing changes, but built release to verify that changes don't break the release process.
+
 ### 0.4.0
 
 - Removed support for Azure.
