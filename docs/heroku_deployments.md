@@ -32,7 +32,7 @@ The following commands will deploy your project:
 
 ```
 (venv)$ heroku create
-(venv)$ python manage.py simple_deploy
+(venv)$ python manage.py simple_deploy --platform heroku
 (venv)$ git status                               # See what changes were made.
 (venv)$ git add .
 (venv)$ git commit -am "Configured project for deployment."
@@ -57,7 +57,7 @@ The following commands will deploy your project:
 
 ```
 (venv)$ heroku create
-(venv)$ python manage.py simple_deploy
+(venv)$ python manage.py simple_deploy --platform heroku
 (venv)$ git status                               # See what changes were made.
 (venv)$ git add .
 (venv)$ git commit -am "Configured project for deployment."
@@ -82,7 +82,7 @@ The following commands will deploy your project:
 
 ```
 (venv)$ heroku create
-(venv)$ python manage.py simple_deploy
+(venv)$ python manage.py simple_deploy --platform heroku
 (venv)$ git status                               # See what changes were made.
 (venv)$ pipenv lock                              # Update new dependencies.
 (venv)$ git add .
@@ -145,7 +145,7 @@ If you're using Poetry, `manage.py simple_deploy` will generate a `requirements.
 If you're using Pipenv, you'll need to regenerate your lock file after running `manage.py simple_deploy`. The `simple_deploy` command modifies your Pipfile, and if you try to push your project to Heroku without rebuilding the lock file it will complain about an out-of-date lock file. Your commands will look like this:
 
 ```
-(venv)$ python manage.py simple_deploy
+(venv)$ python manage.py simple_deploy --platform heroku
 (venv)$ git status
 (venv)$ pipenv lock
 (venv)$ git add .

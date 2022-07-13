@@ -22,5 +22,18 @@ def tmp_project(tmpdir_factory):
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
+    # Call invalid version of simple_deploy, to test the results before
+    #   making a valid call. This should error out, without changing project.
+    # DEV: Move this to a separate test function; test for specific error msg.
+    cmd = f"sh call_sd_no_platform.sh -d {tmp_proj_dir}"
+    cmd_parts = cmd.split()
+    result = subprocess.run(cmd_parts)
+    assert result.returncode == 1
+
+    # Call simple_deploy here, so we can test results of invalid calls.
+    cmd = f"sh call_sd_heroku.sh -d {tmp_proj_dir}"
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
+
     # Return the location of the temp project.
     return tmp_proj_dir
