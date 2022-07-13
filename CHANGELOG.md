@@ -5,6 +5,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 0.4 - Supporting Heroku & Platform.sh
 
+### 0.4.3
+
+- Refining support of Platform.sh:
+    - blah
+
 ### 0.4.2
 
 - Requires `--platform` flag.

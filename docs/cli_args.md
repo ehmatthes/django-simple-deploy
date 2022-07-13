@@ -9,6 +9,7 @@ Table of Contents
 - [All arguments](#all-arguments)
 - [Platform arguments](#platform-arguments)
     - [Deployment to Heroku](#deployment-to-heroku)
+    - [Deployment to Platform.sh](#deployment-to-platformsh)
 - [Automation](#automation)
 - [Logging](#logging)    
 
