@@ -11,7 +11,7 @@ import pytest
 @pytest.fixture(scope='module')
 def run_simple_deploy(tmp_project):
     # Call simple_deploy here, so it can target this module's platform.
-    cmd = f"sh call_sd_heroku.sh -d {tmp_project}"
+    cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p heroku"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
