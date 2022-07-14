@@ -23,9 +23,17 @@ def settings_text(tmp_project):
 
 # --- Test modifications to settings.py ---
 
-def test_creates_heroku_specific_settings_section(run_simple_deploy, settings_text):
-    """Verify there's a Heroku-specific settings section."""
+def test_creates_platformsh_specific_settings_section(run_simple_deploy, settings_text):
+    """Verify there's a Platform.sh-specific settings section."""
     assert "from platformshconfig import Config" in settings_text
 
-    # DEV: Does not seem to be calling simple_deploy --platform_sh
-    # Calling for heroku works, for platform_sh doesn't seem to.
+    # DEV: Read lines from platform.sh settings template, and make sure these
+    # lines are in the settings file. Remove whitespace from the lines before
+    # checking.
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parent.parent
+    path = sd_root_dir / 'simple_deploy/templates/platformsh_settings.py'
+    lines = path.read_text().splitlines()
+    for line in lines[4:]:
+        assert line.strip() in settings_text
