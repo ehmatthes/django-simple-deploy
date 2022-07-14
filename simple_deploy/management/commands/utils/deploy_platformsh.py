@@ -59,6 +59,10 @@ class PlatformshDeployer:
         """Deployment to platform.sh is in a preliminary state, and we need to be
         explicit about that.
         """
+        # Skip this confirmation when unit testing.
+        if self.sd.local_test:
+            return
+            
         # DEV: Much of this logic can be pulled into simple_deploy; it's used
         #   by any experimental Deployer class.
         self.stdout.write(plsh_msgs.confirm_preliminary)
