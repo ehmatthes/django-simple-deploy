@@ -7,9 +7,10 @@ import pytest
 
 @pytest.fixture(scope='module')
 def tmp_project(tmpdir_factory):
-    """Create a copy of the local sample project, and run simple_deploy
-    against this project. Most tests will examine how the project
-    was modified.
+    """Create a copy of the local sample project, so that platform-specific modules
+    can call simple_deploy.
+
+    Most tests will examine how the project was modified.
     """
 
     # Pause, or the tmpdir won't be usable.
