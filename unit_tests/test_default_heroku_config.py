@@ -14,7 +14,6 @@ def run_simple_deploy(tmp_project):
     cmd = f"sh call_sd_heroku.sh -d {tmp_project}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
-    # assert False
 
 @pytest.fixture(scope='module')
 def settings_text(tmp_project):

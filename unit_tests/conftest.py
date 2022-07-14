@@ -30,14 +30,5 @@ def tmp_project(tmpdir_factory):
     result = subprocess.run(cmd_parts)
     assert result.returncode == 1
 
-    # # Call simple_deploy here, so we can test results of invalid calls.
-    # cmd = f"sh call_sd_heroku.sh -d {tmp_proj_dir}"
-    # cmd_parts = cmd.split()
-    # subprocess.run(cmd_parts)
-
-    # Get name of calling script?
-    #   How know which platform to target?
-    #   Is this called once per test module?
-
     # Return the location of the temp project.
     return tmp_proj_dir
