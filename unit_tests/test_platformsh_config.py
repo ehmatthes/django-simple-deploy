@@ -25,9 +25,7 @@ def settings_text(tmp_project):
 
 def test_creates_platformsh_specific_settings_section(run_simple_deploy, settings_text):
     """Verify there's a Platform.sh-specific settings section."""
-    assert "from platformshconfig import Config" in settings_text
-
-    # DEV: Read lines from platform.sh settings template, and make sure these
+    # Read lines from platform.sh settings template, and make sure these
     # lines are in the settings file. Remove whitespace from the lines before
     # checking.
 
@@ -35,5 +33,5 @@ def test_creates_platformsh_specific_settings_section(run_simple_deploy, setting
     sd_root_dir = Path(__file__).parent.parent
     path = sd_root_dir / 'simple_deploy/templates/platformsh_settings.py'
     lines = path.read_text().splitlines()
-    for line in lines[4:]:
-        assert line.strip() in settings_text
+    for expected_line in lines[4:]:
+        assert expected_line.strip() in settings_text
