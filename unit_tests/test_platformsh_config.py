@@ -35,3 +35,19 @@ def test_creates_platformsh_specific_settings_section(run_simple_deploy, setting
     lines = path.read_text().splitlines()
     for expected_line in lines[4:]:
         assert expected_line.strip() in settings_text
+
+def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
+    """Verify that .platform.app.yaml is created correctly."""
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parent.parent
+    path_original = sd_root_dir / 'simple_deploy/templates/platform.app.yaml'
+    original_text = path_original.read_text()
+    path_generated = tmp_project / '.platform.app.yaml'
+    generated_text = path_generated.read_text(encoding='utf-8')
+    # Replace {{ project_name }} with test project name.
+    expected_text = original_text.replace('{{ project_name }}', 'blog')
+
+    assert generated_text == expected_text
+
+
