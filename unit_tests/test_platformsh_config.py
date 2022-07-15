@@ -41,13 +41,15 @@ def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parent.parent
+
+    # From the template, generate the expected file.
     path_original = sd_root_dir / 'simple_deploy/templates/platform.app.yaml'
     original_text = path_original.read_text()
-    path_generated = tmp_project / '.platform.app.yaml'
-    generated_text = path_generated.read_text(encoding='utf-8')
-    # Replace {{ project_name }} with test project name.
     expected_text = original_text.replace('{{ project_name }}', 'blog')
 
-    assert generated_text == expected_text
+    # Get the actual file from the modified test project.
+    path_generated = tmp_project / '.platform.app.yaml'
+    generated_text = path_generated.read_text(encoding='utf-8')
 
+    assert generated_text == expected_text
 
