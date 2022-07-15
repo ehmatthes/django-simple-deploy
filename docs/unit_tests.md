@@ -44,6 +44,8 @@ To run tests for a single platform, call `pytest` with the test file for the pla
 
 ```
 (dsd_env) django-simple-deploy/unit_tests $ pytest test_heroku_config.py
+# OR
+(dsd_env) django-simple-deploy/unit_tests $ pytest test_platformsh_config.py
 ```
 
 This will run only the tests for a single platform, which currently takes about 13-15 seconds.
