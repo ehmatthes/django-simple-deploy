@@ -53,3 +53,19 @@ def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
 
     assert generated_text == expected_text
 
+def test_routes_yaml_file(tmp_project, run_simple_deploy):
+    """Verify that .platform/routes.yaml file is correct."""
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parent.parent
+
+    # From the template, generate the expected file.
+    path_original = sd_root_dir / 'simple_deploy/templates/routes.yaml'
+    original_text = path_original.read_text()
+    expected_text = original_text.replace('{{ project_name }}', 'blog')
+
+    # Get the actual file from the modified test project.
+    path_generated = tmp_project / '.platform/routes.yaml'
+    generated_text = path_generated.read_text(encoding='utf-8')
+
+    assert generated_text == expected_text
