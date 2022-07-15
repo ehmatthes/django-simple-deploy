@@ -36,6 +36,9 @@ def test_creates_platformsh_specific_settings_section(run_simple_deploy, setting
     for expected_line in lines[4:]:
         assert expected_line.strip() in settings_text
 
+
+# --- Test Platform.sh yaml files ---
+
 def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
     """Verify that .platform.app.yaml is created correctly."""
 
@@ -69,3 +72,31 @@ def test_routes_yaml_file(tmp_project, run_simple_deploy):
     generated_text = path_generated.read_text(encoding='utf-8')
 
     assert generated_text == expected_text
+
+def test_services_yaml_file(tmp_project, run_simple_deploy):
+    """Verify that .platform/services.yaml file is correct."""
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parent.parent
+
+    # From the template, generate the expected file.
+    path_original = sd_root_dir / 'simple_deploy/templates/services.yaml'
+    # This file is the same for all projects.
+    expected_text = path_original.read_text()
+
+    # Get the actual file from the modified test project.
+    path_generated = tmp_project / '.platform/services.yaml'
+    generated_text = path_generated.read_text(encoding='utf-8')
+
+    assert generated_text == expected_text
+
+
+# --- Test requirements.txt ---
+
+def test_requirements_txt_file(tmp_project, run_simple_deploy):
+    """Test that the requirements.txt file is correct."""
+    rt_text = Path(tmp_project / 'requirements.txt').read_text()
+    assert "django-simple-deploy          # Added by simple_deploy command." in rt_text
+    assert "platformshconfig              # Added by simple_deploy command." in rt_text
+    assert "gunicorn                      # Added by simple_deploy command." in rt_text
+    assert "psycopg2                      # Added by simple_deploy command." in rt_text
