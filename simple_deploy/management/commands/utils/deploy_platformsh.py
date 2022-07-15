@@ -32,7 +32,7 @@ class PlatformshDeployer:
 
 
     def deploy(self, *args, **options):
-        self.sd.write_output("Configuring project for deployment to platform.sh...")
+        self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
         self.sd._add_simple_deploy_req()
@@ -62,7 +62,7 @@ class PlatformshDeployer:
         # Skip this confirmation when unit testing.
         if self.sd.local_test:
             return
-            
+
         # DEV: Much of this logic can be pulled into simple_deploy; it's used
         #   by any experimental Deployer class.
         self.stdout.write(plsh_msgs.confirm_preliminary)

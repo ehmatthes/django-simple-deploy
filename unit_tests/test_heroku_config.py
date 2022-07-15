@@ -86,7 +86,7 @@ def test_log_dir(run_simple_deploy, tmp_project):
     log_path = Path(tmp_project / 'simple_deploy_logs')
     assert log_path.exists()
 
-    # There should be exactly one log file.
+    # There should be exactly two log files.
     log_files = sorted(log_path.glob('*'))
     log_filenames = [lf.name for lf in log_files]
     # Check for exactly the log files we expect to find.

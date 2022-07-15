@@ -27,7 +27,7 @@ Okay, cancelling platform.sh deployment.
 """
 
 success_msg = """
---- Your project is now configured for deployment on platform.sh. ---
+--- Your project is now configured for deployment on Platform.sh. ---
 
 To deploy your project, you will need to:
 - Commit the changes made in the configuration process.
