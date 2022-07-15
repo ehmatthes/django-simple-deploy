@@ -17,6 +17,7 @@ Table of Contents
 ---
 
 - [Running unit tests](#running-unit-tests)
+- [Examining the modified test project](#examining-the-modified-test-project)
 - [Updating packages in vendor/](#updating-packages-in-vendor)
 - [Useful notes](#useful-notes)
 - [Unit testing roadmap](#unit-testing-roadmap)
@@ -32,6 +33,22 @@ To run the unit tests:
 ```
 
 Don't call pytest from the root directory, or pytest will try to run the [integration tests](integration_tests.md) as well.
+
+Examining the modified test project
+---
+
+It can be really helpful to see exactly what the test run of `simple_deploy` does to the sample project. The original sample project is in `sample_project/`, and the modified version after running unit tests is stored wherever pytest [makes tmp directories](https://docs.pytest.org/en/7.1.x/how-to/tmp_path.html#the-default-base-temporary-directory) on your system. That's typically a subfolder in your system's default temporary directory.
+
+A quick way to find the exact path to the temp directory is to modify `conftest.py`. Make an assert statement about the temporary directory that will fail:
+
+```python
+tmp_proj_dir = tmpdir_factory.mktemp('blog_project')
+assert not tmp_proj_dir
+```
+
+The next time you run the unit tests, this assert will fail, and the output will show you the path that was created.
+
+It can be helpful to see the modified project when developing and maintaining unit tests, and also when trying to see how the project is modified when targeting a specific platform.
 
 Updating packages in vendor/
 ---

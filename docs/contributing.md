@@ -2,10 +2,13 @@ Contributing
 ===
 
 First of all, thank you for your interest in contributing to this project. There are a number of ways you can get started:
+
 - [Run a demo](#run-a-demo)
   - Download a simple Django blog project, and use django-simple-deploy to deploy the project.
 - [Run the unit tests](#run-the-unit-tests)
   - Set up a development environment for this project, and run the unit tests. This does not involve deployment to a platform.
+  - This is also an efficient way to see how `simple_deploy` modifies a project. Look at the original test project in `sample_project/blog_project/`, and then look in pytest's [temp directory](https://docs.pytest.org/en/7.1.x/how-to/tmp_path.html) after running the unit tests for a specific platform. You should see a version of the test project, ready for deployment.
+  - The unit test docs page shows how to get the temp directory's location on your system.
 - [Run the integration tests](#run-the-integration-tests)
   - Set up a development environment, and run the integration tests. This requires an account on the platform you want to test against.    
 - Open an issue
