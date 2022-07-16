@@ -41,7 +41,7 @@
 
 target="development_version"
 dep_man_approach="req_txt"
-platform="heroku"
+platform=""
 
 # Options:
 # - test_automate_all
@@ -57,11 +57,34 @@ do
     esac
 done
 
+# Require the platform (-p) flag.
+if [ "$platform" = "" ]; then
+    echo "You need to specify a target platform to test against."
+    echo "  To test a Heroku deployment:"
+    echo "    $ ./integration_tests/test_deploy_process.sh -p heroku"
+    echo "  To test a Platform.sh deployment:"
+    echo "    $ ./integration_tests/test_deploy_process.sh -p platform_sh"
+    exit 1
+fi
+
+# Make sure platform is one of the currently-supported platforms.
+# DEV: Do this.
+
+
+echo "Platform: $platform"
+echo "Goodbye."
+
+exit 1
+
+
+
+
+
+
 # Only one possibility for cli_sd_options right now.
 if [ "$cli_sd_options" = 'automate_all' ]; then
     test_automate_all=true
 fi
-
 
 # --- Copy sample project to tmp location in $HOME and build testing venv. ---
 
