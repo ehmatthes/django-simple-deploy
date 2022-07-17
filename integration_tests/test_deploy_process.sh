@@ -59,27 +59,19 @@ done
 
 # Require the platform (-p) flag.
 if [ "$platform" = "" ]; then
-    echo "You need to specify a target platform to test against."
-    echo "  To test a Heroku deployment:"
-    echo "    $ ./integration_tests/test_deploy_process.sh -p heroku"
-    echo "  To test a Platform.sh deployment:"
-    echo "    $ ./integration_tests/test_deploy_process.sh -p platform_sh"
+    echo "\nA target platform for integration testing must be specified."
+    echo "  Test a Heroku deployment: $ ./integration_tests/test_deploy_process.sh -p heroku"
+    echo "  Test a Platform.sh deployment: $ ./integration_tests/test_deploy_process.sh -p platform_sh\n"
     exit 1
 fi
 
 # Make sure platform is one of the currently-supported platforms.
-# DEV: Do this.
-
-
-echo "Platform: $platform"
-echo "Goodbye."
-
-exit 1
-
-
-
-
-
+#   (My bash is not the strongest, feel free to suggest a better logical test.)
+if [[ "$platform" != "heroku" ]] && [[ "$platform" != "platform_sh" ]]; then
+    echo "\nIntegration testing does not support the platform you have specified: $platform"
+    echo "  Only the following platforms are supported: heroku, platform_sh\n"
+    exit 1
+fi
 
 # Only one possibility for cli_sd_options right now.
 if [ "$cli_sd_options" = 'automate_all' ]; then
