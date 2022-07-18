@@ -28,7 +28,7 @@ if [ "$test_automate_all" = true ]; then
     exit 1
     # python manage.py simple_deploy --automate-all --platform platform_sh
 else
-    python manage.py simple_deploy --platform platform_sh
+    python manage.py simple_deploy --platform platform_sh --local-test
 fi
 
 # After running simple_deploy, need to regenerate the lock file.
