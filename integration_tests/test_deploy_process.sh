@@ -247,9 +247,6 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blo
 
 if [ "$platform" = 'heroku' ]; then
     source $script_dir/integration_tests/test_heroku_deployment.sh
-# DEV: Upcoming task to implement this test:
-# elif [ "$platform" = 'platformsh' ]; then
-#     source $script_dir/integration_tests/test_platformsh_deployment.sh
-else
-    echo "  That platform is not supported."
+elif [ "$platform" = 'platform_sh' ]; then
+    source $script_dir/integration_tests/test_platformsh_deployment.sh
 fi
