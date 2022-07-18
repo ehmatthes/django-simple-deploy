@@ -36,6 +36,23 @@ if [ "$dep_man_approach" = 'pipenv' ]; then
     python3 -m pipenv lock
 fi
 
+# Install platformshconfig.
+# DEV: Support poetry.
+echo "Installing platformshconfig..."
+if [ "$dep_man_approach" = 'req_txt' ]; then
+    pip install platformshconfig
+    echo "  Installed platformshconfig."
+    # Don't update requirements; simple-deploy already modified requirements.
+elif [ "$dep_man_approach" = 'pipenv' ]; then
+    # This test usually runs inside a venv for the overall django-simple-deploy
+    #   project. Pipenv will install to that environment unless we create a venv
+    #   for it to use.
+
+    # We'll only lock once, just before committing for deployment.
+    # DEV: This probably needs work.
+    pipenv install --skip-lock platformshconfig
+fi
+
 # # Skip if testing --automate-all.
 # if [ "$test_automate_all" != true ]; then
 #     echo "\n\nCommitting changes..."
