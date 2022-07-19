@@ -62,9 +62,15 @@ if [ "$test_automate_all" != true ]; then
     echo "Pushing to Platform.sh..."
     # DEV: Not sure if `platform login` should be run here, or if it will 
     #   be called automatically if needed.
-    # DEV: Get organization name from CLI.
-    
-    platform create --quiet --title blog --region us-3.platform.sh --plan 0 --environments 3 --storage 5 --default-branch main
+
+    # Get organization name from CLI.
+    org_output=$(platform org:info | grep "id         |")
+    org_regex='([A-Z0-9]{26})'
+    [[ $org_output =~ $org_regex ]]
+    org_id=${BASH_REMATCH[1]}
+    echo "  Found Platform.sh organization id: $org_id"
+
+    platform create --quiet --org "$org_id" --title blog --region us-3.platform.sh --plan 0 --environments 3 --storage 5 --default-branch main
     platform push
     # Get URL of live project.
 fi
