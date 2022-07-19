@@ -70,24 +70,27 @@ if [ "$test_automate_all" != true ]; then
     org_id=${BASH_REMATCH[1]}
     echo "  Found Platform.sh organization id: $org_id"
 
-    platform create --quiet --org "$org_id" --title blog --region us-3.platform.sh --plan 0 --environments 3 --storage 5 --default-branch main
-    platform push
-    # Get URL of live project.
+    platform create --quiet --org "$org_id" --title blog --region us-3.platform.sh --plan development --environments 3 --storage 5 --default-branch main
+    platform push --quiet
+
+    # Open project and get URL.
+    project_url=$(platform url --yes)
+    echo " Project URL: $project_url"
+
+    # Get project id from project:info.
+    project_info=$(platform project:info)
+    id_regex='\| id             \| ([a-z0-9]{13})'
+    [[ $project_info =~ $id_regex ]]
+    project_id=${BASH_REMATCH[1]}
+    echo "  Found project id: $project_id"
+
 fi
 
-# app_name=$(heroku apps:info | grep "===")
-# app_name=${app_name:4}
-# echo "  Heroku app name: $app_name"
+# Call Python script for functional testing of app.
+#   May want to prompt for this.
+echo "\n  Testing functionality of deployed app..."
 
-# app_url=$(heroku apps:info | grep "Web URL")
-# app_url=${app_url:16}
-# echo "  Heroku URL: $app_url"
-
-# # Call Python script for functional testing of app.
-# #   May want to prompt for this.
-# echo "\n  Testing functionality of deployed app..."
-
-# python test_deployed_app_functionality.py --url "$app_url"
+python test_deployed_app_functionality.py --url "$project_url"
 
 # Clarify which version was tested.
 if [ "$target" = pypi ]; then
@@ -111,8 +114,10 @@ done
 if [ "$tear_down" = true ]; then
     echo ""
     echo "Cleaning up:"
-    # echo "  Destroying Heroku app $app_name..."
-    # heroku apps:destroy --app "$app_name" --confirm "$app_name"
+    # DEV: Get project id, then run command to destroy project.
+    #   See `platform help project:info`
+    echo "  Destroying Platform.sh project..."
+    platform project:delete --project $project_id --yes
     echo "  Destroying temporary directory..."
     rm -rf "$tmp_dir"
     echo "...removed temporary directory: $tmp_dir"
