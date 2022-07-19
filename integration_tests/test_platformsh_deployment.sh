@@ -53,17 +53,21 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     pipenv install --skip-lock platformshconfig
 fi
 
-# # Skip if testing --automate-all.
-# if [ "$test_automate_all" != true ]; then
-#     echo "\n\nCommitting changes..."
-#     git add .
-#     git commit -am "Configured for deployment."
+# Skip if testing --automate-all.
+if [ "$test_automate_all" != true ]; then
+    echo "\n\nCommitting changes..."
+    git add .
+    git commit -am "Configured for deployment."
 
-#     echo "Pushing to Platform.sh..."
-#     git push heroku main
-#     heroku run python manage.py migrate
-#     heroku open
-# fi
+    echo "Pushing to Platform.sh..."
+    # DEV: Not sure if `platform login` should be run here, or if it will 
+    #   be called automatically if needed.
+    # DEV: Get organization name from CLI.
+    
+    platform create --quiet --title blog --region us-3.platform.sh --plan 0 --environments 3 --storage 5 --default-branch main
+    platform push
+    # Get URL of live project.
+fi
 
 # app_name=$(heroku apps:info | grep "===")
 # app_name=${app_name:4}
