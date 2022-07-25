@@ -10,6 +10,7 @@ config = Config()
 if config.is_valid_platform():
 
     ALLOWED_HOSTS.append('*')
+    DEBUG = False
 
     STATIC_URL = '/static/'
 
