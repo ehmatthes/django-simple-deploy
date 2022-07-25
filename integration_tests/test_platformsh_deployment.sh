@@ -70,6 +70,7 @@ if [ "$test_automate_all" != true ]; then
     org_id=${BASH_REMATCH[1]}
     echo "  Found Platform.sh organization id: $org_id"
 
+    # DEV: May want to offer region as a CLI arg.
     platform create --quiet --org "$org_id" --title blog --region us-3.platform.sh --plan development --environments 3 --storage 5 --default-branch main
     platform push --quiet
 
@@ -114,8 +115,6 @@ done
 if [ "$tear_down" = true ]; then
     echo ""
     echo "Cleaning up:"
-    # DEV: Get project id, then run command to destroy project.
-    #   See `platform help project:info`
     echo "  Destroying Platform.sh project..."
     platform project:delete --project $project_id --yes
     echo "  Destroying temporary directory..."
