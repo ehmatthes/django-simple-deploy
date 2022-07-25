@@ -22,9 +22,10 @@ Running the integration tests
 ---
 
 The tests run against your local version of this project. So if you want to work on this project:
+
 - Clone the repository, and make a virtual environment from the `requirements.txt` file.
 - Make any changes to the project you're interested in.
-- Run the tests: `$ ./integration_tests/test_deploy_process.sh`
+- Run the tests: `$ ./integration_tests/test_deploy_process.sh -p [heroku|platform_sh]`
 
 Actual steps
 ---
@@ -38,7 +39,7 @@ $ python3 -m venv dsd_env
 $ source dsd_env/bin/activate
 (dsd_env)$ pip install --upgrade pip
 (dsd_env)$ pip install requirements.txt
-(dsd_env)$ ./integration_tests/test_deploy_process.sh
+(dsd_env)$ ./integration_tests/test_deploy_process.sh -p [heroku|platform_sh]
 ```
 
 Testing the latest PyPI release
@@ -47,7 +48,7 @@ Testing the latest PyPI release
 To test the latest release on PyPI instead of your local version of the project, use the `-t pypi` argument:
 
 ```
-(dsd_env)$ ./integration_tests/test_deploy_process.sh -t pypi
+(dsd_env)$ ./integration_tests/test_deploy_process.sh -p [heroku|platform_sh] -t pypi
 ```
 
 Other testing options
@@ -64,7 +65,7 @@ Here are all the flags and options for each flag. The first option listed for ea
 - `-d`: Dependency management approach that's being tested.
     - `req_txt`, `poetry`, `pipenv`
 - `-p`: Platform to push to.
-    - `heroku`
+    - `heroku`, `platform_sh`
 - `-o`: Options for the simple_deploy run.
     - `automate_all`
 
@@ -85,12 +86,10 @@ $ ./integration_tests/test_deploy_process.sh -o automate_all -d poetry
 Testing other platforms
 ---
 
-- The script tests Heroku deployments by default.
-- The `-p` flag allows testing against other platforms.
-- This is currently identical to running without the `-p` flag:
-```
-$ ./integration_tests/test_deploy_process.sh -p heroku
-```
+- The `-p` flag specifies which platform to test actual deployment against:
+    - Test Heroku deployment: `$ ./integration_tests/test_deploy_process.sh -p heroku`
+    - Test Platform.sh deployment: `$ ./integration_tests/test_deploy_process.sh -p platform_sh`
+
 
 Don't modify testing script while running
 ---
