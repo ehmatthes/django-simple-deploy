@@ -8,7 +8,9 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 ### 0.4.3
 
 - Refining support of Platform.sh:
-    - blah
+    - Initial unit tests for Platform.sh.
+    - Initial integration tests written for Platform.sh.
+    - `DEBUG = False` by default on Platform.sh.
 
 ### 0.4.2
 
