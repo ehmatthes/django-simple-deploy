@@ -5,6 +5,7 @@ To understand this project, please start at the [main readme](../README.md) if y
 
 - Documentation for end users:
     - [Heroku deployments](heroku_deployments.md)
+    - [Platform.sh deployments](platformsh_deployments.md)
     - [Full list of CLI arguments](cli_args.md)
 - Documentation for contributors:
     - [Scope and Purpose](scope_purpose.md)
