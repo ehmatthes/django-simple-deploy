@@ -1,0 +1,72 @@
+General Approach to Supporting Platforms
+===
+
+As the project matures, it's becoming clearer how each platform is supported. When simple_deploy acts on a project, there is some general work that's done regardless of what platform is being targeted; then there is additional platform-specific work that needs to be done.
+
+This doc describes how that division of work is implemented. The goal of this doc is to understand how support for current platforms is implemented, and to make it easier to build support for new platforms.
+
+Overall architecture
+---
+
+The main work for modifying a project is done by two scripts, *simple_deploy.py* and a platform-specific file called *deploy_platform-name.py*.
+
+### *simple_deploy.py*
+
+*simple_deploy.py* does all of the platform-agnostic work:
+
+- Parse the command.
+    - What platform are we targeting, are we skipping logging, are we testing, etc.
+- Validate the command.
+    - Are all required arguments present?
+    - Is there a conflicting set of arguments?
+- Inspect the local system.
+    - Are we on Windows, macOS, Linux?
+- Inspect the project generally.
+    - Determine the project name, project root directory, locate *.git/* directory, define the path to *settings.py*.
+    - Determine the dependency management system (bare *requirements.txt*, Pipenv, Poetry), and identify existing dependencies.
+- Validate the project.
+    - Exit if anything about the project indicates an inability to configure for deployment.
+- Instantiate the platform-specific deployer, called `PlatformnameDeployer`.
+    - Get any platform-specific confirmations, ie if a platform is in a preliminary state of support.
+    - Inspect the project in the context of the target platform.
+    - Check that all identifiable prerequisites are satisfied. For example if not using `--automate-all`, has an empty project been created on the platform? Most configuration-only deployments require this.
+- Define helper methods that will be used by all platform-specific scripts, such as functions to make OS-specific CLI calls, write output to console and log files, and add requirements to the project.
+- Make platform-agnostic configuration changes to the project.
+    - Build a log dir, if needed; make sure Git is ignoring log dir.
+    - Add simple_deploy to dependencies.
+- Call the `deploy()` method of the platform-specific deployer object.
+
+### *deploy_platform-name.py*
+    
+A platform-specific file called *deploy_platform-name.py* does all of the platform-specific configuration. This is a class called `PlatformnameDeployer`, which is instantiated in *simple_deploy.py*. After completing all of its work, *simple_deploy* calls the `PlatformnameDeployer.deploy()` method, which does the following:
+
+- Make any needed changes to settings.
+    - All changes should be done in a way that only affects the project when run in the platform's environment.
+- Add any platform-specific configuration files.
+    - ie Heroku's *Procfile*, Platform.sh' *.platform.app.yaml*.
+- Add any platform-specific requirements.
+    - ie `gunicorn`, `psycopg2`
+- Show a success message when finished.
+    - Summarize changes that were made.
+    - State the deployed project URL.
+    - State next steps for deployment.
+    - Point to logs, and friendly deployment summary.
+- If using `--automate-all`:
+    - Create new project, if it hasn't been made.
+    - Add all changes and new files, and make commit.
+    - Push changes.
+    - Open project.
+
+These changes are done in an order where failing at any point will have the least impact on the current state of the project.
+
+Templates and Messages
+---
+
+Template files are... Static messages are... Dynamic messages are...
+
+Supporting a New Platform
+---
+
+You shouldn't have to touch *simple_deploy.py*, except to add an `elif` block to `_check_platform()`.
+
+Build a new *deploy_platform-name.py* file, modeled after one of the existing platform-specific deployer files. *Please* get in touch before doing this! This project is in active development, and there may be upcoming, unannounced changes that would invalidate some of your work on a new deployment script.
