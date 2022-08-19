@@ -11,6 +11,7 @@ To understand this project, please start at the [main readme](../README.md) if y
     - [Scope and Purpose](scope_purpose.md)
     - [Roadmap](roadmap.md)
     - [Development process](development_process.md)
+    - [General Approach to Supporting Platforms](supporting_platforms.md)
     - [Unit Tests](unit_tests.md)
     - [Integration Tests](integration_tests.md)
     - [Contributing](contributing.md)

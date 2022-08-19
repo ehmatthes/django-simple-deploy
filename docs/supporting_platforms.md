@@ -19,6 +19,7 @@ The main work for modifying a project is done by two scripts, *simple_deploy.py*
 - Validate the command.
     - Are all required arguments present?
     - Is there a conflicting set of arguments?
+    - If using `--automate-all`, confirm the actions that will be taken on the user's behalf.
 - Inspect the local system.
     - Are we on Windows, macOS, Linux?
 - Inspect the project generally.
@@ -62,7 +63,17 @@ These changes are done in an order where failing at any point will have the leas
 Templates and Messages
 ---
 
-Template files are... Static messages are... Dynamic messages are...
+### Template files
+
+Template files can be used to generate whole files, such as Heroku's *Procfile* or Platform.sh' *.platform.app.yaml*. they can also be used to add blocks to existing files, such as adding a platform-specific settings block to the end of *settings.py*.
+
+Template files are stored in *simple_deploy/templates/*.
+
+### Message files
+
+There are two kinds of messages used. Static messages are the same in all situations; dynamic messages have context-specific information embedded in them. For example if the user omits the `--platform` argument, they see a default static message. When a deployment is successful, the concluding success message includes the URL of the deployed project.
+
+Platform-agnostic messages are stored in *simple_deploy/management/commands/utils/deploy_messages.py*. Platform-specific messages are stored in *simple_deploy/management/commands/utils/deploy_messages_platform-name.py*. 
 
 Supporting a New Platform
 ---

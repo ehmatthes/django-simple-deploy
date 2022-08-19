@@ -47,7 +47,8 @@ class HerokuDeployer:
         # This is platform-specific, because we want to specify exactly what
         #   will be automated.
 
-        # Skip this prep work if --automate-all not used.
+        # Skip this prep work if --automate-all not used. Making this check
+        #   here lets deploy() be cleaner.
         if not self.sd.automate_all:
             return
 
@@ -352,6 +353,7 @@ class HerokuDeployer:
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
+        # Making this check here lets deploy() be cleaner.
         if not self.sd.automate_all:
             return
 
