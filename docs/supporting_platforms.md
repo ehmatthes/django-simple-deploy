@@ -89,8 +89,11 @@ Platform-agnostic messages are stored in *simple_deploy/management/commands/util
 Supporting a New Platform
 ---
 
-You shouldn't have to touch *simple_deploy.py*, except to add an `elif` block to `_check_platform()`.
+*Please* get in touch before starting anything other than exploratory work in an attempt to support a new platform! This project is in active development, and there may be upcoming, unannounced changes that would invalidate some of your work on a new deployment script.
 
-When developing the approach for deploying to a new platform, clearly define the prerequisites for a configuration-only deployment. For example, make sure to require that users create an empty project on the target platform before running simple_deploy.
+If you are developing support for a new platform:
 
-Build a new *deploy_platform-name.py* file, modeled after one of the existing platform-specific deployer files. *Please* get in touch before doing this! This project is in active development, and there may be upcoming, unannounced changes that would invalidate some of your work on a new deployment script.
+- You shouldn't have to touch *simple_deploy.py*, except to add an `elif` block to `_check_platform()`.
+- Clearly define the prerequisites for a configuration-only deployment. For example, make sure to require that users create an empty project on the target platform before running simple_deploy.
+- Build a new *deploy_platform-name.py* file, modeled after one of the existing platform-specific deployer files. 
+    - Make sure to structure this file so that configuration steps are made in the order of least impact on the local project. If we fail, we want to fail with minimal impact.
