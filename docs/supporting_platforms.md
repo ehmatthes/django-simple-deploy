@@ -5,6 +5,8 @@ As the project matures, it's becoming clearer how each platform is supported. Wh
 
 This doc describes how that division of work is implemented. The goal of this doc is to understand how support for current platforms is implemented, and to make it easier to build support for new platforms.
 
+
+
 Overall architecture
 ---
 
@@ -79,5 +81,7 @@ Supporting a New Platform
 ---
 
 You shouldn't have to touch *simple_deploy.py*, except to add an `elif` block to `_check_platform()`.
+
+When developing the approach for deploying to a new platform, clearly define the prerequisites for a configuration-only deployment. For example, make sure to require that users create an empty project on the target platform before running simple_deploy.
 
 Build a new *deploy_platform-name.py* file, modeled after one of the existing platform-specific deployer files. *Please* get in touch before doing this! This project is in active development, and there may be upcoming, unannounced changes that would invalidate some of your work on a new deployment script.
