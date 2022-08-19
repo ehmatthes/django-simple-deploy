@@ -5,9 +5,18 @@ As the project matures, it's becoming clearer how each platform is supported. Wh
 
 This doc describes how that division of work is implemented. The goal of this doc is to understand how support for current platforms is implemented, and to make it easier to build support for new platforms.
 
+Table of Contents
+---
 
+- [Overall Architecture](#overall-architecture)
+    - [*simple_deploy.py*](#simple_deploypy)
+    - [*deploy_platform-name.py*](#deploy_platform-namepy)
+- [Templates and Messages](#templates-and-messages)
+    - [Template files](#template-files)
+    - [Message files](#message-files)
+- [Supporting a New Platform](#supporting-a-new-platform)
 
-Overall architecture
+Overall Architecture
 ---
 
 The main work for modifying a project is done by two scripts, *simple_deploy.py* and a platform-specific file called *deploy_platform-name.py*.
