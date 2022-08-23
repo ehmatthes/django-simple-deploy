@@ -63,7 +63,7 @@ class Command(BaseCommand):
         self._validate_platform()
 
         # All validation has been completed. Make platform-agnostic modifications.
-
+        self._add_simple_deploy_req()
 
         # All platform-agnostic work has been completed. Call platform-specific
         #   deploy() method.

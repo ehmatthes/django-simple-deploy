@@ -29,7 +29,6 @@ class HerokuDeployer:
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._get_heroku_settings()
-        self.sd._add_simple_deploy_req()
         self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
