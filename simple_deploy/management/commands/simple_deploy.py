@@ -56,7 +56,8 @@ class Command(BaseCommand):
         #   to know if we're logging before doing any real work.
         self._parse_cli_options(options)
 
-        self._check_platform()        
+        self._check_platform()
+        self.platform_deployer.deploy()
 
 
     def _parse_cli_options(self, options):
@@ -96,18 +97,16 @@ class Command(BaseCommand):
 
 
     def _check_platform(self):
-        """Find out which platform we're targeting, and call the appropriate
-        platform-specific script.
+        """Find out which platform we're targeting, and instantiate the
+        platform-specific deployer object. Also, call any necessary
+        platform-specific validation and confirmation methods here.
         """
-        # DEV: This can be simplified using if self.platform in (target platforms)
         if self.platform == 'heroku':
             self.write_output("  Targeting Heroku deployment...")
-            hd = HerokuDeployer(self)
-            hd.deploy()
+            self.platform_deployer = HerokuDeployer(self)
         elif self.platform == 'platform_sh':
             self.write_output("  Targeting platform.sh deployment...")
-            pl_sh = PlatformshDeployer(self)
-            pl_sh.deploy()
+            self.platform_deployer = PlatformshDeployer(self)
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             self.write_output(error_msg, write_to_console=False)
