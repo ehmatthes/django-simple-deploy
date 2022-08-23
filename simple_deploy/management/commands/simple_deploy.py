@@ -56,6 +56,8 @@ class Command(BaseCommand):
         #   to know if we're logging before doing any real work.
         self._parse_cli_options(options)
 
+        self._check_platform()        
+
 
     def _parse_cli_options(self, options):
         """Parse cli options."""
@@ -83,8 +85,6 @@ class Command(BaseCommand):
             self.write_output("Automating all steps...")
         else:
             self.write_output("Only configuring for deployment...")
-
-        self._check_platform()
 
 
     def _validate_command(self):
