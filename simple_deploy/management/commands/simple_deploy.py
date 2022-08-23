@@ -56,7 +56,17 @@ class Command(BaseCommand):
         #   to know if we're logging before doing any real work.
         self._parse_cli_options(options)
 
-        self._check_platform()
+        # Inspect the project, and do platform-agnostic validation.
+
+        # Build the platform-specifc deployer instance, and do platform-specific
+        #   validation.
+        self._validate_platform()
+
+        # All validation has been completed. Make platform-agnostic modifications.
+
+
+        # All platform-agnostic work has been completed. Call platform-specific
+        #   deploy() method.
         self.platform_deployer.deploy()
 
 
@@ -96,7 +106,7 @@ class Command(BaseCommand):
             raise CommandError(d_msgs.requires_platform_flag)
 
 
-    def _check_platform(self):
+    def _validate_platform(self):
         """Find out which platform we're targeting, and instantiate the
         platform-specific deployer object. Also, call any necessary
         platform-specific validation and confirmation methods here.
@@ -107,6 +117,7 @@ class Command(BaseCommand):
         elif self.platform == 'platform_sh':
             self.write_output("  Targeting platform.sh deployment...")
             self.platform_deployer = PlatformshDeployer(self)
+            self.platform_deployer.confirm_preliminary()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             self.write_output(error_msg, write_to_console=False)

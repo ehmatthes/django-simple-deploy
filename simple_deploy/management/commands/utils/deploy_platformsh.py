@@ -34,7 +34,6 @@ class PlatformshDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
-        self._confirm_preliminary()
         self.sd._add_simple_deploy_req()
 
         self._add_platformsh_settings()
@@ -55,7 +54,7 @@ class PlatformshDeployer:
         self._show_success_message()
 
 
-    def _confirm_preliminary(self):
+    def confirm_preliminary(self):
         """Deployment to platform.sh is in a preliminary state, and we need to be
         explicit about that.
         """
@@ -80,6 +79,8 @@ class PlatformshDeployer:
         else:
             # Quit and invite the user to try another platform.
             self.stdout.write(plsh_msgs.cancel_plsh)
+            # We are happily exiting the script; there's no need to raise a
+            #   CommandError.
             sys.exit()
 
 
