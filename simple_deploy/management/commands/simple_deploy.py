@@ -15,6 +15,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
+from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
+
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
 from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
 
@@ -65,8 +67,9 @@ class Command(BaseCommand):
         self._inspect_project()
 
         # Build the platform-specifc deployer instance, and do platform-specific
-        #   validation.
+        #   validation. Then confirm --automate-all, if needed.
         self._validate_platform()
+        self._confirm_automate_all()
 
         # All validation has been completed. Make platform-agnostic modifications.
         # Start with logging.
@@ -95,12 +98,6 @@ class Command(BaseCommand):
 
         self._validate_command()
 
-        # DEV: This needs to be moved to a separate method, confirming automate-all.
-        if self.automate_all:
-            self.write_output("Automating all steps...", skip_logging=True)
-        else:
-            self.write_output("Only configuring for deployment...", skip_logging=True)
-
 
     def _validate_command(self):
         """Make sure the command has been called with a valid set of arguments.
@@ -125,6 +122,38 @@ class Command(BaseCommand):
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
+
+
+    def _confirm_automate_all(self):
+        """If the --automate-all flag has been passed, confirm that the user
+        really wants us to take these actions for them.
+        """
+
+        # Placing this test here makes handle() much cleaner.
+        if not self.automate_all:
+            return
+
+        # Confirm the user knows exactly what will be automated; this
+        #   message is specific to each platform.
+        self.write_output(dh_msgs.confirm_automate_all, skip_logging=True)
+
+        # Get confirmation.
+        confirmed = ''
+        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
+            prompt = "\nAre you sure you want to do this? (yes|no) "
+            self.write_output(prompt, skip_logging=True)
+            confirmed = input()
+
+            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
+                self.write_output("  Please answer yes or no.", skip_logging=True)
+
+        if confirmed.lower() in ('y', 'yes'):
+            self.write_output("Automating all steps...", skip_logging=True)
+        else:
+            # Quit and have the user run the command again; don't assume not
+            #   wanting to automate means they want to configure.
+            self.write_output(d_msgs.cancel_automate_all, skip_logging=True)
+            sys.exit()
 
 
     def _start_logging(self):
