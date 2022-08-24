@@ -56,14 +56,29 @@ class Command(BaseCommand):
         #   to know if we're logging before doing any real work.
         self._parse_cli_options(options)
 
-        # Inspect the project, and do platform-agnostic validation.
+        # Inspect system; we'll run some system commands differently on Windows.
+        self._inspect_system()
+
+        # Inspect project here. If there's anything we can't work with locally,
+        #   we want to recognize that now and exit before making any changes
+        #   to the project, and before making any remote calls.
+        self._inspect_project()
 
         # Build the platform-specifc deployer instance, and do platform-specific
         #   validation.
         self._validate_platform()
 
         # All validation has been completed. Make platform-agnostic modifications.
+        # Start with logging.
+        if self.log_output:
+            self._start_logging()
+            # Log the options used for this run.
+            self.write_output(f"CLI args: {options}", write_to_console=False)
+
         self._add_simple_deploy_req()
+
+        # print('bye')
+        # sys.exit()
 
         # All platform-agnostic work has been completed. Call platform-specific
         #   deploy() method.
@@ -74,28 +89,17 @@ class Command(BaseCommand):
         """Parse cli options."""
         self.automate_all = options['automate_all']
         self.platform = options['platform']
-        # This is a True-to-disable option; turn it into a more intuitive flag.
+        # This is a True-to-disable option; turn it into a more intuitive flag?
         self.log_output = not(options['no_logging'])
         self.local_test = options['local_test']
 
         self._validate_command()
 
-        if self.log_output:
-            self._start_logging()
-            # Log the options used for this run.
-            self.write_output(f"CLI args: {options}", write_to_console=False)
-
-        # Inspect system; we'll run some system commands differently on Windows.
-        self._inspect_system()
-
-        # Inspect project here. If there's anything we can't work with locally,
-        #   we want to recognize that now and exit before making any remote calls.
-        self._inspect_project()
-
+        # DEV: This needs to be moved to a separate method, confirming automate-all.
         if self.automate_all:
-            self.write_output("Automating all steps...")
+            self.write_output("Automating all steps...", skip_logging=True)
         else:
-            self.write_output("Only configuring for deployment...")
+            self.write_output("Only configuring for deployment...", skip_logging=True)
 
 
     def _validate_command(self):
@@ -112,15 +116,14 @@ class Command(BaseCommand):
         platform-specific validation and confirmation methods here.
         """
         if self.platform == 'heroku':
-            self.write_output("  Targeting Heroku deployment...")
+            self.write_output("  Targeting Heroku deployment...", skip_logging=True)
             self.platform_deployer = HerokuDeployer(self)
         elif self.platform == 'platform_sh':
-            self.write_output("  Targeting platform.sh deployment...")
+            self.write_output("  Targeting platform.sh deployment...", skip_logging=True)
             self.platform_deployer = PlatformshDeployer(self)
             self.platform_deployer.confirm_preliminary()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
-            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
 
@@ -130,10 +133,8 @@ class Command(BaseCommand):
         #   log the creation of the log directory if it happened.
         # In many libraries, one log file is created and then that file is
         #   appended to, and it's on the user to manage log sizes.
-        # In this project, the user is expected to use run simple_deploy
+        # In this project, the user is expected to run simple_deploy
         #   once, or maybe a couple times if they make a mistake and it exits.
-        #   For example, deploying to Azure without --automate-all, or configuring
-        #   for Heroku without first running `heroku create`.
         # So, we should never have runaway log creation. It could be really
         #   helpful to see how many logs are created, and it's also simpler
         #   to review what happened if every log file represents a single run.
@@ -153,6 +154,9 @@ class Command(BaseCommand):
 
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
+
+        # Make sure we're ignoring sd logs.
+        self._ignore_sd_logs()
 
 
     def _create_log_dir(self):
@@ -195,9 +199,12 @@ class Command(BaseCommand):
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
 
 
-    def write_output(self, output_obj, log_level='INFO', write_to_console=True):
+    def write_output(self, output_obj, log_level='INFO',
+            write_to_console=True, skip_logging=False):
         """Write output to the appropriate places.
         Output may be a string, or an instance of subprocess.CompletedProcess.
+
+        Need to skip logging before log file is configured.
         """
 
         # Extract the subprocess output as a string.
@@ -215,8 +222,8 @@ class Command(BaseCommand):
             self.stdout.write(output_str)
 
         # Log when appropriate. Log as a series of single lines, for better
-        #   log file parsing.
-        if self.log_output:
+        #   log file parsing. 
+        if self.log_output and not skip_logging:
             for line in output_str.splitlines():
                 # Strip secret key from any line that holds it.
                 line = self._strip_secret_key(line)
@@ -339,11 +346,6 @@ class Command(BaseCommand):
         # Find .git location.
         self._find_git_dir()
 
-        # Now that we know where git dir is, we can ignore log directory.
-        if self.log_output:
-            # Make sure log directory is in .gitignore.
-            self._ignore_sd_logs()
-
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
         self._get_dep_man_approach()
@@ -369,16 +371,15 @@ class Command(BaseCommand):
         """
         if Path(self.project_root / '.git').exists():
             self.git_path = Path(self.project_root)
-            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
             self.nested_project = False
         elif (Path(self.project_root).parent / Path('.git')).exists():
             self.git_path = Path(self.project_root).parent
-            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
-            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
 
@@ -405,13 +406,13 @@ class Command(BaseCommand):
             #   not affect the user's local environment.
             cmd = 'poetry export -f requirements.txt --output requirements.txt --without-hashes'
             output = self.execute_subp_run(cmd)
-            self.write_output(output)
+            self.write_output(output, skip_logging=True)
             self.using_req_txt = True
 
         # Exit if we haven't found any requirements.
         if not any((self.using_req_txt, self.using_pipenv)):
             error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-            self.write_output(error_msg, write_to_console=False)
+            self.write_output(error_msg, write_to_console=False, skip_logging=True)
             raise CommandError(error_msg)
 
 
