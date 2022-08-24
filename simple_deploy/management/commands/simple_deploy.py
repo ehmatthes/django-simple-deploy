@@ -53,10 +53,9 @@ class Command(BaseCommand):
         """Parse options, and dispatch to platform-specific helpers."""
         self.stdout.write("Configuring project for deployment...")
 
-        # Most of the initial work is done in _parse_cli_options(), because
-        #   those options affect a lot of what we'll do. For example, we need
-        #   to know if we're logging before doing any real work.
+        # Parse CLI options, and validate the set of arguments we've been given.
         self._parse_cli_options(options)
+        self._validate_command()
 
         # Inspect system; we'll run some system commands differently on Windows.
         self._inspect_system()
@@ -95,8 +94,6 @@ class Command(BaseCommand):
         # This is a True-to-disable option; turn it into a more intuitive flag?
         self.log_output = not(options['no_logging'])
         self.local_test = options['local_test']
-
-        self._validate_command()
 
 
     def _validate_command(self):
