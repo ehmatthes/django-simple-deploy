@@ -43,38 +43,16 @@ class HerokuDeployer:
 
     def _prep_automate_all(self):
         """Do intial work for automating entire process."""
-        # This is platform-specific, because we want to specify exactly what
-        #   will be automated.
 
         # Skip this prep work if --automate-all not used. Making this check
         #   here lets deploy() be cleaner.
         if not self.sd.automate_all:
             return
 
-        # Confirm the user knows exactly what will be automated.
-        self.sd.write_output(dh_msgs.confirm_automate_all)
-
-        # Get confirmation.
-        confirmed = ''
-        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-            prompt = "\nAre you sure you want to do this? (yes|no) "
-            self.sd.write_output(prompt)
-            confirmed = input()
-            self.sd.write_output(confirmed, write_to_console=False)
-
-            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-                self.sd.write_output("  Please answer yes or no.")
-
-        if confirmed.lower() in ('y', 'yes'):
-            self.sd.write_output("  Running `heroku create`...")
-            cmd = 'heroku create'
-            output = self.sd.execute_subp_run(cmd)
-            self.sd.write_output(output)
-        else:
-            # Quit and have the user run the command again; don't assume not
-            #   wanting to automate means they want to configure.
-            self.sd.write_output(d_msgs.cancel_automate_all)
-            sys.exit()
+        self.sd.write_output("  Running `heroku create`...")
+        cmd = 'heroku create'
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
 
 
     def _get_heroku_app_info(self):
