@@ -60,19 +60,10 @@ class PlatformshDeployer:
         if self.sd.local_test:
             return
 
-        # DEV: Much of this logic can be pulled into simple_deploy; it's used
-        #   by any experimental Deployer class.
         self.stdout.write(plsh_msgs.confirm_preliminary)
+        confirmed = self.sd.get_confirmation()
 
-        # Get confirmation.
-        confirmed = ''
-        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-            prompt = "\nAre you sure you want to continue deploying to platform.sh? (yes|no) "
-            confirmed = input(prompt)
-            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-                self.stdout.write("  Please answer yes or no.")
-
-        if confirmed.lower() in ('y', 'yes'):
+        if confirmed:
             self.stdout.write("  Continuing with platform.sh deployment...")
         else:
             # Quit and invite the user to try another platform.
