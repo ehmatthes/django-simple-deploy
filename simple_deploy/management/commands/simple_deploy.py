@@ -133,8 +133,8 @@ class Command(BaseCommand):
         # Confirm the user knows exactly what will be automated; this
         #   message is specific to each platform.
         self.write_output(dh_msgs.confirm_automate_all, skip_logging=True)
-        confirmed = self._get_confirmation(skip_logging=True)
-        
+        confirmed = self.get_confirmation(skip_logging=True)
+
         if confirmed:
             self.write_output("Automating all steps...", skip_logging=True)
         else:
@@ -548,7 +548,7 @@ class Command(BaseCommand):
         self.write_output(f"    Added {package_name} to Pipfile.")
 
 
-    def _get_confirmation(self, skip_logging=False):
+    def get_confirmation(self, skip_logging=False):
         """Get confirmation for an action.
         This method assumes an appropriate message has already been displayed
           about what is to be done.
