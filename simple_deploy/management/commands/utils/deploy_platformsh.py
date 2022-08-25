@@ -82,15 +82,19 @@ class PlatformshDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         if 'Platform.sh CLI' not in output_str:
-            self.stdout.write(plsh_msgs.cli_not_installed)
+            raise CommandError(plsh_msgs.cli_not_installed)
             sys.exit()
 
         # If not using automate-all, make sure platformshconfig is installed
         #   locally.
-
-
-        print('exiting dev')
-        sys.exit()
+        if not self.sd.automate_all:
+            cmd = 'pip show platformshconfig'
+            output_obj = self.sd.execute_subp_run(cmd)
+            if output_obj.returncode:
+                # Successful returncode is 0, so anything truthy means pkg
+                #   is not installed.
+                raise CommandError(plsh_msgs.platformshconfig_not_installed)
+                sys.exit()
 
 
     def _add_platformsh_settings(self):

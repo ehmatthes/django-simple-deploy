@@ -32,6 +32,13 @@ In order to deploy to Platform.sh, you need to install the Platform.sh CLI.
 After installing the CLI, you can run simple_deploy again.
 """
 
+platformshconfig_not_installed = """
+In order to deploy to Platform.sh, you need to install the package `platformshoconfig`.
+To do this, run the following command, or its equivalent in your project:
+    pip install platformshconfig
+After installing this package, you can run simple_deploy again.
+"""
+
 success_msg = """
 --- Your project is now configured for deployment on Platform.sh. ---
 
