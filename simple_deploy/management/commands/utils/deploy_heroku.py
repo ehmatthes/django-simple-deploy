@@ -45,8 +45,17 @@ class HerokuDeployer:
         """Make sure the local environment and project supports deployment to
         Heroku.
         """
-        # DEV: Make sure CLI is installed.
-        pass
+        # Make sure Heroku CLI is installed.
+        cmd = 'heroku --version'
+        output_obj = self.sd.execute_subp_run(cmd)
+        if output_obj.returncode:
+            # Successful output has returncode 0, so truthy returncode means
+            #   CLI not installed.
+            raise CommandError(dh_msgs.cli_not_installed)
+            sys.exit()
+
+        print('dev exit')
+        sys.exit()
 
 
     def _prep_automate_all(self):
