@@ -12,7 +12,8 @@ import pytest
 def run_simple_deploy(tmp_project):
     # Call simple_deploy here, so it can target this module's platform.
     # cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p platform_sh"
-    cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p platform_sh"
+    sd_root_dir = Path(__file__).parent.parent
+    cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p platform_sh -s {sd_root_dir}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 

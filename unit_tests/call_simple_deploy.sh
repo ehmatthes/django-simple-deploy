@@ -2,11 +2,12 @@
 
 # Flags:
 # -d: full path to temp directory
-while getopts d:p: flag
+while getopts d:p:s: flag
 do
     case "${flag}" in
         d) tmp_dir=${OPTARG};;
-        p) target_platform=${OPTARG}
+        p) target_platform=${OPTARG};;
+        s) sd_root_dir=${OPTARG};;
     esac
 done
 
@@ -24,7 +25,7 @@ source b_env/bin/activate
 # Deployment to Platform.sh currently requires local installation of
 #   platformshconfig.
 if [ "$target_platform" = platform_sh ]; then
-    pip install platformshconfig
+    pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig
 fi
 
 # Run configuration-only version of simple_deploy.
