@@ -41,6 +41,14 @@ class HerokuDeployer:
         self._show_success_message()
 
 
+    def validate_platform(self):
+        """Make sure the local environment and project supports deployment to
+        Heroku.
+        """
+        # DEV: Make sure CLI is installed.
+        pass
+
+
     def _prep_automate_all(self):
         """Do intial work for automating entire process."""
 

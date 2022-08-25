@@ -120,6 +120,8 @@ class Command(BaseCommand):
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
 
+        self.platform_deployer.validate_platform()
+
 
     def _confirm_automate_all(self):
         """If the --automate-all flag has been passed, confirm that the user
