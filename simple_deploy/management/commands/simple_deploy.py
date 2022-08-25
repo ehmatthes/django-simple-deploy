@@ -133,18 +133,9 @@ class Command(BaseCommand):
         # Confirm the user knows exactly what will be automated; this
         #   message is specific to each platform.
         self.write_output(dh_msgs.confirm_automate_all, skip_logging=True)
-
-        # Get confirmation.
-        confirmed = ''
-        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-            prompt = "\nAre you sure you want to do this? (yes|no) "
-            self.write_output(prompt, skip_logging=True)
-            confirmed = input()
-
-            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-                self.write_output("  Please answer yes or no.", skip_logging=True)
-
-        if confirmed.lower() in ('y', 'yes'):
+        confirmed = self._get_confirmation(skip_logging=True)
+        
+        if confirmed:
             self.write_output("Automating all steps...", skip_logging=True)
         else:
             # Quit and have the user run the command again; don't assume not
@@ -555,3 +546,23 @@ class Command(BaseCommand):
             f.write(pipfile_text)
 
         self.write_output(f"    Added {package_name} to Pipfile.")
+
+
+    def _get_confirmation(self, skip_logging=False):
+        """Get confirmation for an action.
+        This method assumes an appropriate message has already been displayed
+          about what is to be done.
+        This method shows a yes|no prompt, and returns True or False.
+        """
+        prompt = "\nAre you sure you want to do this? (yes|no) "
+        confirmed = ''
+
+        while True:
+            self.write_output(prompt, skip_logging=skip_logging)
+            confirmed = input()
+            if confirmed.lower() in ('y', 'yes'):
+                return True
+            elif confirmed.lower() in ('n', 'no'):
+                return False
+            else:
+                self.write_output("  Please answer yes or no.", skip_logging=skip_logging)
