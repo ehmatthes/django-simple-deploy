@@ -76,12 +76,14 @@ class PlatformshDeployer:
     def validate_platform(self):
         """Make sure the local environment and project supports deployment to
         Platform.sh.
+        
+        The returncode for a successful command is 0, so anything truthy means
+          a command errored out.
         """
         # Make sure Platform.sh CLI is installed.
         cmd = 'platform --version'
         output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        if 'Platform.sh CLI' not in output_str:
+        if output_obj.returncode:
             raise CommandError(plsh_msgs.cli_not_installed)
             sys.exit()
 
@@ -91,8 +93,6 @@ class PlatformshDeployer:
             cmd = 'pip show platformshconfig'
             output_obj = self.sd.execute_subp_run(cmd)
             if output_obj.returncode:
-                # Successful returncode is 0, so anything truthy means pkg
-                #   is not installed.
                 raise CommandError(plsh_msgs.platformshconfig_not_installed)
                 sys.exit()
 
