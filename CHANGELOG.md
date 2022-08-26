@@ -15,6 +15,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 - More integrity checks before making any configuration changes:
     - Check `git status` before beginning configuration work. Warn users and exit if status is not `working tree clean`. The `--ignore-unclean-git` flag will override this warning.
     - Check that Platform.sh CLI or Heroku CLI are installed before configuring for those platforms.
+    - Check that `platform create` has been run, or that a deployed project name has been provided.
 
 ### 0.4.2
 

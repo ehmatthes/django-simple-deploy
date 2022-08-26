@@ -54,6 +54,9 @@ project. This must match the name of your Platform.sh project.
 login_required = """
 You appear to be logged out of the Platform.sh CLI. Please run the 
 command `platform login`, and then run simple_deploy again.
+
+You may be able to override this error by passing the `--deployed-project-name`
+flag.
 """
 
 unknown_error = """
