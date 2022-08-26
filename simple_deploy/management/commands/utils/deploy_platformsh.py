@@ -314,11 +314,6 @@ class PlatformshDeployer:
             self.deployed_project_name = 'blog'
 
 
-        # print('project name:', self.deployed_project_name)
-        # print('dev exit from validate_platform()')
-        # sys.exit()
-
-
     # --- Helper methods for methods called from simple_deploy.py ---
 
     def _validate_cli(self):
@@ -348,6 +343,10 @@ class PlatformshDeployer:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
         """
+        # Use the provided name if --deployed-project-name specified.
+        if self.sd.deployed_project_name:
+            return self.sd.deployed_project_name
+
         # Use --yes flag to avoid interactive prompt hanging in background
         #   if the user is not currently logged in to the CLI.
         cmd = "platform project:info --yes"

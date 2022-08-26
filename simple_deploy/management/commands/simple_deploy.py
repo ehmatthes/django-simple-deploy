@@ -51,6 +51,15 @@ class Command(BaseCommand):
             help="Run simple_deploy even with an unclean `git status` message.",
             action='store_true')
 
+        # Allow users to set the deployed project name. This is the name that
+        #   will be used by the platform, which may be different than the name
+        #   used in the `startproject` command. See the Platform.sh script
+        #   for use of this flag.
+        parser.add_argument('--deployed-project-name', type=str,
+            help="What name should the platform use for this project?\n(This is normally discovered automatically through inspection.)",
+            default='')
+
+
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -100,6 +109,7 @@ class Command(BaseCommand):
         self.log_output = not(options['no_logging'])
         self.local_test = options['local_test']
         self.ignore_unclean_git = options['ignore_unclean_git']
+        self.deployed_project_name = options['deployed_project_name']
 
 
     def _validate_command(self):

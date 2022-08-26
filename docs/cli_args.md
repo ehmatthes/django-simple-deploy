@@ -11,7 +11,9 @@ Table of Contents
     - [Deployment to Heroku](#deployment-to-heroku)
     - [Deployment to Platform.sh](#deployment-to-platformsh)
 - [Automation](#automation)
-- [Logging](#logging)    
+- [Logging](#logging)
+- [Ignore Unclean Git Status](ignore-unclean-git-status)
+- [Deployed Project Name](#deployed-project-name)  
 
 
 All arguments
@@ -82,3 +84,12 @@ Ignore Unclean Git Status
 ---
 
 We really want users to have a clean `git status` before running simple_deploy. This allows people to easily revert configuration changes if deployment doesn't work, or if they want to target a different platform. The `--ignore-unclean-git` flag allows users to override this recommendation.
+
+Deployed Project Name
+---
+
+Normally, simple_deploy identifies the name of the project through inspection. If you've already created an empty project on the target platform, we run a command such as `platform project:info` to discover the name that was used when creating the project. If you're using `--automate-all`, simple_deploy will determine the name used when running `startproject`, and use this name as the deployed project name.
+
+However, there are situations where you may want to provide a specific name to use for the deployed project. This may be helpful, for example, when working with a GitHub-based approach to deployment where simple_deploy is just taking care of configuration.
+
+The `--deployed-project-name` flag allows you to specify exactly what name to use for the deployed project. Note that if you provide this name and it differs from what was used to create the deployed project, the configuration will likely not work.
