@@ -289,10 +289,6 @@ class Command(BaseCommand):
            `django-admin startproject .`
         This matters for knowing where manage.py is, and knowing where the
          .git dir is likely to be.
-        Assume the .git directory is in the topmost directory; the location
-         of .git/ relative to settings.py indicates whether or not this is
-         a nested project.
-        # DEV: This docstring came from a couple different methods; clean it up.
         """
         if Path(self.project_root / '.git').exists():
             self.git_path = Path(self.project_root)
