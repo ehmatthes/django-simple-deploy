@@ -268,8 +268,9 @@ class Command(BaseCommand):
         # Get project root, from settings.
         self.project_root = settings.BASE_DIR
 
-        # Find .git location.
+        # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
+        self._check_git_status()
 
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
@@ -302,6 +303,22 @@ class Command(BaseCommand):
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
             raise CommandError(error_msg)
+
+
+    def _check_git_status(self):
+        """Make sure we're starting from a clean working state.
+        We really want to encourage users to be able to easily undo
+          configuration changes. This is especially true for automate-all.
+        """
+
+        cmd = "git status"
+        output_obj = self.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        if "working tree clean" not in output_str:
+            raise CommandError(d_msgs.unclean_git_status)
+
+        print('dev exit')
+        sys.exit()
 
 
     def _get_dep_man_approach(self):
