@@ -41,20 +41,7 @@ class HerokuDeployer:
         self._show_success_message()
 
 
-    def validate_platform(self):
-        """Make sure the local environment and project supports deployment to
-        Heroku.
-
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
-        """
-        # Make sure Heroku CLI is installed.
-        cmd = 'heroku --version'
-        output_obj = self.sd.execute_subp_run(cmd)
-        if output_obj.returncode:
-            raise CommandError(dh_msgs.cli_not_installed)
-            sys.exit()
-
+    # --- Methods used in this class ---
 
     def _prep_automate_all(self):
         """Do intial work for automating entire process."""
@@ -167,9 +154,9 @@ class HerokuDeployer:
         self.sd.write_output("\n  Looking for gunicorn...")
 
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('gunicorn')
+            self.sd.add_req_txt_pkg('gunicorn')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('gunicorn')
+            self.sd.add_pipenv_pkg('gunicorn')
 
 
     def _check_allowed_hosts(self):
@@ -206,11 +193,11 @@ class HerokuDeployer:
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('psycopg2<2.9')
-            self.sd._add_req_txt_pkg('dj-database-url')
+            self.sd.add_req_txt_pkg('psycopg2<2.9')
+            self.sd.add_req_txt_pkg('dj-database-url')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('psycopg2', version="<2.9")
-            self.sd._add_pipenv_pkg('dj-database-url')
+            self.sd.add_pipenv_pkg('psycopg2', version="<2.9")
+            self.sd.add_pipenv_pkg('dj-database-url')
 
 
     def _add_db_settings(self):
@@ -238,9 +225,9 @@ class HerokuDeployer:
         # Add whitenoise to requirements.
         self.sd.write_output("    Adding staticfiles-related packages...")
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('whitenoise')
+            self.sd.add_req_txt_pkg('whitenoise')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('whitenoise')
+            self.sd.add_pipenv_pkg('whitenoise')
 
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
@@ -483,3 +470,23 @@ class HerokuDeployer:
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)
+
+
+    # --- Methods called from simple_deploy.py ---
+
+    def validate_platform(self):
+        """Make sure the local environment and project supports deployment to
+        Heroku.
+
+        The returncode for a successful command is 0, so anything truthy means
+          a command errored out.
+        """
+        # Make sure Heroku CLI is installed.
+        cmd = 'heroku --version'
+        output_obj = self.sd.execute_subp_run(cmd)
+        if output_obj.returncode:
+            raise CommandError(dh_msgs.cli_not_installed)
+            sys.exit()
+
+
+    

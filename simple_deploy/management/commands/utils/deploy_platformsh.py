@@ -52,49 +52,7 @@ class PlatformshDeployer:
         self._show_success_message()
 
 
-    def confirm_preliminary(self):
-        """Deployment to platform.sh is in a preliminary state, and we need to be
-        explicit about that.
-        """
-        # Skip this confirmation when unit testing.
-        if self.sd.local_test:
-            return
-
-        self.stdout.write(plsh_msgs.confirm_preliminary)
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.stdout.write("  Continuing with platform.sh deployment...")
-        else:
-            # Quit and invite the user to try another platform.
-            self.stdout.write(plsh_msgs.cancel_plsh)
-            # We are happily exiting the script; there's no need to raise a
-            #   CommandError.
-            sys.exit()
-
-
-    def validate_platform(self):
-        """Make sure the local environment and project supports deployment to
-        Platform.sh.
-        
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
-        """
-        # Make sure Platform.sh CLI is installed.
-        cmd = 'platform --version'
-        output_obj = self.sd.execute_subp_run(cmd)
-        if output_obj.returncode:
-            raise CommandError(plsh_msgs.cli_not_installed)
-            sys.exit()
-
-        # If not using automate-all, make sure platformshconfig is installed
-        #   locally.
-        if not self.sd.automate_all:
-            cmd = 'pip show platformshconfig'
-            output_obj = self.sd.execute_subp_run(cmd)
-            if output_obj.returncode:
-                raise CommandError(plsh_msgs.platformshconfig_not_installed)
-                sys.exit()
+    # --- Methods used in this class ---
 
 
     def _add_platformsh_settings(self):
@@ -190,9 +148,9 @@ class PlatformshDeployer:
         self.sd.write_output("\n  Looking for platformshconfig...")
 
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('platformshconfig')
+            self.sd.add_req_txt_pkg('platformshconfig')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('platformshconfig')
+            self.sd.add_pipenv_pkg('platformshconfig')
 
 
     def _add_gunicorn(self):
@@ -200,9 +158,9 @@ class PlatformshDeployer:
         self.sd.write_output("\n  Looking for gunicorn...")
 
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('gunicorn')
+            self.sd.add_req_txt_pkg('gunicorn')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('gunicorn')
+            self.sd.add_pipenv_pkg('gunicorn')
 
 
     def _add_psycopg2(self):
@@ -210,9 +168,9 @@ class PlatformshDeployer:
         self.sd.write_output("\n  Looking for psycopg2...")
 
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('psycopg2')
+            self.sd.add_req_txt_pkg('psycopg2')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('psycopg2')
+            self.sd.add_pipenv_pkg('psycopg2')
 
 
     def _check_allowed_hosts(self):
@@ -316,3 +274,52 @@ class PlatformshDeployer:
 
         self.sd.write_output(plsh_msgs.success_msg)
 
+
+    # --- Methods called from simple_deploy.py ---
+
+    def confirm_preliminary(self):
+        """Deployment to platform.sh is in a preliminary state, and we need to be
+        explicit about that.
+        """
+        # Skip this confirmation when unit testing.
+        if self.sd.local_test:
+            return
+
+        self.stdout.write(plsh_msgs.confirm_preliminary)
+        confirmed = self.sd.get_confirmation()
+
+        if confirmed:
+            self.stdout.write("  Continuing with platform.sh deployment...")
+        else:
+            # Quit and invite the user to try another platform.
+            self.stdout.write(plsh_msgs.cancel_plsh)
+            # We are happily exiting the script; there's no need to raise a
+            #   CommandError.
+            sys.exit()
+
+
+    def validate_platform(self):
+        """Make sure the local environment and project supports deployment to
+        Platform.sh.
+        
+        The returncode for a successful command is 0, so anything truthy means
+          a command errored out.
+        """
+        # Make sure Platform.sh CLI is installed.
+        cmd = 'platform --version'
+        output_obj = self.sd.execute_subp_run(cmd)
+        if output_obj.returncode:
+            raise CommandError(plsh_msgs.cli_not_installed)
+            sys.exit()
+
+        # If not using automate-all, make sure platformshconfig is installed
+        #   locally.
+        if not self.sd.automate_all:
+            cmd = 'pip show platformshconfig'
+            output_obj = self.sd.execute_subp_run(cmd)
+            if output_obj.returncode:
+                raise CommandError(plsh_msgs.platformshconfig_not_installed)
+                sys.exit()
+
+
+    

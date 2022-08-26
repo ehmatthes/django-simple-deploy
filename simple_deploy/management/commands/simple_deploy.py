@@ -2,8 +2,6 @@
 
 # This is the command that's called to automate deployment.
 # - It starts the process, and then dispatches to platform-specific helpers.
-# - Some of the steps that are platform-agnostic are in this file (at least for now),
-#   but are called by the helpers.
 # - Each helper gets a reference to this command object.
 
 
@@ -86,6 +84,8 @@ class Command(BaseCommand):
         #   deploy() method.
         self.platform_deployer.deploy()
 
+
+    # --- Internal methods; used only in this class ---
 
     def _parse_cli_options(self, options):
         """Parse cli options."""
@@ -218,37 +218,6 @@ class Command(BaseCommand):
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
 
 
-    def write_output(self, output_obj, log_level='INFO',
-            write_to_console=True, skip_logging=False):
-        """Write output to the appropriate places.
-        Output may be a string, or an instance of subprocess.CompletedProcess.
-
-        Need to skip logging before log file is configured.
-        """
-
-        # Extract the subprocess output as a string.
-        if isinstance(output_obj, subprocess.CompletedProcess):
-            # Assume output is either stdout or stderr.
-            output_str = output_obj.stdout.decode()
-            if not output_str:
-                output_str = output_obj.stderr.decode()
-        elif isinstance(output_obj, str):
-            output_str = output_obj
-
-        # Almost always write to console. Input from prompts is not streamed
-        #   because user just typed it into the console.
-        if write_to_console:
-            self.stdout.write(output_str)
-
-        # Log when appropriate. Log as a series of single lines, for better
-        #   log file parsing. 
-        if self.log_output and not skip_logging:
-            for line in output_str.splitlines():
-                # Strip secret key from any line that holds it.
-                line = self._strip_secret_key(line)
-                logging.info(line)
-
-
     def _strip_secret_key(self, line):
         """Strip secret key value from log file lines."""
         if 'SECRET_KEY:' in line:
@@ -257,69 +226,6 @@ class Command(BaseCommand):
             return new_line
         else:
             return line
-
-
-    def execute_subp_run_parts(self, cmd_parts):
-        """This is similar to execute_subp_run(), but it receives a list of
-        command parts rather than a string command. Having this separate method
-        is cleaner than having nested if statements in execute_subp_run().
-
-        DEV: May want to make execute_subp_run() examine cmd that's received,
-        and dispatch the work based on whether it receives a string or sequence.
-        """
-        if self.on_windows:
-            cmd_string = ' '.join(cmd_parts)
-            output = subprocess.run(cmd_string, shell=True, capture_output=True)
-        else:
-            output = subprocess.run(cmd_parts, capture_output=True)
-
-        return output
-
-
-    def execute_subp_run(self, cmd):
-        """Execute subprocess.run() command.
-        We're running commands differently on Windows, so this method
-          takes a command and runs it appropriately on each system.
-        Returns: output of the command.
-        """
-        if self.on_windows:
-            output = subprocess.run(cmd, shell=True, capture_output=True)
-        else:
-            cmd_parts = cmd.split()
-            output = subprocess.run(cmd_parts, capture_output=True)
-
-        return output
-
-
-    def execute_command(self, cmd):
-        """Execute command, and stream output while logging.
-        This method is intended for commands that run long enough that we 
-        can't use a simple subprocess.run(capture_output=True), which doesn't
-        stream any output until the command is finished. That works for logging,
-        but makes it seem as if the deployment is hanging. This is an issue
-        especially on platforms like Azure that have some steps that take minutes
-        to run.
-        """
-
-        # DEV: This only captures stderr right now.
-        #   This is used for commands that run long enough that we don't
-        #   want to use a simple subprocess.run(capture_output=True). Right
-        #   now that's only the `git push heroku` call. That call writes to
-        #   stderr; I'm not sure how to stream both stdout and stderr.
-        #
-        #     This will also be needed for long-running steps on other platforms,
-        #   which may or may not write to stderr. Adding a parameter
-        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
-        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
-        #   topic date back to Python2/3 days.
-        cmd_parts = cmd.split()
-        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
-            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
-            for line in p.stderr:
-                self.write_output(line)
-
-        if p.returncode != 0:
-            raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
     def _inspect_system(self):
@@ -463,10 +369,8 @@ class Command(BaseCommand):
         #   django-simple-deploy it's automatically added to Pipfile.
         if self.using_req_txt:
             self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
-            self._add_req_txt_pkg('django-simple-deploy')
+            self.add_req_txt_pkg('django-simple-deploy')
 
-
-    # --- Utility methods ---
 
     def _get_pipfile_requirements(self):
         """Get a list of requirements that are already in the Pipfile."""
@@ -495,36 +399,6 @@ class Command(BaseCommand):
         return requirements
 
 
-    def _add_req_txt_pkg(self, package_name):
-        """Add a package to requirements.txt, if not already present."""
-        root_package_name = package_name.split('<')[0]
-
-        # Note: This does not check for specific versions. It gives priority
-        #   to any version already specified in requirements.
-        pkg_present = any(root_package_name in r for r in self.requirements)
-
-        if pkg_present:
-            self.write_output(f"    Found {root_package_name} in requirements file.")
-        else:
-            with open(self.req_txt_path, 'a') as f:
-                # Align comments, so we don't make req_txt file ugly.
-                #   Version specs are in package_name in req_txt approach.
-                tab_string = ' ' * (30 - len(package_name))
-                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
-
-            self.write_output(f"    Added {package_name} to requirements.txt.")
-
-
-    def _add_pipenv_pkg(self, package_name, version=""):
-        """Add a package to Pipfile, if not already present."""
-        pkg_present = any(package_name in r for r in self.requirements)
-
-        if pkg_present:
-            self.write_output(f"    Found {package_name} in Pipfile.")
-        else:
-            self._write_pipfile_pkg(package_name, version)
-
-
     def _write_pipfile_pkg(self, package_name, version=""):
         """Write package to Pipfile."""
 
@@ -548,6 +422,135 @@ class Command(BaseCommand):
             f.write(pipfile_text)
 
         self.write_output(f"    Added {package_name} to Pipfile.")
+
+
+    # --- Methods also used by platform-specific scripts ---
+
+    def write_output(self, output_obj, log_level='INFO',
+            write_to_console=True, skip_logging=False):
+        """Write output to the appropriate places.
+        Output may be a string, or an instance of subprocess.CompletedProcess.
+
+        Need to skip logging before log file is configured.
+        """
+
+        # Extract the subprocess output as a string.
+        if isinstance(output_obj, subprocess.CompletedProcess):
+            # Assume output is either stdout or stderr.
+            output_str = output_obj.stdout.decode()
+            if not output_str:
+                output_str = output_obj.stderr.decode()
+        elif isinstance(output_obj, str):
+            output_str = output_obj
+
+        # Almost always write to console. Input from prompts is not streamed
+        #   because user just typed it into the console.
+        if write_to_console:
+            self.stdout.write(output_str)
+
+        # Log when appropriate. Log as a series of single lines, for better
+        #   log file parsing. 
+        if self.log_output and not skip_logging:
+            for line in output_str.splitlines():
+                # Strip secret key from any line that holds it.
+                line = self._strip_secret_key(line)
+                logging.info(line)
+
+
+    def execute_subp_run_parts(self, cmd_parts):
+        """This is similar to execute_subp_run(), but it receives a list of
+        command parts rather than a string command. Having this separate method
+        is cleaner than having nested if statements in execute_subp_run().
+
+        Currently this is used to issue a git commit command, where running
+          cmd.split() would split on the commit message.
+
+        DEV: May want to make execute_subp_run() examine cmd that's received,
+        and dispatch the work based on whether it receives a string or sequence.
+        """
+        if self.on_windows:
+            cmd_string = ' '.join(cmd_parts)
+            output = subprocess.run(cmd_string, shell=True, capture_output=True)
+        else:
+            output = subprocess.run(cmd_parts, capture_output=True)
+
+        return output
+
+
+    def execute_subp_run(self, cmd):
+        """Execute subprocess.run() command.
+        We're running commands differently on Windows, so this method
+          takes a command and runs it appropriately on each system.
+        Returns: output of the command.
+        """
+        if self.on_windows:
+            output = subprocess.run(cmd, shell=True, capture_output=True)
+        else:
+            cmd_parts = cmd.split()
+            output = subprocess.run(cmd_parts, capture_output=True)
+
+        return output
+
+
+    def execute_command(self, cmd):
+        """Execute command, and stream output while logging.
+        This method is intended for commands that run long enough that we 
+        can't use a simple subprocess.run(capture_output=True), which doesn't
+        stream any output until the command is finished. That works for logging,
+        but makes it seem as if the deployment is hanging. This is an issue
+        especially on platforms like Azure that have some steps that take minutes
+        to run.
+        """
+
+        # DEV: This only captures stderr right now.
+        #   This is used for commands that run long enough that we don't
+        #   want to use a simple subprocess.run(capture_output=True). Right
+        #   now that's only the `git push heroku` call. That call writes to
+        #   stderr; I'm not sure how to stream both stdout and stderr.
+        #
+        #     This will also be needed for long-running steps on other platforms,
+        #   which may or may not write to stderr. Adding a parameter
+        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
+        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
+        #   topic date back to Python2/3 days.
+        cmd_parts = cmd.split()
+        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
+            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
+            for line in p.stderr:
+                self.write_output(line)
+
+        if p.returncode != 0:
+            raise subprocess.CalledProcessError(p.returncode, p.args)
+
+
+    def add_req_txt_pkg(self, package_name):
+        """Add a package to requirements.txt, if not already present."""
+        root_package_name = package_name.split('<')[0]
+
+        # Note: This does not check for specific versions. It gives priority
+        #   to any version already specified in requirements.
+        pkg_present = any(root_package_name in r for r in self.requirements)
+
+        if pkg_present:
+            self.write_output(f"    Found {root_package_name} in requirements file.")
+        else:
+            with open(self.req_txt_path, 'a') as f:
+                # Align comments, so we don't make req_txt file ugly.
+                #   Version specs are in package_name in req_txt approach.
+                tab_string = ' ' * (30 - len(package_name))
+                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
+
+            self.write_output(f"    Added {package_name} to requirements.txt.")
+
+
+    def add_pipenv_pkg(self, package_name, version=""):
+        """Add a package to Pipfile, if not already present."""
+        pkg_present = any(package_name in r for r in self.requirements)
+
+        if pkg_present:
+            self.write_output(f"    Found {package_name} in Pipfile.")
+        else:
+            self._write_pipfile_pkg(package_name, version)
 
 
     def get_confirmation(self, skip_logging=False):
