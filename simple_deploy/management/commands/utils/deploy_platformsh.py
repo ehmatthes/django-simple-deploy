@@ -306,6 +306,7 @@ class PlatformshDeployer:
         """
         self._validate_cli()
         self._validate_platformshconfig()
+        self.deployed_project_name = self._get_platformsh_project_name()
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -329,3 +330,23 @@ class PlatformshDeployer:
             if output_obj.returncode:
                 raise CommandError(plsh_msgs.platformshconfig_not_installed)
                 sys.exit()
+
+    def _get_platformsh_project_name(self):
+        """Get the deployed project name.
+        This is the name that was given in the `platform create` command.
+        - Try to get this from `project:info`.
+        - If can't get project name:
+          - Exit with warning, and inform user of --deployed-project-name
+            flag to override this error.
+        """
+        cmd = "platform project:info"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        deployed_project_name_re = r'(\| title\s+?\|\s*?)(.*?)(\s*?\|)'
+        match = re.search(deployed_project_name_re, output_str)
+        if match:
+            return platformsh_project_name = match.group(2).strip()
+        else:
+            return None
+
+        
