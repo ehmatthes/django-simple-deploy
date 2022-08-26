@@ -54,7 +54,6 @@ class PlatformshDeployer:
 
     # --- Methods used in this class ---
 
-
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""
         # The only project-specific setting is the ALLOWED_HOSTS; that makes
