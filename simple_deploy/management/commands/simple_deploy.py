@@ -46,6 +46,11 @@ class Command(BaseCommand):
             help="Used for local unit testing, to avoid network calls.",
             action='store_true')
 
+        # Allow users to use simple_deploy even with an unclean git status.
+        parser.add_argument('--ignore-unclean-git',
+            help="Run simple_deploy even with an unclean `git status` message.",
+            action='store_true')
+
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -94,6 +99,7 @@ class Command(BaseCommand):
         # This is a True-to-disable option; turn it into a more intuitive flag?
         self.log_output = not(options['no_logging'])
         self.local_test = options['local_test']
+        self.ignore_unclean_git = options['ignore_unclean_git']
 
 
     def _validate_command(self):
@@ -310,6 +316,9 @@ class Command(BaseCommand):
         We really want to encourage users to be able to easily undo
           configuration changes. This is especially true for automate-all.
         """
+
+        if self.ignore_unclean_git:
+            return
 
         cmd = "git status"
         output_obj = self.execute_subp_run(cmd)
