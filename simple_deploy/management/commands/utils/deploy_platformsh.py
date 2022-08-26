@@ -304,12 +304,7 @@ class PlatformshDeployer:
         The returncode for a successful command is 0, so anything truthy means
           a command errored out.
         """
-        # Make sure Platform.sh CLI is installed.
-        cmd = 'platform --version'
-        output_obj = self.sd.execute_subp_run(cmd)
-        if output_obj.returncode:
-            raise CommandError(plsh_msgs.cli_not_installed)
-            sys.exit()
+        self._validate_cli()
 
         # If not using automate-all, make sure platformshconfig is installed
         #   locally.
@@ -321,4 +316,12 @@ class PlatformshDeployer:
                 sys.exit()
 
 
-    
+    # --- Helper methods for methods called from simple_deploy.py ---
+
+    def _validate_cli(self):
+        """Make sure the Platform.sh CLI is installed."""
+        cmd = 'platform --version'
+        output_obj = self.sd.execute_subp_run(cmd)
+        if output_obj.returncode:
+            raise CommandError(plsh_msgs.cli_not_installed)
+            sys.exit()
