@@ -24,6 +24,7 @@ $ python manage.py simple_deploy
     --platform [heroku|platform_sh]    # required
     --automate-all
     --no-logging
+    --ignore-unclean-git
 ```
 
 Platform arguments
@@ -76,3 +77,8 @@ If you want to disable logging, you can do so with the `--no-logging` flag:
 ```
 $ python manage.py simple_deploy --no-logging --platform platform_name
 ```
+
+Ignore Unclean Git Status
+---
+
+We really want users to have a clean `git status` before running simple_deploy. This allows people to easily revert configuration changes if deployment doesn't work, or if they want to target a different platform. The `--ignore-unclean-git` flag allows users to override this recommendation.

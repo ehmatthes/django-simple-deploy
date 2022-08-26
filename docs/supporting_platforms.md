@@ -35,6 +35,7 @@ The main work for modifying a project is done by two scripts, *simple_deploy.py*
     - Are we on Windows, macOS, Linux?
 - Inspect the project generally.
     - Determine the project name, project root directory, locate *.git/* directory, define the path to *settings.py*.
+    - Make sure the output of `git status` contains `working tree clean`. This can be overridden with the `--ignore-unclean-git` flag.
     - Determine the dependency management system (bare *requirements.txt*, Pipenv, Poetry), and identify existing dependencies.
 - Validate the project.
     - Exit if anything about the project indicates an inability to configure for deployment.
