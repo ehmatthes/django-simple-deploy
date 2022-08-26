@@ -324,10 +324,10 @@ class Command(BaseCommand):
         output_obj = self.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         if "working tree clean" not in output_str:
-            raise CommandError(d_msgs.unclean_git_status)
-
-        print('dev exit')
-        sys.exit()
+            error_msg = d_msgs.unclean_git_status
+            if self.automate_all:
+                error_msg += d_msgs.unclean_git_automate_all
+            raise CommandError(error_msg)
 
 
     def _get_dep_man_approach(self):

@@ -60,6 +60,14 @@ to continue without committing current changes, you can use
 the --ignore-unclean-git flag.
 """
 
+# Add-on to `unclean_git_status` when using automate-all.
+unclean_git_automate_all = """
+It's especially important to have a clean status when using the --automate-all
+flag. In this case, simple_deploy will make commits on your behalf. It's a
+really good idea to keep your commits separate from the commits that simple_deploy
+makes.
+"""
+
 
 # --- Dynamic strings ---
 # These need to be generated in functions, to display information that's 
