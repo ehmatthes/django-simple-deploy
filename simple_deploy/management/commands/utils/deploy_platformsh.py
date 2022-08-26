@@ -305,15 +305,7 @@ class PlatformshDeployer:
           a command errored out.
         """
         self._validate_cli()
-
-        # If not using automate-all, make sure platformshconfig is installed
-        #   locally.
-        if not self.sd.automate_all:
-            cmd = 'pip show platformshconfig'
-            output_obj = self.sd.execute_subp_run(cmd)
-            if output_obj.returncode:
-                raise CommandError(plsh_msgs.platformshconfig_not_installed)
-                sys.exit()
+        self._validate_platformshconfig()
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -325,3 +317,15 @@ class PlatformshDeployer:
         if output_obj.returncode:
             raise CommandError(plsh_msgs.cli_not_installed)
             sys.exit()
+
+
+    def _validate_platformshconfig(self):
+        """If not using automate-all, make sure platformshconfig is installed
+        locally.
+        """
+        if not self.sd.automate_all:
+            cmd = 'pip show platformshconfig'
+            output_obj = self.sd.execute_subp_run(cmd)
+            if output_obj.returncode:
+                raise CommandError(plsh_msgs.platformshconfig_not_installed)
+                sys.exit()
