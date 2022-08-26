@@ -486,7 +486,4 @@ class HerokuDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         if output_obj.returncode:
             raise CommandError(dh_msgs.cli_not_installed)
-            sys.exit()
-
-
     

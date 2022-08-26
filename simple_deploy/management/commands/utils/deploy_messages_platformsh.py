@@ -39,6 +39,27 @@ To do this, run the following command, or its equivalent in your project:
 After installing this package, you can run simple_deploy again.
 """
 
+no_project_name = """
+A project name could not be found.
+
+The simple_deploy command expects that you've already run `platform create`, or
+associated the local project with an existing project on Platform.sh.
+
+If you haven't done so, run the `platform create` command and then run
+simple_deploy again. You can override this warning by using
+the `--deployed-project-name` flag to specify the name you want to use for the
+project. This must match the name of your Platform.sh project.
+"""
+
+login_required = """
+You appear to be logged out of the Platform.sh CLI. Please run the 
+command `platform login`, and then run simple_deploy again.
+"""
+
+unknown_error = """
+An unknown error has occurred. Do you have the Platform.sh CLI installed?
+"""
+
 success_msg = """
 --- Your project is now configured for deployment on Platform.sh. ---
 

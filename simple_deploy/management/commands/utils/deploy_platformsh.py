@@ -131,7 +131,7 @@ class PlatformshDeployer:
             my_template = my_loader.get_template('platform.app.yaml')
 
             # Build context dict for template.
-            context = {'project_name': self.sd.project_name}
+            context = {'project_name': self.deployed_project_name}
             template_string = render_to_string('platform.app.yaml', context)
 
             path = self.sd.project_root / '.platform.app.yaml'
@@ -221,7 +221,7 @@ class PlatformshDeployer:
             my_template = my_loader.get_template('routes.yaml')
 
             # Build context dict for template.
-            context = {'project_name': self.sd.project_name}
+            context = {'project_name': self.deployed_project_name}
             template_string = render_to_string('routes.yaml', context)
 
             path = self.platform_dir_path / 'routes.yaml'
@@ -291,9 +291,9 @@ class PlatformshDeployer:
             self.stdout.write("  Continuing with platform.sh deployment...")
         else:
             # Quit and invite the user to try another platform.
-            self.stdout.write(plsh_msgs.cancel_plsh)
             # We are happily exiting the script; there's no need to raise a
             #   CommandError.
+            self.stdout.write(plsh_msgs.cancel_plsh)
             sys.exit()
 
 
@@ -306,7 +306,17 @@ class PlatformshDeployer:
         """
         self._validate_cli()
         self._validate_platformshconfig()
-        self.deployed_project_name = self._get_platformsh_project_name()
+
+        # When running unit tests, will not be logged into CLI.
+        if not self.sd.local_test:
+            self.deployed_project_name = self._get_platformsh_project_name()
+        else:
+            self.deployed_project_name = 'blog'
+
+
+        # print('project name:', self.deployed_project_name)
+        # print('dev exit from validate_platform()')
+        # sys.exit()
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -317,7 +327,6 @@ class PlatformshDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         if output_obj.returncode:
             raise CommandError(plsh_msgs.cli_not_installed)
-            sys.exit()
 
 
     def _validate_platformshconfig(self):
@@ -329,7 +338,7 @@ class PlatformshDeployer:
             output_obj = self.sd.execute_subp_run(cmd)
             if output_obj.returncode:
                 raise CommandError(plsh_msgs.platformshconfig_not_installed)
-                sys.exit()
+
 
     def _get_platformsh_project_name(self):
         """Get the deployed project name.
@@ -339,14 +348,30 @@ class PlatformshDeployer:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
         """
-        cmd = "platform project:info"
+        # Use --yes flag to avoid interactive prompt hanging in background
+        #   if the user is not currently logged in to the CLI.
+        cmd = "platform project:info --yes"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+
+        # If there's no stdout, the user is probably logged out, or doesn't
+        #   have the CLI installed.
+        if not output_str:
+            output_str = output_obj.stderr.decode()
+            if 'LoginRequiredException' in output_str:
+                raise CommandError(plsh_msgs.login_required)
+            else:
+                error_msg = plsh_msgs.unknown_error
+                error_msg += plsh_msgs.cli_not_installed
+                raise CommandError(error_msg)
+
+        # Pull deployed project name from output.
         deployed_project_name_re = r'(\| title\s+?\|\s*?)(.*?)(\s*?\|)'
         match = re.search(deployed_project_name_re, output_str)
         if match:
-            return platformsh_project_name = match.group(2).strip()
-        else:
-            return None
-
+            return match.group(2).strip()
+        
+        # Couldn't find a project name. Warn user, and let them know
+        #   about override flag.
+        raise CommandError(plsh_msgs.no_project_name)
         
