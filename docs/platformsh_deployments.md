@@ -88,12 +88,6 @@ Now your project should be ready for deployment. To configure your project, `sim
 
 If you want to see the changes that were made, run `git status` and take a look at the files that were created or modified after running `manage.py simple_deploy`. Also, if you're curious to see the code that generates these changes, you can see the `simple_deploy.py` code [here](https://github.com/ehmatthes/django-simple-deploy/blob/main/simple_deploy/management/commands/simple_deploy.py); the Platform.sh-specific script is [here](https://github.com/ehmatthes/django-simple-deploy/blob/main/simple_deploy/management/commands/utils/deploy_platformsh.py).
 
-Next, run the `platform create` command. This will create a new empty project on Platform.sh' servers. Make sure you use the same name for this project that you used when running `django-admin startproject`. If you're not sure what this is, it should be the name of the folder that contains `settings.py`.
-
-```
-(venv)$ platform create
-```
-
 Then push your project, and open the deployed project in a browser:
 
 ```
@@ -112,4 +106,9 @@ After your initial deployment, you shouldn't need to run the `simple_deploy` com
 - Run `platform push`.
 
 There's a lot more to know about deployement, so see the [Platform.sh documentation](https://docs.platform.sh) and start to get familiar with the parts of it that are relevant to your project. The main Python page is [here](https://docs.platform.sh/languages/python.html), and you can see an example Django project configured for deployment [here](https://github.com/platformsh-templates/django4).
+
+Deleting the project
+---
+
+If you are just testing the deployment process and you want to destroy the project, you can do so with the `platform project:delete` command. You should verify that this command was successful, and that you will not continue to accrue charges. You may want to visit the Platform.sh online console and verify that this project no longer exists in your dashboard.
 
