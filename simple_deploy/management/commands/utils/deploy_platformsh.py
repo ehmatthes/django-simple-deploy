@@ -343,6 +343,11 @@ class PlatformshDeployer:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
         """
+        # Skip this check if using automate-all, because we'll get the project
+        #   name after running `platform create` ourselves.
+        if self.sd.automate_all:
+            return ''
+
         # Use the provided name if --deployed-project-name specified.
         if self.sd.deployed_project_name:
             return self.sd.deployed_project_name
