@@ -22,11 +22,14 @@ source b_env/bin/activate
 #   or expects us to use `--automate-all` to call `heroku create`.
 # How mock this call? Need to get output for `heroku apps:info`.
 
-# Deployment to Platform.sh currently requires local installation of
-#   platformshconfig.
-if [ "$target_platform" = platform_sh ]; then
-    pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig
-fi
-
 # Run configuration-only version of simple_deploy.
-python manage.py simple_deploy --local-test --platform "$target_platform"
+# The flags and other conditions vary for testing different platforms, so
+#   call each in its own if block.
+if [ "$target_platform" = platform_sh ]; then
+    # Deployment to Platform.sh currently requires local installation of
+    #   platformshconfig.
+    pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig
+    python manage.py simple_deploy --local-test --platform "$target_platform"
+elif [ "$target_platform" = heroku ]; then
+    python manage.py simple_deploy --local-test --platform "$target_platform"
+fi
