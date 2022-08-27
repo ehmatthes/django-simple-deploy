@@ -29,11 +29,11 @@ Now add `simple_deploy` to `INSTALLED_APPS`.
 The following commands will deploy your project:
 
 ```
+(venv)$ platform create
 (venv)$ python manage.py simple_deploy --platform platform_sh
 (venv)$ git status                               # See what changes were made.
 (venv)$ git add .
 (venv)$ git commit -am "Configured project for deployment."
-(venv)$ platform create
 (venv)$ platform push
 (venv)$ platform url
 ```
@@ -45,7 +45,7 @@ Detailed description of configuration-only deployment
 
 To deploy your project to Platform.sh, you'll need to make a [Platform.sh](https://platform.sh/) account and install the [Platform.sh CLI](https://docs.platform.sh/development/cli.html). Platform.sh lets you deploy up to two projects per day for free; I'm not sure how many projects you can have in total. I believe there's also a time limit for the free trial.
 
-You'll need to install and use [Git](https://git-scm.com) for version control if you're not already doing so. It's beyond the scope of these instructions to provide an introduction to Git, but if you're not using version control yet you really should run through a basic tutorial before focusing on deployment. It's also a good idea to commit all of your own changes before starting this deployment process. That way you can easily go back to your pre-deployment state if anything goes wrong, and you can also see the specific changes that are made in preparing for deployment.
+You'll need to install and use [Git](https://git-scm.com) for version control if you're not already doing so. It's beyond the scope of these instructions to provide an introduction to Git, but if you're not using version control yet you really should run through a basic tutorial before focusing on deployment. It's also a good idea to commit all of your own changes before starting this deployment process. That way you can easily go back to your pre-deployment state if anything goes wrong, and you can also see the specific changes that are made in preparing for deployment. If you haven't committed all of your changes before running `simple_deploy`, you'll see a warning to do so. You can override this with the `--ignore-unclean-git` flag if you have a specific reason to do so.
 
 Each Django project quickly ends up with its own set of specific dependencies. These include a specific version of Django, and any number of other libraries that you end up using in a project. These dependencies need to be managed separate from any other Django project you might have on your system, and separate from any other Python project you work on. There are a number of approaches to dependency management. If you're working in a virtual environment, you can generate a requirements file with the command `pip freeze > requirements.txt`.
 
@@ -65,9 +65,10 @@ You can install `django-simple-deploy` with pip:
 
 You'll need to add the app `simple_deploy` to `INSTALLED_APPS` in `settings.py`. This is a stripped-down app that makes the management command `manage.py simple_deploy` available in your project.
 
-The following commands will configure your project for deployment to Platform.sh. It's a good idea to run `git status` after configuring for deployment, so you can review the changes that were made to your project in preparing for deployment.
+The following commands will create an empty project on Platform.sh, and configure your project for deployment. It's a good idea to run `git status` after configuring for deployment, so you can review the changes that were made to your project in preparing for deployment.
 
 ```
+(venv)$ platform create
 (venv)$ python manage.py simple_deploy
 (venv)$ git status
 (venv)$ git add .
