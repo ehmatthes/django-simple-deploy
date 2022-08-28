@@ -89,6 +89,13 @@ class Command(BaseCommand):
             # Log the options used for this run.
             self.write_output(f"CLI args: {options}", write_to_console=False)
 
+        # First action that could fail, but should happen after logging, is
+        #   calling platform-specific prep_automate_all(). This usually creates
+        #   an empty project on the target platform. This is one of the steps
+        #   most likely to fail, so it should be called before other modifications.
+        if self.automate_all:
+            self.platform_deployer.prep_automate_all()
+
         self._add_simple_deploy_req()
 
         # print('bye')

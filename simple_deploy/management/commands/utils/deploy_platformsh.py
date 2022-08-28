@@ -34,7 +34,6 @@ class PlatformshDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
-        self._prep_automate_all()
         self._add_platformsh_settings()
 
         # DEV: Group this with later yaml generation methods.
@@ -56,36 +55,6 @@ class PlatformshDeployer:
 
 
     # --- Methods used in this class ---
-
-    def _prep_automate_all(self):
-        """Do intial work for automating entire process.
-        We know from validate_project() that user is logged into CLI.
-        
-        Returns:
-        - None if creation was successful.
-        - Raises CommandError if create command fails.
-          - If nonzero returncode (unknown error).
-          - If 'Exception' in stderr.
-
-        Note: create command outputs project id if known to stdout, all other
-          output goes to stderr.
-        """
-
-        # Skip this prep work if --automate-all not used. Making this check
-        #   here lets deploy() be cleaner.
-        if not self.sd.automate_all:
-            return
-
-        self.sd.write_output("  Running `platform create`...")
-        cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region us-3.platform.sh --yes'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
-
-        if output.returncode:
-            raise CommandError(plsh_msgs.unknown_create_error(output))
-        elif 'Exception' in output.stderr.decode():
-            raise CommandError(plsh_msgs.unknown_create_error(output))
-
 
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""
@@ -396,6 +365,36 @@ class PlatformshDeployer:
             self.org_name = self._get_org_name()
         else:
             self.deployed_project_name = self.sd.deployed_project_name
+
+
+    def prep_automate_all(self):
+        """Do intial work for automating entire process.
+        We know from validate_project() that user is logged into CLI.
+        
+        Returns:
+        - None if creation was successful.
+        - Raises CommandError if create command fails.
+          - If nonzero returncode (unknown error).
+          - If 'Exception' in stderr.
+
+        Note: create command outputs project id if known to stdout, all other
+          output goes to stderr.
+        """
+
+        # Skip this prep work if --automate-all not used. Making this check
+        #   here lets deploy() be cleaner.
+        if not self.sd.automate_all:
+            return
+
+        self.sd.write_output("  Running `platform create`...")
+        cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region us-3.platform.sh --yes'
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
+
+        if output.returncode:
+            raise CommandError(plsh_msgs.unknown_create_error(output))
+        elif 'Exception' in output.stderr.decode():
+            raise CommandError(plsh_msgs.unknown_create_error(output))
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
