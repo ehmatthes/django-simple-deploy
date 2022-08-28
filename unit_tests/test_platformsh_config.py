@@ -67,7 +67,7 @@ def test_routes_yaml_file(tmp_project, run_simple_deploy):
     # From the template, generate the expected file.
     path_original = sd_root_dir / 'simple_deploy/templates/routes.yaml'
     original_text = path_original.read_text()
-    expected_text = original_text.replace('{{ project_name }}', 'my_blog_project')
+    expected_text = original_text.replace('{{ deployed_project_name }}', 'my_blog_project')
 
     # Get the actual file from the modified test project.
     path_generated = tmp_project / '.platform/routes.yaml'
