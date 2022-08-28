@@ -238,6 +238,10 @@ rm -rf "$script_dir/django_simple_deploy.egg-info/"
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
 
+# simple_deploy will exit with a warning if `git status` is not clean.
+echo "  Committing all changes..."
+git add .
+git commit -am "Ready to run simple_deploy."
 
 # --- Test platform-specific deployment processes. ---
 
