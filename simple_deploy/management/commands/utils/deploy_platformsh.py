@@ -377,13 +377,9 @@ class PlatformshDeployer:
         # When running unit tests, will not be logged into CLI.
         if not self.sd.local_test:
             self.deployed_project_name = self._get_platformsh_project_name()
-            # self.org_id = self._get_org_id()
             self.org_name = self._get_org_name()
         else:
             self.deployed_project_name = self.sd.deployed_project_name
-
-        print('dev exit', self.org_id)
-        sys.exit()
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -459,50 +455,6 @@ class PlatformshDeployer:
         raise CommandError(plsh_msgs.no_project_name)
 
 
-    def _get_org_id(self):
-        """Get the organization id associated with the user's Platform.sh
-        account. This is needed for creating a project using automate_all.
-
-        Confirm that it's okay to use this org id.
-
-        Returns:
-        - None if not using automate-all.
-        - String containing org id if found, and confirmed.
-        - Raises CommandError if org id found, but not confirmed.
-        - Raises CommandError with msg if CLI login required.
-        - Raises CommandError with msg if org id not found.
-        """
-        if not self.sd.automate_all:
-            return
-
-        cmd = "platform organization:info --quiet"
-        output_obj = self.sd.execute_subp_run(cmd)
-        print(output_obj)
-        output_str = output_obj.stdout.decode()
-
-        if not output_str:
-            output_str = output_obj.stderr.decode()
-            if 'LoginRequiredException' in output_str:
-                raise CommandError(plsh_msgs.login_required)
-            else:
-                error_msg = plsh_msgs.unknown_error
-                error_msg += plsh_msgs.cli_not_installed
-                raise CommandError(error_msg)
-
-        # Pull org id from output.
-        org_id_re = r'(\|\s*id\s*\|\s*)([A-Z0-9]*)'
-        match = re.search(org_id_re, output_str)
-        if match:
-            org_id = match.group(2).strip()
-            if self._confirm_use_org_id(org_id):
-                return org_id
-        else:
-            # Got stdout, but can't find org id. Unknown error.
-            error_msg = plsh_msgs.unknown_error
-            error_msg += plsh_msgs.cli_not_installed
-            raise CommandError(error_msg)
-
-
     def _get_org_name(self):
         """Get the organization name associated with the user's Platform.sh
         account. This is needed for creating a project using automate_all.
@@ -544,29 +496,7 @@ class PlatformshDeployer:
                 return org_name
         else:
             # Got stdout, but can't find org id. Unknown error.
-            error_msg = plsh_msgs.unknown_error
-            error_msg += plsh_msgs.cli_not_installed
-            raise CommandError(error_msg)
-
-
-    def _confirm_use_org_id(self, org_id):
-        """Confirm that it's okay to use the org id that was found.
-        Returns:
-        - True if confirmed.
-        - sys.exit() if not confirmed.
-        """
-
-        self.stdout.write(plsh_msgs.confirm_use_org_id(org_id))
-        confirmed = self.sd.get_confirmation(skip_logging=True)
-
-        if confirmed:
-            self.stdout.write("  Okay, continuing with deployment.")
-            return True
-        else:
-            # Exit, with a message that configuration is still an option.
-            msg = plsh_msgs.cancel_plsh
-            msg += plsh_msgs.may_configure
-            raise CommandError(msg)
+            raise CommandError(plsh_msgs.org_not_found)
 
 
     def _confirm_use_org_name(self, org_name):

@@ -51,6 +51,17 @@ the `--deployed-project-name` flag to specify the name you want to use for the
 project. This must match the name of your Platform.sh project.
 """
 
+org_not_found = """
+A Platform.sh organization name could not be found.
+
+You may have created a Platform.sh account, but not created an organization.
+The Platform.sh CLI requires an organization name when creating a new project.
+
+Please visit the Platform.sh console and make sure you have created an organization.
+You can also do this through the CLI using the `platform organization:create` command.
+For help, run `platform help organization:create`.
+"""
+
 login_required = """
 You appear to be logged out of the Platform.sh CLI. Please run the 
 command `platform login`, and then run simple_deploy again.
