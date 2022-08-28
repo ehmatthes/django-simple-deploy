@@ -224,7 +224,7 @@ class PlatformshDeployer:
             my_template = my_loader.get_template('routes.yaml')
 
             # Build context dict for template.
-            context = {'project_name': self.deployed_project_name}
+            context = {'deployed_project_name': self.deployed_project_name}
             template_string = render_to_string('routes.yaml', context)
 
             path = self.platform_dir_path / 'routes.yaml'
