@@ -63,6 +63,13 @@ unknown_error = """
 An unknown error has occurred. Do you have the Platform.sh CLI installed?
 """
 
+may_configure = """
+You may want to re-run simple_deploy without the --automate-all flag.
+
+You will have to create the Platform.sh project yourself, but simple_deploy
+will do all of the necessary configuration for deployment.
+"""
+
 success_msg = """
 --- Your project is now configured for deployment on Platform.sh. ---
 
@@ -71,3 +78,22 @@ To deploy your project, you will need to:
 - Run `platform push`
 - What else?
 """
+
+
+# --- Dynamic strings ---
+# These need to be generated in functions, to display information that's 
+#   determined as the script runs.
+
+def confirm_use_org_id(org_id):
+    """Confirm use of this org id to create a new project."""
+
+    msg = dedent(f"""
+        --- The Platform.sh CLI requires an organization id when creating a new project. ---
+        When using --automate-all, a project will be created on your behalf. The following
+        organization id was found: {org_id}
+
+        This id will be used to create a new project. If this is not okay,
+        enter n to cancel this operation.
+    """)
+
+    return msg

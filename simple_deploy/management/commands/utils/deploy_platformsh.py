@@ -34,6 +34,7 @@ class PlatformshDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
+        self._prep_automate_all()
         self._add_platformsh_settings()
 
         # DEV: Group this with later yaml generation methods.
@@ -49,10 +50,26 @@ class PlatformshDeployer:
         self._generate_routes_yaml()
         self._generate_services_yaml()
 
+        self._conclude_automate_all()
+
         self._show_success_message()
 
 
     # --- Methods used in this class ---
+
+    def _prep_automate_all(self):
+        """Do intial work for automating entire process."""
+
+        # Skip this prep work if --automate-all not used. Making this check
+        #   here lets deploy() be cleaner.
+        if not self.sd.automate_all:
+            return
+
+        self.sd.write_output("  Running `platform create`...")
+        cmd = f'platform create --title { self.deployed_project_name } '
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
+
 
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""
@@ -262,6 +279,53 @@ class PlatformshDeployer:
             return path
 
 
+    def _conclude_automate_all(self):
+        """Finish automating the push to Heroku."""
+        # Making this check here lets deploy() be cleaner.
+        if not self.sd.automate_all:
+            return
+
+        self.sd.commit_changes()
+
+        self.sd.write_output("  Pushing to heroku...")
+
+        # Get the current branch name. Get the first line of status output,
+        #   and keep everything after "On branch ".
+        cmd = 'git status'
+        git_status = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(git_status)
+        status_str = git_status.stdout.decode()
+        self.current_branch = status_str.split('\n')[0][10:]
+
+        # Push current local branch to Heroku main branch.
+        # This process usually takes a minute or two, which is longer than we
+        #   want users to wait for console output. So rather than capturing
+        #   output with subprocess.run(), we use Popen and stream while logging.
+        # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
+        self.sd.write_output(f"    Pushing branch {self.current_branch}...")
+        if self.current_branch in ('main', 'master'):
+            cmd = f"git push heroku {self.current_branch}"
+        else:
+            cmd = f"git push heroku {self.current_branch}:main"
+        self.sd.execute_command(cmd)
+
+        # Run initial set of migrations.
+        self.sd.write_output("  Migrating deployed app...")
+        if self.sd.nested_project:
+            cmd = f"heroku run python {self.sd.project_name}/manage.py migrate"
+        else:
+            cmd = 'heroku run python manage.py migrate'
+        output = self.sd.execute_subp_run(cmd)
+
+        self.sd.write_output(output)
+
+        # Open Heroku app, so it simply appears in user's browser.
+        self.sd.write_output("  Opening deployed app in a new browser tab...")
+        cmd = 'heroku open'
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
+
+
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
 
@@ -313,8 +377,12 @@ class PlatformshDeployer:
         # When running unit tests, will not be logged into CLI.
         if not self.sd.local_test:
             self.deployed_project_name = self._get_platformsh_project_name()
+            self.org_id = self._get_org_id()
         else:
             self.deployed_project_name = self.sd.deployed_project_name
+
+        print('dev exit', self.org_id)
+        sys.exit()
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -383,4 +451,66 @@ class PlatformshDeployer:
         # Couldn't find a project name. Warn user, and let them know
         #   about override flag.
         raise CommandError(plsh_msgs.no_project_name)
-        
+
+
+    def _get_org_id(self):
+        """Get the organization id associated with the user's Platform.sh
+        account. This is needed for creating a project using automate_all.
+
+        Confirm that it's okay to use this org id.
+
+        Returns:
+        - None if not using automate-all.
+        - String containing org id if found, and confirmed.
+        - Raises CommandError if org id found, but not confirmed.
+        - Raises CommandError with msg if CLI login required.
+        - Raises CommandError with msg if org id not found.
+        """
+        if not self.sd.automate_all:
+            return
+
+        cmd = "platform organization:info"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+
+        if not output_str:
+            output_str = output_obj.stderr.decode()
+            if 'LoginRequiredException' in output_str:
+                raise CommandError(plsh_msgs.login_required)
+            else:
+                error_msg = plsh_msgs.unknown_error
+                error_msg += plsh_msgs.cli_not_installed
+                raise CommandError(error_msg)
+
+        # Pull org id from output.
+        org_id_re = r'(\|\s*id\s*\|\s*)([A-Z0-9]*)'
+        match = re.search(org_id_re, output_str)
+        if match:
+            org_id = match.group(2).strip()
+            if self._confirm_use_org_id(org_id):
+                return org_id
+        else:
+            # Got stdout, but can't find org id. Unknown error.
+            error_msg = plsh_msgs.unknown_error
+            error_msg += plsh_msgs.cli_not_installed
+            raise CommandError(error_msg)
+
+
+    def _confirm_use_org_id(self, org_id):
+        """Confirm that it's okay to use the org id that was found.
+        Returns:
+        - True if confirmed.
+        - sys.exit() if not confirmed.
+        """
+
+        self.stdout.write(plsh_msgs.confirm_use_org_id(org_id))
+        confirmed = self.sd.get_confirmation(skip_logging=True)
+
+        if confirmed:
+            self.stdout.write("  Okay, continuing with deployment.")
+            return True
+        else:
+            # Exit, with a message that configuration is still an option.
+            msg = plsh_msgs.cancel_plsh
+            msg += plsh_msgs.may_configure
+            raise CommandError(msg)

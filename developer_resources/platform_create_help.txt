@@ -1,0 +1,44 @@
+% platform help project:create
+Command: project:create
+Aliases: create
+Description: Create a new project
+
+Usage:
+ platform create [-o|--org ORG] [--title TITLE] [--region REGION] [--plan PLAN] [--environments ENVIRONMENTS] [--storage STORAGE] [--default-branch DEFAULT-BRANCH] [--set-remote] [--no-set-remote] [--check-timeout CHECK-TIMEOUT] [--timeout TIMEOUT]
+
+Options:
+  -o, --org=ORG                        The organization name (or ID)
+      --title=TITLE                    The initial project title [default: "Untitled Project"]
+      --region=REGION                  The region where the project will be hosted (e.g. 'au.platform.sh', 'ca-1.platform.sh',
+                                       'eu-2.platform.sh', 'us-3.platform.sh')
+      --plan=PLAN                      The subscription plan (e.g. 'development', 'standard', 'medium', 'large') [default:
+                                       "development"]
+      --environments=ENVIRONMENTS      The number of environments [default: 3]
+      --storage=STORAGE                The amount of storage per environment, in GiB [default: 5]
+      --default-branch=DEFAULT-BRANCH  The default Git branch name for the project (the production environment) [default:
+                                       "main"]
+      --set-remote                     Set the new project as the remote for this repository (default)
+      --no-set-remote                  Do not set the new project as the remote for this repository
+      --check-timeout=CHECK-TIMEOUT    The API timeout while checking the project status [default: 30]
+      --timeout=TIMEOUT                The total timeout for all API checks (0 to disable the timeout) [default:
+                                       900]
+  -h, --help                           Display this help message
+  -q, --quiet                          Do not output any message
+  -V, --version                        Display this application version
+  -y, --yes                            Answer "yes" to any yes/no questions; disable interaction
+  -n, --no                             Answer "no" to any yes/no questions; disable interaction
+  -v|vv|vvv, --verbose                 Increase the verbosity of messages
+
+Help:
+ Use this command to create a new project.
+ 
+ An interactive form will be presented with the available options. But if the
+ command is run non-interactively (with --yes), the form will not be displayed,
+ and the --region option will be required.
+ 
+ A project subscription will be requested, and then checked periodically (every 3
+ seconds) until the project has been activated, or until the process times out
+ (after 15 minutes by default).
+ 
+ If known, the project ID will be output to STDOUT. All other output will be sent
+ to STDERR.
