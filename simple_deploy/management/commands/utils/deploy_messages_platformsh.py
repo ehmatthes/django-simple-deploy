@@ -84,15 +84,15 @@ To deploy your project, you will need to:
 # These need to be generated in functions, to display information that's 
 #   determined as the script runs.
 
-def confirm_use_org_id(org_id):
-    """Confirm use of this org id to create a new project."""
+def confirm_use_org_name(org_name):
+    """Confirm use of this org name to create a new project."""
 
     msg = dedent(f"""
-        --- The Platform.sh CLI requires an organization id when creating a new project. ---
+        --- The Platform.sh CLI requires an organization name when creating a new project. ---
         When using --automate-all, a project will be created on your behalf. The following
-        organization id was found: {org_id}
+        organization name was found: {org_name}
 
-        This id will be used to create a new project. If this is not okay,
+        This organization will be used to create a new project. If this is not okay,
         enter n to cancel this operation.
     """)
 
