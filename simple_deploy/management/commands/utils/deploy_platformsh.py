@@ -265,48 +265,26 @@ class PlatformshDeployer:
 
 
     def _conclude_automate_all(self):
-        """Finish automating the push to Heroku."""
+        """Finish automating the push to Platform.sh.
+        - Commit all changes.
+        - Call `platform push`.
+        - Open project.
+        """
         # Making this check here lets deploy() be cleaner.
         if not self.sd.automate_all:
             return
 
         self.sd.commit_changes()
 
-        self.sd.write_output("  Pushing to heroku...")
-
-        # Get the current branch name. Get the first line of status output,
-        #   and keep everything after "On branch ".
-        cmd = 'git status'
-        git_status = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(git_status)
-        status_str = git_status.stdout.decode()
-        self.current_branch = status_str.split('\n')[0][10:]
-
-        # Push current local branch to Heroku main branch.
-        # This process usually takes a minute or two, which is longer than we
-        #   want users to wait for console output. So rather than capturing
-        #   output with subprocess.run(), we use Popen and stream while logging.
-        # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
-        self.sd.write_output(f"    Pushing branch {self.current_branch}...")
-        if self.current_branch in ('main', 'master'):
-            cmd = f"git push heroku {self.current_branch}"
-        else:
-            cmd = f"git push heroku {self.current_branch}:main"
-        self.sd.execute_command(cmd)
-
-        # Run initial set of migrations.
-        self.sd.write_output("  Migrating deployed app...")
-        if self.sd.nested_project:
-            cmd = f"heroku run python {self.sd.project_name}/manage.py migrate"
-        else:
-            cmd = 'heroku run python manage.py migrate'
+        # Push project.
+        self.sd.write_output("  Pushing to Platform.sh...")
+        cmd = "platform push --yes"
         output = self.sd.execute_subp_run(cmd)
-
         self.sd.write_output(output)
 
-        # Open Heroku app, so it simply appears in user's browser.
+        # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
-        cmd = 'heroku open'
+        cmd = "platform url --yes"
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 

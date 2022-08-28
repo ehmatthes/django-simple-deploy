@@ -1,0 +1,43 @@
+% platform help push
+Command: environment:push
+Aliases: push
+Description: Push code to an environment
+
+Usage:
+ platform push [--target TARGET] [-f|--force] [--force-with-lease] [-u|--set-upstream] [--activate] [--branch] [--parent PARENT] [--type TYPE] [--no-clone-parent] [-W|--no-wait] [--wait] [-p|--project PROJECT] [--host HOST] [-e|--environment ENVIRONMENT] [-i|--identity-file IDENTITY-FILE] [--] [<source>]
+
+Arguments:
+  source                             The source ref: a branch name or commit hash [default: "HEAD"]
+
+Options:
+      --target=TARGET                The target branch name
+  -f, --force                        Allow non-fast-forward updates
+      --force-with-lease             Allow non-fast-forward updates, if the remote-tracking branch is up to date
+  -u, --set-upstream                 Set the target environment as the upstream for the source branch
+      --activate                     Activate the environment before pushing
+      --branch                       DEPRECATED: alias of --activate
+      --parent=PARENT                Set the new environment parent (only used with --activate)
+      --type=TYPE                    Set the environment type (only used with --activate )
+      --no-clone-parent              Do not clone the parent branch's data (only used with --activate)
+  -W, --no-wait                      Do not wait for the operation to complete
+      --wait                         Wait for the operation to complete (default)
+  -p, --project=PROJECT              The project ID or URL
+      --host=HOST                    The project's API hostname
+  -e, --environment=ENVIRONMENT      The environment ID
+  -i, --identity-file=IDENTITY-FILE  An SSH identity (private key) to use
+  -h, --help                         Display this help message
+  -q, --quiet                        Do not output any message
+  -V, --version                      Display this application version
+  -y, --yes                          Answer "yes" to any yes/no questions; disable interaction
+  -n, --no                           Answer "no" to any yes/no questions; disable interaction
+  -v|vv|vvv, --verbose               Increase the verbosity of messages
+
+Examples:
+ Push code to the current environment:
+   platform push 
+
+ Push code, without waiting for deployment:
+   platform push --no-wait
+
+ Push code, first branching or activating the environment as a child of 'develop':
+   platform push --activate --parent develop

@@ -13,3 +13,5 @@ Most identifying information has been replaced by something similar to `redacted
     - This command is used in implementing `--automate-all`, and is helpful to have as a reference.
 - [Output of `platform organization:info`](platform_organization_info.txt)
     - This command is used when running `--automate-all`. Contains fake id value.
+- [Output of `platform help push`](platform_push_help.txt)
+    - Used in `--automate-all`, helpful to have as a reference.
