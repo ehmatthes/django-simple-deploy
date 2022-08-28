@@ -131,7 +131,10 @@ class PlatformshDeployer:
             my_template = my_loader.get_template('platform.app.yaml')
 
             # Build context dict for template.
-            context = {'project_name': self.deployed_project_name}
+            context = {
+                'project_name': self.sd.project_name, 
+                'deployed_project_name': self.deployed_project_name
+                }
             template_string = render_to_string('platform.app.yaml', context)
 
             path = self.sd.project_root / '.platform.app.yaml'
@@ -311,7 +314,7 @@ class PlatformshDeployer:
         if not self.sd.local_test:
             self.deployed_project_name = self._get_platformsh_project_name()
         else:
-            self.deployed_project_name = 'blog'
+            self.deployed_project_name = self.sd.deployed_project_name
 
 
     # --- Helper methods for methods called from simple_deploy.py ---

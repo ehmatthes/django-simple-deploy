@@ -4,7 +4,7 @@
 # See https://docs.platform.sh/user_guide/reference/platform-app-yaml.html
 
 # The name of this app. Must be unique within a project.
-name: '{{ project_name }}'
+name: '{{ deployed_project_name }}'
 
 # The runtime the application uses.
 type: 'python:3.10'
