@@ -40,7 +40,7 @@ After installing this package, you can run simple_deploy again.
 """
 
 no_project_name = """
-A project name could not be found.
+A Platform.sh project name could not be found.
 
 The simple_deploy command expects that you've already run `platform create`, or
 associated the local project with an existing project on Platform.sh.

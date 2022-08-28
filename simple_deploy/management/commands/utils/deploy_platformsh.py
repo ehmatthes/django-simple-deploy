@@ -361,12 +361,14 @@ class PlatformshDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
-        # If there's no stdout, the user is probably logged out, or doesn't
-        #   have the CLI installed.
+        # If there's no stdout, the user is probably logged out, hasn't called
+        #   create, or doesn't have the CLI installed.
         if not output_str:
             output_str = output_obj.stderr.decode()
             if 'LoginRequiredException' in output_str:
                 raise CommandError(plsh_msgs.login_required)
+            elif 'ProjectNotFoundException' in output_str:
+                raise CommandError(plsh_msgs.no_project_name)
             else:
                 error_msg = plsh_msgs.unknown_error
                 error_msg += plsh_msgs.cli_not_installed
