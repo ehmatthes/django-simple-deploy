@@ -44,6 +44,8 @@ The main work for modifying a project is done by two scripts, *simple_deploy.py*
     - Inspect the project in the context of the target platform.
     - Check that all identifiable prerequisites are satisfied. For example if not using `--automate-all`, has an empty project been created on the platform? Most configuration-only deployments require this.
 - Define helper methods that will be used by all platform-specific scripts, such as functions to make OS-specific CLI calls, write output to console and log files, and add requirements to the project.
+- Call platform-specific `prep_automate_all()` method.
+    - This is one of the steps most likely to fail, so call it first. If this fails, we don't want to take any other steps aside from setting up logging.
 - Make platform-agnostic configuration changes to the project.
     - Build a log dir, if needed; make sure Git is ignoring log dir.
     - Add simple_deploy to dependencies.
