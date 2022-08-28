@@ -11,11 +11,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Initial unit tests for Platform.sh.
     - Initial integration tests written for Platform.sh.
     - `DEBUG = False` by default on Platform.sh.
+    - Check that `platform create` has been run, or that a deployed project name has been provided.
+    - More informative error messages if any prerequisite conditions are not met, such as running `platform create`.
 - Significant restructuring of simple_deploy's architecture, to more cleanly separate platform-agnostic work from platform-specific work. For example, see [Issue 89](https://github.com/ehmatthes/django-simple-deploy/issues/89).
 - More integrity checks before making any configuration changes:
     - Check `git status` before beginning configuration work. Warn users and exit if status is not `working tree clean`. The `--ignore-unclean-git` flag will override this warning.
     - Check that Platform.sh CLI or Heroku CLI are installed before configuring for those platforms.
-    - Check that `platform create` has been run, or that a deployed project name has been provided.
 
 ### 0.4.2
 
