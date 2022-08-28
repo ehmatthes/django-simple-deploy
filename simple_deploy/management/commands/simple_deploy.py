@@ -194,12 +194,6 @@ class Command(BaseCommand):
         self._ignore_sd_logs()
 
 
-
-
-        print('dev exit')
-        sys.exit()
-
-
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
         Returns True if created directory, False if directory was already
