@@ -603,3 +603,21 @@ class Command(BaseCommand):
                 return False
             else:
                 self.write_output("  Please answer yes or no.", skip_logging=skip_logging)
+
+
+    def commit_changes(self):
+        """Commit changes that have been made to the project.
+        This should only be called when automate_all is being used.
+        """
+        if not self.automate_all:
+            return
+
+        self.write_output("  Committing changes...")
+        cmd = 'git add .'
+        output = self.execute_subp_run(cmd)
+        self.write_output(output)
+        # If we write this command as a string, the commit message will be split
+        #   incorrectly.
+        cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
+        output = self.execute_subp_run_parts(cmd_parts)
+        self.write_output(output)

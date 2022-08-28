@@ -336,18 +336,7 @@ class HerokuDeployer:
         if not self.sd.automate_all:
             return
 
-        self.sd.write_output("\n\nCommitting and pushing project...")
-
-        self.sd.write_output("  Adding changes...")
-        cmd = 'git add .'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("  Committing changes...")
-        # If we write this command as a string, the commit message will be split
-        #   incorrectly.
-        cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
-        output = self.sd.execute_subp_run_parts(cmd_parts)
-        self.sd.write_output(output)
+        self.sd.commit_changes()
 
         self.sd.write_output("  Pushing to heroku...")
 
