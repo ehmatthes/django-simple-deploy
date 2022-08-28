@@ -108,3 +108,23 @@ def confirm_use_org_name(org_name):
     """)
 
     return msg
+
+
+def unknown_create_error(output_obj):
+    """Process a non-specific error ('Exception' in stderr) when running
+    `platform create` while using automate_all.
+    """
+
+    msg = dedent(f"""
+        --- An error has occurred when trying to create a Platform.sh project. ---
+
+        While running `platform create`, an error has occurred. You should check
+        the Platform.sh console to see if a project was partially created.
+
+        The following output may help diagnose the error:
+        ***** output of `platform create` *****
+
+        {output_obj.stderr.decode()}
+
+        ***** end output *****
+    """)
