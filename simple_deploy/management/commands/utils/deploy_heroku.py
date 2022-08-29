@@ -25,7 +25,6 @@ class HerokuDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Heroku...")
 
-        self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._get_heroku_settings()
@@ -42,20 +41,6 @@ class HerokuDeployer:
 
 
     # --- Methods used in this class ---
-
-    def _prep_automate_all(self):
-        """Do intial work for automating entire process."""
-
-        # Skip this prep work if --automate-all not used. Making this check
-        #   here lets deploy() be cleaner.
-        if not self.sd.automate_all:
-            return
-
-        self.sd.write_output("  Running `heroku create`...")
-        cmd = 'heroku create'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
-
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to."""
@@ -462,6 +447,19 @@ class HerokuDeployer:
 
 
     # --- Methods called from simple_deploy.py ---
+
+    def prep_automate_all(self):
+        """Do intial work for automating entire process.
+
+        Returns:
+        - None if successful.
+        """
+
+        self.sd.write_output("  Running `heroku create`...")
+        cmd = 'heroku create'
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
+
 
     def validate_platform(self):
         """Make sure the local environment and project supports deployment to

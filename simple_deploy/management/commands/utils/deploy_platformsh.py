@@ -354,11 +354,6 @@ class PlatformshDeployer:
           output goes to stderr.
         """
 
-        # Skip this prep work if --automate-all not used. Making this check
-        #   here lets deploy() be cleaner.
-        if not self.sd.automate_all:
-            return
-
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
         cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
