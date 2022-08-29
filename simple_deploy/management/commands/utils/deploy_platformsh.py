@@ -365,6 +365,7 @@ class PlatformshDeployer:
             return
 
         self.sd.write_output("  Running `platform create`...")
+        self.sd.write_output("    (Please be patient, this can take a few minutes.")
         cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region us-3.platform.sh --yes'
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
@@ -404,10 +405,9 @@ class PlatformshDeployer:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
         """
-        # Skip this check if using automate-all, because we'll get the project
-        #   name after running `platform create` ourselves.
+        # If we're creating the project, we'll just use the startprojet name.
         if self.sd.automate_all:
-            return ''
+            return self.sd.project_name
 
         # Use the provided name if --deployed-project-name specified.
         if self.sd.deployed_project_name:

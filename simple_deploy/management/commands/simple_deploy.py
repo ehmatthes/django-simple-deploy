@@ -14,6 +14,7 @@ from django.conf import settings
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
+from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
 
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
 from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
@@ -157,7 +158,11 @@ class Command(BaseCommand):
 
         # Confirm the user knows exactly what will be automated; this
         #   message is specific to each platform.
-        self.write_output(dh_msgs.confirm_automate_all, skip_logging=True)
+        if self.platform == 'heroku':
+            msg = dh_msgs.confirm_automate_all
+        elif self.platform == 'platform_sh':
+            msg = plsh_msgs.confirm_automate_all
+        self.write_output(msg, skip_logging=True)
         confirmed = self.get_confirmation(skip_logging=True)
 
         if confirmed:

@@ -22,6 +22,14 @@ confirm_preliminary = """
   `--platform` argument and simple_deploy will deploy to Heroku by default.
 """
 
+confirm_automate_all = """
+The --automate-all flag means simple_deploy will:
+- Run `platform create` for you, to create an empty Platform.sh project.
+- Commit all changes to your project that are necessary for deployment.
+- Push these changes to Platform.sh.
+- Open your deployed project in a new browser tab.
+"""
+
 cancel_plsh = """
 Okay, cancelling platform.sh deployment.
 """
