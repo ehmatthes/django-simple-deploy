@@ -13,7 +13,8 @@ Table of Contents
 - [Automation](#automation)
 - [Logging](#logging)
 - [Ignore Unclean Git Status](ignore-unclean-git-status)
-- [Deployed Project Name](#deployed-project-name)  
+- [Deployed Project Name](#deployed-project-name) 
+- [Region name](#region-name) 
 
 
 All arguments
@@ -23,10 +24,12 @@ The full list of arguments is shown here, with the default value listed first fo
 
 ```
 $ python manage.py simple_deploy
-    --platform [heroku|platform_sh]    # required
+    --platform [heroku|platform_sh]          # required
     --automate-all
     --no-logging
     --ignore-unclean-git
+    --deployed-project-name [project_name]   # default: name used in `startproject` command
+    --region [region_name]                   # default: us-3.platform.sh
 ```
 
 Platform arguments
@@ -93,3 +96,8 @@ Normally, simple_deploy identifies the name of the project through inspection. I
 However, there are situations where you may want to provide a specific name to use for the deployed project. This may be helpful, for example, when working with a GitHub-based approach to deployment where simple_deploy is just taking care of configuration.
 
 The `--deployed-project-name` flag allows you to specify exactly what name to use for the deployed project. Note that if you provide this name and it differs from what was used to create the deployed project, the configuration will likely not work.
+
+Region name
+---
+
+The name of the region you want the platform to create the project in. This usually refers to a datacenter location.

@@ -25,6 +25,9 @@ confirm_preliminary = """
 confirm_automate_all = """
 The --automate-all flag means simple_deploy will:
 - Run `platform create` for you, to create an empty Platform.sh project.
+  - This will create a project in the us-3.platform.sh region. If you wish
+    to use a different region, cancel this operation and use the --region flag.
+  - You can see a list of all regions by running `platform help project:create`
 - Commit all changes to your project that are necessary for deployment.
 - Push these changes to Platform.sh.
 - Open your deployed project in a new browser tab.

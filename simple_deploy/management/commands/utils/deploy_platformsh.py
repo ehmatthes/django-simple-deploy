@@ -367,7 +367,9 @@ class PlatformshDeployer:
 
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
-        cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region us-3.platform.sh --yes'
+        cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
+        print(cmd)
+        sys.exit()
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 

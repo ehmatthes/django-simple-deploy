@@ -28,6 +28,7 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         """Define CLI options."""
 
+        # --- Platform-agnostic arguments ---
         parser.add_argument('--automate-all',
             help="Automate all aspects of deployment?",
             action='store_true')
@@ -41,16 +42,12 @@ class Command(BaseCommand):
             help="Do you want a record of simple_deploy's output?",
             action='store_true')
 
-        # If we're doing local unit testing, we need to avoid some network
-        #   calls.
-        parser.add_argument('--local-test',
-            help="Used for local unit testing, to avoid network calls.",
-            action='store_true')
-
         # Allow users to use simple_deploy even with an unclean git status.
         parser.add_argument('--ignore-unclean-git',
             help="Run simple_deploy even with an unclean `git status` message.",
             action='store_true')
+
+        # --- Platform.sh arguments ---
 
         # Allow users to set the deployed project name. This is the name that
         #   will be used by the platform, which may be different than the name
@@ -60,6 +57,18 @@ class Command(BaseCommand):
             help="What name should the platform use for this project?\n(This is normally discovered automatically through inspection.)",
             default='')
 
+        # Allow users to specify the region for a project when using --automate-all.
+        parser.add_argument('--region', type=str,
+            help="Which region do you want to deploy to?",
+            default='us-3.platform.sh')
+
+        # --- Developer arguments ---
+
+        # If we're doing local unit testing, we need to avoid some network
+        #   calls.
+        parser.add_argument('--local-test',
+            help="Used for local unit testing, to avoid network calls.",
+            action='store_true')
 
 
     def handle(self, *args, **options):
@@ -111,13 +120,20 @@ class Command(BaseCommand):
 
     def _parse_cli_options(self, options):
         """Parse cli options."""
+
+        # Platform-agnostic arguments.
         self.automate_all = options['automate_all']
         self.platform = options['platform']
         # This is a True-to-disable option; turn it into a more intuitive flag?
         self.log_output = not(options['no_logging'])
-        self.local_test = options['local_test']
         self.ignore_unclean_git = options['ignore_unclean_git']
+
+        # Platform.sh arguments.
         self.deployed_project_name = options['deployed_project_name']
+        self.region = options['region']
+
+        # Developer arguments.
+        self.local_test = options['local_test']
 
 
     def _validate_command(self):
