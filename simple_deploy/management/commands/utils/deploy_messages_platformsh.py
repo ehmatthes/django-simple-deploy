@@ -121,24 +121,35 @@ def confirm_use_org_name(org_name):
     return msg
 
 
-def unknown_create_error(output_obj):
-    """Process a non-specific error ('Exception' in stderr) when running
-    `platform create` while using automate_all.
+def unknown_create_error(e):
+    """Process a non-specific error when running `platform create` 
+    while using automate_all. This is most likely an issue with the user
+    not having permission to create a new project, for example because they
+    are on a trial plan and have already created too many projects.
     """
 
     msg = dedent(f"""
-        --- An error has occurred when trying to create a Platform.sh project. ---
+        --- An error has occurred when trying to create a new Platform.sh project. ---
 
         While running `platform create`, an error has occurred. You should check
         the Platform.sh console to see if a project was partially created.
 
+        The error messages that Platform.sh provides, both through the CLI and
+        the console, are not always specific enough to be helpful. For example, 
+        newer users are limited to two new projects in a 24-hour period, or something
+        like that. But if you try to create an additional project, you only get
+        a message that says: "You do not have access to create a new Subscriptions resource".
+        There is no information about specific limits, and how to address them.
+
         The following output may help diagnose the error:
         ***** output of `platform create` *****
 
-        {output_obj.stderr.decode()}
+        {e.stderr.decode()}
 
         ***** end output *****
     """)
+
+    return msg
 
 def success_msg_automate_all(deployed_url):
     """Success message, when using --automate-all."""

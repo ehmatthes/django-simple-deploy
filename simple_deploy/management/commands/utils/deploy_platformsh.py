@@ -112,10 +112,6 @@ class PlatformshDeployer:
             if self.found_platformsh_settings:
                 self.current_platformsh_settings_lines.append(line)
 
-        # DEV: Remove these lines.
-        print('--- platformsh settings: ---')
-        print(self.current_platformsh_settings_lines)
-
 
     def _generate_platform_app_yaml(self):
         """Create .platform.app.yaml file, if not present."""
@@ -353,10 +349,8 @@ class PlatformshDeployer:
         Returns:
         - None if creation was successful.
         - Raises CommandError if create command fails.
-          - If nonzero returncode (unknown error).
-          - If 'Exception' in stderr.
 
-        Note: create command outputs project id if known to stdout, all other
+        Note: create command outputs project id to stdout if known, all other
           output goes to stderr.
         """
 
@@ -368,15 +362,20 @@ class PlatformshDeployer:
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
         cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
-        print(cmd)
-        sys.exit()
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
 
-        if output.returncode:
-            raise CommandError(plsh_msgs.unknown_create_error(output))
-        elif 'Exception' in output.stderr.decode():
-            raise CommandError(plsh_msgs.unknown_create_error(output))
+        try:
+            # Include check=True in this call, so we can process more
+            #   significant errors that can come out of this call.
+            # For example, if user can't create a project the 
+            #   returncode will be 6, not 1. That causes subprocess.run()
+            #   to actually raise an exception, not just pass a CompletedProcess
+            #   instance.
+            output = self.sd.execute_subp_run(cmd, check=True)
+        except subprocess.CalledProcessError as e:
+            error_msg = plsh_msgs.unknown_create_error(e)
+            raise CommandError(error_msg)
+
+        self.sd.write_output(output)
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -420,7 +419,6 @@ class PlatformshDeployer:
         #   if the user is not currently logged in to the CLI.
         cmd = "platform project:info --yes"
         output_obj = self.sd.execute_subp_run(cmd)
-        print(output_obj)
         output_str = output_obj.stdout.decode()
 
         # If there's no stdout, the user is probably logged out, hasn't called

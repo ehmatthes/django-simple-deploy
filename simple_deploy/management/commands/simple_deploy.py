@@ -108,6 +108,7 @@ class Command(BaseCommand):
 
         self._add_simple_deploy_req()
 
+        # During development, sometimes helpful to exit before calling deploy().
         # print('bye')
         # sys.exit()
 
@@ -537,17 +538,25 @@ class Command(BaseCommand):
         return output
 
 
-    def execute_subp_run(self, cmd):
+    def execute_subp_run(self, cmd, check=False):
         """Execute subprocess.run() command.
         We're running commands differently on Windows, so this method
           takes a command and runs it appropriately on each system.
-        Returns: output of the command.
+
+        The `check` parameter is included because some callers will need to 
+          handle exceptions. For an example, see prep_automate_all() in
+          deploy_platformsh.py. Most callers will only check whether returncode
+          is nonzero, and not need to involve exception handling.
+
+        Returns:
+            - CompletedProcess instance
+            - if check=True is passed, raises CalledProcessError. 
         """
         if self.on_windows:
             output = subprocess.run(cmd, shell=True, capture_output=True)
         else:
             cmd_parts = cmd.split()
-            output = subprocess.run(cmd_parts, capture_output=True)
+            output = subprocess.run(cmd_parts, capture_output=True, check=check)
 
         return output
 
