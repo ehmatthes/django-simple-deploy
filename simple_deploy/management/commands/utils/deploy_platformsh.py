@@ -293,15 +293,16 @@ class PlatformshDeployer:
         """After a successful run, show a message about what to do next."""
 
         # DEV:
-        # - Say something about DEBUG setting.
-        #   - Should also consider setting DEBUG = False in the Heroku-specific
-        #     settings.
         # - Mention that this script should not need to be run again, unless
         #   creating a new deployment.
         #   - Describe ongoing approach of commit, push, migrate. Lots to consider
         #     when doing this on production app with users, make sure you learn.
 
-        self.sd.write_output(plsh_msgs.success_msg)
+        if self.sd.automate_all:
+            msg = plsh_msgs.success_msg_automate_all('https://example.com')
+            self.sd.write_output(msg)
+        else:
+            self.sd.write_output(plsh_msgs.success_msg)
 
 
     # --- Methods called from simple_deploy.py ---

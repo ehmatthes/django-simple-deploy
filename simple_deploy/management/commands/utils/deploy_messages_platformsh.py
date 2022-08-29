@@ -136,3 +136,25 @@ def unknown_create_error(output_obj):
 
         ***** end output *****
     """)
+
+def success_msg_automate_all(deployed_url):
+    """Success message, when using --automate-all."""
+
+    msg = dedent(f"""
+
+        --- Your project should now be deployed on Platform.sh. ---
+
+        It should have opened up in a new browser tab.
+        - You can also visit your project at {deployed_url}
+
+        If you make further changes and want to push them to Platform.sh,
+        commit your changes and then run `platform push`.
+
+        Also, if you haven't already done so you should review the
+        documentation for Python deployments on Platform.sh at:
+        - https://docs.platform.sh/languages/python.html
+        - This documentation will help you understand how to maintain
+          your deployment.
+
+    """)
+    return msg
