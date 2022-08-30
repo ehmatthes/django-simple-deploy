@@ -8,15 +8,14 @@ Table of Contents
 
 - [All arguments](#all-arguments)
 - [Specifying a platform](#specifying-a-platform)
-    - [`--platform heroku`](#platform-heroku)
-    - [`--platform platform_sh`](#platform-platform-sh)
-        - [`--deployed-project-name`](#deployed-project-name) 
-        - [`--region`](#region)
+    - [`--platform heroku`](#--platform-heroku)
+    - [`--platform platform_sh`](--#platform-platform-sh)
+        - [`--deployed-project-name`](#--deployed-project-name) 
+        - [`--region`](#--region)
 - [Other arguments](#other-arguments)
-    - [`--automate-all`](#automate-all)
-    - [`--no-logging`](#no-logging)
-    - [`--ignore-unclean-git`](#ignore-unclean-git)
-
+    - [`--automate-all`](#--automate-all)
+    - [`--no-logging`](#--no-logging)
+    - [`--ignore-unclean-git`](#--ignore-unclean-git)
 
 All arguments
 ---
