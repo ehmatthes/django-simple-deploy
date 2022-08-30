@@ -49,7 +49,7 @@ $ python manage.py simple_deploy --platform heroku
 
 There are no other arguments specific to Heroku deployments.
 
---
+---
 
 ### `--platform platform_sh`
 
