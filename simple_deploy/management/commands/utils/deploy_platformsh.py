@@ -284,6 +284,14 @@ class PlatformshDeployer:
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 
+        # Get url of deployed project.
+        #   This can be done with an re, but there's one line of output with
+        #   a url, so finding that line is simpler.
+        self.deployed_url = ''
+        for line in output.stdout.decode().split('\n'):
+            if 'https' in line:
+                self.deployed_url = line.strip()
+
 
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
@@ -295,7 +303,7 @@ class PlatformshDeployer:
         #     when doing this on production app with users, make sure you learn.
 
         if self.sd.automate_all:
-            msg = plsh_msgs.success_msg_automate_all('https://example.com')
+            msg = plsh_msgs.success_msg_automate_all(self.deployed_url)
             self.sd.write_output(msg)
         else:
             self.sd.write_output(plsh_msgs.success_msg)
