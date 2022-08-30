@@ -13,6 +13,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - `DEBUG = False` by default on Platform.sh.
     - Check that `platform create` has been run, or that a deployed project name has been provided.
     - More informative error messages if any prerequisite conditions are not met, such as running `platform create`.
+    - `--automate-all` now works on Platform.sh.
 - Significant restructuring of simple_deploy's architecture, to more cleanly separate platform-agnostic work from platform-specific work. For example, see [Issue 89](https://github.com/ehmatthes/django-simple-deploy/issues/89).
 - More integrity checks before making any configuration changes:
     - Check `git status` before beginning configuration work. Warn users and exit if status is not `working tree clean`. The `--ignore-unclean-git` flag will override this warning.
