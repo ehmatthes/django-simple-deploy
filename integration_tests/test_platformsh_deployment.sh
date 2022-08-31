@@ -21,22 +21,7 @@
 #     heroku create
 # fi
 
-echo "Running manage.py simple_deploy..."
-if [ "$test_automate_all" = true ]; then
-    # DEV: Keep commented, because likely to implement automate-all shortly.
-    echo "The --automate-all flag is not yet supported on Platform.sh."
-    exit 1
-    # python manage.py simple_deploy --automate-all --platform platform_sh
-else
-    python manage.py simple_deploy --platform platform_sh --local-test
-fi
-
-# After running simple_deploy, need to regenerate the lock file.
-if [ "$dep_man_approach" = 'pipenv' ]; then
-    python3 -m pipenv lock
-fi
-
-# Install platformshconfig.
+# Install platformshconfig, before running simple_deploy.
 # DEV: Support poetry.
 echo "Installing platformshconfig..."
 if [ "$dep_man_approach" = 'req_txt' ]; then
@@ -53,6 +38,37 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     pipenv install --skip-lock platformshconfig
 fi
 
+# Create platform_sh project; skip if testing --automate-all.
+if [ "$test_automate_all" != true ]; then
+    echo "\n\nCreating a project on Platform.sh..."
+
+    # Get organization name from CLI.
+    org_output=$(platform org:info | grep "| id")
+    org_regex='([A-Z0-9]{26})'
+    [[ $org_output =~ $org_regex ]]
+    org_id=${BASH_REMATCH[1]}
+    echo "  Found Platform.sh organization id: $org_id"
+
+    # DEV: May want to offer region as a CLI arg.
+    # platform create --quiet --org "$org_id" --title blog --region us-3.platform.sh --plan development --environments 3 --storage 5 --default-branch main
+    platform create --title my_blog_project --org "$org_id" --region us-3.platform.sh --yes
+fi
+
+echo "Running manage.py simple_deploy..."
+if [ "$test_automate_all" = true ]; then
+    # DEV: Keep commented, because likely to implement automate-all shortly.
+    echo "The --automate-all flag is not yet supported on Platform.sh."
+    exit 1
+    # python manage.py simple_deploy --automate-all --platform platform_sh
+else
+    python manage.py simple_deploy --platform platform_sh
+fi
+
+# After running simple_deploy, need to regenerate the lock file.
+if [ "$dep_man_approach" = 'pipenv' ]; then
+    python3 -m pipenv lock
+fi
+
 # Skip if testing --automate-all.
 if [ "$test_automate_all" != true ]; then
     echo "\n\nCommitting changes..."
@@ -63,22 +79,15 @@ if [ "$test_automate_all" != true ]; then
     # DEV: Not sure if `platform login` should be run here, or if it will 
     #   be called automatically if needed.
 
-    # Get organization name from CLI.
-    org_output=$(platform org:info | grep "id         |")
-    org_regex='([A-Z0-9]{26})'
-    [[ $org_output =~ $org_regex ]]
-    org_id=${BASH_REMATCH[1]}
-    echo "  Found Platform.sh organization id: $org_id"
-
-    # DEV: May want to offer region as a CLI arg.
-    platform create --quiet --org "$org_id" --title blog --region us-3.platform.sh --plan development --environments 3 --storage 5 --default-branch main
-    platform push --quiet
+    platform push --yes
 
     # Open project and get URL.
     project_url=$(platform url --yes)
     echo " Project URL: $project_url"
 
     # Get project id from project:info.
+    # This can probably be captured from the output of the create command:
+    #   `project_id=platform create...`
     project_info=$(platform project:info)
     id_regex='\| id             \| ([a-z0-9]{13})'
     [[ $project_info =~ $id_regex ]]
