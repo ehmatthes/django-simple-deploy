@@ -15,12 +15,6 @@
 #   newly-deployed app.
 
 
-# # Skip if testing --automate-all
-# if [ "$test_automate_all" != true ]; then
-#     echo "Running heroku create..."
-#     heroku create
-# fi
-
 # Install platformshconfig, before running simple_deploy.
 # DEV: Support poetry.
 echo "Installing platformshconfig..."
@@ -56,10 +50,7 @@ fi
 
 echo "Running manage.py simple_deploy..."
 if [ "$test_automate_all" = true ]; then
-    # DEV: Keep commented, because likely to implement automate-all shortly.
-    echo "The --automate-all flag is not yet supported on Platform.sh."
-    exit 1
-    # python manage.py simple_deploy --automate-all --platform platform_sh
+    python manage.py simple_deploy --platform platform_sh --automate-all
 else
     python manage.py simple_deploy --platform platform_sh
 fi
@@ -95,6 +86,22 @@ if [ "$test_automate_all" != true ]; then
     echo "  Found project id: $project_id"
 
 fi
+
+# If we're testing automate_all, we need to grab the project id in order
+#   to destroy the project later. We also need to get the url for testing.
+if [ "$test_automate_all" = true ]; then
+    # Get project id from project:info.
+    project_info=$(platform project:info)
+    id_regex='\| id             \| ([a-z0-9]{13})'
+    [[ $project_info =~ $id_regex ]]
+    project_id=${BASH_REMATCH[1]}
+    echo "  Found project id: $project_id"
+
+    # Open project and get URL.
+    project_url=$(platform url --yes)
+    echo " Project URL: $project_url"
+fi
+
 
 # Call Python script for functional testing of app.
 #   May want to prompt for this.
