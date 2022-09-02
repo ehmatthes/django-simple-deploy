@@ -5,12 +5,12 @@ Testing this project is interesting because it's a Django project whose sole pur
 
 - Call a bash script to create a temporary instance of the sample blog project;
 - Install the local development version of the django-simple-deploy project to this test instance;
-- Run the configuration-only version of simple_deploy against the test instance, using the `--local-test` flag to avoid any network calls such as `heroku apps:info`;
+- Run the configuration-only version of simple_deploy against the test instance, using the `--unit-testing` flag to avoid any network calls such as `heroku apps:info`;
 - Make assertions about the changes that should have been made to the test instance of the sample project.
 
 This all takes about 13 seconds currently, for each platform that's supported. Most of that time is spent building the virtual environment for the test instance of the sample project. The environment is all built from the vendor/ directory. The unit tests do not make any network calls, although this is not enforced.
 
-There is some testing cruft written into the main project. For example, we check for the `--local-test` flag, and skip some network calls such as setting Heroku environment variables.
+There is some testing cruft written into the main project. For example, we check for the `--unit-testing` flag, and skip some network calls such as setting Heroku environment variables.
 
 If you have suggestions for how to improve the overall structure of these unit tests, or speed them up in any way, please open an issue or send an email and I will be happy to hear your thoughts. I'm sure someone with deeper Django, deployment, and pytest experience than I have could improve on what I have started. That said, these tests are a good start at making sure ongoing development does not break current behavior.
 

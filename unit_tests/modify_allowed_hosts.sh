@@ -25,4 +25,4 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blo
 sed -i "" "s/ALLOWED_HOSTS = \[\]/ALLOWED_HOSTS = \['herokuapp.com'\]/" blog/settings.py
 
 # Run configuration-only version of simple_deploy.
-python manage.py simple_deploy --local-test
+python manage.py simple_deploy --unit-testing

@@ -316,7 +316,7 @@ class PlatformshDeployer:
         explicit about that.
         """
         # Skip this confirmation when unit testing.
-        if self.sd.local_test:
+        if self.sd.unit_testing:
             return
 
         self.stdout.write(plsh_msgs.confirm_preliminary)
@@ -343,7 +343,7 @@ class PlatformshDeployer:
         self._validate_platformshconfig()
 
         # When running unit tests, will not be logged into CLI.
-        if not self.sd.local_test:
+        if not self.sd.unit_testing:
             self.deployed_project_name = self._get_platformsh_project_name()
             self.org_name = self._get_org_name()
         else:

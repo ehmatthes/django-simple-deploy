@@ -66,7 +66,7 @@ class Command(BaseCommand):
 
         # If we're doing local unit testing, we need to avoid some network
         #   calls.
-        parser.add_argument('--local-test',
+        parser.add_argument('--unit-testing',
             help="Used for local unit testing, to avoid network calls.",
             action='store_true')
 
@@ -134,7 +134,7 @@ class Command(BaseCommand):
         self.region = options['region']
 
         # Developer arguments.
-        self.local_test = options['local_test']
+        self.unit_testing = options['unit_testing']
 
 
     def _validate_command(self):

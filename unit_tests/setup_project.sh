@@ -49,4 +49,4 @@ git tag -am '' INITIAL_STATE
 # Run configuration-only version of simple_deploy.
 # DEV: Trying to move this call to conftest, in order to test invalid
 #   versions of this command.
-# python manage.py simple_deploy --local-test --platform heroku
+# python manage.py simple_deploy --unit-testing --platform heroku

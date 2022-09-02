@@ -30,7 +30,7 @@ if [ "$target_platform" = platform_sh ]; then
     #   platformshconfig.
     pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig
     # Test use of a custom deployed project name.
-    python manage.py simple_deploy --local-test --platform "$target_platform" --deployed-project-name my_blog_project
+    python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
 elif [ "$target_platform" = heroku ]; then
-    python manage.py simple_deploy --local-test --platform "$target_platform"
+    python manage.py simple_deploy --unit-testing --platform "$target_platform"
 fi

@@ -51,7 +51,7 @@ class HerokuDeployer:
         #   to easily test for a failed apps:info call. Also, probably want
         #   to mock the output of apps:info rather than directly setting
         #   heroku_app_name.
-        if self.sd.local_test:
+        if self.sd.unit_testing:
             self.heroku_app_name = 'sample-name-11894'
         else:
             self.sd.write_output("  Inspecting Heroku app...")
@@ -81,7 +81,7 @@ class HerokuDeployer:
         """
 
         # Skip this entirely when unit testing.
-        if self.sd.local_test:
+        if self.sd.unit_testing:
             return
 
         self.sd.write_output("  Setting Heroku environment variable...")
@@ -275,7 +275,7 @@ class HerokuDeployer:
 
         # When unit testing, don't set the heroku config var, but do make
         #   the change to settings.
-        if not self.sd.local_test:
+        if not self.sd.unit_testing:
             self.sd.write_output("  Setting DEBUG env var...")
             cmd = 'heroku config:set DEBUG=FALSE'
             output = self.sd.execute_subp_run(cmd)
@@ -301,7 +301,7 @@ class HerokuDeployer:
 
         # Set the new key as an env var on Heroku.
         #   Skip when unit testing.
-        if not self.sd.local_test:
+        if not self.sd.unit_testing:
             self.sd.write_output("  Setting new secret key for Heroku...")
             cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
             output = self.sd.execute_subp_run(cmd)
