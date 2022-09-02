@@ -42,20 +42,30 @@
 target="development_version"
 dep_man_approach="req_txt"
 platform=""
+skip_confirmations=false
 
 # Options:
 # - test_automate_all
 cli_sd_options=""
 
-while getopts t:d:o:p: flag
+# while getopts 'y' optname; do
+#     case $opt in 
+#         y) skip_confirmations=true ;;
+#     esac
+# done
+# shift "$(( OPTIND - 1 ))"
+
+while getopts t:d:o:p:y flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
         d) dep_man_approach=${OPTARG};;
         o) cli_sd_options=${OPTARG};;
         p) platform=${OPTARG};;
+        y) skip_confirmations=true;;
     esac
 done
+
 
 # Require the platform (-p) flag.
 if [ "$platform" = "" ]; then
@@ -85,14 +95,18 @@ echo ""
 echo "This test will build a temporary directory in your home folder."
 echo "  It will also create an app on your account for the selected platform."
 
-while true; do
-    read -p "Proceed? " yn
-    case $yn in 
-        [Yy]* ) echo "\nOkay, proceeding with tests..."; break;;
-        [Nn]* ) echo "\nOkay, not running tests."; exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+if [ "$skip_confirmations" != true ]; then
+    while true; do
+        read -p "Proceed? " yn
+        case $yn in 
+            [Yy]* ) echo "\nOkay, proceeding with tests..."; break;;
+            [Nn]* ) echo "\nOkay, not running tests."; exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+else
+    echo "\nSkipping confirmations, proceeding with tests..."
+fi
 
 # Make tmp location and copy sample project.
 echo "\nBuilding temp environment and copying sample project:"

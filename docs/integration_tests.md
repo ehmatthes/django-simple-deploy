@@ -57,9 +57,10 @@ Other testing options
 Here are all the flags and options for each flag. The first option listed for each flag is the default:
 
 ```
-./integration_tests/test_deploy_process.sh -t [development_version|pypi] -d [req_txt|poetry|pipenv] -p [heroku] -o [automate_all]
+./integration_tests/test_deploy_process.sh -y -t [development_version|pypi] -d [req_txt|poetry|pipenv] -p [heroku] -o [automate_all]
 ```
 
+- `-y`: Skip all confirmations in the bash test script, ie "Is it okay to make a tmp dir in your home directory." The first time you run integration testing, you should not use this flag. Once you've seen what the scripts do, you may want to use this flag.
 - `-t`: Target for testing.
     - `development_version`, `pypi`
 - `-d`: Dependency management approach that's being tested.
