@@ -92,15 +92,6 @@ You will have to create the Platform.sh project yourself, but simple_deploy
 will do all of the necessary configuration for deployment.
 """
 
-success_msg = """
---- Your project is now configured for deployment on Platform.sh. ---
-
-To deploy your project, you will need to:
-- Commit the changes made in the configuration process.
-- Run `platform push`
-- What else?
-"""
-
 
 # --- Dynamic strings ---
 # These need to be generated in functions, to display information that's 
@@ -150,6 +141,36 @@ def unknown_create_error(e):
     """)
 
     return msg
+
+
+def success_msg(log_output=''):
+    """Success message, for configuration-only run."""
+
+    msg = dedent(f"""
+        --- Your project is now configured for deployment on Platform.sh. ---
+
+        To deploy your project, you will need to:
+        - Commit the changes made in the configuration process.
+            $ git status
+            $ git add .
+            $ git commit -am "Configured project for deployment."
+        - Push your project to Platform.sh' servers:
+            $ platform push
+        - Open your project:
+            $ platform url    
+        - As you develop your project further:
+            - Make local changes
+            - Commmit your local changes
+            - Run `platform push`
+    """)
+
+    if log_output:
+        msg += dedent(f"""
+        - You can find a full record of this configuration in the simple_deploy_logs directory.
+        """)
+
+    return msg
+
 
 def success_msg_automate_all(deployed_url):
     """Success message, when using --automate-all."""
