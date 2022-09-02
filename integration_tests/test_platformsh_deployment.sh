@@ -50,9 +50,9 @@ fi
 
 echo "Running manage.py simple_deploy..."
 if [ "$test_automate_all" = true ]; then
-    python manage.py simple_deploy --platform platform_sh --automate-all
+    python manage.py simple_deploy --platform platform_sh --automate-all --integration-testing
 else
-    python manage.py simple_deploy --platform platform_sh
+    python manage.py simple_deploy --platform platform_sh --integration-testing
 fi
 
 # After running simple_deploy, need to regenerate the lock file.

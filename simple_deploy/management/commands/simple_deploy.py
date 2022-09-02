@@ -29,6 +29,7 @@ class Command(BaseCommand):
         """Define CLI options."""
 
         # --- Platform-agnostic arguments ---
+
         parser.add_argument('--automate-all',
             help="Automate all aspects of deployment?",
             action='store_true')
@@ -68,6 +69,10 @@ class Command(BaseCommand):
         #   calls.
         parser.add_argument('--unit-testing',
             help="Used for local unit testing, to avoid network calls.",
+            action='store_true')
+
+        parser.add_argument('--integration-testing',
+            help="Used for integration testing, to avoid confirmations.",
             action='store_true')
 
 
@@ -135,6 +140,7 @@ class Command(BaseCommand):
 
         # Developer arguments.
         self.unit_testing = options['unit_testing']
+        self.integration_testing = options['integration_testing']
 
 
     def _validate_command(self):
@@ -630,6 +636,13 @@ class Command(BaseCommand):
         """
         prompt = "\nAre you sure you want to do this? (yes|no) "
         confirmed = ''
+
+        # If doing integration testing, always return True.
+        if self.integration_testing:
+            self.write_output(prompt, skip_logging=skip_logging)
+            msg = "  Confirmed for integration testing..."
+            self.write_output(msg, skip_logging=skip_logging)
+            return True
 
         while True:
             self.write_output(prompt, skip_logging=skip_logging)

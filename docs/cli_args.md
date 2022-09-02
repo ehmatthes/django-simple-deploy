@@ -18,6 +18,7 @@ Table of Contents
     - [`--ignore-unclean-git`](#--ignore-unclean-git)
 - [Developer arguments](#developer-arguments)
     - [`--unit-testing`](#--unit-testing)
+    - [`--integration-testing`](#--integration-testing)
 
 All arguments
 ---
@@ -136,3 +137,7 @@ Developer arguments
 #### `--unit-testing`
 
 This is used within scripts in the unit test directory to pass a `--unit-testing` flag that skips some confirmations, and some deployment steps during unit testing. This allows us to unit test as much of the process as possible without making network calls.
+
+#### `--integration-testing`
+
+This is also used within scripts, in the integration_tests/ directory. The `--integration-testing` flag skips all `simple_deploy` confirmations for streamlined test runs on platforms with preliminary support.
