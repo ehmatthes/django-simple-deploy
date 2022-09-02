@@ -12,10 +12,12 @@ Table of Contents
     - [`--platform platform_sh`](--#platform-platform-sh)
         - [`--deployed-project-name`](#--deployed-project-name) 
         - [`--region`](#--region)
-- [Other arguments](#other-arguments)
+- [Other user arguments](#other-arguments)
     - [`--automate-all`](#--automate-all)
     - [`--no-logging`](#--no-logging)
     - [`--ignore-unclean-git`](#--ignore-unclean-git)
+- [Developer arguments](#developer-arguments)
+    - [`--unit-testing`](#--unit-testing)
 
 All arguments
 ---
@@ -31,6 +33,9 @@ $ python manage.py simple_deploy
     --automate-all
     --no-logging
     --ignore-unclean-git
+    
+    # Development use only
+    --unit-testing
     
 ```
 
@@ -124,3 +129,10 @@ Example usage:
 ```
 $ python manage.py simple_deploy --platform platform_name --ignore-unclean-git
 ```
+
+Developer arguments
+---
+
+#### `--unit-testing`
+
+This is used within scripts in the unit test directory to pass a `--unit-testing` flag that skips some confirmations, and some deployment steps during unit testing. This allows us to unit test as much of the process as possible without making network calls.
