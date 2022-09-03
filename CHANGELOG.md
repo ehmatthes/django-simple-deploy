@@ -14,10 +14,14 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Check that `platform create` has been run, or that a deployed project name has been provided.
     - More informative error messages if any prerequisite conditions are not met, such as running `platform create`.
     - `--automate-all` now works on Platform.sh.
+    - Improved success messages after configuration-only run.
 - Significant restructuring of simple_deploy's architecture, to more cleanly separate platform-agnostic work from platform-specific work. For example, see [Issue 89](https://github.com/ehmatthes/django-simple-deploy/issues/89).
 - More integrity checks before making any configuration changes:
     - Check `git status` before beginning configuration work. Warn users and exit if status is not `working tree clean`. The `--ignore-unclean-git` flag will override this warning.
     - Check that Platform.sh CLI or Heroku CLI are installed before configuring for those platforms.
+- Developer-focused improvements:
+    - Added a `-y` flag to integration test script, to skip bash script confirmations.
+    - Separated `--local-test` flag into `--unit-testing` and `--integration-testing` flags.
 
 ### 0.4.2
 
