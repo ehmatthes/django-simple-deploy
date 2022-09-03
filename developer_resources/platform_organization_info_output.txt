@@ -1,0 +1,20 @@
+Selected organization: redacted_username (by default)
++----------------------------+------------------------------------------+
+| Property                   | Value                                    |
++----------------------------+------------------------------------------+
+| id                         | PGY2Q5S1N4BWA9FDB7O1T8QJX2               |
+| owner_id                   | redacted_id     |
+| namespace                  | platformsh                               |
+| name                       | redacted_username                                |
+| label                      | redacted_username                                |
+| country                    | US                                       |
+| centralized_project_access | false                                    |
+| created_at                 | redacted_timestamp                |
+| updated_at                 | redacted_timestamp                |
+| owner                      | email: redacted_email               |
+|                            | first_name: redacted_first_name                         |
+|                            | id: redacted_id |
+|                            | last_name: redacted_last_name                       |
+|                            | picture: ''                              |
+|                            | username: redacted_username                      |
++----------------------------+------------------------------------------+

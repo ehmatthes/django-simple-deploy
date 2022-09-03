@@ -25,11 +25,9 @@ class HerokuDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Heroku...")
 
-        self._prep_automate_all()
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._get_heroku_settings()
-        self.sd._add_simple_deploy_req()
         self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
@@ -42,40 +40,7 @@ class HerokuDeployer:
         self._show_success_message()
 
 
-    def _prep_automate_all(self):
-        """Do intial work for automating entire process."""
-        # This is platform-specific, because we want to specify exactly what
-        #   will be automated.
-
-        # Skip this prep work if --automate-all not used.
-        if not self.sd.automate_all:
-            return
-
-        # Confirm the user knows exactly what will be automated.
-        self.sd.write_output(dh_msgs.confirm_automate_all)
-
-        # Get confirmation.
-        confirmed = ''
-        while confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-            prompt = "\nAre you sure you want to do this? (yes|no) "
-            self.sd.write_output(prompt)
-            confirmed = input()
-            self.sd.write_output(confirmed, write_to_console=False)
-
-            if confirmed.lower() not in ('y', 'yes', 'n', 'no'):
-                self.sd.write_output("  Please answer yes or no.")
-
-        if confirmed.lower() in ('y', 'yes'):
-            self.sd.write_output("  Running `heroku create`...")
-            cmd = 'heroku create'
-            output = self.sd.execute_subp_run(cmd)
-            self.sd.write_output(output)
-        else:
-            # Quit and have the user run the command again; don't assume not
-            #   wanting to automate means they want to configure.
-            self.sd.write_output(d_msgs.cancel_automate_all)
-            sys.exit()
-
+    # --- Methods used in this class ---
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to."""
@@ -86,7 +51,7 @@ class HerokuDeployer:
         #   to easily test for a failed apps:info call. Also, probably want
         #   to mock the output of apps:info rather than directly setting
         #   heroku_app_name.
-        if self.sd.local_test:
+        if self.sd.unit_testing:
             self.heroku_app_name = 'sample-name-11894'
         else:
             self.sd.write_output("  Inspecting Heroku app...")
@@ -116,7 +81,7 @@ class HerokuDeployer:
         """
 
         # Skip this entirely when unit testing.
-        if self.sd.local_test:
+        if self.sd.unit_testing:
             return
 
         self.sd.write_output("  Setting Heroku environment variable...")
@@ -174,9 +139,9 @@ class HerokuDeployer:
         self.sd.write_output("\n  Looking for gunicorn...")
 
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('gunicorn')
+            self.sd.add_req_txt_pkg('gunicorn')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('gunicorn')
+            self.sd.add_pipenv_pkg('gunicorn')
 
 
     def _check_allowed_hosts(self):
@@ -213,11 +178,11 @@ class HerokuDeployer:
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('psycopg2<2.9')
-            self.sd._add_req_txt_pkg('dj-database-url')
+            self.sd.add_req_txt_pkg('psycopg2<2.9')
+            self.sd.add_req_txt_pkg('dj-database-url')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('psycopg2', version="<2.9")
-            self.sd._add_pipenv_pkg('dj-database-url')
+            self.sd.add_pipenv_pkg('psycopg2', version="<2.9")
+            self.sd.add_pipenv_pkg('dj-database-url')
 
 
     def _add_db_settings(self):
@@ -245,9 +210,9 @@ class HerokuDeployer:
         # Add whitenoise to requirements.
         self.sd.write_output("    Adding staticfiles-related packages...")
         if self.sd.using_req_txt:
-            self.sd._add_req_txt_pkg('whitenoise')
+            self.sd.add_req_txt_pkg('whitenoise')
         elif self.sd.using_pipenv:
-            self.sd._add_pipenv_pkg('whitenoise')
+            self.sd.add_pipenv_pkg('whitenoise')
 
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
@@ -310,7 +275,7 @@ class HerokuDeployer:
 
         # When unit testing, don't set the heroku config var, but do make
         #   the change to settings.
-        if not self.sd.local_test:
+        if not self.sd.unit_testing:
             self.sd.write_output("  Setting DEBUG env var...")
             cmd = 'heroku config:set DEBUG=FALSE'
             output = self.sd.execute_subp_run(cmd)
@@ -336,7 +301,7 @@ class HerokuDeployer:
 
         # Set the new key as an env var on Heroku.
         #   Skip when unit testing.
-        if not self.sd.local_test:
+        if not self.sd.unit_testing:
             self.sd.write_output("  Setting new secret key for Heroku...")
             cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
             output = self.sd.execute_subp_run(cmd)
@@ -352,21 +317,11 @@ class HerokuDeployer:
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
+        # Making this check here lets deploy() be cleaner.
         if not self.sd.automate_all:
             return
 
-        self.sd.write_output("\n\nCommitting and pushing project...")
-
-        self.sd.write_output("  Adding changes...")
-        cmd = 'git add .'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("  Committing changes...")
-        # If we write this command as a string, the commit message will be split
-        #   incorrectly.
-        cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
-        output = self.sd.execute_subp_run_parts(cmd_parts)
-        self.sd.write_output(output)
+        self.sd.commit_changes()
 
         self.sd.write_output("  Pushing to heroku...")
 
@@ -489,3 +444,33 @@ class HerokuDeployer:
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)
+
+
+    # --- Methods called from simple_deploy.py ---
+
+    def prep_automate_all(self):
+        """Do intial work for automating entire process.
+
+        Returns:
+        - None if successful.
+        """
+
+        self.sd.write_output("  Running `heroku create`...")
+        cmd = 'heroku create'
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
+
+
+    def validate_platform(self):
+        """Make sure the local environment and project supports deployment to
+        Heroku.
+
+        The returncode for a successful command is 0, so anything truthy means
+          a command errored out.
+        """
+        # Make sure Heroku CLI is installed.
+        cmd = 'heroku --version'
+        output_obj = self.sd.execute_subp_run(cmd)
+        if output_obj.returncode:
+            raise CommandError(dh_msgs.cli_not_installed)
+    

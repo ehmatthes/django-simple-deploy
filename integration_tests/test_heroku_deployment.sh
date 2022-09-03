@@ -23,9 +23,9 @@ fi
 
 echo "Running manage.py simple_deploy..."
 if [ "$test_automate_all" = true ]; then
-    python manage.py simple_deploy --automate-all --platform heroku
+    python manage.py simple_deploy --automate-all --platform heroku --integration-testing
 else
-    python manage.py simple_deploy --platform heroku
+    python manage.py simple_deploy --platform heroku --integration-testing
 fi
 
 # After running simple_deploy, need to regenerate the lock file.

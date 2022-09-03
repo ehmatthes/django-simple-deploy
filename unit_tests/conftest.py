@@ -7,9 +7,10 @@ import pytest
 
 @pytest.fixture(scope='module')
 def tmp_project(tmpdir_factory):
-    """Create a copy of the local sample project, and run simple_deploy
-    against this project. Most tests will examine how the project
-    was modified.
+    """Create a copy of the local sample project, so that platform-specific modules
+    can call simple_deploy.
+
+    Most tests will examine how the project was modified.
     """
 
     # Pause, or the tmpdir won't be usable.
@@ -29,11 +30,6 @@ def tmp_project(tmpdir_factory):
     cmd_parts = cmd.split()
     result = subprocess.run(cmd_parts)
     assert result.returncode == 1
-
-    # Call simple_deploy here, so we can test results of invalid calls.
-    cmd = f"sh call_sd_heroku.sh -d {tmp_proj_dir}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
 
     # Return the location of the temp project.
     return tmp_proj_dir

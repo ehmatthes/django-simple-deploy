@@ -2,8 +2,6 @@
 
 # This is the command that's called to automate deployment.
 # - It starts the process, and then dispatches to platform-specific helpers.
-# - Some of the steps that are platform-agnostic are in this file (at least for now),
-#   but are called by the helpers.
 # - Each helper gets a reference to this command object.
 
 
@@ -15,6 +13,9 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
+from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
+from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
+
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
 from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
 
@@ -26,6 +27,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         """Define CLI options."""
+
+        # --- Platform-agnostic arguments ---
 
         parser.add_argument('--automate-all',
             help="Automate all aspects of deployment?",
@@ -40,10 +43,36 @@ class Command(BaseCommand):
             help="Do you want a record of simple_deploy's output?",
             action='store_true')
 
+        # Allow users to use simple_deploy even with an unclean git status.
+        parser.add_argument('--ignore-unclean-git',
+            help="Run simple_deploy even with an unclean `git status` message.",
+            action='store_true')
+
+        # --- Platform.sh arguments ---
+
+        # Allow users to set the deployed project name. This is the name that
+        #   will be used by the platform, which may be different than the name
+        #   used in the `startproject` command. See the Platform.sh script
+        #   for use of this flag.
+        parser.add_argument('--deployed-project-name', type=str,
+            help="What name should the platform use for this project?\n(This is normally discovered automatically through inspection.)",
+            default='')
+
+        # Allow users to specify the region for a project when using --automate-all.
+        parser.add_argument('--region', type=str,
+            help="Which region do you want to deploy to?",
+            default='us-3.platform.sh')
+
+        # --- Developer arguments ---
+
         # If we're doing local unit testing, we need to avoid some network
         #   calls.
-        parser.add_argument('--local-test',
+        parser.add_argument('--unit-testing',
             help="Used for local unit testing, to avoid network calls.",
+            action='store_true')
+
+        parser.add_argument('--integration-testing',
+            help="Used for integration testing, to avoid confirmations.",
             action='store_true')
 
 
@@ -51,40 +80,67 @@ class Command(BaseCommand):
         """Parse options, and dispatch to platform-specific helpers."""
         self.stdout.write("Configuring project for deployment...")
 
-        # Most of the initial work is done in _parse_cli_options(), because
-        #   those options affect a lot of what we'll do. For example, we need
-        #   to know if we're logging before doing any real work.
+        # Parse CLI options, and validate the set of arguments we've been given.
         self._parse_cli_options(options)
-
-
-    def _parse_cli_options(self, options):
-        """Parse cli options."""
-        self.automate_all = options['automate_all']
-        self.platform = options['platform']
-        # This is a True-to-disable option; turn it into a more intuitive flag.
-        self.log_output = not(options['no_logging'])
-        self.local_test = options['local_test']
-
         self._validate_command()
-
-        if self.log_output:
-            self._start_logging()
-            # Log the options used for this run.
-            self.write_output(f"CLI args: {options}", write_to_console=False)
 
         # Inspect system; we'll run some system commands differently on Windows.
         self._inspect_system()
 
         # Inspect project here. If there's anything we can't work with locally,
-        #   we want to recognize that now and exit before making any remote calls.
+        #   we want to recognize that now and exit before making any changes
+        #   to the project, and before making any remote calls.
         self._inspect_project()
 
-        if self.automate_all:
-            self.write_output("Automating all steps...")
-        else:
-            self.write_output("Only configuring for deployment...")
+        # Build the platform-specifc deployer instance, and do platform-specific
+        #   validation. Then confirm --automate-all, if needed.
+        self._validate_platform()
+        self._confirm_automate_all()
 
-        self._check_platform()
+        # All validation has been completed. Make platform-agnostic modifications.
+        # Start with logging.
+        if self.log_output:
+            self._start_logging()
+            # Log the options used for this run.
+            self.write_output(f"CLI args: {options}", write_to_console=False)
+
+        # First action that could fail, but should happen after logging, is
+        #   calling platform-specific prep_automate_all(). This usually creates
+        #   an empty project on the target platform. This is one of the steps
+        #   most likely to fail, so it should be called before other modifications.
+        if self.automate_all:
+            self.platform_deployer.prep_automate_all()
+
+        self._add_simple_deploy_req()
+
+        # During development, sometimes helpful to exit before calling deploy().
+        # print('bye')
+        # sys.exit()
+
+        # All platform-agnostic work has been completed. Call platform-specific
+        #   deploy() method.
+        self.platform_deployer.deploy()
+
+
+    # --- Internal methods; used only in this class ---
+
+    def _parse_cli_options(self, options):
+        """Parse cli options."""
+
+        # Platform-agnostic arguments.
+        self.automate_all = options['automate_all']
+        self.platform = options['platform']
+        # This is a True-to-disable option; turn it into a more intuitive flag?
+        self.log_output = not(options['no_logging'])
+        self.ignore_unclean_git = options['ignore_unclean_git']
+
+        # Platform.sh arguments.
+        self.deployed_project_name = options['deployed_project_name']
+        self.region = options['region']
+
+        # Developer arguments.
+        self.unit_testing = options['unit_testing']
+        self.integration_testing = options['integration_testing']
 
 
     def _validate_command(self):
@@ -95,23 +151,50 @@ class Command(BaseCommand):
             raise CommandError(d_msgs.requires_platform_flag)
 
 
-    def _check_platform(self):
-        """Find out which platform we're targeting, and call the appropriate
-        platform-specific script.
+    def _validate_platform(self):
+        """Find out which platform we're targeting, and instantiate the
+        platform-specific deployer object. Also, call any necessary
+        platform-specific validation and confirmation methods here.
         """
-        # DEV: This can be simplified using if self.platform in (target platforms)
         if self.platform == 'heroku':
-            self.write_output("  Targeting Heroku deployment...")
-            hd = HerokuDeployer(self)
-            hd.deploy()
+            self.write_output("  Targeting Heroku deployment...", skip_logging=True)
+            self.platform_deployer = HerokuDeployer(self)
         elif self.platform == 'platform_sh':
-            self.write_output("  Targeting platform.sh deployment...")
-            pl_sh = PlatformshDeployer(self)
-            pl_sh.deploy()
+            self.write_output("  Targeting platform.sh deployment...", skip_logging=True)
+            self.platform_deployer = PlatformshDeployer(self)
+            self.platform_deployer.confirm_preliminary()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
-            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
+
+        self.platform_deployer.validate_platform()
+
+
+    def _confirm_automate_all(self):
+        """If the --automate-all flag has been passed, confirm that the user
+        really wants us to take these actions for them.
+        """
+
+        # Placing this test here makes handle() much cleaner.
+        if not self.automate_all:
+            return
+
+        # Confirm the user knows exactly what will be automated; this
+        #   message is specific to each platform.
+        if self.platform == 'heroku':
+            msg = dh_msgs.confirm_automate_all
+        elif self.platform == 'platform_sh':
+            msg = plsh_msgs.confirm_automate_all
+        self.write_output(msg, skip_logging=True)
+        confirmed = self.get_confirmation(skip_logging=True)
+
+        if confirmed:
+            self.write_output("Automating all steps...", skip_logging=True)
+        else:
+            # Quit and have the user run the command again; don't assume not
+            #   wanting to automate means they want to configure.
+            self.write_output(d_msgs.cancel_automate_all, skip_logging=True)
+            sys.exit()
 
 
     def _start_logging(self):
@@ -120,10 +203,8 @@ class Command(BaseCommand):
         #   log the creation of the log directory if it happened.
         # In many libraries, one log file is created and then that file is
         #   appended to, and it's on the user to manage log sizes.
-        # In this project, the user is expected to use run simple_deploy
+        # In this project, the user is expected to run simple_deploy
         #   once, or maybe a couple times if they make a mistake and it exits.
-        #   For example, deploying to Azure without --automate-all, or configuring
-        #   for Heroku without first running `heroku create`.
         # So, we should never have runaway log creation. It could be really
         #   helpful to see how many logs are created, and it's also simpler
         #   to review what happened if every log file represents a single run.
@@ -143,6 +224,9 @@ class Command(BaseCommand):
 
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
+
+        # Make sure we're ignoring sd logs.
+        self._ignore_sd_logs()
 
 
     def _create_log_dir(self):
@@ -185,34 +269,6 @@ class Command(BaseCommand):
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
 
 
-    def write_output(self, output_obj, log_level='INFO', write_to_console=True):
-        """Write output to the appropriate places.
-        Output may be a string, or an instance of subprocess.CompletedProcess.
-        """
-
-        # Extract the subprocess output as a string.
-        if isinstance(output_obj, subprocess.CompletedProcess):
-            # Assume output is either stdout or stderr.
-            output_str = output_obj.stdout.decode()
-            if not output_str:
-                output_str = output_obj.stderr.decode()
-        elif isinstance(output_obj, str):
-            output_str = output_obj
-
-        # Almost always write to console. Input from prompts is not streamed
-        #   because user just typed it into the console.
-        if write_to_console:
-            self.stdout.write(output_str)
-
-        # Log when appropriate. Log as a series of single lines, for better
-        #   log file parsing.
-        if self.log_output:
-            for line in output_str.splitlines():
-                # Strip secret key from any line that holds it.
-                line = self._strip_secret_key(line)
-                logging.info(line)
-
-
     def _strip_secret_key(self, line):
         """Strip secret key value from log file lines."""
         if 'SECRET_KEY:' in line:
@@ -221,69 +277,6 @@ class Command(BaseCommand):
             return new_line
         else:
             return line
-
-
-    def execute_subp_run_parts(self, cmd_parts):
-        """This is similar to execute_subp_run(), but it receives a list of
-        command parts rather than a string command. Having this separate method
-        is cleaner than having nested if statements in execute_subp_run().
-
-        DEV: May want to make execute_subp_run() examine cmd that's received,
-        and dispatch the work based on whether it receives a string or sequence.
-        """
-        if self.on_windows:
-            cmd_string = ' '.join(cmd_parts)
-            output = subprocess.run(cmd_string, shell=True, capture_output=True)
-        else:
-            output = subprocess.run(cmd_parts, capture_output=True)
-
-        return output
-
-
-    def execute_subp_run(self, cmd):
-        """Execute subprocess.run() command.
-        We're running commands differently on Windows, so this method
-          takes a command and runs it appropriately on each system.
-        Returns: output of the command.
-        """
-        if self.on_windows:
-            output = subprocess.run(cmd, shell=True, capture_output=True)
-        else:
-            cmd_parts = cmd.split()
-            output = subprocess.run(cmd_parts, capture_output=True)
-
-        return output
-
-
-    def execute_command(self, cmd):
-        """Execute command, and stream output while logging.
-        This method is intended for commands that run long enough that we 
-        can't use a simple subprocess.run(capture_output=True), which doesn't
-        stream any output until the command is finished. That works for logging,
-        but makes it seem as if the deployment is hanging. This is an issue
-        especially on platforms like Azure that have some steps that take minutes
-        to run.
-        """
-
-        # DEV: This only captures stderr right now.
-        #   This is used for commands that run long enough that we don't
-        #   want to use a simple subprocess.run(capture_output=True). Right
-        #   now that's only the `git push heroku` call. That call writes to
-        #   stderr; I'm not sure how to stream both stdout and stderr.
-        #
-        #     This will also be needed for long-running steps on other platforms,
-        #   which may or may not write to stderr. Adding a parameter
-        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
-        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
-        #   topic date back to Python2/3 days.
-        cmd_parts = cmd.split()
-        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
-            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
-            for line in p.stderr:
-                self.write_output(line)
-
-        if p.returncode != 0:
-            raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
     def _inspect_system(self):
@@ -326,13 +319,9 @@ class Command(BaseCommand):
         # Get project root, from settings.
         self.project_root = settings.BASE_DIR
 
-        # Find .git location.
+        # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
-
-        # Now that we know where git dir is, we can ignore log directory.
-        if self.log_output:
-            # Make sure log directory is in .gitignore.
-            self._ignore_sd_logs()
+        self._check_git_status()
 
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
@@ -352,23 +341,37 @@ class Command(BaseCommand):
            `django-admin startproject .`
         This matters for knowing where manage.py is, and knowing where the
          .git dir is likely to be.
-        Assume the .git directory is in the topmost directory; the location
-         of .git/ relative to settings.py indicates whether or not this is
-         a nested project.
-        # DEV: This docstring came from a couple different methods; clean it up.
         """
         if Path(self.project_root / '.git').exists():
             self.git_path = Path(self.project_root)
-            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
             self.nested_project = False
         elif (Path(self.project_root).parent / Path('.git')).exists():
             self.git_path = Path(self.project_root).parent
-            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
-            self.write_output(error_msg, write_to_console=False)
+            raise CommandError(error_msg)
+
+
+    def _check_git_status(self):
+        """Make sure we're starting from a clean working state.
+        We really want to encourage users to be able to easily undo
+          configuration changes. This is especially true for automate-all.
+        """
+
+        if self.ignore_unclean_git:
+            return
+
+        cmd = "git status"
+        output_obj = self.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        if "working tree clean" not in output_str:
+            error_msg = d_msgs.unclean_git_status
+            if self.automate_all:
+                error_msg += d_msgs.unclean_git_automate_all
             raise CommandError(error_msg)
 
 
@@ -395,13 +398,13 @@ class Command(BaseCommand):
             #   not affect the user's local environment.
             cmd = 'poetry export -f requirements.txt --output requirements.txt --without-hashes'
             output = self.execute_subp_run(cmd)
-            self.write_output(output)
+            self.write_output(output, skip_logging=True)
             self.using_req_txt = True
 
         # Exit if we haven't found any requirements.
         if not any((self.using_req_txt, self.using_pipenv)):
             error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-            self.write_output(error_msg, write_to_console=False)
+            self.write_output(error_msg, write_to_console=False, skip_logging=True)
             raise CommandError(error_msg)
 
 
@@ -433,10 +436,8 @@ class Command(BaseCommand):
         #   django-simple-deploy it's automatically added to Pipfile.
         if self.using_req_txt:
             self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
-            self._add_req_txt_pkg('django-simple-deploy')
+            self.add_req_txt_pkg('django-simple-deploy')
 
-
-    # --- Utility methods ---
 
     def _get_pipfile_requirements(self):
         """Get a list of requirements that are already in the Pipfile."""
@@ -465,36 +466,6 @@ class Command(BaseCommand):
         return requirements
 
 
-    def _add_req_txt_pkg(self, package_name):
-        """Add a package to requirements.txt, if not already present."""
-        root_package_name = package_name.split('<')[0]
-
-        # Note: This does not check for specific versions. It gives priority
-        #   to any version already specified in requirements.
-        pkg_present = any(root_package_name in r for r in self.requirements)
-
-        if pkg_present:
-            self.write_output(f"    Found {root_package_name} in requirements file.")
-        else:
-            with open(self.req_txt_path, 'a') as f:
-                # Align comments, so we don't make req_txt file ugly.
-                #   Version specs are in package_name in req_txt approach.
-                tab_string = ' ' * (30 - len(package_name))
-                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
-
-            self.write_output(f"    Added {package_name} to requirements.txt.")
-
-
-    def _add_pipenv_pkg(self, package_name, version=""):
-        """Add a package to Pipfile, if not already present."""
-        pkg_present = any(package_name in r for r in self.requirements)
-
-        if pkg_present:
-            self.write_output(f"    Found {package_name} in Pipfile.")
-        else:
-            self._write_pipfile_pkg(package_name, version)
-
-
     def _write_pipfile_pkg(self, package_name, version=""):
         """Write package to Pipfile."""
 
@@ -518,3 +489,185 @@ class Command(BaseCommand):
             f.write(pipfile_text)
 
         self.write_output(f"    Added {package_name} to Pipfile.")
+
+
+    # --- Methods also used by platform-specific scripts ---
+
+    def write_output(self, output_obj, log_level='INFO',
+            write_to_console=True, skip_logging=False):
+        """Write output to the appropriate places.
+        Output may be a string, or an instance of subprocess.CompletedProcess.
+
+        Need to skip logging before log file is configured.
+        """
+
+        # Extract the subprocess output as a string.
+        if isinstance(output_obj, subprocess.CompletedProcess):
+            # Assume output is either stdout or stderr.
+            output_str = output_obj.stdout.decode()
+            if not output_str:
+                output_str = output_obj.stderr.decode()
+        elif isinstance(output_obj, str):
+            output_str = output_obj
+
+        # Almost always write to console. Input from prompts is not streamed
+        #   because user just typed it into the console.
+        if write_to_console:
+            self.stdout.write(output_str)
+
+        # Log when appropriate. Log as a series of single lines, for better
+        #   log file parsing. 
+        if self.log_output and not skip_logging:
+            for line in output_str.splitlines():
+                # Strip secret key from any line that holds it.
+                line = self._strip_secret_key(line)
+                logging.info(line)
+
+
+    def execute_subp_run_parts(self, cmd_parts):
+        """This is similar to execute_subp_run(), but it receives a list of
+        command parts rather than a string command. Having this separate method
+        is cleaner than having nested if statements in execute_subp_run().
+
+        Currently this is used to issue a git commit command, where running
+          cmd.split() would split on the commit message.
+
+        DEV: May want to make execute_subp_run() examine cmd that's received,
+        and dispatch the work based on whether it receives a string or sequence.
+        """
+        if self.on_windows:
+            cmd_string = ' '.join(cmd_parts)
+            output = subprocess.run(cmd_string, shell=True, capture_output=True)
+        else:
+            output = subprocess.run(cmd_parts, capture_output=True)
+
+        return output
+
+
+    def execute_subp_run(self, cmd, check=False):
+        """Execute subprocess.run() command.
+        We're running commands differently on Windows, so this method
+          takes a command and runs it appropriately on each system.
+
+        The `check` parameter is included because some callers will need to 
+          handle exceptions. For an example, see prep_automate_all() in
+          deploy_platformsh.py. Most callers will only check whether returncode
+          is nonzero, and not need to involve exception handling.
+
+        Returns:
+            - CompletedProcess instance
+            - if check=True is passed, raises CalledProcessError. 
+        """
+        if self.on_windows:
+            output = subprocess.run(cmd, shell=True, capture_output=True)
+        else:
+            cmd_parts = cmd.split()
+            output = subprocess.run(cmd_parts, capture_output=True, check=check)
+
+        return output
+
+
+    def execute_command(self, cmd):
+        """Execute command, and stream output while logging.
+        This method is intended for commands that run long enough that we 
+        can't use a simple subprocess.run(capture_output=True), which doesn't
+        stream any output until the command is finished. That works for logging,
+        but makes it seem as if the deployment is hanging. This is an issue
+        especially on platforms like Azure that have some steps that take minutes
+        to run.
+        """
+
+        # DEV: This only captures stderr right now.
+        #   This is used for commands that run long enough that we don't
+        #   want to use a simple subprocess.run(capture_output=True). Right
+        #   now that's only the `git push heroku` call. That call writes to
+        #   stderr; I'm not sure how to stream both stdout and stderr.
+        #
+        #     This will also be needed for long-running steps on other platforms,
+        #   which may or may not write to stderr. Adding a parameter
+        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
+        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
+        #   topic date back to Python2/3 days.
+        cmd_parts = cmd.split()
+        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
+            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
+            for line in p.stderr:
+                self.write_output(line)
+
+        if p.returncode != 0:
+            raise subprocess.CalledProcessError(p.returncode, p.args)
+
+
+    def add_req_txt_pkg(self, package_name):
+        """Add a package to requirements.txt, if not already present."""
+        root_package_name = package_name.split('<')[0]
+
+        # Note: This does not check for specific versions. It gives priority
+        #   to any version already specified in requirements.
+        pkg_present = any(root_package_name in r for r in self.requirements)
+
+        if pkg_present:
+            self.write_output(f"    Found {root_package_name} in requirements file.")
+        else:
+            with open(self.req_txt_path, 'a') as f:
+                # Align comments, so we don't make req_txt file ugly.
+                #   Version specs are in package_name in req_txt approach.
+                tab_string = ' ' * (30 - len(package_name))
+                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
+
+            self.write_output(f"    Added {package_name} to requirements.txt.")
+
+
+    def add_pipenv_pkg(self, package_name, version=""):
+        """Add a package to Pipfile, if not already present."""
+        pkg_present = any(package_name in r for r in self.requirements)
+
+        if pkg_present:
+            self.write_output(f"    Found {package_name} in Pipfile.")
+        else:
+            self._write_pipfile_pkg(package_name, version)
+
+
+    def get_confirmation(self, skip_logging=False):
+        """Get confirmation for an action.
+        This method assumes an appropriate message has already been displayed
+          about what is to be done.
+        This method shows a yes|no prompt, and returns True or False.
+        """
+        prompt = "\nAre you sure you want to do this? (yes|no) "
+        confirmed = ''
+
+        # If doing integration testing, always return True.
+        if self.integration_testing:
+            self.write_output(prompt, skip_logging=skip_logging)
+            msg = "  Confirmed for integration testing..."
+            self.write_output(msg, skip_logging=skip_logging)
+            return True
+
+        while True:
+            self.write_output(prompt, skip_logging=skip_logging)
+            confirmed = input()
+            if confirmed.lower() in ('y', 'yes'):
+                return True
+            elif confirmed.lower() in ('n', 'no'):
+                return False
+            else:
+                self.write_output("  Please answer yes or no.", skip_logging=skip_logging)
+
+
+    def commit_changes(self):
+        """Commit changes that have been made to the project.
+        This should only be called when automate_all is being used.
+        """
+        if not self.automate_all:
+            return
+
+        self.write_output("  Committing changes...")
+        cmd = 'git add .'
+        output = self.execute_subp_run(cmd)
+        self.write_output(output)
+        # If we write this command as a string, the commit message will be split
+        #   incorrectly.
+        cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
+        output = self.execute_subp_run_parts(cmd_parts)
+        self.write_output(output)

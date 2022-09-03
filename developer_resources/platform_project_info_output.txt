@@ -1,0 +1,34 @@
++----------------+------------------------------------------------------------------------------------------------------------------+
+| Property       | Value                                                                                                            |
++----------------+------------------------------------------------------------------------------------------------------------------+
+| id             | vnyq2twsplrly                                                                                                    |
+| created_at     | 2022-08-26T12:20:52-08:00                                                                                        |
+| updated_at     | 2022-08-26T12:22:54-08:00                                                                                        |
+| attributes     | {  }                                                                                                             |
+| title          | my_deployed_blog                                                                                                 |
+| description    |                                                                                                                  |
+| subscription   | license_uri: 'https://accounts.platform.sh/api/v1/licenses/2424066'                                              |
+|                | plan: development                                                                                                |
+|                | environments: 3                                                                                                  |
+|                | storage: 5120                                                                                                    |
+|                | included_users: 1                                                                                                |
+|                | subscription_management_uri:                                                                                     |
+|                | 'https://console.platform.sh/-/users/redacted_user_id/billing/plan/redacted_billing_plan_id'                            |
+|                | restricted: false                                                                                                |
+|                | suspended: false                                                                                                 |
+|                | user_licenses: 1                                                                                                 |
+| owner          | redacted_owner_id                                                                             |
+| namespace      | platformsh                                                                                                       |
+| organization   | redacted_organization_id                                                                                       |
+| default_branch | main                                                                                                             |
+| status         | code: provisioned                                                                                                |
+|                | message: ok                                                                                                      |
+| timezone       | America/Los_Angeles                                                                                              |
+| region         | us-2.platform.sh                                                                                                 |
+| repository     | url: 'vnyq2twsplrly@git.us-2.platform.sh:vnyq2twsplrly.git'                                                      |
+|                | client_ssh_key: 'ssh-rsa                                                                                         |
+|                | redacted_rsa_key'                                                   |
+| default_domain |                                                                                                                  |
+| git            | vnyq2twsplrly@git.us-2.platform.sh:vnyq2twsplrly.git                                                             |
+| url            | https://api.platform.sh/api/projects/vnyq2twsplrly                                                               |
++----------------+------------------------------------------------------------------------------------------------------------------+

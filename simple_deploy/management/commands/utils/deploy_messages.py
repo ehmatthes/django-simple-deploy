@@ -48,6 +48,26 @@ For more detailed information, see https://github.com/ehmatthes/django-simple-de
 Please re-run the command with a --platform option specified.
 """
 
+unclean_git_status = """
+The output of `git status` indicates that you have uncommitted changes.
+
+We highly recommend you commit all changes before running simple_deploy, so
+you can easily undo configuration changes if deployment doesn't work, or if you
+wish to deploy to a different platform.
+
+Please commit all changes and then run simple_deploy again. If you really wish
+to continue without committing current changes, you can use
+the --ignore-unclean-git flag.
+"""
+
+# Add-on to `unclean_git_status` when using automate-all.
+unclean_git_automate_all = """
+It's especially important to have a clean status when using the --automate-all
+flag. In this case, simple_deploy will make commits on your behalf. It's a
+really good idea to keep your commits separate from the commits that simple_deploy
+makes.
+"""
+
 
 # --- Dynamic strings ---
 # These need to be generated in functions, to display information that's 

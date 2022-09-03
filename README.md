@@ -40,7 +40,7 @@ Prerequisites
 If you haven't already done so, make an account on the platform you want to use, and install the appropriate CLI:
 
 - For Heroku deployments, install the [Heroku CLI](https://devcenter.heroku.com/articles/heroku-cli).
-- For Platform.sh deployments, install the [Platform.sh CLI](https://docs.platform.sh/development/cli.html).
+- For Platform.sh deployments, install the [Platform.sh CLI](https://docs.platform.sh/development/cli.html). You will also need the `platformshconfig` package: `$ pip install platformshconfig`
 
 ### Use Git
 

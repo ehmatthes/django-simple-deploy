@@ -1,0 +1,9 @@
++-----------+-----------+---------------------+
+| Name      | Label     | Owner email         |
++-----------+-----------+---------------------+
+| redacted_username | redacted_username | redacted_email |
++-----------+-----------+---------------------+
+
+
+To view or modify organization details, run: platform org:info [-o organization]
+To see all organization commands run: platform list organization

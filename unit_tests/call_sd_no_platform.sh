@@ -21,4 +21,4 @@ source b_env/bin/activate
 # How mock this call? Need to get output for `heroku apps:info`.
 
 # Run configuration-only version of simple_deploy.
-python manage.py simple_deploy --local-test
+python manage.py simple_deploy --unit-testing

@@ -41,27 +41,52 @@
 
 target="development_version"
 dep_man_approach="req_txt"
-platform="heroku"
+platform=""
+skip_confirmations=false
 
 # Options:
 # - test_automate_all
 cli_sd_options=""
 
-while getopts t:d:o:p: flag
+# while getopts 'y' optname; do
+#     case $opt in 
+#         y) skip_confirmations=true ;;
+#     esac
+# done
+# shift "$(( OPTIND - 1 ))"
+
+while getopts t:d:o:p:y flag
 do
     case "${flag}" in
         t) target=${OPTARG};;
         d) dep_man_approach=${OPTARG};;
         o) cli_sd_options=${OPTARG};;
         p) platform=${OPTARG};;
+        y) skip_confirmations=true;;
     esac
 done
+
+
+# Require the platform (-p) flag.
+if [ "$platform" = "" ]; then
+    echo "\nA target platform for integration testing must be specified."
+    echo "  Test a Heroku deployment: $ ./integration_tests/test_deploy_process.sh -p heroku"
+    echo "  Test a Platform.sh deployment: $ ./integration_tests/test_deploy_process.sh -p platform_sh\n"
+    exit 1
+fi
+
+# Make sure platform is one of the currently-supported platforms.
+#   (My bash is not the strongest, feel free to suggest a better logical test.)
+if [[ "$platform" != "heroku" ]] && [[ "$platform" != "platform_sh" ]]; then
+    echo "\nIntegration testing does not support the platform you have specified: $platform"
+    echo "  Only the following platforms are supported: heroku, platform_sh\n"
+    exit 1
+fi
 
 # Only one possibility for cli_sd_options right now.
 if [ "$cli_sd_options" = 'automate_all' ]; then
     test_automate_all=true
 fi
-
 
 # --- Copy sample project to tmp location in $HOME and build testing venv. ---
 
@@ -70,14 +95,18 @@ echo ""
 echo "This test will build a temporary directory in your home folder."
 echo "  It will also create an app on your account for the selected platform."
 
-while true; do
-    read -p "Proceed? " yn
-    case $yn in 
-        [Yy]* ) echo "\nOkay, proceeding with tests..."; break;;
-        [Nn]* ) echo "\nOkay, not running tests."; exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+if [ "$skip_confirmations" != true ]; then
+    while true; do
+        read -p "Proceed? " yn
+        case $yn in 
+            [Yy]* ) echo "\nOkay, proceeding with tests..."; break;;
+            [Nn]* ) echo "\nOkay, not running tests."; exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+else
+    echo "\nSkipping confirmations, proceeding with tests..."
+fi
 
 # Make tmp location and copy sample project.
 echo "\nBuilding temp environment and copying sample project:"
@@ -223,6 +252,10 @@ rm -rf "$script_dir/django_simple_deploy.egg-info/"
 echo "\nAdding simple_deploy to INSTALLED_APPS..."
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
 
+# simple_deploy will exit with a warning if `git status` is not clean.
+echo "  Committing all changes..."
+git add .
+git commit -am "Ready to run simple_deploy."
 
 # --- Test platform-specific deployment processes. ---
 
@@ -232,9 +265,6 @@ sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blo
 
 if [ "$platform" = 'heroku' ]; then
     source $script_dir/integration_tests/test_heroku_deployment.sh
-# DEV: Upcoming task to implement this test:
-# elif [ "$platform" = 'platformsh' ]; then
-#     source $script_dir/integration_tests/test_platformsh_deployment.sh
-else
-    echo "  That platform is not supported."
+elif [ "$platform" = 'platform_sh' ]; then
+    source $script_dir/integration_tests/test_platformsh_deployment.sh
 fi

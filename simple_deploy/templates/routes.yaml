@@ -6,7 +6,7 @@
 
 "https://{default}/":
     type: upstream
-    upstream: "{{ project_name }}:http"
+    upstream: "{{ deployed_project_name }}:http"
 
 "https://www.{default}/":
     type: redirect

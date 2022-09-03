@@ -1,0 +1,78 @@
+Username: redacted_username
+Email address: redacted_email_address
+
+Selected organization: redacted_organization_name (by default)
+Creating a project under the organization redacted_organization_name
+
+* Project title (--title)
+Default: Untitled Project
+> my_deployed_blog
+
+* Region (--region)
+The region where the project will be hosted
+  [au.platform.sh  ] Sydney, Australia (AWS) [867 gC02eq/kWh]
+  [au-2.platform.sh] Sydney, Australia (AZURE) [867 gC02eq/kWh]
+  [ca-1.platform.sh] Montreal, Canada (AWS) [27 gC02eq/kWh]
+  [de-2.platform.sh] Frankfurt, Germany (GCP) [520 gC02eq/kWh]
+  [eu-5.platform.sh] Stockholm, Sweden (AWS) [62 gC02eq/kWh]
+  [fr-3.platform.sh] Gravelines, France (OVH) [58 gC02eq/kWh]
+  [fr-4.platform.sh] Paris, France (AZURE) [58 gC02eq/kWh]
+  [uk-1.platform.sh] London, United Kingdom (GCP) [350 gC02eq/kWh]
+  [us-2.platform.sh] Washington, United States (AWS) [514 gC02eq/kWh]
+  [us-3.platform.sh] Moses Lake, United States (AZURE) [514 gC02eq/kWh]
+  [us-4.platform.sh] Charleston, United States (GCP) [480 gC02eq/kWh]
+> us-2.platform.sh
+
+* Plan (--plan)
+The subscription plan
+Default: development
+Enter a number to choose: 
+  [0] development
+  [1] standard
+  [2] medium
+  [3] large
+> 0
+
+* Environments (--environments)
+The number of environments
+Default: 3
+> 3
+
+* Storage (--storage)
+The amount of storage per environment, in GiB
+Default: 5
+> 5
+
+Default branch (--default-branch)
+The default Git branch name for the project (the production environment)
+Default: main
+> main
+
+Git repository detected: /Users/redacted_path/blog_project
+
+Set the new project my_deployed_blog as the remote for this repository? [Y/n] Y
+
+The estimated monthly cost of this project is: $10 USD
+Pricing information: https://platform.sh/pricing
+
+Are you sure you want to continue? [Y/n] Y
+Your Platform.sh project has been requested (subscription ID: redacted_subscription_id_7_digit_number)
+
+The Platform.sh Bot is activating your project
+
+      ▀▄   ▄▀  
+     ▄█▀███▀█▄ 
+    █▀███████▀█
+    ▀ ▀▄▄ ▄▄▀ ▀
+               
+
+The project is now ready!
+vnyq2twsplrly
+
+  Region: us-2.platform.sh
+  Project ID: vnyq2twsplrly
+  Project title: my_deployed_blog
+  URL: https://console.platform.sh/01g3qpz7sx906fgpkm82b7pkwk/vnyq2twsplrly
+  Git URL: vnyq2twsplrly@git.us-2.platform.sh:vnyq2twsplrly.git
+
+Setting the remote project for this repository to: my_deployed_blog (vnyq2twsplrly)

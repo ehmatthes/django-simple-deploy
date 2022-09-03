@@ -28,6 +28,12 @@ no_heroku_app_detected = """No Heroku app name has been detected.
   https://devcenter.heroku.com/articles/heroku-cli
 """
 
+cli_not_installed = """
+In order to deploy to Heroku, you need to install the Heroku CLI.
+  See here: https://devcenter.heroku.com/articles/heroku-cli
+After installing the CLI, you can run simple_deploy again.
+"""
+
 
 # --- Dynamic strings ---
 # These need to be generated in functions, to display information that's 

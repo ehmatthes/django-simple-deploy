@@ -1,4 +1,4 @@
-"""Simple unit tests for django-simple-deploy."""
+"""Simple unit tests for django-simple-deploy, targeting Heroku."""
 
 from pathlib import Path
 import subprocess
@@ -9,45 +9,52 @@ import pytest
 # --- Fixtures ---
 
 @pytest.fixture(scope='module')
+def run_simple_deploy(tmp_project):
+    # Call simple_deploy here, so it can target this module's platform.
+    cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p heroku"
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
+
+@pytest.fixture(scope='module')
 def settings_text(tmp_project):
     return Path(tmp_project / 'blog/settings.py').read_text()
 
 
 # --- Test modifications to settings.py ---
 
-def test_creates_heroku_specific_settings_section(settings_text):
+def test_creates_heroku_specific_settings_section(run_simple_deploy, settings_text):
     """Verify there's a Heroku-specific settings section."""
     assert "if 'ON_HEROKU' in os.environ:" in settings_text
 
-def test_imports_dj_database_url(settings_text):    
+def test_imports_dj_database_url(run_simple_deploy, settings_text):    
     """Verify dj_database_url is imported."""
     assert "import dj_database_url" in settings_text
 
-def test_allowed_hosts(settings_text):
+def test_allowed_hosts(run_simple_deploy, settings_text):
     """Verify sample project is in ALLOWED_HOSTS."""
     assert "    ALLOWED_HOSTS.append('sample-name-11894.herokuapp.com')" in settings_text
 
-def test_databases_setting(settings_text):
+def test_databases_setting(run_simple_deploy, settings_text):
     """Verify DATABASES settings is correct."""
     assert "    DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}" in settings_text
 
-def test_static_root_setting(settings_text):
+def test_static_root_setting(run_simple_deploy, settings_text):
     """Verify the STATIC_ROOT setting is correct."""
     assert "    STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')" in settings_text
 
-def test_static_url_setting(settings_text):
+def test_static_url_setting(run_simple_deploy, settings_text):
     """Verify the STATIC_URL setting is correct."""
     assert "    STATIC_URL = '/static/'" in settings_text
 
-def test_staticfiles_dirs_setting(settings_text):
+def test_staticfiles_dirs_setting(run_simple_deploy, settings_text):
     """Verify the STATICFILES_DIRS setting is correct."""
     assert "    STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)" in settings_text
 
-def test_debug_setting(settings_text):
+def test_debug_setting(run_simple_deploy, settings_text):
     """Verify the DEBUG setting is correct."""
     assert "    DEBUG = os.getenv('DEBUG') == 'TRUE'" in settings_text
 
-def test_secret_key_setting(settings_text):
+def test_secret_key_setting(run_simple_deploy, settings_text):
     """Verify the SECRET_KEY setting is correct."""
     assert "    SECRET_KEY = os.getenv('SECRET_KEY')" in settings_text
 
@@ -62,7 +69,7 @@ def test_generated_procfile(tmp_project):
 
 # --- Test requirements.txt ---
 
-def test_requirements_txt_file(tmp_project):
+def test_requirements_txt_file(run_simple_deploy, tmp_project):
     """Test that the requirements.txt file is correct."""
     rt_text = Path(tmp_project / 'requirements.txt').read_text()
     assert "django-simple-deploy          # Added by simple_deploy command." in rt_text
@@ -74,12 +81,12 @@ def test_requirements_txt_file(tmp_project):
 
 # --- Test logs ---
 
-def test_log_dir(tmp_project):
+def test_log_dir(run_simple_deploy, tmp_project):
     """Test that the log directory exists, and contains an appropriate log file."""
     log_path = Path(tmp_project / 'simple_deploy_logs')
     assert log_path.exists()
 
-    # There should be exactly one log file.
+    # There should be exactly two log files.
     log_files = sorted(log_path.glob('*'))
     log_filenames = [lf.name for lf in log_files]
     # Check for exactly the log files we expect to find.
@@ -101,7 +108,7 @@ def test_log_dir(tmp_project):
     assert "INFO: --- Your project is now configured for deployment on Heroku. ---" in log_file_text
     assert "INFO: Or, you can visit https://sample-name-11894.herokuapp.com." in log_file_text
 
-def test_ignore_log_dir(tmp_project):
+def test_ignore_log_dir(run_simple_deploy, tmp_project):
     """Check that git is ignoring the log directory."""
     gitignore_text = Path(tmp_project / '.gitignore').read_text()
     assert 'simple_deploy_logs/' in gitignore_text
@@ -109,7 +116,7 @@ def test_ignore_log_dir(tmp_project):
 
 # --- Test staticfile setup ---
 
-def test_static_dir(tmp_project):
+def test_static_dir(run_simple_deploy, tmp_project):
     """Test that static dir exists, and contains placeholder file."""
     static_path = Path(tmp_project / 'static')
     assert static_path.exists()
@@ -128,7 +135,7 @@ def test_static_dir(tmp_project):
 
 # --- Test Heroku host already in ALLOWED_HOSTS ---
 
-def test_heroku_host_in_allowed_hosts(tmp_project):
+def test_heroku_host_in_allowed_hosts(run_simple_deploy, tmp_project):
     """Test that no ALLOWED_HOST entry in Heroku-specific settings if the
     Heroku host is already in ALLOWED_HOSTS.
     """
