@@ -213,9 +213,11 @@ echo "  Installing django-simple-deploy..."
 #   development version or the pypi version.
 if [ "$target" = pypi ]; then
     # Dependency string is just the package name.
+    echo "    Installing PyPI version of simple-deploy..."
     dependency_string="django-simple-deploy"
 else
     # Install from the local directory.
+    echo "    Installing local version of simple-deploy..."
     dependency_string="$script_dir"
 fi
 
