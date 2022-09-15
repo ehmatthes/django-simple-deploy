@@ -1,4 +1,4 @@
-"""A collection of messages used in deploy_platformsh.py."""
+"""A collection of messages used in flyio.py."""
 
 # For conventions, see documentation in deploy_messages.py
 
@@ -8,45 +8,36 @@ from django.conf import settings
 
 
 confirm_preliminary = """
-***** Deployments to platform.sh are experimental at this point ***
+***** Deployments to Fly.io are experimental at this point ***
 
-- Support for deploying to platform.sh is in an exploratory phase at this point.
-- You should only be using this project to deploy to platform.sh at this point if
+- Support for deploying to Fly.io is in an exploratory phase at this point.
+- You should only be using this project to deploy to Fly.io at this point if
   you are interested in helping to develop or test the simple_deploy project.
-- You should look at the deploy_platformsh.py script before running this command,
+- You should look at the deploy_flyio.py script before running this command,
   so you know what kinds of changes will be made to your project.
-- You should understand the platform.sh console, and be comfortable deleting resources
+- You should understand the Fly.io console, and be comfortable deleting resources
   that are created during this deployment.
 - You may want to cancel this run and deploy to a different platform.
 """
 
-confirm_automate_all = """
-The --automate-all flag means simple_deploy will:
-- Run `platform create` for you, to create an empty Platform.sh project.
-  - This will create a project in the us-3.platform.sh region. If you wish
-    to use a different region, cancel this operation and use the --region flag.
-  - You can see a list of all regions by running `platform help project:create`
-- Commit all changes to your project that are necessary for deployment.
-- Push these changes to Platform.sh.
-- Open your deployed project in a new browser tab.
+cancel_flyio = """
+Okay, cancelling Fly.io deployment.
 """
 
-cancel_plsh = """
-Okay, cancelling platform.sh deployment.
-"""
-
+# DEV: Update URL
+# DEV: This could be moved to deploy_messages, with an arg for platform and URL.
 cli_not_installed = """
-In order to deploy to Platform.sh, you need to install the Platform.sh CLI.
-  See here: https://docs.platform.sh/gettingstarted/introduction/template/cli-requirements.html
+In order to deploy to Fly.io, you need to install the Fly.io CLI.
+  See here: fly_io_url
 After installing the CLI, you can run simple_deploy again.
 """
 
-platformshconfig_not_installed = """
-In order to deploy to Platform.sh, you need to install the package `platformshoconfig`.
-To do this, run the following command, or its equivalent in your project:
-    pip install platformshconfig
-After installing this package, you can run simple_deploy again.
-"""
+
+
+
+
+
+
 
 no_project_name = """
 A Platform.sh project name could not be found.

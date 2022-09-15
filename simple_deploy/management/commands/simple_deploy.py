@@ -18,6 +18,7 @@ from simple_deploy.management.commands.utils import deploy_messages_platformsh a
 
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
 from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
+from simple_deploy.management.commands.utils.deploy_flyio import FlyioDeployer
 
 
 class Command(BaseCommand):
@@ -156,12 +157,17 @@ class Command(BaseCommand):
         platform-specific deployer object. Also, call any necessary
         platform-specific validation and confirmation methods here.
         """
+        print('here')
         if self.platform == 'heroku':
             self.write_output("  Targeting Heroku deployment...", skip_logging=True)
             self.platform_deployer = HerokuDeployer(self)
         elif self.platform == 'platform_sh':
             self.write_output("  Targeting platform.sh deployment...", skip_logging=True)
             self.platform_deployer = PlatformshDeployer(self)
+            self.platform_deployer.confirm_preliminary()
+        elif self.platform == 'fly_io':
+            self.write_output("  Targeting Fly.io deployment...", skip_logging=True)
+            self.platform_deployer = FlyioDeployer(self)
             self.platform_deployer.confirm_preliminary()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
