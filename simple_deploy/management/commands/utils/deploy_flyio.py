@@ -88,6 +88,9 @@ class FlyioDeployer:
         # When running unit tests, will not be logged into CLI.
         if not self.sd.unit_testing:
             self.deployed_project_name = self._get_deployed_project_name()
+            self.region = self._get_region()
+            # Create the db now, before any additional configuration.
+            self._create_db()
         else:
             self.deployed_project_name = self.sd.deployed_project_name
 
@@ -140,6 +143,7 @@ class FlyioDeployer:
             if len(parts) == 3:
                 app_name = parts[0]
 
+        # Return deployed app name, or raise CommandError.
         if app_name:
             msg = f"  Found Fly.io app: {app_name}"
             self.sd.write_output(msg, skip_logging=True)
@@ -147,3 +151,55 @@ class FlyioDeployer:
         else:
             # Can't continue without a Fly.io app to configure against.
             raise CommandError(flyio_msgs.no_project_name)
+
+    def _get_region(self):
+        """Get the region that the Fly.io app is configured for. We'll need this
+        to create a postgres database.
+
+        Parse the output of `flyctl regions list -a app_name`.
+
+        Returns:
+        - String representing region.
+        - Raises CommandError if can't find region.
+        """
+
+        msg = "Looking for Fly.io region..."
+        self.sd.write_output(msg, skip_logging=True)
+
+        # Get region output.
+        cmd = f"flyctl regions list -a {self.deployed_project_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+
+        # Look for first three-letter line after Region Pool.
+        region = ''
+        pool_found = False
+        lines = output_str.split('\n')
+        for line in lines:
+            if not pool_found and "Region Pool" in line:
+                pool_found = True
+                continue
+
+            # This is the first line after Region Pool.
+            if pool_found:
+                region = line.strip()
+                break
+
+        # Return region name, or raise CommandError.
+        if region:
+            msg = f"  Found region: {region}"
+            self.sd.write_output(msg, skip_logging=True)
+            return region
+        else:
+            # Can't continue without a Fly.io region to configure against.
+            raise CommandError(flyio_msgs.region_not_found(self.deployed_project_name))
+
+    def _create_db(self):
+        """Create a db to deploy to, if none exists.
+        Returns: 
+        - 
+        - Raises CommandError if...
+        """
+        self._check_if_db_exists()
+
+        # No db found, create a new db.

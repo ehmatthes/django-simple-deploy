@@ -52,6 +52,8 @@ Then run simple_deploy again.
 
 
 
+
+
 org_not_found = """
 A Platform.sh organization name could not be found.
 
@@ -86,6 +88,21 @@ will do all of the necessary configuration for deployment.
 # --- Dynamic strings ---
 # These need to be generated in functions, to display information that's 
 #   determined as the script runs.
+
+def region_not_found(app_name):
+    """Could not find a region to deploy to."""
+
+    msg = dedent(f"""
+        --- A Fly.io region was not found. ---
+
+        We need to know what region the app is going to be deployed to.
+        We could not find a region in the output of:
+
+        $ flyctl regions list -a {app_name}
+    """)
+
+    return msg
+    
 
 def confirm_use_org_name(org_name):
     """Confirm use of this org name to create a new project."""
