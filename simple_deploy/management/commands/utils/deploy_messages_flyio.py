@@ -45,43 +45,9 @@ $ flyctl apps create --generate-name
 Then run simple_deploy again.
 """
 
-
-
-
-
-
-
-
-
-
-org_not_found = """
-A Platform.sh organization name could not be found.
-
-You may have created a Platform.sh account, but not created an organization.
-The Platform.sh CLI requires an organization name when creating a new project.
-
-Please visit the Platform.sh console and make sure you have created an organization.
-You can also do this through the CLI using the `platform organization:create` command.
-For help, run `platform help organization:create`.
-"""
-
-login_required = """
-You appear to be logged out of the Platform.sh CLI. Please run the 
-command `platform login`, and then run simple_deploy again.
-
-You may be able to override this error by passing the `--deployed-project-name`
-flag.
-"""
-
-unknown_error = """
-An unknown error has occurred. Do you have the Platform.sh CLI installed?
-"""
-
-may_configure = """
-You may want to re-run simple_deploy without the --automate-all flag.
-
-You will have to create the Platform.sh project yourself, but simple_deploy
-will do all of the necessary configuration for deployment.
+cancel_no_db = """
+A database is required for deployment. You may be able to create a database
+manually, and configure it to work with this app.
 """
 
 
@@ -102,7 +68,7 @@ def region_not_found(app_name):
     """)
 
     return msg
-    
+
 
 def confirm_use_org_name(org_name):
     """Confirm use of this org name to create a new project."""
@@ -119,32 +85,13 @@ def confirm_use_org_name(org_name):
     return msg
 
 
-def unknown_create_error(e):
-    """Process a non-specific error when running `platform create` 
-    while using automate_all. This is most likely an issue with the user
-    not having permission to create a new project, for example because they
-    are on a trial plan and have already created too many projects.
-    """
+def confirm_create_db(db_cmd):
+    """Confirm it's okay to create a Postgres database on the user's account."""
 
     msg = dedent(f"""
-        --- An error has occurred when trying to create a new Platform.sh project. ---
-
-        While running `platform create`, an error has occurred. You should check
-        the Platform.sh console to see if a project was partially created.
-
-        The error messages that Platform.sh provides, both through the CLI and
-        the console, are not always specific enough to be helpful. For example, 
-        newer users are limited to two new projects in a 24-hour period, or something
-        like that. But if you try to create an additional project, you only get
-        a message that says: "You do not have access to create a new Subscriptions resource".
-        There is no information about specific limits, and how to address them.
-
-        The following output may help diagnose the error:
-        ***** output of `platform create` *****
-
-        {e.stderr.decode()}
-
-        ***** end output *****
+        A Postgres database is required to continue with deployment. If you confirm this,
+        the following command will be run, to create a new database on your account:
+        $ {db_cmd}
     """)
 
     return msg
@@ -179,24 +126,3 @@ def success_msg(log_output=''):
     return msg
 
 
-def success_msg_automate_all(deployed_url):
-    """Success message, when using --automate-all."""
-
-    msg = dedent(f"""
-
-        --- Your project should now be deployed on Platform.sh. ---
-
-        It should have opened up in a new browser tab.
-        - You can also visit your project at {deployed_url}
-
-        If you make further changes and want to push them to Platform.sh,
-        commit your changes and then run `platform push`.
-
-        Also, if you haven't already done so you should review the
-        documentation for Python deployments on Platform.sh at:
-        - https://docs.platform.sh/languages/python.html
-        - This documentation will help you understand how to maintain
-          your deployment.
-
-    """)
-    return msg

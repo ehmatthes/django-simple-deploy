@@ -210,9 +210,32 @@ class FlyioDeployer:
 
         # No db found, create a new db.
         msg = f"  Create a new Postgres database..."
-        cmd = f"flyctl postgres create --name {self.deployed_project_name}-db --region {self.region}"
+        self.db_name = f"{self.deployed_project_name}-db"
+        cmd = f"flyctl postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
-        print("cmd:", cmd)
+
+        # Make sure it's okay to create a resource on user's account.
+        self._confirm_create_db(db_cmd=cmd)
+
+        # Create database and parse output.
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.write_output(output_str, skip_logging=True)
+
+        msg = "  Created Postgres database."
+        self.sd.write_output(msg, skip_logging=True)
+
+        # Run `attach` command (and confirm DATABASE_URL is set?)
+        msg = "  Attaching database to Fly.io app..."
+        self.sd.write_output(msg, skip_logging=True)
+        cmd = f"flyctl postgres attach --app {self.deployed_project_name} {self.db_name}"
+
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.write_output(output_str, skip_logging=True)
+
+        msg = "  Attached database to app."
+        self.sd.write_output(msg, skip_logging=True)
 
     def _check_if_db_exists(self):
         """Check if a postgres db already exists that should be used with this app.
@@ -234,3 +257,22 @@ class FlyioDeployer:
             msg = "  A Postgres database was found."
             self.sd.write_output(msg, skip_logging=True)
             return True
+
+    def _confirm_create_db(self, db_cmd):
+        """We really need to confirm that the user wants a db created on their behalf.
+        Show the command that will be run on the user's behalf.
+        Returns:
+        - True if confirmed.
+        - Raises CommandError if not confirmed.
+        """
+        if self.sd.unit_testing:
+            return
+
+        self.stdout.write(flyio_msgs.confirm_create_db(db_cmd))
+        confirmed = self.sd.get_confirmation(skip_logging=True)
+
+        if confirmed:
+            self.stdout.write("  Creating database...")
+        else:
+            # Quit and invite the user to create a database manually.
+            raise CommandError(flyio_msgs.cancel_no_db)
