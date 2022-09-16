@@ -35,6 +35,10 @@ class FlyioDeployer:
 
         self._set_on_flyio()
 
+        self._add_dockerfile()
+        self._add_flytoml_file()
+        self._modify_settings()
+
         # self._add_platformsh_settings()
 
         # # DEV: Group this with later yaml generation methods.
@@ -77,9 +81,47 @@ class FlyioDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
-        
+
         msg = "  Set ON_FLYIO secret."
         self.sd.write_output(msg)
+
+
+    def _add_dockerfile(self):
+        """Add a minimal dockerfile."""
+
+        # File should be in project root, if present.
+        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Dockerfile...")
+        dockerfile_present = 'Dockerfile' in os.listdir(self.sd.git_path)
+
+        if dockerfile_present:
+            self.sd.write_output("    Found existing Dockerfile.")
+        else:
+            # Generate file from template.
+            self.sd.write_output("    No Dockerfile found. Generating file...")
+            my_loader = Loader(Engine.get_default())
+            my_template = my_loader.get_template('dockerfile_flyio')
+
+            # Build context dict for template.
+            context = {
+                'django_project_name': self.sd.project_name, 
+                }
+            template_string = render_to_string('dockerfile_flyio', context)
+
+            path = self.sd.project_root / 'Dockerfile'
+            path.write_text(template_string)
+
+            msg = f"\n    Generated Dockerfile: {path}"
+            self.sd.write_output(msg)
+            return path
+            
+
+    def _add_flytoml_file(self):
+        """Add a minimal fly.toml file."""
+        pass
+
+    def _modify_settings(self):
+        """Modify settings file."""
+        pass
 
 
     # --- Methods called from simple_deploy.py ---
