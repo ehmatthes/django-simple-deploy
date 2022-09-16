@@ -113,11 +113,34 @@ class FlyioDeployer:
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
             return path
-            
+
 
     def _add_flytoml_file(self):
         """Add a minimal fly.toml file."""
-        pass
+        # File should be in project root, if present.
+        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for fly.toml file...")
+        flytoml_present = 'fly.toml' in os.listdir(self.sd.git_path)
+
+        if flytoml_present:
+            self.sd.write_output("    Found existing fly.toml file.")
+        else:
+            # Generate file from template.
+            self.sd.write_output("    No fly.toml file found. Generating file...")
+            my_loader = Loader(Engine.get_default())
+            my_template = my_loader.get_template('fly.toml')
+
+            # Build context dict for template.
+            context = {
+                'deployed_project_name': self.deployed_project_name, 
+                }
+            template_string = render_to_string('fly.toml', context)
+
+            path = self.sd.project_root / 'fly.toml'
+            path.write_text(template_string)
+
+            msg = f"\n    Generated fly.toml: {path}"
+            self.sd.write_output(msg)
+            return path
 
     def _modify_settings(self):
         """Modify settings file."""
