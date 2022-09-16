@@ -39,20 +39,8 @@ class FlyioDeployer:
         self._add_flytoml_file()
         self._modify_settings()
 
-        # self._add_platformsh_settings()
-
-        # # DEV: Group this with later yaml generation methods.
-        # self._generate_platform_app_yaml()
-
-        # # DEV: These can be done in one pass.
-        # self._add_platformshconfig()
-        # self._add_gunicorn()
-        # self._add_psycopg2()
-
-        # # DEV: These could be refactored.
-        # self._make_platform_dir()
-        # self._generate_routes_yaml()
-        # self._generate_services_yaml()
+        self._add_gunicorn()
+        self._add_psycopg2()
 
         # self._conclude_automate_all()
 
@@ -141,6 +129,26 @@ class FlyioDeployer:
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
             return path
+
+
+    def _add_gunicorn(self):
+        """Add gunicorn to project requirements."""
+        self.sd.write_output("\n  Looking for gunicorn...")
+
+        if self.sd.using_req_txt:
+            self.sd.add_req_txt_pkg('gunicorn')
+        elif self.sd.using_pipenv:
+            self.sd.add_pipenv_pkg('gunicorn')
+
+
+    def _add_psycopg2(self):
+        """Add psycopg2 to project requirements."""
+        self.sd.write_output("\n  Looking for psycopg2...")
+
+        if self.sd.using_req_txt:
+            self.sd.add_req_txt_pkg('psycopg2')
+        elif self.sd.using_pipenv:
+            self.sd.add_pipenv_pkg('psycopg2')
 
     def _modify_settings(self):
         """Modify settings file."""
