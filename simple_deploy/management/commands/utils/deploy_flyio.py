@@ -33,6 +33,8 @@ class FlyioDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
+        self._set_on_flyio()
+
         # self._add_platformsh_settings()
 
         # # DEV: Group this with later yaml generation methods.
@@ -51,6 +53,33 @@ class FlyioDeployer:
         # self._conclude_automate_all()
 
         # self._show_success_message()
+
+
+    def _set_on_flyio(self):
+        """Set a secret, ON_FLYIO. This is used in settings.py to apply
+        deployment-specific settings.
+        Returns:
+        - None
+        """
+        msg = "Setting ON_FLYIO secret..."
+        self.sd.write_output(msg)
+
+        # First check if secret has already been set.
+        cmd = f"flyctl secrets list -a {self.deployed_project_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        if 'ON_FLYIO' in output_str:
+            msg = "  Found ON_FLYIO in existing secrets."
+            self.sd.write_output(msg)
+            return
+
+        cmd = f"flyctl secrets set -a {self.deployed_project_name} ON_FLYIO=1"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.write_output(output_str)
+        
+        msg = "  Set ON_FLYIO secret."
+        self.sd.write_output(msg)
 
 
     # --- Methods called from simple_deploy.py ---
@@ -93,10 +122,6 @@ class FlyioDeployer:
             self._create_db()
         else:
             self.deployed_project_name = self.sd.deployed_project_name
-
-
-        print('DEV exit')
-        sys.exit()
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
