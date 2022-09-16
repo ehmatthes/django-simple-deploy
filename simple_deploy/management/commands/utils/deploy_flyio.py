@@ -33,8 +33,6 @@ class FlyioDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
-        print("*** Implementation in progress ***")
-
         # self._add_platformsh_settings()
 
         # # DEV: Group this with later yaml generation methods.
@@ -88,11 +86,14 @@ class FlyioDeployer:
         self._validate_cli()
 
         # When running unit tests, will not be logged into CLI.
-        # if not self.sd.unit_testing:
-        #     self.deployed_project_name = self._get_platformsh_project_name()
-        #     self.org_name = self._get_org_name()
-        # else:
-        #     self.deployed_project_name = self.sd.deployed_project_name
+        if not self.sd.unit_testing:
+            self.deployed_project_name = self._get_deployed_project_name()
+        else:
+            self.deployed_project_name = self.sd.deployed_project_name
+
+
+        print('DEV exit')
+        sys.exit()
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -103,3 +104,46 @@ class FlyioDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         if output_obj.returncode:
             raise CommandError(flyio_msgs.cli_not_installed)
+
+    def _get_deployed_project_name(self):
+        """Get the Fly.io project name.
+        Parse the output of `flyctl apps list`, and look for an app name
+          that doesn't have a value set for LATEST DEPLOY. This indicates
+          an app that has just been created, and has not yet been deployed.
+
+        Returns:
+        - String representing deployed project name.
+        - Raises CommandError if deployed project name can't be found.
+        """
+        msg = "\nLooking for Fly.io app to deploy against..."
+        self.sd.write_output(msg, skip_logging=True)
+
+        # Get apps info.
+        cmd = "flyctl apps list"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+
+        # Only keep relevant output; get rid of blank lines, update messages,
+        #   and line with labels like NAME and LATEST DEPLOY.
+        lines = output_str.split('\n')
+        lines = [line for line in lines if line]
+        lines = [line for line in lines if 'update' not in line.lower()]
+        lines = [line for line in lines if 'NAME' not in line]
+        lines = [line for line in lines if 'builder' not in line]
+
+        # An app that has not been deployed to will only have values set for NAME,
+        #   OWNER, and STATUS. PLATFORM and LATEST DEPLOY will be empty.
+        app_name = ''
+        for line in lines:
+            # The desired line has three elements.
+            parts = line.split()
+            if len(parts) == 3:
+                app_name = parts[0]
+
+        if app_name:
+            msg = f"  Found Fly.io app: {app_name}"
+            self.sd.write_output(msg, skip_logging=True)
+            return app_name
+        else:
+            # Can't continue without a Fly.io app to configure against.
+            raise CommandError(flyio_msgs.no_project_name)

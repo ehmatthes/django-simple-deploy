@@ -32,24 +32,25 @@ In order to deploy to Fly.io, you need to install the Fly.io CLI.
 After installing the CLI, you can run simple_deploy again.
 """
 
-
-
-
-
-
-
-
 no_project_name = """
-A Platform.sh project name could not be found.
+A Fly.io app name could not be found.
 
-The simple_deploy command expects that you've already run `platform create`, or
-associated the local project with an existing project on Platform.sh.
+The simple_deploy command expects that you've already created an app on Fly.io
+to push to.
 
-If you haven't done so, run the `platform create` command and then run
-simple_deploy again. You can override this warning by using
-the `--deployed-project-name` flag to specify the name you want to use for the
-project. This must match the name of your Platform.sh project.
+If you haven't done so, run the following command to create a new Fly.io app:
+
+$ flyctl apps create --generate-name
+
+Then run simple_deploy again.
 """
+
+
+
+
+
+
+
 
 org_not_found = """
 A Platform.sh organization name could not be found.
