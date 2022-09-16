@@ -200,6 +200,37 @@ class FlyioDeployer:
         - 
         - Raises CommandError if...
         """
-        self._check_if_db_exists()
+        msg = "Looking for a Postgres database..."
+        self.sd.write_output(msg, skip_logging=True)
+
+        db_exists = self._check_if_db_exists()
+
+        if db_exists:
+            return
 
         # No db found, create a new db.
+        msg = f"  Create a new Postgres database..."
+        cmd = f"flyctl postgres create --name {self.deployed_project_name}-db --region {self.region}"
+        cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
+        print("cmd:", cmd)
+
+    def _check_if_db_exists(self):
+        """Check if a postgres db already exists that should be used with this app.
+        Returns:
+        - True if db found.
+        - False if not found.
+        """
+
+        # First, see if any Postgres clusters exist.
+        cmd = "flyctl postgres list"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+
+        if "No postgres clusters found" in output_str:
+            msg = "  No Postgres database found."
+            self.sd.write_output(msg, skip_logging=True)
+            return False
+        else:
+            msg = "  A Postgres database was found."
+            self.sd.write_output(msg, skip_logging=True)
+            return True
