@@ -136,7 +136,6 @@ class FlyioDeployer:
         """Add settings specific to Fly.io."""
         #   Check if a fly.io section is present. If not, add settings. If already present,
         #   do nothing.
-        print('In modify settings...')
         self.sd.write_output("\n  Checking if settings block for Fly.io present in settings.py...")
 
         with open(self.sd.settings_path) as f:
@@ -193,10 +192,6 @@ class FlyioDeployer:
             self.sd.add_req_txt_pkg('dj-database-url')
         elif self.sd.using_pipenv:
             self.sd.add_pipenv_pkg('dj-database-url')
-
-    def _modify_settings(self):
-        """Modify settings file."""
-        pass
 
 
     # --- Methods called from simple_deploy.py ---
