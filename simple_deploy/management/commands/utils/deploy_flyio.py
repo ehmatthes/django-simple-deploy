@@ -34,6 +34,7 @@ class FlyioDeployer:
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
         self._set_on_flyio()
+        self._set_debug()
 
         self._add_dockerfile()
         self._add_flytoml_file()
@@ -72,6 +73,33 @@ class FlyioDeployer:
         self.sd.write_output(output_str)
 
         msg = "  Set ON_FLYIO secret."
+        self.sd.write_output(msg)
+
+
+    def _set_debug(self):
+        """Set a secret, DEBUG=FALSE. This is used in settings.py to apply
+        deployment-specific settings.
+        Returns:
+        - None
+        """
+        msg = "Setting DEBUG secret..."
+        self.sd.write_output(msg)
+
+        # First check if secret has already been set.
+        cmd = f"flyctl secrets list -a {self.deployed_project_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        if 'DEBUG' in output_str:
+            msg = "  Found DEBUG in existing secrets."
+            self.sd.write_output(msg)
+            return
+
+        cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=FALSE"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.write_output(output_str)
+
+        msg = "  Set DEBUG=FALSE secret."
         self.sd.write_output(msg)
 
 
