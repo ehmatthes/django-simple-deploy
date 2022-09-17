@@ -41,6 +41,7 @@ class FlyioDeployer:
 
         self._add_gunicorn()
         self._add_psycopg2()
+        self._add_dj_database_url()
 
         # self._conclude_automate_all()
 
@@ -131,6 +132,40 @@ class FlyioDeployer:
             return path
 
 
+    def _modify_settings(self):
+        """Add settings specific to Fly.io."""
+        #   Check if a fly.io section is present. If not, add settings. If already present,
+        #   do nothing.
+        print('In modify settings...')
+        self.sd.write_output("\n  Checking if settings block for Fly.io present in settings.py...")
+
+        with open(self.sd.settings_path) as f:
+            settings_string = f.read()
+
+        if 'if os.environ.get("ON_FLYIO"):' in settings_string:
+            self.sd.write_output("\n    Found Fly.io settings block in settings.py.")
+            return
+
+        # Add Fly.io settings block.
+        self.sd.write_output("    No Fly.io settings found in settings.py; adding settings...")
+        my_loader = Loader(Engine.get_default())
+        my_template = my_loader.get_template('flyio_settings.py')
+
+        # Build context dict for template.
+        safe_settings_string = mark_safe(settings_string)
+        context = {
+            'current_settings': safe_settings_string,
+            'deployed_project_name': self.deployed_project_name,
+        }
+        template_string = render_to_string('flyio_settings.py', context)
+
+        path = Path(self.sd.settings_path)
+        path.write_text(template_string)
+
+        msg = f"    Modified settings.py file: {path}"
+        self.sd.write_output(msg)
+
+
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.sd.write_output("\n  Looking for gunicorn...")
@@ -149,6 +184,15 @@ class FlyioDeployer:
             self.sd.add_req_txt_pkg('psycopg2')
         elif self.sd.using_pipenv:
             self.sd.add_pipenv_pkg('psycopg2')
+
+    def _add_dj_database_url(self):
+        """Add dj-database-url to project requirements."""
+        self.sd.write_output("\n  Looking for dj-database-url...")
+
+        if self.sd.using_req_txt:
+            self.sd.add_req_txt_pkg('dj-database-url')
+        elif self.sd.using_pipenv:
+            self.sd.add_pipenv_pkg('dj-database-url')
 
     def _modify_settings(self):
         """Modify settings file."""

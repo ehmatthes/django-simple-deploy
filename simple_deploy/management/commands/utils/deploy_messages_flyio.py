@@ -40,7 +40,7 @@ to push to.
 
 If you haven't done so, run the following command to create a new Fly.io app:
 
-$ flyctl apps create --generate-name
+    $ flyctl apps create --generate-name
 
 Then run simple_deploy again.
 """

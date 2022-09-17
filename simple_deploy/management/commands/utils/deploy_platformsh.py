@@ -99,7 +99,7 @@ class PlatformshDeployer:
         """
         # If any platformsh settings have already been written, we don't want to
         #  add them again. This assumes a section at the end, starting with a
-        #  check for 'ON_HEROKU' in os.environ.
+        #  check for `if config.is_valid_platform():`
 
         with open(self.sd.settings_path) as f:
             settings_lines = f.readlines()
