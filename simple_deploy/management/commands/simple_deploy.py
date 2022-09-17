@@ -93,10 +93,11 @@ class Command(BaseCommand):
         #   to the project, and before making any remote calls.
         self._inspect_project()
 
-        # Build the platform-specifc deployer instance, and do platform-specific
-        #   validation. Then confirm --automate-all, if needed.
-        self._validate_platform()
+        # Confirm --automate-all, if needed.
+        # Then build the platform-specifc deployer instance, and do platform-specific
+        #   validation. 
         self._confirm_automate_all()
+        self._validate_platform()
 
         # All validation has been completed. Make platform-agnostic modifications.
         # Start with logging.
