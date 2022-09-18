@@ -45,6 +45,20 @@ If you haven't done so, run the following command to create a new Fly.io app:
 Then run simple_deploy again.
 """
 
+create_app_failed = """
+Could not create a Fly.io app.
+
+The simple_deploy command can not proceed without a Fly.io app to deploy to.
+You may have better luck with a configuration-only run, if you can create a Fly.io
+app on your own. You may try the following command, and see if you can use any 
+error messages to troubleshoot app creation:
+
+    $ fly apps create --generate-name
+
+If you can get this command to work, you can run simple_deploy again and the 
+rest of the process may work.
+"""
+
 cancel_no_db = """
 A database is required for deployment. You may be able to create a database
 manually, and configure it to work with this app.

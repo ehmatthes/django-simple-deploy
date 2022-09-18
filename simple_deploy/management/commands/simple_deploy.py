@@ -93,7 +93,9 @@ class Command(BaseCommand):
         #   to the project, and before making any remote calls.
         self._inspect_project()
 
-        # Confirm --automate-all, if needed.
+        # Confirm --automate-all, if needed. Currently, this needs to happen before
+        #   _validate_platform(), because fly_io takes action based on automate_all
+        #   in _validate_platform().
         # Then build the platform-specifc deployer instance, and do platform-specific
         #   validation. 
         self._confirm_automate_all()

@@ -258,6 +258,17 @@ class FlyioDeployer:
         if not self.sd.unit_testing:
             self.deployed_project_name = self._get_deployed_project_name()
             self.region = self._get_region()
+
+            # If using automate_all, we need to create the app before creating
+            #   the db. But if there's already an app with no deployment, we can 
+            #   use that one (maybe created from a previous automate_all run).
+            # DEV: Update _get_deployed_project_name() to not throw error if
+            #   using automate_all. _create_flyio_app() can exit if not using
+            #   automate_all(). If self.deployed_project_name is set, just return
+            #   because we'll use that project. If it's not set, call create.
+            if not self.deployed_project_name and self.sd.automate_all:
+                self.deployed_project_name = self._create_flyio_app()
+
             # Create the db now, before any additional configuration.
             self._create_db()
         else:
@@ -281,6 +292,7 @@ class FlyioDeployer:
 
         Returns:
         - String representing deployed project name.
+        - Empty string if no deployed project name found, but using automate_all.
         - Raises CommandError if deployed project name can't be found.
         """
         msg = "\nLooking for Fly.io app to deploy against..."
@@ -313,9 +325,45 @@ class FlyioDeployer:
             msg = f"  Found Fly.io app: {app_name}"
             self.sd.write_output(msg, skip_logging=True)
             return app_name
+        elif self.sd.automate_all:
+            # Simply return an empty string to indicate no suitable app was found,
+            #   and we'll create one later.
+            return ""
         else:
             # Can't continue without a Fly.io app to configure against.
             raise CommandError(flyio_msgs.no_project_name)
+
+    def _create_flyio_app(self):
+        """Create a new Fly.io app.
+        Assumes caller already checked for automate_all, and that a suitable
+          app is not already available.
+        Returns:
+        - String representing new app name.
+        - Raises CommandError if an app can't be created.
+        """
+        msg = "  Creating a new app on Fly.io..."
+        self.sd.write_output(msg, skip_logging=True)
+
+        cmd = "flyctl apps create --generate-name"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.write_output(output_str, skip_logging=True)
+
+        # Get app name.
+        app_name_re = r'(New app created: )(\w+\-\w+\-\d{4})'
+        flyio_app_name = ''
+        m = re.search(app_name_re, output_str)
+        if m:
+            flyio_app_name = m.group(2).strip()
+
+        if flyio_app_name:
+            msg = f"  Created new app: {flyio_app_name}"
+            self.sd.write_output(msg, skip_logging=True)
+            return flyio_app_name
+        else:
+            # Can't continue without a Fly.io app to deploy to.
+            raise CommandError(flyio_msgs.create_app_failed)
+
 
     def _get_region(self):
         """Get the region that the Fly.io app is configured for. We'll need this
