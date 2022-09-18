@@ -12,7 +12,9 @@ if os.environ.get("ON_FLYIO"):
         DEBUG = True
 
     # Set a Fly.io-specific allowed host.
-    ALLOWED_HOSTS.append('{{ deployed_project_name }}.fly.dev')
+    # ALLOWED_HOSTS.append('{{ deployed_project_name }}.fly.dev')
+    # Using '*' while further troubleshooting CSRF issue.
+    ALLOWED_HOSTS.append('*')
 
     # Use the Fly.io Postgres database.
     db_url = os.environ.get("DATABASE_URL")

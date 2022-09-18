@@ -94,7 +94,9 @@ class FlyioDeployer:
             self.sd.write_output(msg)
             return
 
-        cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=FALSE"
+        # DEV: Setting DEBUG=TRUE while troubleshooting CSRF issue.
+        # cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=FALSE"
+        cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=TRUE"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
@@ -482,7 +484,7 @@ class FlyioDeployer:
         # No db found, create a new db.
         msg = f"  Create a new Postgres database..."
         self.sd.write_output(msg, skip_logging=True)
-        
+
         self.db_name = f"{self.deployed_project_name}-db"
         cmd = f"flyctl postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
