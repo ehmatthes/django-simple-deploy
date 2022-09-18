@@ -20,6 +20,15 @@ confirm_preliminary = """
 - You may want to cancel this run and deploy to a different platform.
 """
 
+confirm_automate_all = """
+The --automate-all flag means simple_deploy will:
+- Run `fly apps create` for you, to create an empty Fly.io project.
+- Configure your project for deployment on Fly.io.
+- Commit all changes to your project that are necessary for deployment.
+- Push these changes to Fly.io.
+- Open your deployed project in a new browser tab.
+"""
+
 cancel_flyio = """
 Okay, cancelling Fly.io deployment.
 """

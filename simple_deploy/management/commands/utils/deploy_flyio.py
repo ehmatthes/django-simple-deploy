@@ -306,7 +306,6 @@ class FlyioDeployer:
         # When running unit tests, will not be logged into CLI.
         if not self.sd.unit_testing:
             self.deployed_project_name = self._get_deployed_project_name()
-            self.region = self._get_region()
 
             # If using automate_all, we need to create the app before creating
             #   the db. But if there's already an app with no deployment, we can 
@@ -318,10 +317,18 @@ class FlyioDeployer:
             if not self.deployed_project_name and self.sd.automate_all:
                 self.deployed_project_name = self._create_flyio_app()
 
-            # Create the db now, before any additional configuration.
+            # Create the db now, before any additional configuration. Get region
+            #   so we know where to create the db.
+            self.region = self._get_region()
             self._create_db()
         else:
             self.deployed_project_name = self.sd.deployed_project_name
+
+
+    def prep_automate_all(self):
+        """Take any further actions needed if using automate_all."""
+        # All creation has been taken earlier, during validation.
+        pass
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -375,6 +382,8 @@ class FlyioDeployer:
             self.sd.write_output(msg, skip_logging=True)
             return app_name
         elif self.sd.automate_all:
+            msg = "  No app found, but continuing with --automate-all..."
+            self.sd.write_output(msg, skip_logging=True)
             # Simply return an empty string to indicate no suitable app was found,
             #   and we'll create one later.
             return ""
@@ -472,12 +481,16 @@ class FlyioDeployer:
 
         # No db found, create a new db.
         msg = f"  Create a new Postgres database..."
+        self.sd.write_output(msg, skip_logging=True)
+        
         self.db_name = f"{self.deployed_project_name}-db"
         cmd = f"flyctl postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
 
-        # Make sure it's okay to create a resource on user's account.
-        self._confirm_create_db(db_cmd=cmd)
+        # If not using automate_all, make sure it's okay to create a resource
+        #   on user's account.
+        if not self.sd.automate_all:
+            self._confirm_create_db(db_cmd=cmd)
 
         # Create database and parse output.
         output_obj = self.sd.execute_subp_run(cmd)
