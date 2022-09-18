@@ -94,9 +94,7 @@ class FlyioDeployer:
             self.sd.write_output(msg)
             return
 
-        # DEV: Setting DEBUG=TRUE while troubleshooting CSRF issue.
-        # cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=FALSE"
-        cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=TRUE"
+        cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=FALSE"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
