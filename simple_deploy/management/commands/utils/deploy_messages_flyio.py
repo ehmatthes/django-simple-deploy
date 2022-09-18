@@ -115,21 +115,21 @@ def success_msg(log_output=''):
     """Success message, for configuration-only run."""
 
     msg = dedent(f"""
-        --- Your project is now configured for deployment on Platform.sh. ---
+        --- Your project is now configured for deployment on Fly.io ---
 
         To deploy your project, you will need to:
         - Commit the changes made in the configuration process.
             $ git status
             $ git add .
             $ git commit -am "Configured project for deployment."
-        - Push your project to Platform.sh' servers:
-            $ platform push
+        - Push your project to Fly.io's servers:
+            $ fly deploy
         - Open your project:
-            $ platform url    
+            $ fly open    
         - As you develop your project further:
             - Make local changes
             - Commmit your local changes
-            - Run `platform push`
+            - Run `fly deploy`
     """)
 
     if log_output:
@@ -139,4 +139,19 @@ def success_msg(log_output=''):
 
     return msg
 
+
+def success_msg_automate_all(deployed_url):
+    """Success message, when using --automate-all."""
+
+    msg = dedent(f"""
+
+        --- Your project should now be deployed on Fly.io ---
+
+        It should have opened up in a new browser tab.
+        - You can also visit your project at {deployed_url}
+
+        If you make further changes and want to push them to Fly.io,
+        commit your changes and then run `fly deploy`.
+    """)
+    return msg
 

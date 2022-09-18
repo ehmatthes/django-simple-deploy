@@ -44,9 +44,9 @@ class FlyioDeployer:
         self._add_psycopg2()
         self._add_dj_database_url()
 
-        # self._conclude_automate_all()
+        self._conclude_automate_all()
 
-        # self._show_success_message()
+        self._show_success_message()
 
 
     def _set_on_flyio(self):
@@ -220,6 +220,55 @@ class FlyioDeployer:
             self.sd.add_req_txt_pkg('dj-database-url')
         elif self.sd.using_pipenv:
             self.sd.add_pipenv_pkg('dj-database-url')
+
+
+    def _conclude_automate_all(self):
+        """Finish automating the push to Fly.io.
+        - Commit all changes.
+        - Call `fly deploy`.
+        - Call `fly open`, and grab URL.
+        """
+        # Making this check here lets deploy() be cleaner.
+        if not self.sd.automate_all:
+            return
+
+        self.sd.commit_changes()
+
+        # Push project.
+        self.sd.write_output("  Deploying to Fly.io...")
+        cmd = "fly deploy"
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
+
+        # Open project.
+        self.sd.write_output("  Opening deployed app in a new browser tab...")
+        cmd = "fly open"
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output)
+
+        # Get url of deployed project.
+        url_re = r'(opening )(http.*?)( \.\.\.)'
+        output_str = output.stdout.decode()
+        m = re.search(url_re, output_str)
+        if m:
+            self.deployed_url = m.group(2).strip()
+
+
+    def _show_success_message(self):
+        """After a successful run, show a message about what to do next."""
+
+        # DEV:
+        # - Mention that this script should not need to be run again, unless
+        #   creating a new deployment.
+        #   - Describe ongoing approach of commit, push, migrate. Lots to consider
+        #     when doing this on production app with users, make sure you learn.
+
+        if self.sd.automate_all:
+            msg = flyio_msgs.success_msg_automate_all(self.deployed_url)
+            self.sd.write_output(msg)
+        else:
+            msg = flyio_msgs.success_msg(log_output=self.sd.log_output)
+            self.sd.write_output(msg)
 
 
     # --- Methods called from simple_deploy.py ---
