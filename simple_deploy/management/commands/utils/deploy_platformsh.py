@@ -306,7 +306,6 @@ class PlatformshDeployer:
             msg = plsh_msgs.success_msg_automate_all(self.deployed_url)
             self.sd.write_output(msg)
         else:
-            self.sd.write_output(plsh_msgs.success_msg)
             msg = plsh_msgs.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
 
