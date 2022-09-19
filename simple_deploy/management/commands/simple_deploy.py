@@ -161,7 +161,6 @@ class Command(BaseCommand):
         platform-specific deployer object. Also, call any necessary
         platform-specific validation and confirmation methods here.
         """
-        print('here')
         if self.platform == 'heroku':
             self.write_output("  Targeting Heroku deployment...", skip_logging=True)
             self.platform_deployer = HerokuDeployer(self)
