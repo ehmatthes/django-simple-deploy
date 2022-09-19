@@ -15,6 +15,8 @@ confirm_preliminary = """
   you are interested in helping to develop or test the simple_deploy project.
 - You should look at the deploy_flyio.py script before running this command,
   so you know what kinds of changes will be made to your project.
+- This command will likely fail if you run it more than once.
+- This command may not work if you already have a project deployed to Fly.io.
 - You should understand the Fly.io console, and be comfortable deleting resources
   that are created during this deployment.
 - You may want to cancel this run and deploy to a different platform.
