@@ -3,6 +3,17 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
+0.5 - Supporting Fly.io, Platform.sh, and Heroku
+
+### 0.5.0
+
+- Preliminary support for Fly.io
+    - Configuration-only and `--automate-all` approaches work on my macOS.
+    - Probably only works when you don't have any other Fly.io projects deployed.
+    - No documentation for Fly.io yet.
+    - No unit tests yet.
+    - Integration tests work.
+
 0.4 - Supporting Heroku & Platform.sh
 
 ### 0.4.3
