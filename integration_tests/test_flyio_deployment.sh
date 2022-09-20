@@ -51,7 +51,7 @@ if [ "$test_automate_all" != true ]; then
     # DEV: Not sure if `fly login` should be run here, or if it will 
     #   be called automatically if needed.
 
-    fly deploy
+    flyctl deploy
 
     # Open project and get URL, for testing.
     fly_open_output=$(flyctl open)
@@ -66,16 +66,16 @@ fi
 # If we're testing automate_all, we need to grab the app name in order
 #   to destroy the project later. We also need to get the url for testing.
 if [ "$test_automate_all" = true ]; then
-    # Get project id from project:info.
-    project_info=$(platform project:info)
-    id_regex='\| id             \| ([a-z0-9]{13})'
-    [[ $project_info =~ $id_regex ]]
-    project_id=${BASH_REMATCH[1]}
-    echo "  Found project id: $project_id"
+    fly_info_output=$(flyctl info)
 
-    # Open project and get URL.
-    project_url=$(platform url --yes)
-    echo " Project URL: $project_url"
+    re_app_name='(.*Hostname = )(.*)(\.fly\.dev)'
+    [[ $fly_info_output =~ $re_app_name ]]
+    app_name=${BASH_REMATCH[2]}
+    echo "  Found flyio app name: $app_name"
+
+    # Build URL.
+    project_url="https://$app_name.fly.dev"
+    echo "  Fly url: $project_url"
 fi
 
 

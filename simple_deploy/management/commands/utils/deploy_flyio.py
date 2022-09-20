@@ -408,7 +408,7 @@ class FlyioDeployer:
         self.sd.write_output(output_str, skip_logging=True)
 
         # Get app name.
-        app_name_re = r'(New app created: )(\w+\-\w+\-\d{4})'
+        app_name_re = r'(New app created: )(\w+\-\w+\-\d+)'
         flyio_app_name = ''
         m = re.search(app_name_re, output_str)
         if m:
