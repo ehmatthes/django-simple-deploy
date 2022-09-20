@@ -1,4 +1,4 @@
-"""A collection of messages used in deploy_heroku.py."""
+"""A collection of messages used in deploy_platformsh.py."""
 
 # For conventions, see documentation in deploy_messages.py
 
@@ -17,9 +17,7 @@ confirm_preliminary = """
   so you know what kinds of changes will be made to your project.
 - You should understand the platform.sh console, and be comfortable deleting resources
   that are created during this deployment.
-- You may want to cancel this run and deploy to Heroku instead. You can do this
-  explicitly with the `--platform heroku` argument, or you can leave out the
-  `--platform` argument and simple_deploy will deploy to Heroku by default.
+- You may want to cancel this run and deploy to a different platform.
 """
 
 confirm_automate_all = """

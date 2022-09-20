@@ -8,7 +8,7 @@ __pycache__/
 dist/
 *.egg-info
 
-bash_sandbox*
+bash_sandbox/
 
 docs/tmp_header.md
 

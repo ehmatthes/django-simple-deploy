@@ -15,9 +15,11 @@ from django.conf import settings
 from simple_deploy.management.commands.utils import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
 from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
+from simple_deploy.management.commands.utils import deploy_messages_flyio as flyio_msgs
 
 from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
 from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
+from simple_deploy.management.commands.utils.deploy_flyio import FlyioDeployer
 
 
 class Command(BaseCommand):
@@ -92,10 +94,13 @@ class Command(BaseCommand):
         #   to the project, and before making any remote calls.
         self._inspect_project()
 
-        # Build the platform-specifc deployer instance, and do platform-specific
-        #   validation. Then confirm --automate-all, if needed.
-        self._validate_platform()
+        # Confirm --automate-all, if needed. Currently, this needs to happen before
+        #   _validate_platform(), because fly_io takes action based on automate_all
+        #   in _validate_platform().
+        # Then build the platform-specifc deployer instance, and do platform-specific
+        #   validation. 
         self._confirm_automate_all()
+        self._validate_platform()
 
         # All validation has been completed. Make platform-agnostic modifications.
         # Start with logging.
@@ -163,6 +168,10 @@ class Command(BaseCommand):
             self.write_output("  Targeting platform.sh deployment...", skip_logging=True)
             self.platform_deployer = PlatformshDeployer(self)
             self.platform_deployer.confirm_preliminary()
+        elif self.platform == 'fly_io':
+            self.write_output("  Targeting Fly.io deployment...", skip_logging=True)
+            self.platform_deployer = FlyioDeployer(self)
+            self.platform_deployer.confirm_preliminary()
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
@@ -185,6 +194,9 @@ class Command(BaseCommand):
             msg = dh_msgs.confirm_automate_all
         elif self.platform == 'platform_sh':
             msg = plsh_msgs.confirm_automate_all
+        elif self.platform == 'fly_io':
+            msg = flyio_msgs.confirm_automate_all
+
         self.write_output(msg, skip_logging=True)
         confirmed = self.get_confirmation(skip_logging=True)
 
