@@ -27,14 +27,14 @@
 # d: Dependency management approach that's being tested.
 #    req_txt, poetry, pipenv
 # p: Platform to push to.
-#    heroku, _____
+#    heroku, platform_sh, fly_io
 # o: Options for the simple_deploy run.
 #    automate_all
 
 #
 # DEV: Not sure if formatting of this is standard.
 # Usage:
-#  $ ./test_deploy_process.sh -t [pypi, development_version] -d [req_txt|poetry|pipenv] -p [heroku]
+#  $ ./test_deploy_process.sh -t [pypi, development_version] -d [req_txt|poetry|pipenv] -p [heroku|platform_sh|fly_io]
 
 
 # --- Process CLI arguments. ---
@@ -72,14 +72,15 @@ if [ "$platform" = "" ]; then
     echo "\nA target platform for integration testing must be specified."
     echo "  Test a Heroku deployment: $ ./integration_tests/test_deploy_process.sh -p heroku"
     echo "  Test a Platform.sh deployment: $ ./integration_tests/test_deploy_process.sh -p platform_sh\n"
+    echo "  Test a Fly.io deployment: $ ./integration_tests/test_deploy_process.sh -p fly_io\n"
     exit 1
 fi
 
 # Make sure platform is one of the currently-supported platforms.
 #   (My bash is not the strongest, feel free to suggest a better logical test.)
-if [[ "$platform" != "heroku" ]] && [[ "$platform" != "platform_sh" ]]; then
+if [[ "$platform" != "heroku" ]] && [[ "$platform" != "platform_sh" ]] && [[ "$platform" != "fly_io" ]]; then
     echo "\nIntegration testing does not support the platform you have specified: $platform"
-    echo "  Only the following platforms are supported: heroku, platform_sh\n"
+    echo "  Only the following platforms are supported: heroku, platform_sh, fly_io\n"
     exit 1
 fi
 
@@ -269,4 +270,6 @@ if [ "$platform" = 'heroku' ]; then
     source $script_dir/integration_tests/test_heroku_deployment.sh
 elif [ "$platform" = 'platform_sh' ]; then
     source $script_dir/integration_tests/test_platformsh_deployment.sh
+elif [ "$platform" = 'fly_io' ]; then
+    source $script_dir/integration_tests/test_flyio_deployment.sh
 fi
