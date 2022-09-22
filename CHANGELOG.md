@@ -4,6 +4,7 @@ Changelog: django-simple-deploy
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
+---
 
 ### 0.5.0
 
@@ -15,6 +16,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Integration tests work.
 
 0.4 - Supporting Heroku & Platform.sh
+---
 
 ### 0.4.3
 
@@ -53,6 +55,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
   - Azure was used as a proof-of-concept to try supporting multiple platforms. Since then, I have had time to explore other platforms that are more suitable targets for django-simple-deploy.
 
 0.3 - Supporting Heroku, Azure, & Platform.sh
+---
 
 ### 0.3.0
 
