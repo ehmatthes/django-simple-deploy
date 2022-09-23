@@ -29,8 +29,8 @@ Table of Contents
 - [Understanding costs](#understanding-costs)
 - [Contributing](#contributing)
 - [Good luck, and please be mindful](#good-luck-and-please-be-mindful)
-- More about [Heroku deployments](docs/heroku_deployments.md)
-- Additional [documentation](docs/)
+- More about [Heroku deployments](old_docs/heroku_deployments.md)
+- Additional [documentation](old_docs/)
 
 Prerequisites
 ---
@@ -70,7 +70,7 @@ This will take care of creating a new app, configuring your project for deployme
 
 The default Heroku deployment should be free unless you already have more than the minimum allowed apps.
 
-Read more about [Heroku deployments](docs/heroku_deployments.md), or see the [full set of CLI arguments](docs/cli_args.md).
+Read more about [Heroku deployments](old_docs/heroku_deployments.md), or see the [full set of CLI arguments](old_docs/cli_args.md).
 
 If it doesn't work
 ----
@@ -99,9 +99,9 @@ Contributing
 
 If you want to contribute to this project, feel free to [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues) and share how you'd like to help.
 
-You can also see the [contributing](docs/contributing.md) page. Here you'll see how to demo the project, how to run unit and integration tests, and how to set up a development environment for the project.
+You can also see the [contributing](old_docs/contributing.md) page. Here you'll see how to demo the project, how to run unit and integration tests, and how to set up a development environment for the project.
 
-This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as a [Code of Conduct](docs/code_of_conduct.md).
+This project has adopted the [Contributor Covenant](https://www.contributor-covenant.org/version/2/1/code_of_conduct/) as a [Code of Conduct](old_docs/code_of_conduct.md).
 
 Good luck, and please be mindful
 ---
