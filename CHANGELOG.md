@@ -77,14 +77,14 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 ### 0.2.4
 
 - Set up local unit testing (testing with no network calls).
-- Moved all testing documentation to docs/.
+- Moved all testing documentation to old_docs/.
 - Simplified approach to the `ALLOWED_HOSTS` setting for Heroku deployments.
     - If the Heroku host is not found, append the Heroku host to `ALLOWED_HOSTS` in the Heroku-specific settings section, regardless of what else is in `ALLOWED_HOSTS`. This is motivated by reports from users who have followed tutorials that advise them to modify `ALLOWED_HOSTS` in a variety of ways. Appending our host in a Heroku-specific settings section should not cause any foreseeable problems.
     - Also improved unit testing. Tests can be run against multiple versions of the sample project, by modifying the project after it's created. This does not add significantly to test runtimes.
 
 ### 0.2.3
 
-- Added documentation of [full set of CLI arguments](docs/cli_args.md).
+- Added documentation of [full set of CLI arguments](old_docs/cli_args.md).
 - Progress towards supporting projects with a nested directory structure.
     - This is for projects started with `django-admin startproject project_name`, without a dot.
     - Includes nested version of sample blog project.
@@ -98,9 +98,9 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 ### 0.2.1
 
 - Simplified the integration testing scripts significantly.
-- Added brief [roadmap](docs/roadmap.md).
-- Added brief [contributing guide](docs/contributing.md).
-- Added a [Code of Conduct](docs/code_of_conduct.md).
+- Added brief [roadmap](old_docs/roadmap.md).
+- Added brief [contributing guide](old_docs/contributing.md).
+- Added a [Code of Conduct](old_docs/code_of_conduct.md).
 - SECRET_KEY on Heroku uses a config variable.
 - DEBUG on Heroku uses a config variable.
 

@@ -1,6 +1,6 @@
 .DS_Store
 
-dsd_env/
+*_env/
 
 *.pyc
 __pycache__/
