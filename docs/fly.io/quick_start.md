@@ -25,39 +25,21 @@ $ pip install django-simple-deploy
 
 Then, add `simple_deploy` to `INSTALLED_APPS` in *settings.py*.
 
-Now create a new Fly.io app using the CLI:
+Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure your app:
 
 ```
 $ fly apps create --generate-name
-```
-
-This will create an empty app on Fly.io.
-
-Now run `simple_deploy`, targeting the Fly.io platform:
-
-```
 $ python manage.py simple_deploy --platform fly_io
 ```
 
-`simple_deploy` will create a database and link it to this app, and configure your project so it can be deployed.
+`simple_deploy` will create a database and link it to the app you just created. It will then configure your project for deployment. At this point, you should review the changes that were made to your project. Running `git status` will show you which files were modified, and which files were created for a successful deployment.
 
-At this point, if you're new to using Fly.io, you should look at the changes that were made to your project. Running `git status` will show you which files were modified, and which files were created for a successful deployment. If you want to continue with the deployment process, commit these changes:
+If you want to continue with the deployment process, commit these changes and run the `deploy` command. When deployment is complete, use the `open` command to see the deployed version of your project:
 
 ```
-$ git status
 $ git add .
 $ git commit -m "Configured for deployment to Fly.io."
-```
-
-Now you're ready to deploy your project:
-
-```
 $ fly deploy
-```
-
-When this command completes, you're ready to view your project:
-
-```
 $ fly open
 ```
 
@@ -86,7 +68,17 @@ $ git commit -m "Updated project."
 $ fly deploy
 ```
 
+## Running management commands
 
+To run management commands such as `migrate` against the deployed project, use the `ssh` comand to log into a console on the remote server:
 
+```
+$ fly ssh console
+```
 
+## Troubleshooting
+
+If deployment does not work, please feel free to open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues). Please share the OS you're  using locally, and the specific error message or unexpected behavior you saw. If the project you're deploying is hosted in a public repository, please share that as well.
+
+Please remember that `django-simple-deploy` is in a preliminary state. That said, I'd love to know the specific issues people are running into so we can reach a 1.0 state in a reasonable timeframe.
 
