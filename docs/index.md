@@ -1,19 +1,8 @@
 # django-simple-deploy
 
-Your first Django deployment should be simple. And your 100th, if it's a relatively simple site.
+`django-simple-deploy` configures your Django project for deployment to a number of different platforms. For some platforms, it can automate the entire deployment process. Currently, three platforms have preliminary support: [Fly.io](https://fly.io), [Platform.sh](https://platform.sh), and [Heroku](https://heroku.com).
 
-For selected platforms, `django-simple-deploy` allows you to make a live deployment in as little as three steps, with no manual configuration. Let `django-simple-deploy` configure your project, and then look to see what changes were made to support the deployment. Currently, three platforms have preliminary support: Fly.io, Platform.sh, and Heroku.
-
-Automated approach
----
-
-The `--automate-all` flag allows you to deploy a project in three steps. The only requirements are the following:
-- You're using Git to track your project;
-- Your project has a `requirements.txt` file;
-- You have the Fly.io CLI installed;
-- You've created an account on Fly.io and run `fly login`.
-
-If you meet these requirements, here's what the deployment process looks like for Fly.io:
+Here's what automated deployment on [Fly.io](https://fly.io) looks like:
 
 ```
 $ pip install django-simple-deploy
@@ -21,23 +10,20 @@ $ pip install django-simple-deploy
 $ python manage.py simple_deploy --platform fly_io --automate-all
 ```
 
-After taking these three steps, your project should appear in a new browser tab.
+After these three steps, your project should open in a new browser tab. :)
 
-Configuration-only aproach
+Quick Start
 ---
 
-If you want more control over the deployment process, you can use the configuration-only mode:
+For help deploying to a specific platform, start here:
 
-```
-$ fly apps create --generate-name
-$ pip install django-simple-deploy
-# Add simple_deploy to INSTALLED_APPS.
-$ python manage.py simple_deploy --platform fly_io
-$ git status                    # See what changes were made.
-$ git add .
-$ git commit -m "Configured for deployment."
-$ fly deploy
-$ fly open
-```
+- [Deploying to Fly.io]()
+- [Deploying to Platform.sh]()
+- [Deploying to Heroku]()
 
-This approach lets you see exactly what changes were made to your project in order to prepare for deployment. If you don't see any issues with these changes, you can commit the changes and use the platform's `push` or `deploy` command.
+More resources
+---
+
+- If you're not sure which platform to choose, here's an [overview](choosing_platform.md) of the different platforms.
+- If you're interested in the motivations for `django-simple-deploy`, start with the [rationale](rationale.md).
+- If you're interested in helping out, see the [contributing](contributing.md) page.
