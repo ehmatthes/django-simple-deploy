@@ -1,3 +1,7 @@
+---
+title: Home
+---
+
 # django-simple-deploy
 
 `django-simple-deploy` configures your Django project for deployment to a number of different platforms. For some platforms, it can automate the entire deployment process. Currently, three platforms have preliminary support: [Fly.io](https://fly.io), [Platform.sh](https://platform.sh), and [Heroku](https://heroku.com).
