@@ -1,6 +1,8 @@
 django-simple-deploy
 ===
 
+Note: Official documentation for this project is moving to [Read the Docs](https://django-simple-deploy.readthedocs.io/en/latest/).
+
 *Initial Django deployments made easy*
 
 This app gives you a management command that configures your project for an initial deployment. It targets [Heroku](https://heroku.com) and [Platform.sh](https://platform.sh) at the moment, and can be expanded to target other platforms as well.
