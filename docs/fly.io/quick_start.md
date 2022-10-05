@@ -5,7 +5,7 @@ Quick Start: Deploying to Fly.io
 
 Support for Fly.io is in a very preliminary phase. For example, it will likely fail if you already have a Django project deployed on Fly.io. `django-simple-deploy` should only be used on test projects at this point.
 
-Deployment to Fly.io can be fully automated, but it's recommended to use the configuration-only approach. This allows you to review the changes that are made to your project before committing them and making the initial push. The fully automated approach configures your project, commits these changes, and pushes the project to Fly.io's servers.
+Deployment to Fly.io can be fully automated, but the configuration-only approach is recommended. This allows you to review the changes that are made to your project before committing them and making the initial push. The fully automated approach configures your project, commits these changes, and pushes the project to Fly.io's servers.
 
 ## Prerequisites
 

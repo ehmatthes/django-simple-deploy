@@ -6,6 +6,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### 0.5.1
+
+- Official documentation moved to [Read the Docs](https://django-simple-deploy.readthedocs.io/en/latest/).
+    - Quick-start guides for all three supported platforms.
+
 ### 0.5.0
 
 - Preliminary support for Fly.io
