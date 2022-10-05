@@ -15,7 +15,7 @@ Deployment to Platform.sh requires three things:
 - You need to have a `requirements.txt` file at the root of your project.
 - The [Platforms.h CLI](https://docs.platform.sh/development/cli.html) must be installed on your system.
 
-## Configuration-only deployment (recommended)
+## Configuration-only deployment
 
 First, install `django-simple-deploy`:
 
@@ -45,7 +45,7 @@ $ platform url
 
 You can find a record of the deployment process in `simple_deploy_logs`. It contains most of the output you saw when running `simple_deploy`.
 
-## Using `--automate-all`
+## Automated deployment
 
 If you want, you can automate this entire process. This involves just three steps:
 
