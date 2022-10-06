@@ -17,13 +17,13 @@ Deployment to Heroku requires three things:
 
 ## Configuration-only deployment
 
-First, install `django-simple-deploy`:
+First, install `django-simple-deploy`, add `simple_deploy` to `INSTALLED_APPS` in *settings.py*, and commit this change:
 
 ```
 $ pip install django-simple-deploy
+# Add "simple_deploy" to INSTALLED_APPS in settings.py.
+$ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
-
-Then, add `simple_deploy` to `INSTALLED_APPS` in *settings.py*.
 
 Now create a new Heroku app using the CLI, and run `simple_deploy` to configure your app:
 
@@ -48,11 +48,12 @@ You can find a record of the deployment process in `simple_deploy_logs`. It cont
 
 ## Automated deployment
 
-If you want, you can automate this entire process. This involves just three steps:
+If you want, you can automate this entire process. This involves just four steps:
 
 ```
 $ pip install django-simple-deploy
 # Add `simple_deploy` to INSTALLED_APPS in settings.py.
+$ git commit -am "Added simple_deploy to INSTALLED_APPS."
 $ python manage.py simple_deploy --platform heroku --automate-all
 ```
 
