@@ -2,6 +2,15 @@ site_name: django-simple-deploy
 
 repo_url: https://github.com/ehmatthes/django-simple-deploy/
 
+nav:
+  - 'Home': 'index.md'
+  - 'Quick Start':
+    - 'Deploying to Fly.io': 'fly_io/quick_start.md'
+    - 'Deploying to Platform.sh': 'platform_sh/quick_start.md'
+    - 'Deploying to Heroku': 'heroku/quick_start.md'
+  - 'General Documentation':
+    - 'Choosing a Platform': 'general_documentation/choosing_platform.md'
+
 theme: 
   name: material
-  features: toc.integrate
+

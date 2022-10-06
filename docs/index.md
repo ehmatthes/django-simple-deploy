@@ -21,8 +21,8 @@ Quick Start
 
 For help deploying to a specific platform, start here:
 
-- [Deploying to Fly.io](fly.io/quick_start.md)
-- [Deploying to Platform.sh](platform.sh/quick_start.md)
+- [Deploying to Fly.io](fly_io/quick_start.md)
+- [Deploying to Platform.sh](platform_sh/quick_start.md)
 - [Deploying to Heroku](heroku/quick_start.md)
 
 More resources
