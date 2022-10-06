@@ -28,6 +28,6 @@ For help deploying to a specific platform, start here:
 More resources
 ---
 
-- If you're not sure which platform to choose, here's an [overview](choosing_platform.md) of the different platforms.
-- If you're interested in the motivations for `django-simple-deploy`, start with the [rationale](rationale.md).
-- If you're interested in helping out, see the [contributing](contributing.md) page.
+- If you're not sure which platform to choose, here's an [overview](general_documentation/choosing_platform.md) of the different platforms.
+- If you're interested in the motivations for `django-simple-deploy`, start with the [rationale]().
+- If you're interested in helping out, see the [contributing]() page.
