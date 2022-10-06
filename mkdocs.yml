@@ -1,6 +1,7 @@
 site_name: django-simple-deploy
 
+repo_url: https://github.com/ehmatthes/django-simple-deploy/
+
 theme: 
   name: material
   features: toc.integrate
-  
