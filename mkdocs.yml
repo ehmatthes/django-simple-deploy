@@ -1,6 +1,27 @@
 site_name: django-simple-deploy
 
+repo_url: https://github.com/ehmatthes/django-simple-deploy/
+
+markdown_extensions:
+  - tables
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true 
+  - def_list
+
+nav:
+  - 'Introduction': 'index.md'
+  - 'Quick Start':
+    - 'Deploying to Fly.io': 'fly_io/quick_start.md'
+    - 'Deploying to Platform.sh': 'platform_sh/quick_start.md'
+    - 'Deploying to Heroku': 'heroku/quick_start.md'
+  - 'General Documentation':
+    - 'Choosing a Platform': 'general_documentation/choosing_platform.md'
+
 theme: 
   name: material
-  
 
