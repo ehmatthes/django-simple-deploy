@@ -21,6 +21,10 @@ nav:
     - 'Deploying to Heroku': 'heroku/quick_start.md'
   - 'General Documentation':
     - 'Choosing a Platform': 'general_documentation/choosing_platform.md'
+  - 'Design Documentation':
+    - 'Rationale': 'design_docs/rationale.md'
+    - 'Use Cases': 'design_docs/use_cases.md'
+
 
 theme: 
   name: material
