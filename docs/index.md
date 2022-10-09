@@ -31,3 +31,5 @@ More resources
 - If you're not sure which platform to choose, here's an [overview](general_documentation/choosing_platform.md) of the different platforms.
 - If you're interested in the motivations for `django-simple-deploy`, start with the [rationale](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/scope_purpose.md).
 - If you're interested in helping out, see the [contributing](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/contributing.md) page.
+
+Note: The original documentation for this project was in the [GitHub repo](https://github.com/ehmatthes/django-simple-deploy/tree/main/old_docs), and some parts of the documentation have not been moved here yet.
