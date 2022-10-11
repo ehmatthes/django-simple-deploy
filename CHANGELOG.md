@@ -10,6 +10,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 - Official documentation moved to [Read the Docs](https://django-simple-deploy.readthedocs.io/en/latest/).
     - Quick-start guides for all three supported platforms.
+- Better check of `git status` when running `simple_deploy`. If the only uncommitted change is adding `simple_deploy` to `INSTALLED_APPS`, no error is raised.
 
 ### 0.5.0
 
