@@ -22,6 +22,12 @@ I don't think it's realistic to expect that every platform provider will always 
 
 If `django-simple-deploy` matures and gains a reputation for incorporating the feedback of the more experienced Django developers in the community, I could see platforms starting to incorporate the configuration steps that `simple_deploy` uses back into their own recommended best practices. This does not strike me as doing platforms' work for them; it seems to be an appropriate flow of information and experience between our community and platform hosts.
 
+### There's no pressure to simplify the configuration for people
+
+When we're writing a deployment tutorial, whether we're the platform host, an author, or a resource creator, we're often tempted to simplify the process. Every step we ask the user to take is a chance they'll make a typo or get off track somehow. So we're constantly balancing between supporting a well-architected deployment, and not making too many changes to the project.
+
+By automating all of the initial configuration, we can make any choices we want that support a good deployment. We can add as many config files as we want, set as many environment variables as needed, and run any followup commands we want. We are not limited to the bare-minimum "Getting Started" steps that you see in many platforms' onboarding docs. One simple example: we can generate heavily-commented config files, which are longer than a platform would want to present in an onboarding doc.
+
 ## Limitations
 
 ### Does not work for complex projects.
