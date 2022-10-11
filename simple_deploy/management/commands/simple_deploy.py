@@ -372,19 +372,79 @@ class Command(BaseCommand):
         """Make sure we're starting from a clean working state.
         We really want to encourage users to be able to easily undo
           configuration changes. This is especially true for automate-all.
+
+        We do continue work if the only uncommitted change is adding 'simple_deploy'
+          to INSTALLED_APPS.
+
+        Returns:
+            - None, if we can contine our work.
+            - raises CommandError if we shouldn't continue.
         """
 
         if self.ignore_unclean_git:
+            # People can override this check.
             return
 
+        # If 'working tree clean' is in output of `git status`, we can definitely
+        #   continue our work.
         cmd = "git status"
         output_obj = self.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
-        if "working tree clean" not in output_str:
+
+        if "working tree clean" in output_str:
+            return
+
+        # `git status` indicated that uncommitted changes have been made.
+        # Run `git diff`, and see if there are any changes beyond adding
+        #   'simple_deploy' to INSTALLED_APPS.
+        cmd = "git diff"
+        output_obj = self.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+
+        if not self._diff_output_clean(output_str):
+            # There are uncommitted changes beyond just adding simple_deploy to
+            #   INSTALLED_APPS, so we need to bail.
             error_msg = d_msgs.unclean_git_status
             if self.automate_all:
                 error_msg += d_msgs.unclean_git_automate_all
             raise CommandError(error_msg)
+
+
+    def _diff_output_clean(self, output_str):
+        """Check output of `git diff`.
+        If there are any lines that start with '- ', that indicates a deletion,
+        and we'll bail.
+
+        If there's more than one line starting with '+ ', that indicates more
+        than one addition, and we'll bail.
+
+        If there's only one addition, and it's 'simple_deploy' being added to
+        INSTALLED_APPS, we can continue.
+
+        Returns:
+            - True if output of `git diff` is okay to continue.
+            - False if output of `git diff` indicates we should bail.
+        """
+        num_deletions = output_str.count('\n- ')
+        num_additions = output_str.count('\n+ ')
+
+        if (num_deletions > 0) or (num_additions > 1):
+            return False
+
+        # There's only one addition. Check if it's anything other than
+        #   simple_deploy being added to INSTALLED_APPS.
+        # Note: This is not an overly specific test. We're not checking
+        #   which file was changed, but there's no real reason someone would add
+        #   'simple_deploy' by itself in another file.
+        re_diff = r"""(\n\+{1}\s+[',"]simple_deploy[',"],)"""
+        m = re.search(re_diff, output_str)
+        if m:
+            # The only addition was 'simple_deploy', we can move on.
+            return True
+        else:
+            # There was a change, but it wasn't just 'simple_deploy'.
+            # We should bail and have user look at their status.
+            return False
 
 
     def _get_dep_man_approach(self):
