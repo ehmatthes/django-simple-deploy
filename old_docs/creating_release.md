@@ -17,6 +17,9 @@ Making a new release
 - Make an entry in changelog.md.
 - Commit all changes on development branch.
 - Create a PR on GitHub, accept the PR, and pull changes to main locally.
+- Tag release. While on main branch:
+    - `$ git tag vA.B.C`
+    - `$ git push origin vA.B.C`
 - Delete everything in dist/.
 - Run `python -m build`
 - Push to test.pypi with twine:
@@ -41,6 +44,16 @@ I always forget this, so put it here. Delete on the remote, and then delete loca
 $ git push origin -d feature_branch
 $ git branch -d feature_branch
 ```
+
+Deleting tags
+---
+
+```
+$ git tag -d vA.B.C
+```
+
+- See [source](https://git-scm.com/book/en/v2/Git-Basics-Tagging) for more about tagging.
+- See also [GH source about releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository)
 
 Testing locally (non-automated)
 ---
