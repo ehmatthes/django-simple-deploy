@@ -118,14 +118,18 @@ fi
 
 # Check if user wants to destroy temp files.
 echo ""
-while true; do
-    read -p "Tear down temporary files? " yn
-    case $yn in 
-        [Yy]* ) echo "Okay, tearing down..."; tear_down=true; break;;
-        [Nn]* ) echo "Okay, leaving files."; tear_down=false; break;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+if [ "$skip_confirmations" != true ]; then
+    while true; do
+        read -p "Tear down temporary files? " yn
+        case $yn in 
+            [Yy]* ) echo "Okay, tearing down..."; tear_down=true; break;;
+            [Nn]* ) echo "Okay, leaving files."; tear_down=false; break;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+else
+    tear_down=true
+fi
 
 # Teardown
 if [ "$tear_down" = true ]; then

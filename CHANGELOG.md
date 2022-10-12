@@ -6,6 +6,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### 0.5.2
+
+- Uses [updated Dockerfile](https://github.com/superfly/flyctl/pull/1366) from Fly.io.
+- The `-y` flag skips confirmation for teardown when running integration tests.
+
 ### 0.5.1
 
 - Official documentation moved to [Read the Docs](https://django-simple-deploy.readthedocs.io/en/latest/).
