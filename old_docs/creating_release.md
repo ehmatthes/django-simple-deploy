@@ -17,11 +17,11 @@ Making a new release
 - Make an entry in changelog.md.
 - Commit all changes on development branch.
 - Create a PR on GitHub, accept the PR, and pull changes to main locally.
+- Delete everything in dist/.
+- Run `python -m build`
 - Tag release. While on main branch:
     - `$ git tag vA.B.C`
     - `$ git push origin vA.B.C`
-- Delete everything in dist/.
-- Run `python -m build`
 - Push to test.pypi with twine:
 ```
 (venv)$ python -m twine upload --repository testpypi dist/* --username __token__ --password [testpypi_access_token]`
