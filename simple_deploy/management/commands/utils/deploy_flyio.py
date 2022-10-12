@@ -41,7 +41,7 @@ class FlyioDeployer:
         self._modify_settings()
 
         self._add_gunicorn()
-        self._add_psycopg2()
+        self._add_psycopg2_binary()
         self._add_dj_database_url()
 
         self._conclude_automate_all()
@@ -203,14 +203,14 @@ class FlyioDeployer:
             self.sd.add_pipenv_pkg('gunicorn')
 
 
-    def _add_psycopg2(self):
-        """Add psycopg2 to project requirements."""
-        self.sd.write_output("\n  Looking for psycopg2...")
+    def _add_psycopg2_binary(self):
+        """Add psycopg2-binary to project requirements."""
+        self.sd.write_output("\n  Looking for psycopg2-binary...")
 
         if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('psycopg2')
+            self.sd.add_req_txt_pkg('psycopg2-binary')
         elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('psycopg2')
+            self.sd.add_pipenv_pkg('psycopg2-binary')
 
     def _add_dj_database_url(self):
         """Add dj-database-url to project requirements."""
