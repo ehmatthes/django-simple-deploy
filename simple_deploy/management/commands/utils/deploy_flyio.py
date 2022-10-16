@@ -165,6 +165,9 @@ class FlyioDeployer:
         # Add python cruft.
         dockerignore_str += "\n__pycache__/\n*.pyc\n"
 
+        # Ignore any SQLite databases.
+        dockerignore_str += "\n*.sqlite3\n"
+
         # If on macOS, add .DS_Store.
         if self.sd.on_macos:
             dockerignore_str += "\n.DS_Store\n"
