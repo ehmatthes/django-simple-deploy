@@ -5,7 +5,7 @@
 # - Each helper gets a reference to this command object.
 
 
-import sys, os, re, subprocess, logging
+import sys, os, platform, re, subprocess, logging
 from datetime import datetime
 from pathlib import Path
 
