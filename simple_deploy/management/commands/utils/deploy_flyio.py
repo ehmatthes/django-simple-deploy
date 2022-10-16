@@ -169,8 +169,6 @@ class FlyioDeployer:
         else:
             msg = "  .dockerignore file not needed."
 
-        sys.exit()
-
 
     def _add_flytoml_file(self):
         """Add a minimal fly.toml file."""
