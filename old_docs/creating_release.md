@@ -30,6 +30,10 @@ Making a new release
 ```
 (venv)$ python -m twine upload dist/*
 ```
+
+- View on PyPI:
+[https://pypi.org/project/django-simple-deploy/](https://pypi.org/project/django-simple-deploy/)
+
 - Test the released package:
 ```
 (venv)$ ./integration_tests/test_deploy_process.sh -t pypi -d [req_txt|poetry|pipenv]
