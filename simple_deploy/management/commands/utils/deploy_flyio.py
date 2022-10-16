@@ -145,29 +145,34 @@ class FlyioDeployer:
           was found.
         """
 
-        # Check for existing dockerignore file; we're only dealing with project
-        #   root.
+        # Check for existing dockerignore file; we're only looking in project root.
+        #   If we find one, don't make any changes.
         path = Path('.dockerignore')
         if path.exists():
             msg = "  Found existing .dockerignore file. Not overwriting this file."
             self.sd.write_output(msg)
             return
 
-        # Build string.
+        # Build dockerignore string.
         dockerignore_str = ""
 
-        # Get venv dir name.
+        # Add venv dir if a venv is active.
         venv_dir = os.environ.get("VIRTUAL_ENV")
         if venv_dir:
             venv_path = Path(venv_dir)
             dockerignore_str += f"{venv_path.name}/\n"
 
-        if dockerignore_str:
-            path.write_text(dockerignore_str)
-            msg = "  Wrote .dockerignore file."
-            self.sd.write_output(msg)
-        else:
-            msg = "  .dockerignore file not needed."
+        # Add python cruft.
+        dockerignore_str += "\n__pycache__/\n*.pyc\n"
+
+        # If on macOS, add .DS_Store.
+        if self.sd.on_macos:
+            dockerignore_str += "\n.DS_Store\n"
+
+        # Write file.
+        path.write_text(dockerignore_str)
+        msg = "  Wrote .dockerignore file."
+        self.sd.write_output(msg)
 
 
     def _add_flytoml_file(self):
