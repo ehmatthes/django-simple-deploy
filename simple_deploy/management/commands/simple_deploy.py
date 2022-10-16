@@ -5,7 +5,7 @@
 # - Each helper gets a reference to this command object.
 
 
-import sys, os, re, subprocess, logging
+import sys, os, platform, re, subprocess, logging
 from datetime import datetime
 from pathlib import Path
 
@@ -292,16 +292,27 @@ class Command(BaseCommand):
 
 
     def _inspect_system(self):
-        """Find out if we're on Windows, so other methods can run system
-        commands appropriately on each system. Note this is the user's system,
-        not the host platform we're targeting.
+        """Inspect the user's local system for relevant information.
+
+        Currently, we only need to know whether we're on Windows or macOS. The
+          first need was just for Windows, which is why the variables are
+          self.on_windows rather than something more general like self.user_system.
+        Also, keep in mind that we can't use a name like self.platform, because
+          platform almost always has a different meaning in this project.
+
+        Some system-specific notes:
+        - Some CLI commands are os-specific.
+        - Some subsystem calls need to be made a specific way depending on the os.
         """
+        self.use_shell = False
+        self.on_windows, self.on_macos = False, False
         if os.name == 'nt':
+            # DEV: This should use platform.system() as well, but I'm not on Windows
+            #   at the moment, so can't test it properly.
             self.on_windows = True
             self.use_shell = True
-        else:
-            self.on_windows = False
-            self.use_shell = False
+        elif platform.system() == 'Darwin':
+            self.on_macos = True
 
 
     def _inspect_project(self):

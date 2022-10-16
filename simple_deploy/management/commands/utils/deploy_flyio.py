@@ -37,6 +37,7 @@ class FlyioDeployer:
         self._set_debug()
 
         self._add_dockerfile()
+        self._add_dockerignore()
         self._add_flytoml_file()
         self._modify_settings()
 
@@ -130,6 +131,55 @@ class FlyioDeployer:
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
             return path
+
+
+    def _add_dockerignore(self):
+        """Add a dockerignore file, based on user's local project environmnet.
+        Ignore virtual environment dir, system-specific cruft, and IDE cruft.
+
+        If an existing dockerignore is found, make note of that but don't overwrite.
+
+        Returns:
+        - True if added dockerignore.
+        - False if dockerignore found unnecessary, or if an existing dockerfile
+          was found.
+        """
+
+        # Check for existing dockerignore file; we're only looking in project root.
+        #   If we find one, don't make any changes.
+        path = Path('.dockerignore')
+        if path.exists():
+            msg = "  Found existing .dockerignore file. Not overwriting this file."
+            self.sd.write_output(msg)
+            return
+
+        # Build dockerignore string.
+        dockerignore_str = ""
+
+        # Ignore git repository.
+        dockerignore_str += ".git/\n"
+
+        # Ignore venv dir if a venv is active.
+        venv_dir = os.environ.get("VIRTUAL_ENV")
+        if venv_dir:
+            venv_path = Path(venv_dir)
+            dockerignore_str += f"\n{venv_path.name}/\n"
+
+
+        # Add python cruft.
+        dockerignore_str += "\n__pycache__/\n*.pyc\n"
+
+        # Ignore any SQLite databases.
+        dockerignore_str += "\n*.sqlite3\n"
+
+        # If on macOS, add .DS_Store.
+        if self.sd.on_macos:
+            dockerignore_str += "\n.DS_Store\n"
+
+        # Write file.
+        path.write_text(dockerignore_str)
+        msg = "  Wrote .dockerignore file."
+        self.sd.write_output(msg)
 
 
     def _add_flytoml_file(self):

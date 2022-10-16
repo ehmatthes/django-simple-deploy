@@ -6,6 +6,10 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### 0.5.3
+
+- Generates a `.dockerignore` file when deploying to Fly.io.
+
 ### 0.5.2
 
 - Uses [updated Dockerfile](https://github.com/superfly/flyctl/pull/1366) from Fly.io.
