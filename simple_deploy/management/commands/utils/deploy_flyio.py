@@ -37,6 +37,7 @@ class FlyioDeployer:
         self._set_debug()
 
         self._add_dockerfile()
+        self._add_dockerignore()
         self._add_flytoml_file()
         self._modify_settings()
 
@@ -130,6 +131,45 @@ class FlyioDeployer:
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
             return path
+
+
+    def _add_dockerignore(self):
+        """Add a dockerignore file, based on user's local project environmnet.
+        Ignore virtual environment dir, system-specific cruft, and IDE cruft.
+
+        If an existing dockerignore is found, make note of that but don't overwrite.
+
+        Returns:
+        - True if added dockerignore.
+        - False if dockerignore found unnecessary, or if an existing dockerfile
+          was found.
+        """
+
+        # Check for existing dockerignore file; we're only dealing with project
+        #   root.
+        path = Path('.dockerignore')
+        if path.exists():
+            msg = "  Found existing .dockerignore file. Not overwriting this file."
+            self.sd.write_output(msg)
+            return
+
+        # Build string.
+        dockerignore_str = ""
+
+        # Get venv dir name.
+        venv_dir = os.environ.get("VIRTUAL_ENV")
+        if venv_dir:
+            venv_path = Path(venv_dir)
+            dockerignore_str += f"{venv_path.name}/\n"
+
+        if dockerignore_str:
+            path.write_text(dockerignore_str)
+            msg = "  Wrote .dockerignore file."
+            self.sd.write_output(msg)
+        else:
+            msg = "  .dockerignore file not needed."
+
+        sys.exit()
 
 
     def _add_flytoml_file(self):
