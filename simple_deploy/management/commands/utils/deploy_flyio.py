@@ -156,11 +156,15 @@ class FlyioDeployer:
         # Build dockerignore string.
         dockerignore_str = ""
 
-        # Add venv dir if a venv is active.
+        # Ignore git repository.
+        dockerignore_str += ".git/\n"
+
+        # Ignore venv dir if a venv is active.
         venv_dir = os.environ.get("VIRTUAL_ENV")
         if venv_dir:
             venv_path = Path(venv_dir)
-            dockerignore_str += f"{venv_path.name}/\n"
+            dockerignore_str += f"\n{venv_path.name}/\n"
+
 
         # Add python cruft.
         dockerignore_str += "\n__pycache__/\n*.pyc\n"
