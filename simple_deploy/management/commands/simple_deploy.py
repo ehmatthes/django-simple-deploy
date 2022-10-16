@@ -307,6 +307,8 @@ class Command(BaseCommand):
         self.use_shell = False
         self.on_windows, self.on_macos = False, False
         if os.name == 'nt':
+            # DEV: This should use platform.system() as well, but I'm not on Windows
+            #   at the moment, so can't test it properly.
             self.on_windows = True
             self.use_shell = True
         elif platform.system() == 'Darwin':
