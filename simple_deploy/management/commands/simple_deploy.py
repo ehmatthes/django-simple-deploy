@@ -657,7 +657,7 @@ class Command(BaseCommand):
         return output
 
 
-    def execute_command(self, cmd):
+    def execute_command(self, cmd, skip_logging=False):
         """Execute command, and stream output while logging.
         This method is intended for commands that run long enough that we 
         can't use a simple subprocess.run(capture_output=True), which doesn't
@@ -682,7 +682,7 @@ class Command(BaseCommand):
         with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
             bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
             for line in p.stderr:
-                self.write_output(line)
+                self.write_output(line, skip_logging=skip_logging)
 
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)

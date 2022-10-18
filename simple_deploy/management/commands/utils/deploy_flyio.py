@@ -542,12 +542,9 @@ class FlyioDeployer:
         if not self.sd.automate_all:
             self._confirm_create_db(db_cmd=cmd)
 
-        # Create database and parse output. DEV: No need to parse output; we're not doing that.
-        # output_obj = self.sd.execute_subp_run(cmd)
-        # output_str = output_obj.stdout.decode()
-        # self.sd.write_output(output_str, skip_logging=True)
+        # Create database.
         # Use execute_command(), to stream output of long-running process.
-        self.sd.execute_command(cmd)
+        self.sd.execute_command(cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
         self.sd.write_output(msg, skip_logging=True)
