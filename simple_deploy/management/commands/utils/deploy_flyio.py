@@ -287,8 +287,9 @@ class FlyioDeployer:
         # Push project.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
+        # output = self.sd.execute_subp_run(cmd)
+        # self.sd.write_output(output)
+        self.sd.execute_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")

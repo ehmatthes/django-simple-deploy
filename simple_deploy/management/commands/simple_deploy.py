@@ -196,6 +196,13 @@ class Command(BaseCommand):
             msg = plsh_msgs.confirm_automate_all
         elif self.platform == 'fly_io':
             msg = flyio_msgs.confirm_automate_all
+        else:
+            # The platform name is not valid!
+            # DEV: This should be removed when the logic around when to call
+            #   _validate_platform() has been cleaned up.
+            # See issue #120: https://github.com/ehmatthes/django-simple-deploy/issues/120
+            error_msg = f"The platform {self.platform} is not currently supported."
+            raise CommandError(error_msg)
 
         self.write_output(msg, skip_logging=True)
         confirmed = self.get_confirmation(skip_logging=True)
