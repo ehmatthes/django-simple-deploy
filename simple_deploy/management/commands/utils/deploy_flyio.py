@@ -285,10 +285,9 @@ class FlyioDeployer:
         self.sd.commit_changes()
 
         # Push project.
+        # Use execute_command() to stream output of this long-running command.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
-        # output = self.sd.execute_subp_run(cmd)
-        # self.sd.write_output(output)
         self.sd.execute_command(cmd)
 
         # Open project.
@@ -543,10 +542,12 @@ class FlyioDeployer:
         if not self.sd.automate_all:
             self._confirm_create_db(db_cmd=cmd)
 
-        # Create database and parse output.
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.write_output(output_str, skip_logging=True)
+        # Create database and parse output. DEV: No need to parse output; we're not doing that.
+        # output_obj = self.sd.execute_subp_run(cmd)
+        # output_str = output_obj.stdout.decode()
+        # self.sd.write_output(output_str, skip_logging=True)
+        # Use execute_command(), to stream output of long-running process.
+        self.sd.execute_command(cmd)
 
         msg = "  Created Postgres database."
         self.sd.write_output(msg, skip_logging=True)
