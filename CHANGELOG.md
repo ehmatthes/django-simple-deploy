@@ -6,6 +6,10 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### 0.5.4
+
+- Streams output of long-running commands `fly postgres create` and `fly deploy`. This makes it much easier to know that the deployment is continuing, rather than hanging.
+
 ### 0.5.3
 
 - Generates a `.dockerignore` file when deploying to Fly.io.

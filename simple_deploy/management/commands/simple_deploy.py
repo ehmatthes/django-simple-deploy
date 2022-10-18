@@ -196,6 +196,13 @@ class Command(BaseCommand):
             msg = plsh_msgs.confirm_automate_all
         elif self.platform == 'fly_io':
             msg = flyio_msgs.confirm_automate_all
+        else:
+            # The platform name is not valid!
+            # DEV: This should be removed when the logic around when to call
+            #   _validate_platform() has been cleaned up.
+            # See issue #120: https://github.com/ehmatthes/django-simple-deploy/issues/120
+            error_msg = f"The platform {self.platform} is not currently supported."
+            raise CommandError(error_msg)
 
         self.write_output(msg, skip_logging=True)
         confirmed = self.get_confirmation(skip_logging=True)
@@ -650,7 +657,7 @@ class Command(BaseCommand):
         return output
 
 
-    def execute_command(self, cmd):
+    def execute_command(self, cmd, skip_logging=False):
         """Execute command, and stream output while logging.
         This method is intended for commands that run long enough that we 
         can't use a simple subprocess.run(capture_output=True), which doesn't
@@ -675,7 +682,7 @@ class Command(BaseCommand):
         with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
             bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
             for line in p.stderr:
-                self.write_output(line)
+                self.write_output(line, skip_logging=skip_logging)
 
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
