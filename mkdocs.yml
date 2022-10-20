@@ -25,9 +25,15 @@ nav:
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'
     - 'Strengths and Limitations': 'design_docs/strengths_limitations.md'
+  - 'Contributing': 'index.md'
+  - 'Maintaining':
+    - 'maintaining/index.md'
+    - 'Making a New Release': 'maintaining/new_release.md'
     
 
 
 theme: 
   name: material
+  features:
+    - navigation.indexes
 
