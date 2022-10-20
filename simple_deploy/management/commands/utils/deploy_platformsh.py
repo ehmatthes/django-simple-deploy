@@ -273,10 +273,10 @@ class PlatformshDeployer:
         self.sd.commit_changes()
 
         # Push project.
+        # Use execute_command(), to stream the output as it runs.
         self.sd.write_output("  Pushing to Platform.sh...")
         cmd = "platform push --yes"
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output)
+        self.sd.execute_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
