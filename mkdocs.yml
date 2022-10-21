@@ -28,7 +28,8 @@ nav:
   - 'Contributing': 'index.md'
   - 'Maintaining':
     - 'maintaining/index.md'
-    - 'Making a New Release': 'maintaining/new_release.md'
+    - 'Merging PRs': 'maintaining/merging_prs.md'
+    - 'Managing Releases': 'maintaining/managing_releases.md'
     
 
 
