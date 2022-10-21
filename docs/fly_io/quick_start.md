@@ -1,3 +1,9 @@
+---
+title: "Quick Start: Deploying to Fly.io"
+hide:
+    - footer
+---
+
 Quick Start: Deploying to Fly.io
 ===
 

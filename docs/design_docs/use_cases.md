@@ -1,5 +1,7 @@
 ---
 title: Use Cases
+hide:
+    - footer
 ---
 
 # Use cases

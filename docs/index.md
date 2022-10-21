@@ -1,5 +1,7 @@
 ---
 title: Introduction
+hide:
+    - footer
 ---
 
 # django-simple-deploy

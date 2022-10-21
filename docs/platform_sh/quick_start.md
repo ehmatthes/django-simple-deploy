@@ -1,3 +1,9 @@
+---
+title: "Quick Start: Deploying to Platform.sh"
+hide:
+    - footer
+---
+
 Quick Start: Deploying to Platform.sh
 ===
 
