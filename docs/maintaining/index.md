@@ -1,5 +1,7 @@
 ---
 title: 'Maintaining'
+hide:
+    - footer
 ---
 
 Maintaining a project is distinct from contributing to a project. A maintainer merges PRs and manages issues and discussions. Some of these tasks need to be documented so that things are done appropriately, consistently, and transparently.

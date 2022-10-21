@@ -1,5 +1,7 @@
 ---
 title: Rationale
+hide:
+    - footer
 ---
 
 # Rationale

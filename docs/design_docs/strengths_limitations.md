@@ -1,5 +1,7 @@
 ---
 title: Strengths and Limitations
+hide:
+    - footer
 ---
 
 # Strengths and Limitations

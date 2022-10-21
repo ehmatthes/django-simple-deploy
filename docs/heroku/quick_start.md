@@ -1,3 +1,9 @@
+---
+title: "Quick Start: Deploying to Heroku"
+hide:
+    - footer
+---
+
 Quick Start: Deploying to Heroku
 ===
 

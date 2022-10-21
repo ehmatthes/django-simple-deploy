@@ -1,5 +1,7 @@
 ---
 title: Choosing a platform
+hide:
+    - footer
 ---
 
 # Choosing a Platform
