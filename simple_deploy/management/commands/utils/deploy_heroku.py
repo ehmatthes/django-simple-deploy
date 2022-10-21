@@ -393,7 +393,11 @@ class HerokuDeployer:
                     self.current_branch)
         else:
             # Show steps to finish the deployment process.
-            msg = dh_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
+            msg = dh_msgs.success_msg(
+                self.sd.using_pipenv,
+                self.heroku_app_name,
+                self.current_branch
+            )
 
         self.sd.write_output(msg)
 

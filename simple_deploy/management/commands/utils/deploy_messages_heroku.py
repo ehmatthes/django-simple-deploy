@@ -39,12 +39,18 @@ After installing the CLI, you can run simple_deploy again.
 # These need to be generated in functions, to display information that's 
 #   determined as the script runs.
 
-def success_msg(using_pipenv, heroku_app_name):
+def success_msg(using_pipenv, heroku_app_name, current_branch):
     """Success message, when not using --automate-all flag."""
 
     # You can't use backslashes in f-strings, so this is the cleanest way I
     #   can add a pipenv line when needed.
     newline = '\n'
+
+    # Set correct command for pushing to heroku.
+    if current_branch in ('main', 'master'):
+        push_command = f"$ git push heroku {current_branch}"
+    else:
+        push_command = f"$ git push heroku {current_branch}:main"
 
     msg = dedent(f"""
 
@@ -58,7 +64,7 @@ def success_msg(using_pipenv, heroku_app_name):
         The following commands should finish your initial deployment:{newline + '        $ pipenv lock' if using_pipenv else ''}
         $ git add .
         $ git commit -am "Configured for Heroku deployment."
-        $ git push heroku main
+        {push_command}
         $ heroku run python manage.py migrate
         
         After this, you can see your project by running 'heroku open'.
