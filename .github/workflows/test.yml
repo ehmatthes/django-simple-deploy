@@ -15,13 +15,17 @@ env:
 
 jobs:
   unit_tests:
-    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    name: ${{ matrix.platform.name }} with Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11.0-beta.5 - 3.11']
-        platform: ['heroku', 'platformsh']
+        platform:
+          - name: Heroku
+            platform: heroku
+          - name: Platform.sh
+            platform: platformsh
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -36,4 +40,4 @@ jobs:
     - name: Run tests
       run: |
         cd unit_tests
-        pytest test_${{ matrix.platform }}_config.py
+        pytest test_${{ matrix.platform.platform }}_config.py
