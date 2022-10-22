@@ -1,0 +1,39 @@
+name: test
+
+on:
+  push:
+    # branches: main
+  pull_request_target:
+
+concurrency:
+  group: test-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+jobs:
+  unit_tests:
+    name: Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11.0-beta.5 - 3.11']
+        platform: ['heroku', 'platformsh']
+    runs-on: ${{ matrix.os }}
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Update pip
+      run: python -m pip install --upgrade pip 
+    - name: Install dependencies
+      run: python -m pip install -r requirements.txt
+    - name: Run tests
+      run: |
+        cd unit_tests
+        pytest test_${{ matrix.platform }}_config.py
