@@ -19,7 +19,7 @@ Deployment to Platform.sh requires three things:
 
 - You must be using Git to track your project.
 - You need to have a `requirements.txt` file at the root of your project.
-- The [Platforms.h CLI](https://docs.platform.sh/development/cli.html) must be installed on your system.
+- The [Platform.sh CLI](https://docs.platform.sh/development/cli.html) must be installed on your system.
 
 ## Configuration-only deployment
 
