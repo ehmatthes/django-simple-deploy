@@ -46,4 +46,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.platform.platform }}-py${{ matrix.python-version }}-${{ matrix.os }}
-        path: ${{ env.RUNNER_TEMP }}/dsd
+        path: ${{ RUNNER_TEMP }}/dsd
