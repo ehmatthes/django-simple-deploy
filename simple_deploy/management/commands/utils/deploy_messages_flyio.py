@@ -139,7 +139,7 @@ def success_msg(log_output=''):
             $ fly open    
         - As you develop your project further:
             - Make local changes
-            - Commmit your local changes
+            - Commit your local changes
             - Run `fly deploy`
     """)
 

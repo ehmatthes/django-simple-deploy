@@ -19,11 +19,18 @@ Deployment to Platform.sh requires three things:
 
 - You must be using Git to track your project.
 - You need to have a `requirements.txt` file at the root of your project.
-- The [Platforms.h CLI](https://docs.platform.sh/development/cli.html) must be installed on your system.
+- The [Platform.sh CLI](https://docs.platform.sh/development/cli.html) must be installed on your system.
 
 ## Configuration-only deployment
 
-First, install `django-simple-deploy`, and add `simple_deploy` to `INSTALLED_APPS` in *settings.py*:
+
+First, install `platformshconfig`. This package is used to determine whether local settings or Platform.sh-specific settings should be used:
+
+```
+$ pip install platformshconfig
+```
+
+Now, install `django-simple-deploy`, and add `simple_deploy` to `INSTALLED_APPS` in *settings.py*:
 
 ```
 $ pip install django-simple-deploy
