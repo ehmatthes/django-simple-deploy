@@ -23,7 +23,14 @@ Deployment to Platform.sh requires three things:
 
 ## Configuration-only deployment
 
-First, install `django-simple-deploy`, and add `simple_deploy` to `INSTALLED_APPS` in *settings.py*:
+
+First, install `platformshconfig`. This package is used to determine whether local settings or Platform.sh-specific settings should be used:
+
+```
+$ pip install platformshconfig
+```
+
+Now, install `django-simple-deploy`, and add `simple_deploy` to `INSTALLED_APPS` in *settings.py*:
 
 ```
 $ pip install django-simple-deploy
