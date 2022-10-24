@@ -40,10 +40,10 @@ jobs:
     - name: Run tests
       run: |
         cd unit_tests
-        pytest test_${{ matrix.platform.platform }}_config.py --basetemp=dsd
+        pytest test_${{ matrix.platform.platform }}_config.py --basetemp=dsd_temp
     - name: Upload artifacts
       if: always()
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.platform.platform }}-py${{ matrix.python-version }}-${{ matrix.os }}
-        path: ${{ github.RUNNER_TEMP }}/dsd
+        path: ./unit_tests/dsd_temp
