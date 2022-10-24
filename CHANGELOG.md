@@ -6,9 +6,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### 0.5.6
+### Unreleased
 
 - Documentation for managing PRs and releases moved to Read the Docs.
+- Documentation includes installing `platformshconfig` when deploying to Platform.sh.
+- Integration tests check that running simple_deploy does not affect local functionality using `runserver`.
+    - Update configuration for Fly.io and Platform.sh to not interfere with local functionality using `runserver`.
 
 ### 0.5.5
 

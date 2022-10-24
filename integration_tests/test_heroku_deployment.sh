@@ -59,6 +59,24 @@ echo "\n  Testing functionality of deployed app..."
 
 python test_deployed_app_functionality.py --url "$app_url"
 
+
+# Test local functionality.
+# Deploying with simple_deploy should not impact local functionality.
+echo "\n  Testing local functionality with runserver..."
+python manage.py migrate
+python manage.py runserver 8008 &>/dev/null &
+# Pause to let runserver start; this pause may need to be adjusted to work
+#   on everyone's systems.
+sleep 1
+python test_deployed_app_functionality.py --url "http://localhost:8008/"
+# Kill the runserver processes. Calling runserver in the background launches
+#   a process, but then Django launches another child process. We want to kill
+#   both of these.
+# DEV: This is probably OS-specific, and needs to be tested on non-macOS systems.
+pkill -f "runserver 8008"
+echo "    Finished testing local functionality."
+
+
 # Clarify which version was tested.
 if [ "$target" = pypi ]; then
     echo "\n --- Finished testing latest release from PyPI. ---"

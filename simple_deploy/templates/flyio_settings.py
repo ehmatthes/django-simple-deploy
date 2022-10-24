@@ -2,9 +2,11 @@
 
 
 # --- Settings for Fly.io. ---
-import os, dj_database_url
+import os
 
 if os.environ.get("ON_FLYIO"):
+    import dj_database_url
+    
     # Use secret, if set, to update DEBUG value.
     if os.environ.get("DEBUG") == "FALSE":
         DEBUG = False
