@@ -41,9 +41,14 @@ jobs:
       run: |
         cd unit_tests
         pytest test_${{ matrix.platform.platform }}_config.py --basetemp=dsd_temp
+    - name: Compress test results
+      if: always()
+      run: |
+        cd unit_tests
+        7z a -tzip dsd_temp.zip dsd_temp/*current
     - name: Upload artifacts
       if: always()
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.platform.platform }}-py${{ matrix.python-version }}-${{ matrix.os }}
-        path: ./unit_tests/dsd_temp
+        path: ./unit_tests/dsd_temp.zip
