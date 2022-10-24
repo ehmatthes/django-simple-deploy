@@ -42,6 +42,7 @@ jobs:
         cd unit_tests
         pytest test_${{ matrix.platform.platform }}_config.py --basetemp=dsd
     - name: Upload artifacts
+      if: always()
       uses: actions/upload-artifact@v3
       with:
         name: ${{ matrix.platform.platform }}-py${{ matrix.python-version }}-${{ matrix.os }}
