@@ -59,9 +59,10 @@ You can find a record of the deployment process in `simple_deploy_logs`. It cont
 
 ## Automated deployment
 
-If you want, you can automate this entire process. This involves just three steps:
+If you want, you can automate this entire process. This involves just four steps:
 
 ```
+$ pip install platformshconfig
 $ pip install django-simple-deploy
 # Add `simple_deploy` to INSTALLED_APPS in settings.py.
 $ python manage.py simple_deploy --platform platform_sh --automate-all
