@@ -23,4 +23,4 @@ if os.environ.get("ON_FLYIO"):
     DATABASES['default'] = dj_database_url.parse(db_url)
 
     # Prevent CSRF "Origin checking failed" issue.
-    CSRF_TRUSTED_ORIGINS = ['https://*.fly.dev']
+    CSRF_TRUSTED_ORIGINS = ['https://{{ deployed_project_name }}.fly.dev']
