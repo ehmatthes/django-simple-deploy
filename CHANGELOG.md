@@ -13,6 +13,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 - Removes auto-update block from `.platform.app.yaml`.
 - Integration tests check that running simple_deploy does not affect local functionality using `runserver`.
     - Update configuration for Fly.io and Platform.sh to not interfere with local functionality using `runserver`.
+- Updated sample blog project to Django 4.1.2.
+    - Modified `test_deployed_app_functionality.py` to not require a trailing forward slash.    
 
 ### 0.5.5
 
