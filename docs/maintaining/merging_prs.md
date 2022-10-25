@@ -4,6 +4,13 @@ hide:
     - footer
 ---
 
+Reviewing PRs
+---
+
+- Fetch the PR branch to your local repository: `git fetch origin pull/ID/head:BRANCH_NAME`
+- Check out the branch.
+- Make review comments based on local review.
+
 Merging PRs
 ---
 
