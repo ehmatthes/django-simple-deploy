@@ -70,5 +70,5 @@ To create a nested version of the project from the unnested version:
 
 - Duplicate the project.
 - Create a folder inside the project called `blog/`.
-- Move all current files to the inner `blog/` directory.
+- Move all current files to the inner `blog/` directory except `requirements.txt`, `Pipfile`, `pyproject.toml`, and `test_deployed_app_functionality.py`.
 - Run `tree -L 3` to verify that the directory structure matches the above diagram.
