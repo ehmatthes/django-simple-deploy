@@ -16,8 +16,11 @@ if os.environ.get("ON_FLYIO"):
     # Set a Fly.io-specific allowed host.
     # ALLOWED_HOSTS.append('{{ deployed_project_name }}.fly.dev')
     # Using '*' while further troubleshooting CSRF issue.
-    ALLOWED_HOSTS.append('*')
+    ALLOWED_HOSTS.append('{{ deployed_project_name }}.fly.dev')
 
     # Use the Fly.io Postgres database.
     db_url = os.environ.get("DATABASE_URL")
     DATABASES['default'] = dj_database_url.parse(db_url)
+
+    # Prevent CSRF "Origin checking failed" issue.
+    CSRF_TRUSTED_ORIGINS = ['https://{{ deployed_project_name }}.fly.dev']
