@@ -39,8 +39,11 @@ parser.add_argument('--flush-db', action='store_true')
 args = parser.parse_args()
 
 # Get URL of deployed project from CLI args.
-# Note: app URL should have a trailing slash, ie http://localhost:8000/
 app_url = args.url
+
+# Make sure app url has a trailing slash.
+if not app_url[-1] == '/':
+    app_url += '/'
 
 # This option is available to make it easier to work on this script, running against
 #   a local version of the project. This allows successive runs of the tests to
