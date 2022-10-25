@@ -7,7 +7,10 @@ hide:
 Reviewing PRs
 ---
 
+
+
 - Fetch the PR branch to your local repository: `git fetch origin pull/ID/head:BRANCH_NAME`
+    - For more, see [Checking out pull requests locally](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally).
 - Check out the branch.
 - Make review comments based on local review.
 
