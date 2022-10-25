@@ -6,7 +6,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.6
 
 - Documentation for managing PRs and releases moved to Read the Docs.
 - Documentation includes installing `platformshconfig` when deploying to Platform.sh.
