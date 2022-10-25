@@ -21,3 +21,6 @@ if os.environ.get("ON_FLYIO"):
     # Use the Fly.io Postgres database.
     db_url = os.environ.get("DATABASE_URL")
     DATABASES['default'] = dj_database_url.parse(db_url)
+
+    # Prevent CSRF "Origin checking failed" issue.
+    CSRF_TRUSTED_ORIGINS = ['https://*.fly.dev']
