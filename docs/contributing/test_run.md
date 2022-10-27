@@ -28,7 +28,7 @@ For a test run, feel free to try `simple_deploy` against the provided sample pro
 
 Here are the overall steps you'll take:
 
-- Open an issue using the *Documenting a Test Run* issue template.
+- Open an issue using the [Documenting a Test Run](https://github.com/ehmatthes/django-simple-deploy/issues/new?assignees=&labels=&template=documenting-a-test-run.md&title=Documenting+a+Test+Run) issue template.
 - Fill in the initial information in the template.
 - Clone the sample repository, if you're not testing against your own project.
 - Run `simple_deploy` in either configuration mode, or the automated mode.
@@ -37,6 +37,8 @@ Here are the overall steps you'll take:
     - Was the documentation clear?
     - Was the configuration successful?
     - Was the deployment successful?
+    - What questions do you have?
+    - What suggestions do you have?
 
 ## Detailed Instructions
 
@@ -58,7 +60,6 @@ $ python manage.py runserver
 ```
 
 At this point you may want to visit the site and make an account, and maybe make a post. You may also want to visit the admin page, and verify that everything's working locally.
-
 
 ### Run functionality tests against the local project
 
@@ -82,9 +83,9 @@ Visit the [Quick Start](../quick_starts/index.md) document for the platform you'
 
 ### Evaluating the deployment
 
-If the deployment is not successful, please provide as much information as you can that will help us troubleshoot the project.
+If the deployment was not successful, please provide as much information as you can that will help us troubleshoot the project.
 
-If the deployment is successful, you can run the automated tests against the deployed project. Remember that `--flush-db` won't work on the deployed project, so consider running these tests before submitting any data on the deployed project. To run the tests:
+If the deployment was successful, you can run the automated tests against the deployed project. Remember that `--flush-db` won't work on the deployed project, so consider running these tests before entering any data on the deployed site. To run the tests:
 
 ```
 $ python test_deployed_app_functionality.py --url https://deployed-project-url
@@ -94,12 +95,12 @@ After running the tests, poke around the site on your own as well. Make sure you
 
 ### Destroying the test project
 
-Make sure you destroy your test deployment. This is entirely your responsiblity, and if you fail to do so you will accrue any charges associated with a project deployed to the platform you are working with.
+Make sure you destroy your test deployment. This is entirely your responsiblity, and if you fail to do so you will accrue any charges associated with a project deployed to the platform you are working with. No one associated with this project should ask you to keep a deployment alive for our troublehsooting purposes.
 
 ### Final thoughts
 
-If you have any final thoughts about how `django-simple-deploy` works, please share them in your issue. Thank you for helping out!
+If you have any final thoughts about how `django-simple-deploy` works, please share them in the issue you created to track your test run. Thank you for helping out!
 
 ## What next?
 
-If you have done a test run and want to continue contributing, see the main [Contributing](index.md) page for other ways to help out.
+Feel free to do as many test runs as you want. For example you might want to deploy to a different platform, or try a different dependency management system, or deploy a different project. If you want to contribute in other ways, see the main [Contributing](index.md) page for a variety of ways to help out.
