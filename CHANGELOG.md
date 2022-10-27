@@ -6,6 +6,14 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+- Started the Contributing section on the official documentation:
+  - Main contributing page
+  - Documenting a Test Run
+  - Testing on Your Own Account
+  - Setting up a Development Environment
+
 ### 0.5.6
 
 - Documentation for managing PRs and releases moved to Read the Docs.
