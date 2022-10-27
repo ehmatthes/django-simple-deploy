@@ -29,6 +29,12 @@ There are many ways to contribute. Choose the description that fits you best, an
 
 - If you have a long-term interest in contributing, please introduce yourself on the [Introductions](https://github.com/ehmatthes/django-simple-deploy/discussions/130) thread.
 - If you're newer to Django, or new to deployment, the simplest way to help is by [documenting a test run](test_run.md).
+- If you know a particular platform well, please share any thoughts you have about how to improve support for that platform:
+    - You can make a [test run](test_run.md) on that platform and look at the configuration changes that `simple_deploy` makes for that platform.
+    - Or, you can look in the `simple_deploy/management/commands/utils/` directory and find the `deploy_platform-name.py` file that targets the platform you know, and review the implementation details for configuration and deployment to that platform.
+- Respond to either of the two open discussions:
+    - [Open questions](https://github.com/ehmatthes/django-simple-deploy/discussions/132), a short list of questions related to reaching the stability needed for a 1.0 release.
+    - [Working towards idempotency](https://github.com/ehmatthes/django-simple-deploy/discussions/169), a focused question about making sure repeated `manage.py simple_deploy` calls will not cause issues in a project.
 
 Code of Conduct
 ---
