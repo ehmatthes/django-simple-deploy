@@ -13,6 +13,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
   - Documenting a Test Run
   - Testing on Your Own Account
   - Setting up a Development Environment
+- Added issue template for documenting test runs.  
 
 ### 0.5.6
 
