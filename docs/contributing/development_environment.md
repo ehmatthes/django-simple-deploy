@@ -10,6 +10,8 @@ Setting up a development environment will let you make changes to the `simple_de
 
 If you are doing any significant work, please open an issue and communicate with the rest of the team first. This project is evolving rapidly, and we don't want to see people do a bunch of work that conflicts with other work that's being done, and can't end up being merged to the main project.
 
+Also, if you haven't done so already, please review the [Testing on Your Own Account](own_account.md) page before moving forward.
+
 ## Make a local working copy of the project
 
 First, fork the `django-simple-deploy` project on GitHub. If you haven't done this before, look for the Fork button in the upper right corner of the project's [home page](https://github.com/ehmatthes/django-simple-deploy/). This will copy the main branch of the project to a new repo under your account.
@@ -138,19 +140,21 @@ $ git add .
 $ git commit -am "Initial state, before using simple_deploy."
 ```
 
-## Run `simple_deploy` locally
+## Make an editable install of `django-simple-deploy`
 
 To use your local version of `django-simple-deploy`, we'll install `simple_deploy` using an [editable install](https://pip.pypa.io/en/stable/topics/local-project-installs/#editable-installs). Normally `pip install` copies a package's files to your environment. Changes to the source files aren't copied to your environment until you upgrade or reinstall the package. With an editable install, pip instead sets up the project so the package is imported into the environment each time it's used. This means you can make changes in your `django-simple-deploy/` directory, and those changes will be used in your test project the next time you run `simple_deploy`.
 
-We'll make an editable installation of `django-simple-deploy`, and then use the current local version of the project to run a test deployment of the sample project.
+Here's how to make the editable install:
 
 ```
 $ python -m pip install -e /local/path/to/django-simple-deploy/
 ```
 
+## Run `simple_deploy` against the test project
+
 Now, visit the [Quick Start](../quick_starts/index.md) page for the platform you want to target, and follow the directions you see there. Make sure you skip the `pip install django-simple-deploy` step, because we've already made the editable install of this package.
 
-## Test the deployment
+### Test the deployment
 
 To make sure the deployment worked, run the functionality tests against the deployed version of the sample project:
 
@@ -160,18 +164,32 @@ $ python test_deployed_app_functionality.py --url https://deployed-project-url
 
 Keep in mind that the `--flush-db` command will not work on a deployed project. Also, note that these automated tests don't always work on projects that are deployed using the lowest-tier resources on the target platform. If you see the deployed site in the browser but the tests fail, try clicking through different pages and making a user account. It's possible that the project works for manual use, but doesn't respond well to rapid automated test requests.
 
+### Destroy the remote resources
 
+At this point, you can destroy the remote resources that were created. Remote resources should be destroyed automatically when running integration tests, but they are not destroyed for you when testing in the manner we've just run through. If you have any questions about this, see the [Testing on Your Own Account](own_account.md) page.
 
+### Reset the test project
 
+After verifying that your local version of `django-simple-deploy` works when run against the test project, you'll need to reset the test project. This will let you modify `django-simple-deploy`, and then run `simple_deploy` again and see the effect of your changes.
 
----
+To reset the project, run `git reset --hard commit_hash`, using the hash of the commit that you made after making sure the test project works locally. Also, run `git status` and make sure you remove any files or directories that are left in the project, such as `simple_deploy_logs/`. The `.platform/` directory also tends to hang around after resetting the test project, when testing against Platform.sh.
 
-- then pip install -e
-- add simple_deploy to installed_apps
-- make a commit
-- hack
-- run your deployment work
-- you can use `manage.py simple_deploy --unit-testing` to see configuration changes, without making a deployment
-- reset --hard commit_hash to undo config changes
-- make sure git status, and delete anything that didn't get reset, ie simple_deploy_logs/
-- Update tests
+## Developing `simple_deploy`
+
+Now you're ready to do your own development work on `simple_deploy`. Make a new branch on your fork of the project, and make any changes you want to the codebase. When you want to see if your changes improve the configuration and deployment process, go back to the [Run `simple_deploy` locally](#run-simple_deploy-against-the-test-project) section and repeat those steps.
+
+## Making a PR
+
+When this project is more mature, there will be a clear routine for running tests before opening a new PR. But testing this project is not straightforward. For example, there's no need to run a full test suite making multiple full deployments for every possible PR. If you're satisfied with your work and think it should be merged into the main project, feel free to open a PR.
+
+## Running unit tests
+
+Restructuring the unit tests is one of the higher-priority issues. When that work is being done, documentation for unit tests will be moved to the official documentation. For now, if you're interested in running the unit tests, see the [old documentation for unit tests](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/unit_tests.md).
+
+## Running integration tests
+
+The integration tests have been critical in developing the project to this point. That said, they are in need of restructuring as well. If you want to understand the current state of the integration tests, see the [old documentation](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/integration_tests.md) as well.
+
+## Closing thoughts
+
+This is a rapidly evolving project. Please feel free to open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues/new/choose) or a [discussion](https://github.com/ehmatthes/django-simple-deploy/discussions/new) about any aspect of this project.
