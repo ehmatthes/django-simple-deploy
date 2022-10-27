@@ -16,10 +16,10 @@ markdown_extensions:
 nav:
   - 'Introduction': 'index.md'
   - 'Quick Start':
-    - 'quick_start_index.md'
-    - 'Deploying to Fly.io': 'fly_io/quick_start.md'
-    - 'Deploying to Platform.sh': 'platform_sh/quick_start.md'
-    - 'Deploying to Heroku': 'heroku/quick_start.md'
+    - 'quick_starts/index.md'
+    - 'Deploying to Fly.io': 'quick_starts/quick_start_flyio.md'
+    - 'Deploying to Platform.sh': 'quick_starts/quick_start_platformsh.md'
+    - 'Deploying to Heroku': 'quick_starts/quick_start_heroku.md'
   - 'General Documentation':
     - 'Choosing a Platform': 'general_documentation/choosing_platform.md'
   - 'Contributing':

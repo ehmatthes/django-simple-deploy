@@ -78,4 +78,28 @@ $ python test_deployed_app_functionality.py --flush-db --url http://localhost:80
 
 Now you have a simple but nontrivial Django project that works locally, with no deployment-specific configuration. This is exactly the situation that `simple_deploy` is meant to handle.
 
-Visit the [Quick Start](../fly_io/quick_start.md) docum
+Visit the [Quick Start](../quick_starts/index.md) document for the platform you're targeting, and follow the directions you see there.
+
+### Evaluating the deployment
+
+If the deployment is not successful, please provide as much information as you can that will help us troubleshoot the project.
+
+If the deployment is successful, you can run the automated tests against the deployed project. Remember that `--flush-db` won't work on the deployed project, so consider running these tests before submitting any data on the deployed project. To run the tests:
+
+```
+$ python test_deployed_app_functionality.py --url https://deployed-project-url
+```
+
+After running the tests, poke around the site on your own as well. Make sure you can make an account, make a blog and a post, and visit the admin site. (You'll need to make a superuser account on your own; `django-simple-deploy` does not do this for you.)
+
+### Destroying the test project
+
+Make sure you destroy your test deployment. This is entirely your responsiblity, and if you fail to do so you will accrue any charges associated with a project deployed to the platform you are working with.
+
+### Final thoughts
+
+If you have any final thoughts about how `django-simple-deploy` works, please share them in your issue. Thank you for helping out!
+
+## What next?
+
+If you have done a test run and want to continue contributing, see the main [Contributing](index.md) page for other ways to help out.
