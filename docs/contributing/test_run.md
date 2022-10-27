@@ -95,7 +95,7 @@ After running the tests, poke around the site on your own as well. Make sure you
 
 ### Destroying the test project
 
-Make sure you destroy your test deployment. This is entirely your responsiblity, and if you fail to do so you will accrue any charges associated with a project deployed to the platform you are working with. No one associated with this project should ask you to keep a deployment alive for our troublehsooting purposes.
+Make sure you destroy your test deployment. This is entirely your responsiblity, and if you fail to do so you will accrue any charges associated with a project deployed to the platform you are working with. No one associated with this project should ask you to keep a deployment alive for troublehsooting purposes.
 
 ### Final thoughts
 

@@ -14,6 +14,10 @@ Most development work incurs very little cost; however this is highly dependent 
 
 If you're concerned about costs, you can look for platforms that have extended free trials. The [Choosing a Platform](../general_documentation/choosing_platform.md) page may help you find a platform that's suitable for testing with a low risk of incurring charges.
 
+## Destroying Resources
+
+Keep in mind that some platforms create more than one resource per deployment. For example on Fly.io, each deployment creates a new project, and a corresponding database. Destroying the project does not destroy the database. It is your responsibility to identify what resources were created on each test run, and to verify that all of these resources were actually destroyed.
+
 ## Higher-Tier Resources
 
 The default configuration for all platforms uses the cheapest resources that result in a reasonably working deployment on that platform. Usually this is the cheapest (hopefully free) resource available. Sometimes, however, we know that using the cheapest resource will result in a deployment that's so slow it's effectively useless. In this case we use the lowest-tier resource that is likely to provide a minimally functional working deployment.
