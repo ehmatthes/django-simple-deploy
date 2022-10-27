@@ -16,17 +16,20 @@ markdown_extensions:
 nav:
   - 'Introduction': 'index.md'
   - 'Quick Start':
+    - 'quick_start_index.md'
     - 'Deploying to Fly.io': 'fly_io/quick_start.md'
     - 'Deploying to Platform.sh': 'platform_sh/quick_start.md'
     - 'Deploying to Heroku': 'heroku/quick_start.md'
   - 'General Documentation':
     - 'Choosing a Platform': 'general_documentation/choosing_platform.md'
+  - 'Contributing':
+    - 'contributing/index.md'
+    - 'Documenting a Test Run': 'contributing/test_run.md'
+    - 'Testing on Your Own Account': 'contributing/testing_on_your_own_account.md'
   - 'Design Documentation':
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'
     - 'Strengths and Limitations': 'design_docs/strengths_limitations.md'
-  - 'Contributing':
-    - 'contributing/index.md'
   - 'Maintaining':
     - 'maintaining/index.md'
     - 'Merging PRs': 'maintaining/merging_prs.md'
