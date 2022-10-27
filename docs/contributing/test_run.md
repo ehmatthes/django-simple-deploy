@@ -48,16 +48,31 @@ Here are the detailed instructions for making a test run against the example pro
 
 Clone the example project, and run it locally:
 
-```
-$ git clone https://github.com/ehmatthes/dsd_sample_blog_reqtxt.git
-$ cd dsd_sample_blog_reqtxt
-$ python3 -m venv b_env
-$ source b_env/bin/activate
-$ pip install --upgrade pip
-$ pip install -r requirements.txt
-$ python manage.py migrate
-$ python manage.py runserver
-```
+=== "macOS/Linux"
+
+    ```
+    $ git clone https://github.com/ehmatthes/dsd_sample_blog_reqtxt.git
+    $ cd dsd_sample_blog_reqtxt
+    $ python3 -m venv b_env
+    $ source b_env/bin/activate
+    $ pip install --upgrade pip
+    $ pip install -r requirements.txt
+    $ python manage.py migrate
+    $ python manage.py runserver
+    ```
+
+=== "Windows"
+
+    ```
+    > git clone https://github.com/ehmatthes/dsd_sample_blog_reqtxt.git
+    > cd dsd_sample_blog_reqtxt
+    > python -m venv b_env
+    > b_env\Scripts\activate
+    > pip install --upgrade pip
+    > pip install -r requirements.txt
+    > python manage.py migrate
+    > python manage.py runserver
+    ```
 
 At this point you may want to visit the site and make an account, and maybe make a post. You may also want to visit the admin page, and verify that everything's working locally.
 
