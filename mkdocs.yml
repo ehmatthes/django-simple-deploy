@@ -25,7 +25,7 @@ nav:
   - 'Contributing':
     - 'contributing/index.md'
     - 'Documenting a Test Run': 'contributing/test_run.md'
-    - 'Testing on Your Own Account': 'contributing/testing_on_your_own_account.md'
+    - 'Testing on Your Own Account': 'contributing/own_account.md'
   - 'Design Documentation':
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'

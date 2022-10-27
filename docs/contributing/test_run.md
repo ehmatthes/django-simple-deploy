@@ -10,7 +10,7 @@ One of the simplest ways to start contributing is to document a test run of the 
 
 ## Minimum Requirements
 
-Before jumping in, you should be clear about one aspect of working on `django-simple-deploy`. There's really no way to contribute to the project without an active account on one of the platforms that `simple_deploy` supports. Make sure you read the [testing on your own account](contributing/testing_on_own_account.md) page before continuing.
+Before jumping in, you should be clear about one aspect of working on `django-simple-deploy`. There's really no way to contribute to the project without an active account on one of the platforms that `simple_deploy` supports. Make sure you read the [testing on your own account](own_account.md) page before continuing.
 
 The following directions are written with a focus on Fly.io, but can be adapted to any platform that's currently supported by `simple_deploy`.
 
