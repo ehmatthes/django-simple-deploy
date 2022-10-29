@@ -46,7 +46,6 @@ class PlatformshDeployer:
 
         # DEV: These could be refactored.
         self._make_platform_dir()
-        self._generate_routes_yaml()
         self._generate_services_yaml()
 
         self._conclude_automate_all()
@@ -206,41 +205,14 @@ class PlatformshDeployer:
             self.sd.write_output(f"    Made .platform directory: {self.platform_dir_path}")
 
 
-    def _generate_routes_yaml(self):
-        """Generate the .platform/routes.yaml file, if not present."""
-
-        # File should be in self.platform_dir_path, if present.
-        self.sd.write_output(f"\n  Looking in {self.platform_dir_path} for routes.yaml file...")
-        routes_yaml_present = 'routes.yaml' in os.listdir(self.platform_dir_path)
-
-        if routes_yaml_present:
-            self.sd.write_output("    Found existing routes.yaml file.")
-        else:
-            # Generate file from template.
-            self.sd.write_output("    No routes.yaml file found. Generating file...")
-            my_loader = Loader(Engine.get_default())
-            my_template = my_loader.get_template('routes.yaml')
-
-            # Build context dict for template.
-            context = {'deployed_project_name': self.deployed_project_name}
-            template_string = render_to_string('routes.yaml', context)
-
-            path = self.platform_dir_path / 'routes.yaml'
-            path.write_text(template_string)
-
-            msg = f"\n    Generated routes.yaml file: {path}"
-            self.sd.write_output(msg)
-            return path
-
-
     def _generate_services_yaml(self):
         """Generate the .platform/services.yaml file, if not present."""
         
         # File should be in self.platform_dir_path, if present.
         self.sd.write_output(f"\n  Looking in {self.platform_dir_path} for services.yaml file...")
-        routes_yaml_present = 'services.yaml' in os.listdir(self.platform_dir_path)
+        services_yaml_present = 'services.yaml' in os.listdir(self.platform_dir_path)
 
-        if routes_yaml_present:
+        if services_yaml_present:
             self.sd.write_output("    Found existing services.yaml file.")
         else:
             # Generate file from template.
