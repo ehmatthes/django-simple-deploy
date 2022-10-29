@@ -87,6 +87,7 @@ To upgrade all packages in vendor/:
 ```
 $ rm -rf vendor/
 $ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
+$ pip download --dest vendor/ platformshconfig
 ```
 
 Useful notes
