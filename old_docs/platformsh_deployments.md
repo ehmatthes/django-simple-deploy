@@ -82,7 +82,7 @@ The following commands will create an empty project on Platform.sh, and configur
 Now your project should be ready for deployment. To configure your project, `simple_deploy` does the following:
 
 - Adds a Platform.sh-specific block of settings at the end of `settings.py`. This modifies settings for `ALLOWED_HOSTS`, `DEBUG`, static files settings, the `SECRET_KEY` setting, and the database settings.
-- Adds Platform.sh-specific configuration files: `.platform.app.yaml`, `.platform/routes.yaml`, and `.platform/services.yaml`.
+- Adds Platform.sh-specific configuration files: `.platform.app.yaml` and `.platform/services.yaml`.
 - Adds required packages, by writing a `requirements_remote.txt` file.
     - The Platform.sh deployment process allows for multiple requirements files to be specified, which makes it easy to specify additional remote-only packages. The `platformshconfig` package is added to the core requirements file because it's used locally in `settings.py`. The two packages `gunicorn` and `psycopg2` are added to the `requirements_remote.txt` file.
 
