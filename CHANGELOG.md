@@ -6,14 +6,15 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.7
 
 - Started the Contributing section on the official documentation:
   - Main contributing page
   - Documenting a Test Run
   - Testing on Your Own Account
   - Setting up a Development Environment
-- Added issue template for documenting test runs.  
+- Added issue template for documenting test runs. 
+- Deployments on Platform.sh no longer include a `.platform/routes.yaml` file. 
 
 ### 0.5.6
 
