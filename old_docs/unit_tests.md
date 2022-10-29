@@ -82,7 +82,13 @@ The sole purpose of the vendor/ directory is to facilitate unit testing. To add 
 (dsd_env) $ pip download --dest vendor/ package_name
 ```
 
-I haven't upgraded a package in vendor/ yet, but it should be straightforward. If nothing else, delete the existing package resource and run the above command again.
+To upgrade all packages in vendor/:
+
+```
+$ rm -rf vendor/
+$ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
+$ pip download --dest vendor/ platformshconfig
+```
 
 Useful notes
 ---
