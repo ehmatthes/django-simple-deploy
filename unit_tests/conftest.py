@@ -6,7 +6,7 @@ import pytest
 
 
 @pytest.fixture(scope='module')
-def tmp_project(tmpdir_factory):
+def tmp_project(tmp_path_factory):
     """Create a copy of the local sample project, so that platform-specific modules
     can call simple_deploy.
 
@@ -18,7 +18,7 @@ def tmp_project(tmpdir_factory):
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parent.parent
-    tmp_proj_dir = tmpdir_factory.mktemp('blog_project')
+    tmp_proj_dir = tmp_path_factory.mktemp('blog_project')
 
     # To see where pytest creates the tmp_proj_dir, uncomment the following line.
     #   All tests will fail, but the AssertionError will show you the full path
