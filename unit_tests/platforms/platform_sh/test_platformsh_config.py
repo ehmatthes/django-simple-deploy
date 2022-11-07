@@ -12,7 +12,7 @@ import pytest
 def run_simple_deploy(tmp_project):
     # Call simple_deploy here, so it can target this module's platform.
     # cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p platform_sh"
-    sd_root_dir = Path(__file__).parent.parent.parent.parent
+    sd_root_dir = Path(__file__).parents[3]
     cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p platform_sh -s {sd_root_dir}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
@@ -31,7 +31,7 @@ def test_creates_platformsh_specific_settings_section(run_simple_deploy, setting
     # checking.
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parent.parent.parent.parent
+    sd_root_dir = Path(__file__).parents[3]
     path = sd_root_dir / 'simple_deploy/templates/platformsh_settings.py'
     lines = path.read_text().splitlines()
     for expected_line in lines[4:]:
@@ -44,7 +44,7 @@ def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
     """Verify that .platform.app.yaml is created correctly."""
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parent.parent.parent.parent
+    sd_root_dir = Path(__file__).parents[3]
 
     # From the template, generate the expected file.
     path_original = sd_root_dir / 'simple_deploy/templates/platform.app.yaml'
@@ -62,7 +62,7 @@ def test_services_yaml_file(tmp_project, run_simple_deploy):
     """Verify that .platform/services.yaml file is correct."""
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parent.parent.parent.parent
+    sd_root_dir = Path(__file__).parents[3]
 
     # From the template, generate the expected file.
     path_original = sd_root_dir / 'simple_deploy/templates/services.yaml'
