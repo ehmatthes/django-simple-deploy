@@ -140,7 +140,7 @@ def test_heroku_host_in_allowed_hosts(run_simple_deploy, tmp_project):
     Heroku host is already in ALLOWED_HOSTS.
     """
     # Modify the test project, and rerun simple_deploy.
-    cmd = f'sh modify_allowed_hosts.sh -d {tmp_project}'
+    cmd = f'sh platforms/heroku/modify_allowed_hosts.sh -d {tmp_project}'
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
