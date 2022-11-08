@@ -23,8 +23,3 @@ echo "\n\ntmp_dir: $tmp_dir" >> "$tmp_dir/diagnostics.txt"
 echo "\n\ninvalid_sd_command: $invalid_sd_command" >> "$tmp_dir/diagnostics.txt"
 
 $invalid_sd_command
-# python manage.py simple_deploy --unit-testing "$arg_string"
-# python manage.py simple_deploy --unit-testing
-
-# my_cmd="python manage.py simple_deploy --unit-testing --platform unsupported_platform_name"
-# $my_cmd
