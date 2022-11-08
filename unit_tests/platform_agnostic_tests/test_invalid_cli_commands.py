@@ -15,10 +15,6 @@ import pytest
 #     cmd_parts = cmd.split()
 #     subprocess.run(cmd_parts)
 
-# @pytest.fixture(scope='module')
-# def settings_text(tmp_project):
-#     return Path(tmp_project / 'blog/settings.py').read_text()
-
 
 # --- Test modifications to settings.py ---
 
@@ -46,8 +42,24 @@ import pytest
 # assert result.returncode == 1
 
 
+def test_bare_call(tmp_project, capfd):
+    """Call simple_deploy with no arguments."""
+    arg_string = ""
+    # cmd = f"sh utils/call_simple_deploy_invalid.sh -d {tmp_project} -a {arg_string}"
+    cmd = f"sh utils/call_simple_deploy_invalid.sh -d {tmp_project}"
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
+    # assert False
+    # captured = capsys.readouterr()
+    # assert '' == captured
+    # assert '' == capfd.readouterr()
+    # captured = capsys.readouterr()
+    # assert "The --platform flag is required" in captured.err
+    captured = capfd.readouterr()
+    # assert not captured
+    # assert "The --platform flag is required;" in captured.out
+    # assert "Please re-run the command with a --platform option specified." in captured.out
+    # assert not type(captured.out)
 
-
-
-def test_minimal_project_setup(tmp_project):
-    assert tmp_project
+    assert "The --platform flag is required;" in captured.err
+    assert "Please re-run the command with a --platform option specified." in captured.err
