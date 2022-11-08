@@ -12,13 +12,10 @@ import pytest
 def test_bare_call(tmp_project, capfd):
     """Call simple_deploy with no arguments."""
     invalid_sd_command = "python manage.py simple_deploy --unit-testing"
-    
-    # cmd = f"sh utils/call_simple_deploy_invalid.sh {tmp_project}"
-    # cmd_parts = cmd.split()
+
     cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_project}'
     cmd_parts = cmd.split()
     cmd_parts.append(invalid_sd_command)
-
 
     subprocess.run(cmd_parts)
     captured = capfd.readouterr()
@@ -28,12 +25,9 @@ def test_bare_call(tmp_project, capfd):
     assert "$ python manage.py simple_deploy --platform platform_sh" in captured.err
 
 
-
 def test_invalid_platform_call(tmp_project, capfd):
     """Call simple_deploy with an invalid --platform argument."""
     invalid_sd_command = "python manage.py simple_deploy --unit-testing --platform unsupported_platform_name"
-
-    diagnostic_file = tmp_project / "diagnostics.txt"
 
     # We have to be careful about how we split cmd before passing it to subprocess.run(),
     #   because invalid_sd_command has spaces in it. If we simply call cmd.split(), the command
@@ -43,7 +37,6 @@ def test_invalid_platform_call(tmp_project, capfd):
     cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_project}'
     cmd_parts = cmd.split()
     cmd_parts.append(invalid_sd_command)
-    diagnostic_file.write_text(str(cmd_parts))
 
     subprocess.run(cmd_parts)
     captured = capfd.readouterr()
