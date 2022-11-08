@@ -17,7 +17,7 @@ def tmp_project(tmp_path_factory):
     sleep(0.2)
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[2]
+    sd_root_dir = Path(__file__).parent.parent
     tmp_proj_dir = tmp_path_factory.mktemp('blog_project')
 
     # To see where pytest creates the tmp_proj_dir, uncomment the following line.

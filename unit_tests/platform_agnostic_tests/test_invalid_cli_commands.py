@@ -35,5 +35,19 @@ import pytest
 #     for expected_line in lines[4:]:
 #         assert expected_line.strip() in settings_text
 
+
+# DEV: This is what I want to call in each test in this module.
+# # Call invalid version of simple_deploy, to test the results before
+# #   making a valid call. This should error out, without changing project.
+# # DEV: Move this to a separate test function; test for specific error msg.
+# cmd = f"sh utils/call_sd_no_platform.sh -d {tmp_proj_dir}"
+# cmd_parts = cmd.split()
+# result = subprocess.run(cmd_parts)
+# assert result.returncode == 1
+
+
+
+
+
 def test_minimal_project_setup(tmp_project):
     assert tmp_project
