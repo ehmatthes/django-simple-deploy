@@ -6,6 +6,21 @@ import pytest
 
 # --- Fixtures ---
 
+@pytest.fixture(scope="module", autouse=True)
+def commit_test_project(tmp_project):
+    """Start each test run with a clean git status.
+    The initial project state has an unclean status, after adding simple_deploy
+      to INSTALLED_APPS. It's much easier to verify that these invalid commands
+      leave the project unchanged if we simply start with a clean git status.
+    Returns:
+    - None
+    """
+    commit_msg = "Start with clean state before calling invalid command."
+    cmd = f"sh utils/commit_test_project.sh {tmp_project}"
+    cmd_parts = cmd.split()
+    cmd_parts.append(commit_msg)
+    subprocess.run(cmd_parts)
+
 
 # --- Helper functions ---
 
@@ -26,6 +41,13 @@ def make_invalid_call(tmp_proj_dir, invalid_sd_command):
     subprocess.run(cmd_parts)
 
 
+def call_git_status(tmp_proj_dir):
+    """Call git status."""
+    cmd = f"sh utils/call_git_status.sh {tmp_proj_dir}"
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
+
+
 # --- Test modifications to settings.py ---
 
 def test_bare_call(tmp_project, capfd):
@@ -39,6 +61,11 @@ def test_bare_call(tmp_project, capfd):
     assert "Please re-run the command with a --platform option specified." in captured.err
     assert "$ python manage.py simple_deploy --platform platform_sh" in captured.err
 
+    call_git_status(tmp_project)
+    captured = capfd.readouterr()
+    assert "On branch main\nnothing to commit, working tree clean" in captured.out
+    assert "nothing to commit, working tree clean" in captured.out
+
 
 def test_invalid_platform_call(tmp_project, capfd):
     """Call simple_deploy with an invalid --platform argument."""
@@ -48,3 +75,8 @@ def test_invalid_platform_call(tmp_project, capfd):
     captured = capfd.readouterr()
 
     assert "The platform unsupported_platform_name is not currently supported." in captured.err
+
+    call_git_status(tmp_project)
+    captured = capfd.readouterr()
+    assert "On branch main\nnothing to commit, working tree clean" in captured.out
+    assert "nothing to commit, working tree clean" in captured.out
