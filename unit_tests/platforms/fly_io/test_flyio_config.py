@@ -45,17 +45,13 @@ def test_creates_fly_toml_file(tmp_project, run_simple_deploy):
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[3]
-
-    # From the template, generate the expected file.
-    path_original = sd_root_dir / 'simple_deploy/templates/fly.toml'
-    original_text = path_original.read_text()
-    expected_text = original_text.replace('{{ deployed_project_name }}', 'my_blog_project')
+    reference_file = Path('platforms/fly_io/reference_files/fly.toml').read_text()
 
     # Get the actual file from the modified test project.
     path_generated = tmp_project / 'fly.toml'
-    generated_text = path_generated.read_text(encoding='utf-8')
+    generated_file = path_generated.read_text(encoding='utf-8')
 
-    assert generated_text == expected_text
+    assert generated_file == reference_file
 
 
 def test_creates_dockerfile(tmp_project, run_simple_deploy):
@@ -63,17 +59,13 @@ def test_creates_dockerfile(tmp_project, run_simple_deploy):
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[3]
-
-    # From the template, generate the expected file.
-    path_original = sd_root_dir / 'simple_deploy/templates/dockerfile_flyio'
-    original_text = path_original.read_text()
-    expected_text = original_text.replace('{{ django_project_name }}', 'blog')
+    reference_file = Path('platforms/fly_io/reference_files/Dockerfile').read_text()
 
     # Get the actual file from the modified test project.
     path_generated = tmp_project / 'Dockerfile'
-    generated_text = path_generated.read_text(encoding='utf-8')
+    generated_file = path_generated.read_text(encoding='utf-8')
 
-    assert generated_text == expected_text
+    assert generated_file == reference_file
 
 
 def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
@@ -81,7 +73,6 @@ def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[3]
-
     reference_file = Path('platforms/fly_io/reference_files/.dockerignore').read_text()
 
     # Get the actual file from the modified test project.
