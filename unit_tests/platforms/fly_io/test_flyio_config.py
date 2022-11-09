@@ -33,8 +33,14 @@ def check_reference_file(tmp_proj_dir, filepath):
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[3]
 
+    # Path to the generated file is exactly as given, from tmp_proj_dir.
     fp_generated = tmp_proj_dir / filepath
-    fp_reference = Path(f'platforms/fly_io/reference_files/{filepath}')
+
+    # There are no subdirectories in references/, so we only need to keep
+    #   the actual filename.
+    # For example if filepath is `blog/settings.py`, we only want `settings.py`.
+    filename = Path(filepath).name
+    fp_reference = Path(f'platforms/fly_io/reference_files/{filename}')
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
@@ -43,19 +49,12 @@ def check_reference_file(tmp_proj_dir, filepath):
 
 # --- Test modifications to settings.py ---
 
-def test_creates_flyio_specific_settings_section(run_simple_deploy, settings_text, capsys):
-    """Verify there's a Fly.io-specific settings section."""
-    # Read lines from fly_io settings template, and make sure these
-    # lines are in the settings file. Remove whitespace from the lines before
-    # checking, and replace template variable with sample deployed project name.
-
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-    path = sd_root_dir / 'simple_deploy/templates/flyio_settings.py'
-    lines = path.read_text().splitlines()
-    lines = [line.replace("{{ deployed_project_name }}", "my_blog_project") for line in lines]
-    for expected_line in lines[4:]:
-        assert expected_line.strip() in settings_text
+def test_creates_flyio_specific_settings_section(tmp_project, run_simple_deploy, settings_text, capsys):
+    """Verify there's a Fly.io-specific settings section.
+    This function only checks the entire settings file. It does not examine
+      individual settings.
+    """
+    check_reference_file(tmp_project, 'blog/settings.py')
 
 
 # --- Test Fly.io-specific files ---
@@ -99,7 +98,9 @@ def test_log_dir(run_simple_deploy, tmp_project):
     # DEV: Add a regex text for a file like "simple_deploy_2022-07-09174245.log".
     assert len(log_files) == 1   # update on friendly summary
 
-    # Read log file.
+    # Read log file. We can never just examine the log file directly to a reference,
+    #   because it will have different timestamps.
+    # If we need to, we can make a comparison of all content except timestamps.
     # DEV: Look for specific log file; not sure this log file is always the second one.
     #   We're looking for one similar to "simple_deploy_2022-07-09174245.log".
     log_file = log_files[0]   # update on friendly summary
