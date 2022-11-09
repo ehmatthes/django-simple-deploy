@@ -26,32 +26,30 @@ def test_settings(tmp_project, run_simple_deploy):
     This function only checks the entire settings file. It does not examine
       individual settings.
     """
-    hf.check_reference_file(tmp_project, 'blog/settings.py')
+    hf.check_reference_file(tmp_project, 'blog/settings.py', 'fly_io')
 
 def test_requirements_txt(tmp_project, run_simple_deploy):
     """Test that the requirements.txt file is correct."""
-    hf.check_reference_file(tmp_project, 'requirements.txt')
+    hf.check_reference_file(tmp_project, 'requirements.txt', 'fly_io')
 
 def test_gitignore(tmp_project, run_simple_deploy):
     """Test that .gitignore has been modified correctly."""
-    hf.check_reference_file(tmp_project, '.gitignore')
+    hf.check_reference_file(tmp_project, '.gitignore', 'fly_io')
 
 
 # --- Test Fly.io-specific files ---
 
 def test_creates_fly_toml_file(tmp_project, run_simple_deploy):
     """Verify that fly.toml is created correctly."""
-    hf.check_reference_file(tmp_project, 'fly.toml')
-
+    hf.check_reference_file(tmp_project, 'fly.toml', 'fly_io')
 
 def test_creates_dockerfile(tmp_project, run_simple_deploy):
     """Verify that dockerfile is created correctly."""
-    hf.check_reference_file(tmp_project, 'Dockerfile')
-
+    hf.check_reference_file(tmp_project, 'Dockerfile', 'fly_io')
 
 def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
     """Verify that dockerignore file is created correctly."""
-    hf.check_reference_file(tmp_project, '.dockerignore')
+    hf.check_reference_file(tmp_project, '.dockerignore', 'fly_io')
 
 
 # --- Test logs ---

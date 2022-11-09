@@ -7,7 +7,7 @@ The functions in this module are not specific to any one platform. If a function
 from pathlib import Path
 import filecmp
 
-def check_reference_file(tmp_proj_dir, filepath):
+def check_reference_file(tmp_proj_dir, filepath, platform):
     """Check that the test version of the file matches the reference version
     of the file.
 
@@ -24,7 +24,7 @@ def check_reference_file(tmp_proj_dir, filepath):
     #   the actual filename.
     # For example if filepath is `blog/settings.py`, we only want `settings.py`.
     filename = Path(filepath).name
-    fp_reference = Path(f'platforms/fly_io/reference_files/{filename}')
+    fp_reference = Path(f'platforms/{platform}/reference_files/{filename}')
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.

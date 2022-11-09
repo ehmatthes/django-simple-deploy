@@ -5,6 +5,8 @@ import subprocess
 
 import pytest
 
+import unit_tests.utils.ut_helper_functions as hf
+
 
 # --- Fixtures ---
 
@@ -17,74 +19,29 @@ def run_simple_deploy(tmp_project):
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
-@pytest.fixture(scope='module')
-def settings_text(tmp_project):
-    return Path(tmp_project / 'blog/settings.py').read_text()
 
+# --- Test modifications to project files. ---
 
-# --- Test modifications to settings.py ---
+def test_settings(tmp_project, run_simple_deploy):
+    """Verify settings have been changed for Platform.sh."""
+    hf.check_reference_file(tmp_project, 'blog/settings.py', 'platform_sh')
 
-def test_creates_platformsh_specific_settings_section(run_simple_deploy, settings_text):
-    """Verify there's a Platform.sh-specific settings section."""
-    # Read lines from platform.sh settings template, and make sure these
-    # lines are in the settings file. Remove whitespace from the lines before
-    # checking.
+def test_requirements_txt(tmp_project, run_simple_deploy):
+    """Test that the requirements.txt file is correct."""
+    hf.check_reference_file(tmp_project, 'requirements.txt', 'platform_sh')
 
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-    path = sd_root_dir / 'simple_deploy/templates/platformsh_settings.py'
-    lines = path.read_text().splitlines()
-    for expected_line in lines[4:]:
-        assert expected_line.strip() in settings_text
+def test_gitignore(tmp_project, run_simple_deploy):
+    """Test that .gitignore has been modified correctly."""
+    hf.check_reference_file(tmp_project, '.gitignore', 'platform_sh')
 
 
 # --- Test Platform.sh yaml files ---
 
-def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
-    """Verify that .platform.app.yaml is created correctly."""
-
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-
-    # From the template, generate the expected file.
-    path_original = sd_root_dir / 'simple_deploy/templates/platform.app.yaml'
-    original_text = path_original.read_text()
-    expected_text = original_text.replace('{{ project_name }}', 'blog')
-    expected_text = expected_text.replace('{{ deployed_project_name }}', 'my_blog_project')
-
-    # Get the actual file from the modified test project.
-    path_generated = tmp_project / '.platform.app.yaml'
-    generated_text = path_generated.read_text(encoding='utf-8')
-
-    assert generated_text == expected_text
+def test_platform_app_yaml_file(tmp_project, run_simple_deploy):
+    hf.check_reference_file(tmp_project, '.platform.app.yaml', 'platform_sh')
 
 def test_services_yaml_file(tmp_project, run_simple_deploy):
-    """Verify that .platform/services.yaml file is correct."""
-
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-
-    # From the template, generate the expected file.
-    path_original = sd_root_dir / 'simple_deploy/templates/services.yaml'
-    # This file is the same for all projects.
-    expected_text = path_original.read_text()
-
-    # Get the actual file from the modified test project.
-    path_generated = tmp_project / '.platform/services.yaml'
-    generated_text = path_generated.read_text(encoding='utf-8')
-
-    assert generated_text == expected_text
-
-
-# --- Test requirements.txt ---
-
-def test_requirements_txt_file(tmp_project, run_simple_deploy):
-    """Test that the requirements.txt file is correct."""
-    rt_text = Path(tmp_project / 'requirements.txt').read_text()
-    assert "django-simple-deploy          # Added by simple_deploy command." in rt_text
-    assert "platformshconfig              # Added by simple_deploy command." in rt_text
-    assert "gunicorn                      # Added by simple_deploy command." in rt_text
-    assert "psycopg2                      # Added by simple_deploy command." in rt_text
+    hf.check_reference_file(tmp_project, '.platform/services.yaml', 'platform_sh')
 
 
 # --- Test logs ---
@@ -118,8 +75,3 @@ def test_log_dir(run_simple_deploy, tmp_project):
     # Spot check for success messages.
     assert "INFO: --- Your project is now configured for deployment on Platform.sh. ---" in log_file_text
     assert "INFO: To deploy your project, you will need to:" in log_file_text
-
-def test_ignore_log_dir(run_simple_deploy, tmp_project):
-    """Check that git is ignoring the log directory."""
-    gitignore_text = Path(tmp_project / '.gitignore').read_text()
-    assert 'simple_deploy_logs/' in gitignore_text
