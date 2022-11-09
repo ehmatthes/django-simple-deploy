@@ -58,6 +58,24 @@ def test_creates_fly_toml_file(tmp_project, run_simple_deploy):
     assert generated_text == expected_text
 
 
+def test_creates_dockerfile(tmp_project, run_simple_deploy):
+    """Verify that dockerfile is created correctly."""
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parents[3]
+
+    # From the template, generate the expected file.
+    path_original = sd_root_dir / 'simple_deploy/templates/dockerfile_flyio'
+    original_text = path_original.read_text()
+    expected_text = original_text.replace('{{ django_project_name }}', 'blog')
+
+    # Get the actual file from the modified test project.
+    path_generated = tmp_project / 'Dockerfile'
+    generated_text = path_generated.read_text(encoding='utf-8')
+
+    assert generated_text == expected_text
+
+
 # # --- Test Platform.sh yaml files ---
 
 # def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
