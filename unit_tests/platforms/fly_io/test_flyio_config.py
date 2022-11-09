@@ -21,6 +21,25 @@ def settings_text(tmp_project):
     return Path(tmp_project / 'blog/settings.py').read_text()
 
 
+# --- Helper functions ---
+
+def check_file(tmp_proj_dir, filepath):
+    """Check that the test version of the file matches the reference version
+    of the file.
+    - filepath: relative path from tmp_proj_dir to test file
+    """
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parents[3]
+    reference_file = Path(f'platforms/fly_io/reference_files/{filepath}').read_text()
+
+    # Get the actual file from the modified test project.
+    path_generated = tmp_proj_dir / filepath
+    generated_file = path_generated.read_text(encoding='utf-8')
+
+    assert generated_file == reference_file
+
+
 # --- Test modifications to settings.py ---
 
 def test_creates_flyio_specific_settings_section(run_simple_deploy, settings_text, capsys):
@@ -42,55 +61,24 @@ def test_creates_flyio_specific_settings_section(run_simple_deploy, settings_tex
 
 def test_creates_fly_toml_file(tmp_project, run_simple_deploy):
     """Verify that fly.toml is created correctly."""
-
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-    reference_file = Path('platforms/fly_io/reference_files/fly.toml').read_text()
-
-    # Get the actual file from the modified test project.
-    path_generated = tmp_project / 'fly.toml'
-    generated_file = path_generated.read_text(encoding='utf-8')
-
-    assert generated_file == reference_file
+    check_file(tmp_project, 'fly.toml')
 
 
 def test_creates_dockerfile(tmp_project, run_simple_deploy):
     """Verify that dockerfile is created correctly."""
-
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-    reference_file = Path('platforms/fly_io/reference_files/Dockerfile').read_text()
-
-    # Get the actual file from the modified test project.
-    path_generated = tmp_project / 'Dockerfile'
-    generated_file = path_generated.read_text(encoding='utf-8')
-
-    assert generated_file == reference_file
+    check_file(tmp_project, 'Dockerfile')
 
 
 def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
     """Verify that dockerignore file is created correctly."""
-
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-    reference_file = Path('platforms/fly_io/reference_files/.dockerignore').read_text()
-
-    # Get the actual file from the modified test project.
-    path_generated = tmp_project / '.dockerignore'
-    generated_file = path_generated.read_text(encoding='utf-8')
-
-    assert generated_file == reference_file
+    check_file(tmp_project, '.dockerignore')
 
 
+# --- Test requirements.txt ---
 
-# # --- Test requirements.txt ---
-
-# def test_requirements_txt_file(tmp_project, run_simple_deploy):
-#     """Test that the requirements.txt file is correct."""
-#     rt_text = Path(tmp_project / 'requirements.txt').read_text()
-#     assert "django-simple-deploy          # Added by simple_deploy command." in rt_text
-#     assert "gunicorn                      # Added by simple_deploy command." in rt_text
-#     assert "psycopg2                      # Added by simple_deploy command." in rt_text
+def test_requirements_txt_file(tmp_project, run_simple_deploy):
+    """Test that the requirements.txt file is correct."""
+    check_file(tmp_project, 'requirements.txt')
 
 
 # --- Test logs ---
