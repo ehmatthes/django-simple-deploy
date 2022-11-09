@@ -33,6 +33,7 @@ def test_creates_flyio_specific_settings_section(run_simple_deploy, settings_tex
     sd_root_dir = Path(__file__).parents[3]
     path = sd_root_dir / 'simple_deploy/templates/flyio_settings.py'
     lines = path.read_text().splitlines()
+    lines = [line.replace("{{ deployed_project_name }}", "my_blog_project") for line in lines]
     for expected_line in lines[4:]:
         assert expected_line.strip() in settings_text
 

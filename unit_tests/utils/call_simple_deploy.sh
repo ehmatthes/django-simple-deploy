@@ -26,7 +26,7 @@ source b_env/bin/activate
 # The flags and other conditions vary for testing different platforms, so
 #   call each in its own if block.
 if [ "$target_platform" = fly_io ]; then
-    python manage.py simple_deploy --unit-testing --platform "$target_platform"
+    python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
 elif [ "$target_platform" = platform_sh ]; then
     # Deployment to Platform.sh currently requires local installation of
     #   platformshconfig.
