@@ -1,4 +1,4 @@
-# Call git status on the test project.
+# Call git log on the test project.
 
 tmp_dir="$1"
 
@@ -6,4 +6,4 @@ tmp_dir="$1"
 #   We don't need to activate the enviromment in order to check git status.
 cd "$tmp_dir"
 
-git status
+git log -1 --pretty=oneline
