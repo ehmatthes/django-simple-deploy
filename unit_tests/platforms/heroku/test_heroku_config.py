@@ -34,7 +34,7 @@ def test_gitignore(tmp_project, run_simple_deploy):
     hf.check_reference_file(tmp_project, '.gitignore', 'heroku')
 
 
-# # --- Test Heroku-specific files ---
+# --- Test Heroku-specific files ---
 
 def test_generated_procfile(run_simple_deploy, tmp_project):
     """Test that the generated Procfile is correct."""
@@ -75,26 +75,18 @@ def test_log_dir(run_simple_deploy, tmp_project):
     assert "INFO: Or, you can visit https://sample-name-11894.herokuapp.com." in log_file_text
 
 
-# # --- Test staticfile setup ---
+# --- Test staticfile setup ---
 
-# def test_static_dir(run_simple_deploy, tmp_project):
-#     """Test that static dir exists, and contains placeholder file."""
-#     static_path = Path(tmp_project / 'static')
-#     assert static_path.exists()
-
-#     # There should be exactly one file in static/.
-#     static_dir_files = sorted(static_path.glob('*'))
-#     assert len(static_dir_files) == 1
-
-#     # We should find placeholder.txt.
-#     static_dir_file = static_dir_files[0]
-#     assert static_dir_file.name == 'placeholder.txt'
-
-#     # It should contain one line.
-#     assert static_dir_file.read_text() == 'This is a placeholder file to make sure this folder is pushed to Heroku.'
+def test_one_static_file(run_simple_deploy, tmp_project):
+    """There should be exactly one file in static/."""
+    static_path = tmp_project / 'static'
+    static_dir_files = sorted(static_path.glob('*'))
+    assert len(static_dir_files) == 1
 
 
 # # --- Test Heroku host already in ALLOWED_HOSTS ---
+# DEV: Keeping this here for now; we probably want to update this test rather
+#   than just get rid of it.
 
 # def test_heroku_host_in_allowed_hosts(run_simple_deploy, tmp_project):
 #     """Test that no ALLOWED_HOST entry in Heroku-specific settings if the
