@@ -48,23 +48,11 @@ def call_git_status(tmp_proj_dir):
     subprocess.run(cmd_parts)
 
 
-def check_clean_status(captured):
-    """Check that no changes have been made to the project."""
-    assert "On branch main\nnothing to commit, working tree clean" in captured.out
-    assert "nothing to commit, working tree clean" in captured.out
-
-
 def call_git_log(tmp_proj_dir):
     """Call git log."""
     cmd = f"sh utils/call_git_log.sh {tmp_proj_dir}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
-
-
-def check_git_log(captured):
-    """Make sure no new commits have been made."""
-    assert "Start with clean state before calling invalid command." in captured.out
-
 
 
 # --- Test modifications to settings.py ---
@@ -82,7 +70,11 @@ def test_bare_call(tmp_project, capfd):
 
     call_git_status(tmp_project)
     captured = capfd.readouterr()
-    check_clean_status(captured)
+    assert "On branch main\nnothing to commit, working tree clean" in captured.out
+
+    call_git_log(tmp_project)
+    captured = capfd.readouterr()
+    assert "Start with clean state before calling invalid command." in captured.out
 
 
 def test_invalid_platform_call(tmp_project, capfd):
@@ -96,8 +88,8 @@ def test_invalid_platform_call(tmp_project, capfd):
 
     call_git_status(tmp_project)
     captured = capfd.readouterr()
-    check_clean_status(captured)
+    assert "On branch main\nnothing to commit, working tree clean" in captured.out
 
     call_git_log(tmp_project)
     captured = capfd.readouterr()
-    check_git_log(captured)
+    assert "Start with clean state before calling invalid command." in captured.out
