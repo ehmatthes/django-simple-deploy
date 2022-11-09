@@ -27,7 +27,7 @@ def test_creates_flyio_specific_settings_section(run_simple_deploy, settings_tex
     """Verify there's a Fly.io-specific settings section."""
     # Read lines from fly_io settings template, and make sure these
     # lines are in the settings file. Remove whitespace from the lines before
-    # checking.
+    # checking, and replace template variable with sample deployed project name.
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[3]
@@ -36,6 +36,26 @@ def test_creates_flyio_specific_settings_section(run_simple_deploy, settings_tex
     lines = [line.replace("{{ deployed_project_name }}", "my_blog_project") for line in lines]
     for expected_line in lines[4:]:
         assert expected_line.strip() in settings_text
+
+
+# --- Test Fly.io-specific files ---
+
+def test_creates_fly_toml_file(tmp_project, run_simple_deploy):
+    """Verify that fly.toml is created correctly."""
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parents[3]
+
+    # From the template, generate the expected file.
+    path_original = sd_root_dir / 'simple_deploy/templates/fly.toml'
+    original_text = path_original.read_text()
+    expected_text = original_text.replace('{{ deployed_project_name }}', 'my_blog_project')
+
+    # Get the actual file from the modified test project.
+    path_generated = tmp_project / 'fly.toml'
+    generated_text = path_generated.read_text(encoding='utf-8')
+
+    assert generated_text == expected_text
 
 
 # # --- Test Platform.sh yaml files ---
