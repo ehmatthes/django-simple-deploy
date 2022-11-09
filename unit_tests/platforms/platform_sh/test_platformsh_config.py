@@ -11,13 +11,26 @@ import unit_tests.utils.ut_helper_functions as hf
 # --- Fixtures ---
 
 @pytest.fixture(scope='module')
-def run_simple_deploy(tmp_project):
+def reset_test_project(tmp_project):
+    """Reset the test project, so it can be used again by another test module,
+    which may be another platform.
+    """
+    sd_root_dir = Path(__file__).parents[3]
+    cmd = f"sh utils/reset_test_project.sh {tmp_project}"
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
+
+
+@pytest.fixture(scope='module')
+def run_simple_deploy(reset_test_project, tmp_project):
     # Call simple_deploy here, so it can target this module's platform.
     # cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p platform_sh"
     sd_root_dir = Path(__file__).parents[3]
     cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p platform_sh -s {sd_root_dir}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
+
+
 
 
 # --- Test modifications to project files. ---

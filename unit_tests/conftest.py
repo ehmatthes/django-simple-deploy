@@ -5,7 +5,7 @@ from time import sleep
 import pytest
 
 
-@pytest.fixture(scope='module')
+@pytest.fixture(scope='session')
 def tmp_project(tmp_path_factory):
     """Create a copy of the local sample project, so that platform-specific modules
     can call simple_deploy.
