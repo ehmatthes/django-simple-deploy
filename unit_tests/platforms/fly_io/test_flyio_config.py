@@ -76,42 +76,20 @@ def test_creates_dockerfile(tmp_project, run_simple_deploy):
     assert generated_text == expected_text
 
 
-# # --- Test Platform.sh yaml files ---
+def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
+    """Verify that dockerignore file is created correctly."""
 
-# def test_creates_platform_app_yaml_file(tmp_project, run_simple_deploy):
-#     """Verify that .platform.app.yaml is created correctly."""
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parents[3]
 
-#     # Root directory of local simple_deploy project.
-#     sd_root_dir = Path(__file__).parents[3]
+    reference_file = Path('platforms/fly_io/reference_files/.dockerignore').read_text()
 
-#     # From the template, generate the expected file.
-#     path_original = sd_root_dir / 'simple_deploy/templates/platform.app.yaml'
-#     original_text = path_original.read_text()
-#     expected_text = original_text.replace('{{ project_name }}', 'blog')
-#     expected_text = expected_text.replace('{{ deployed_project_name }}', 'my_blog_project')
+    # Get the actual file from the modified test project.
+    path_generated = tmp_project / '.dockerignore'
+    generated_file = path_generated.read_text(encoding='utf-8')
 
-#     # Get the actual file from the modified test project.
-#     path_generated = tmp_project / '.platform.app.yaml'
-#     generated_text = path_generated.read_text(encoding='utf-8')
+    assert generated_file == reference_file
 
-#     assert generated_text == expected_text
-
-# def test_services_yaml_file(tmp_project, run_simple_deploy):
-#     """Verify that .platform/services.yaml file is correct."""
-
-#     # Root directory of local simple_deploy project.
-#     sd_root_dir = Path(__file__).parents[3]
-
-#     # From the template, generate the expected file.
-#     path_original = sd_root_dir / 'simple_deploy/templates/services.yaml'
-#     # This file is the same for all projects.
-#     expected_text = path_original.read_text()
-
-#     # Get the actual file from the modified test project.
-#     path_generated = tmp_project / '.platform/services.yaml'
-#     generated_text = path_generated.read_text(encoding='utf-8')
-
-#     assert generated_text == expected_text
 
 
 # # --- Test requirements.txt ---
@@ -120,7 +98,6 @@ def test_creates_dockerfile(tmp_project, run_simple_deploy):
 #     """Test that the requirements.txt file is correct."""
 #     rt_text = Path(tmp_project / 'requirements.txt').read_text()
 #     assert "django-simple-deploy          # Added by simple_deploy command." in rt_text
-#     assert "platformshconfig              # Added by simple_deploy command." in rt_text
 #     assert "gunicorn                      # Added by simple_deploy command." in rt_text
 #     assert "psycopg2                      # Added by simple_deploy command." in rt_text
 
