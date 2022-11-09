@@ -1,9 +1,11 @@
 """Unit tests for django-simple-deploy, targeting Fly.io."""
 
 from pathlib import Path
-import subprocess, filecmp
+import subprocess
 
 import pytest
+
+import unit_tests.utils.ut_helper_functions as hf
 
 
 # --- Fixtures ---
@@ -17,32 +19,6 @@ def run_simple_deploy(tmp_project):
     subprocess.run(cmd_parts)
 
 
-# --- Helper functions ---
-
-def check_reference_file(tmp_proj_dir, filepath):
-    """Check that the test version of the file matches the reference version
-    of the file.
-
-    - filepath: relative path from tmp_proj_dir to test file
-    """
-
-    # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
-
-    # Path to the generated file is exactly as given, from tmp_proj_dir.
-    fp_generated = tmp_proj_dir / filepath
-
-    # There are no subdirectories in references/, so we only need to keep
-    #   the actual filename.
-    # For example if filepath is `blog/settings.py`, we only want `settings.py`.
-    filename = Path(filepath).name
-    fp_reference = Path(f'platforms/fly_io/reference_files/{filename}')
-
-    # The test file and reference file will always have different modified
-    #   timestamps, so no need to use default shallow=True.
-    assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
-
-
 # --- Test modifications to project files. ---
 
 def test_settings(tmp_project, run_simple_deploy):
@@ -50,32 +26,32 @@ def test_settings(tmp_project, run_simple_deploy):
     This function only checks the entire settings file. It does not examine
       individual settings.
     """
-    check_reference_file(tmp_project, 'blog/settings.py')
+    hf.check_reference_file(tmp_project, 'blog/settings.py')
 
 def test_requirements_txt(tmp_project, run_simple_deploy):
     """Test that the requirements.txt file is correct."""
-    check_reference_file(tmp_project, 'requirements.txt')
+    hf.check_reference_file(tmp_project, 'requirements.txt')
 
 def test_gitignore(tmp_project, run_simple_deploy):
     """Test that .gitignore has been modified correctly."""
-    check_reference_file(tmp_project, '.gitignore')
+    hf.check_reference_file(tmp_project, '.gitignore')
 
 
 # --- Test Fly.io-specific files ---
 
 def test_creates_fly_toml_file(tmp_project, run_simple_deploy):
     """Verify that fly.toml is created correctly."""
-    check_reference_file(tmp_project, 'fly.toml')
+    hf.check_reference_file(tmp_project, 'fly.toml')
 
 
 def test_creates_dockerfile(tmp_project, run_simple_deploy):
     """Verify that dockerfile is created correctly."""
-    check_reference_file(tmp_project, 'Dockerfile')
+    hf.check_reference_file(tmp_project, 'Dockerfile')
 
 
 def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
     """Verify that dockerignore file is created correctly."""
-    check_reference_file(tmp_project, '.dockerignore')
+    hf.check_reference_file(tmp_project, '.dockerignore')
 
 
 # --- Test logs ---
