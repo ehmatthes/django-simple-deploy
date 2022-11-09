@@ -14,7 +14,5 @@ source b_env/bin/activate
 #   that we expect users to make.
 invalid_sd_command="$(echo "$invalid_sd_command" | sed 's/simple_deploy/simple_deploy --unit-testing/')"
 
-echo "$invalid_sd_command" >> $tmp_dir/diagnostic.txt
-
 # Make invalid call.
 $invalid_sd_command
