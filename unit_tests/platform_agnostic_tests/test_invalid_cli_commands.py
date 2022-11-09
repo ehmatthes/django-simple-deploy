@@ -30,7 +30,7 @@ def make_invalid_call(tmp_proj_dir, invalid_sd_command):
 
 def test_bare_call(tmp_project, capfd):
     """Call simple_deploy with no arguments."""
-    invalid_sd_command = "python manage.py simple_deploy --unit-testing"
+    invalid_sd_command = "python manage.py simple_deploy"
 
     make_invalid_call(tmp_project, invalid_sd_command)
     captured = capfd.readouterr()
@@ -42,7 +42,7 @@ def test_bare_call(tmp_project, capfd):
 
 def test_invalid_platform_call(tmp_project, capfd):
     """Call simple_deploy with an invalid --platform argument."""
-    invalid_sd_command = "python manage.py simple_deploy --unit-testing --platform unsupported_platform_name"
+    invalid_sd_command = "python manage.py simple_deploy --platform unsupported_platform_name"
 
     make_invalid_call(tmp_project, invalid_sd_command)
     captured = capfd.readouterr()

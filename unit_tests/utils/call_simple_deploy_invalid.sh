@@ -9,5 +9,12 @@ cd "$tmp_dir"
 # Activate existing venv.
 source b_env/bin/activate
 
+# Add --unit-testing argument to call.
+# We do this here, so the test script can contain the exact invalid calls
+#   that we expect users to make.
+invalid_sd_command="$(echo "$invalid_sd_command" | sed 's/simple_deploy/simple_deploy --unit-testing/')"
+
+echo "$invalid_sd_command" >> $tmp_dir/diagnostic.txt
+
 # Make invalid call.
 $invalid_sd_command
