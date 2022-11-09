@@ -16,10 +16,6 @@ def run_simple_deploy(tmp_project):
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
-@pytest.fixture(scope='module')
-def settings_text(tmp_project):
-    return Path(tmp_project / 'blog/settings.py').read_text()
-
 
 # --- Helper functions ---
 
@@ -47,14 +43,22 @@ def check_reference_file(tmp_proj_dir, filepath):
     assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
 
 
-# --- Test modifications to settings.py ---
+# --- Test modifications to project files. ---
 
-def test_creates_flyio_specific_settings_section(tmp_project, run_simple_deploy, settings_text, capsys):
+def test_settings(tmp_project, run_simple_deploy):
     """Verify there's a Fly.io-specific settings section.
     This function only checks the entire settings file. It does not examine
       individual settings.
     """
     check_reference_file(tmp_project, 'blog/settings.py')
+
+def test_requirements_txt(tmp_project, run_simple_deploy):
+    """Test that the requirements.txt file is correct."""
+    check_reference_file(tmp_project, 'requirements.txt')
+
+def test_gitignore(tmp_project, run_simple_deploy):
+    """Test that .gitignore has been modified correctly."""
+    check_reference_file(tmp_project, '.gitignore')
 
 
 # --- Test Fly.io-specific files ---
@@ -72,13 +76,6 @@ def test_creates_dockerfile(tmp_project, run_simple_deploy):
 def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
     """Verify that dockerignore file is created correctly."""
     check_reference_file(tmp_project, '.dockerignore')
-
-
-# --- Test requirements.txt ---
-
-def test_requirements_txt_file(tmp_project, run_simple_deploy):
-    """Test that the requirements.txt file is correct."""
-    check_reference_file(tmp_project, 'requirements.txt')
 
 
 # --- Test logs ---
@@ -114,8 +111,3 @@ def test_log_dir(run_simple_deploy, tmp_project):
     # Spot check for success messages.
     assert "INFO: --- Your project is now configured for deployment on Fly.io ---" in log_file_text
     assert "INFO: To deploy your project, you will need to:" in log_file_text
-
-def test_ignore_log_dir(run_simple_deploy, tmp_project):
-    """Check that git is ignoring the log directory."""
-    gitignore_text = Path(tmp_project / '.gitignore').read_text()
-    assert 'simple_deploy_logs/' in gitignore_text
