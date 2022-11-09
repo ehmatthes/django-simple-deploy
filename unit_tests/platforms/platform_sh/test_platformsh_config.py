@@ -1,4 +1,4 @@
-"""Simple unit tests for django-simple-deploy, targeting Platform.sh."""
+"""Unit tests for django-simple-deploy, targeting Platform.sh."""
 
 from pathlib import Path
 import subprocess
