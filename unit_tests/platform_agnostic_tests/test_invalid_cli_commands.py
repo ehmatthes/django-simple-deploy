@@ -1,3 +1,13 @@
+"""Check that simple_deploy responds appropriately to invalid CLI calls.
+
+Each test function makes an invalid call, and then checks that:
+- Appropriately informative error messages are displayed to the end user.
+- The user's project is unchanged.
+
+Each test function includes the exact invalid call we expect users might make;
+  the --unit-testing flag is added in the call_simple_deploy_invalid.sh script.
+"""
+
 from pathlib import Path
 import subprocess
 
@@ -55,6 +65,17 @@ def call_git_log(tmp_proj_dir):
     subprocess.run(cmd_parts)
 
 
+def check_project_unchanged(tmp_proj_dir, capfd):
+    """Check that the project has not been changed."""
+    call_git_status(tmp_proj_dir)
+    captured = capfd.readouterr()
+    assert "On branch main\nnothing to commit, working tree clean" in captured.out
+
+    call_git_log(tmp_proj_dir)
+    captured = capfd.readouterr()
+    assert "Start with clean state before calling invalid command." in captured.out
+
+
 # --- Test modifications to settings.py ---
 
 def test_bare_call(tmp_project, capfd):
@@ -67,14 +88,7 @@ def test_bare_call(tmp_project, capfd):
     assert "The --platform flag is required;" in captured.err
     assert "Please re-run the command with a --platform option specified." in captured.err
     assert "$ python manage.py simple_deploy --platform platform_sh" in captured.err
-
-    call_git_status(tmp_project)
-    captured = capfd.readouterr()
-    assert "On branch main\nnothing to commit, working tree clean" in captured.out
-
-    call_git_log(tmp_project)
-    captured = capfd.readouterr()
-    assert "Start with clean state before calling invalid command." in captured.out
+    check_project_unchanged(tmp_project, capfd)
 
 
 def test_invalid_platform_call(tmp_project, capfd):
@@ -85,11 +99,4 @@ def test_invalid_platform_call(tmp_project, capfd):
     captured = capfd.readouterr()
 
     assert "The platform unsupported_platform_name is not currently supported." in captured.err
-
-    call_git_status(tmp_project)
-    captured = capfd.readouterr()
-    assert "On branch main\nnothing to commit, working tree clean" in captured.out
-
-    call_git_log(tmp_project)
-    captured = capfd.readouterr()
-    assert "Start with clean state before calling invalid command." in captured.out
+    check_project_unchanged(tmp_project, capfd)
