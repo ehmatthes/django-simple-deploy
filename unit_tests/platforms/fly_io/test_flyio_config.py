@@ -1,7 +1,7 @@
 """Unit tests for django-simple-deploy, targeting Fly.io."""
 
 from pathlib import Path
-import subprocess
+import subprocess, filecmp
 
 import pytest
 
@@ -23,21 +23,22 @@ def settings_text(tmp_project):
 
 # --- Helper functions ---
 
-def check_file(tmp_proj_dir, filepath):
+def check_reference_file(tmp_proj_dir, filepath):
     """Check that the test version of the file matches the reference version
     of the file.
+
     - filepath: relative path from tmp_proj_dir to test file
     """
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[3]
-    reference_file = Path(f'platforms/fly_io/reference_files/{filepath}').read_text()
 
-    # Get the actual file from the modified test project.
-    path_generated = tmp_proj_dir / filepath
-    generated_file = path_generated.read_text(encoding='utf-8')
+    fp_generated = tmp_proj_dir / filepath
+    fp_reference = Path(f'platforms/fly_io/reference_files/{filepath}')
 
-    assert generated_file == reference_file
+    # The test file and reference file will always have different modified
+    #   timestamps, so no need to use default shallow=True.
+    assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
 
 
 # --- Test modifications to settings.py ---
@@ -61,24 +62,24 @@ def test_creates_flyio_specific_settings_section(run_simple_deploy, settings_tex
 
 def test_creates_fly_toml_file(tmp_project, run_simple_deploy):
     """Verify that fly.toml is created correctly."""
-    check_file(tmp_project, 'fly.toml')
+    check_reference_file(tmp_project, 'fly.toml')
 
 
 def test_creates_dockerfile(tmp_project, run_simple_deploy):
     """Verify that dockerfile is created correctly."""
-    check_file(tmp_project, 'Dockerfile')
+    check_reference_file(tmp_project, 'Dockerfile')
 
 
 def test_creates_dockerignore_file(tmp_project, run_simple_deploy):
     """Verify that dockerignore file is created correctly."""
-    check_file(tmp_project, '.dockerignore')
+    check_reference_file(tmp_project, '.dockerignore')
 
 
 # --- Test requirements.txt ---
 
 def test_requirements_txt_file(tmp_project, run_simple_deploy):
     """Test that the requirements.txt file is correct."""
-    check_file(tmp_project, 'requirements.txt')
+    check_reference_file(tmp_project, 'requirements.txt')
 
 
 # --- Test logs ---
