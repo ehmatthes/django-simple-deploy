@@ -17,11 +17,6 @@ cd "$tmp_dir"
 # Activate existing venv.
 source b_env/bin/activate
 
-# For testing deployment to Heroku:
-# At this point simple_deploy expects `heroku create` to have been run,
-#   or expects us to use `--automate-all` to call `heroku create`.
-# How mock this call? Need to get output for `heroku apps:info`.
-
 # Run configuration-only version of simple_deploy.
 # The flags and other conditions vary for testing different platforms, so
 #   call each in its own if block.
