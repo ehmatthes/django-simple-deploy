@@ -280,11 +280,11 @@ def test_creates_dockerfile(tmp_project):
 ...
 ```
 
-This file imports the `utils/ut_helper_functions.py` module, which contains functions that are useful to test modules in different platform-specific directories.
+The test file imports the `utils/ut_helper_functions.py` module, which contains functions that are useful to test modules in different platform-specific directories.
 
- The function `test_creates_dockerfile()` has one argument, `tmp_project`. Here pytest takes the return value from the `tmp_project()` fixture, and assigns it to the variable `tmp_project` in `test_creates_dockerfile`. This is a little confusing; we have a fixture function in `conftest.py` called `tmp_project()`, but in the current test function `tmp_project` refers to the return value of `tmp_project()`. If this is confusing, keep in mind that **in this test function, `tmp_proj` is the path to the directory containing the test project.**
+ The function `test_creates_dockerfile()` has one argument, `tmp_project`. Here pytest takes the return value from the `tmp_project()` fixture, and assigns it to the variable `tmp_project`. This can be a little confusing; we have a fixture  in `conftest.py` called `tmp_project()`, but in the current test function `tmp_project` refers to the return value of `tmp_project()`. If this is confusing, keep in mind that **in this test function, `tmp_proj` is the path to the directory containing the test project.**
 
-The actual test function is only one line! We call `check_reference_file()`, which compares a file from the test project against the reference files. Here we compare that the `Dockerfile` that's created during the test run matches the reference file `unit_tests/platforms/fly_io/reference_files/Dockerfile`. If your current local version of `django-simple-deploy` generates a `Dockerfile` for Fly.io deployments that doesn't match the correct file, you'll know. :)
+The actual test function is only one line! We call `check_reference_file()`, which compares a file from the test project against the corresponding reference file. Here we make sure the `Dockerfile` that's created during the test run matches the reference `unit_tests/platforms/fly_io/reference_files/Dockerfile`. If your current local version of `django-simple-deploy` generates a `Dockerfile` for Fly.io deployments that doesn't match this file, you'll know. :)
 
 ### Conclusion
 
@@ -293,11 +293,30 @@ That's a whole lot of setup work for a one-line test function! But the advantage
 The rest of the test functions in `test_flyio_config.py` work in a similar way, except for `test_log_dir()`. That function inspects several aspects of the log directory, and the log file that should be found there.
 
 !!! note
-    The setup work will become more complex as we start to test multiple dependency management approaches, multiple versions of Django, multiple versions of Python, and multiple OSes. But the overall approach described here shouldn't change significantly.
-
+    The setup work will become more complex as we start to test multiple dependency management approaches, multiple versions of Django, multiple versions of Python, and multiple OSes. But the overall approach described here shouldn't change significantly. We'll still have a bunch of setup work followed by a large number of smaller, specific test functions.
 
 
 ## Testing multiple platforms
+
+What's the difference when we test multiple platforms? Not much; let's consider what happens when we test against two platforms in one test run:
+
+```
+(dsd_env)unit_tests $ pytest platforms/fly_io platforms/platform_sh
+==================== test session starts ====================
+platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
+rootdir: django-simple-deploy
+collected 13 items
+
+platforms/fly_io/test_flyio_config.py .......
+platforms/platform_sh/test_platformsh_config.py ......
+==================== 13 passed in 16.07s ====================
+```
+
+Everything described above in [Testing a single platform](#testing-a-single-platform) happens in this test run as well. When all of the test functions in the first test module have been run, pytest moves on to the second test module.
+
+In this case, that next test module is `test_platformsh_config.py`. Since the `tmp_project()` fixture has session-level scope, it doesn't run again. But all of the other fixtures have module-level scope, so they run again. Everything from [run_simple_deploy()](#the-run_simple_deploy-fixture) forward happens again, and at the end of all the setup work the test functions in `test_platformsh_config.py` run.
+
+Note that the first test module doesn't finish running for about 12s (on my system). Much of that time is spent building the test project environment. Resetting the test project environment takes much less time, so the subsequent test modules finish much more quickly. It doesn't take much more time to test multiple platforms than it takes to test a single platform.
 
 ## Running platform-agnostic tests
 
