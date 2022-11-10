@@ -40,13 +40,3 @@ git tag -am '' INITIAL_STATE
 
 # Add simple_deploy to INSTALLED_APPS.
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
-
-
-# At this point simple_deploy expects `heroku create` to have been run,
-#   or expects us to use `--automate-all` to call `heroku create`.
-# How mock this call? Need to get output for `heroku apps:info`.
-
-# Run configuration-only version of simple_deploy.
-# DEV: Trying to move this call to conftest, in order to test invalid
-#   versions of this command.
-# python manage.py simple_deploy --unit-testing --platform heroku
