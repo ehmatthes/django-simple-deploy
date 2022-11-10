@@ -125,7 +125,7 @@ The `utils/` directory contains scrips that are used by multiple test files.
 
 ## Testing a single platform
 
-With all that said, let's look at what actually happens when we test a single platform. We'll see in what order the resources described above are used. As an example, we'll look at what happens when we issue the following call:
+With all that said, let's look at what actually happens when we test a single platform; we'll see in what order the resources described above are used. As an example, let's look at what happens when we issue the following call:
 
 ```
 (dsd_env)unit_tests $ pytest platforms/fly_io/
@@ -133,8 +133,167 @@ With all that said, let's look at what actually happens when we test a single pl
 
 ### Collecting tests
 
-This command tells pytest to find all the files starting with `test_` in the `platforms/fly_io/` directory, and collect any function starting with `test_` in those files. In this case, that's just `test_flyio_config.py`, which contains seven functions starting with `test_`. 
+This command tells pytest to find all the files starting with `test_` in the `platforms/fly_io/` directory, and collect any function starting with `test_` in those files. In this case, that's just `test_flyio_config.py`, which contains seven functions starting with `test_`.
 
+Once pytest finds a test function, it begins to set up the test run.
+
+### Fixtures, again
+
+Here's where fixtures come into play. pytest first runs any fixture with a scope that's relevant to the tests that are about to be run:
+
+- All fixtures with `scope="session"` will be run.
+- Any fixture with a scope relevant to the test function that's about to be run, with `autouse=True`, will be run.
+- Any fixture whose name appears in the test function's list of paremeters will be run. 
+
+#### The `tmp_project()` fixture
+
+We have one fixture in `conftest.py` with session-level scope, `tmp_project()`. Here's the most important parts of `tmp_project()`:
+
+```python
+@pytest.fixture(scope='session')
+def tmp_project(tmp_path_factory):
+    ...
+    tmp_proj_dir = tmp_path_factory.mktemp('blog_project')
+    ...
+    cmd = f'sh utils/setup_project.sh -d {tmp_proj_dir} -s {sd_root_dir}'
+    ...
+    return tmp_proj_dir
+```
+
+This fixture calls a [built-in fixture](https://docs.pytest.org/en/latest/reference/reference.html#std-fixture-tmp_path_factory), `tmp_path_factory`, which allows us to request temporary directories for use during test runs. These directories are managed entirely by pytest, so we don't have to worry about cleaning them up later.
+
+We make a temporary directory, and assign the full path for this directory to `tmp_proj_dir`. We then call `setup_project.sh`. Finally, we return `tmp_proj_dir`. Any test function with `tmp_project` in its paremeter list will have access to this value.
+
+#### The `setup_project.sh` file
+
+Here's the most important parts of `setup_project.sh`:
+
+```bash title="utils/setup_project.sh"
+...
+rsync -ar ../sample_project/blog_project/ "$tmp_dir"
+...
+# Build a venv and install requirements.
+python3 -m venv b_env
+source b_env/bin/activate
+pip install --no-index --find-links="$sd_root_dir/vendor/" -r requirements.txt
+
+# Install local version of simple_deploy.
+pip install -e "$sd_root_dir/"
+...
+# Make an initial commit.
+git init
+git add .
+git commit -am "Initial commit."
+git tag -am '' INITIAL_STATE
+
+# Add simple_deploy to INSTALLED_APPS.
+sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
+```
+
+This file does a few important things, which last for the entire testing session:
+
+- Copy the sample blog project to the location specified by `tmp_proj_dir`.
+- Build a virtual environment.
+- Make an editable install of `django-simple-deploy`. This means it installs from your local copy, not from PyPI. Any changes you make to your local version of `django-simple-deploy` are picked up by the unit tests.
+- Make an initial commit of the test project, with the tag `INITIAL_STATE`.
+- Add `simple_deploy` to the test project's `INSTALLED_APPS`.
+
+#### The `run_simple_deploy()` fixture
+
+This fixture has a module-level scope, and `autouse=True`. It is called once for each test module. Here's the function definition:
+
+```python
+@pytest.fixture(scope='module', autouse=True)
+def run_simple_deploy(reset_test_project, tmp_project, request):
+    ...
+```
+
+The important thing to note here is the inclusion of `reset_test_project` in the function's parameter list. When pytest sees this, it runs the `reset_test_project()` fixture before running the code in `run_simple_deploy()`.
+
+#### The `reset_test_project()` fixture
+
+This fixture just calls `reset_test_project.sh`, so let's look at that file:
+
+```bash title="utils/reset_project.sh"
+...
+git reset --hard INITIAL_STATE
+...
+sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
+```
+
+This file calls `git reset` using the tag `INITIAL_STATE`, and then adds `simple_deploy` back into the test project's `INSTALLED_APPS`.
+
+This reset happens once per test module. It's good to note that this happens even if only one test module is being run. This fixture has no effect in that situation, but it also doesn't cause any harm to the test run.
+
+#### Back to `run_simple_deploy()`
+
+Now, back to `run_simple_deploy()`. Here's the most important parts:
+
+```python
+@pytest.fixture(scope='module', autouse=True)
+def run_simple_deploy(reset_test_project, tmp_project, request):
+    ...
+    re_platform = r".*/unit_tests/platforms/(.*?)/.*"
+    ...
+    if m:
+        platform = m.group(1)
+    else:
+        return
+    ...
+    cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p {platform} -s {sd_root_dir}"
+    ...
+```
+
+This function uses a regular expression to find out which platform is currently being tested, which is assigned to `platform`. If there's no platform name, we don't need to run `simple_deploy`, so the function returns early. The function now runs `call_simple_deploy.sh`.
+
+#### The `call_simple_deploy.sh` file
+
+Here's `call_simple_deploy.sh`:
+
+```bash title="utils/call_simple_deploy.sh"
+if [ "$target_platform" = fly_io ]; then
+    python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
+elif [ "$target_platform" = platform_sh ]; then
+    pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig
+    python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
+elif [ "$target_platform" = heroku ]; then
+    python manage.py simple_deploy --unit-testing --platform "$target_platform"
+fi
+```
+
+This file calls `simple_deploy` with the `--unit-testing` flag, and any other parameters that are required for unit testing by the platform that's being tested.
+
+We are finally finished with all of the fixtures, so we'll head back to one of the functions in `test_flyio_config.py`.
+
+### A single test function
+
+Here's one of the test functions that we can focus on:
+
+```python title="unit_tests/platforms/fly_io/test_flyio_config.py"
+...
+import unit_tests.utils.ut_helper_functions as hf
+...
+
+def test_creates_dockerfile(tmp_project):
+    """Verify that dockerfile is created correctly."""
+    hf.check_reference_file(tmp_project, 'Dockerfile', 'fly_io')
+...
+```
+
+This file imports the `utils/ut_helper_functions.py` module, which contains functions that are useful to test modules in different platform-specific directories.
+
+ The function `test_creates_dockerfile()` has one argument, `tmp_project`. Here pytest takes the return value from the `tmp_project()` fixture, and assigns it to the variable `tmp_project` in `test_creates_dockerfile`. This is a little confusing; we have a fixture function in `conftest.py` called `tmp_project()`, but in the current test function `tmp_project` refers to the return value of `tmp_project()`. If this is confusing, keep in mind that **in this test function, `tmp_proj` is the path to the directory containing the test project.**
+
+The actual test function is only one line! We call `check_reference_file()`, which compares a file from the test project against the reference files. Here we compare that the `Dockerfile` that's created during the test run matches the reference file `unit_tests/platforms/fly_io/reference_files/Dockerfile`. If your current local version of `django-simple-deploy` generates a `Dockerfile` for Fly.io deployments that doesn't match the correct file, you'll know. :)
+
+### Conclusion
+
+That's a whole lot of setup work for a one-line test function! But the advantage of all that setup work is that we can write hundreds, or thousands of small test functions without adding much to the setup work.
+
+The rest of the test functions in `test_flyio_config.py` work in a similar way, except for `test_log_dir()`. That function inspects several aspects of the log directory, and the log file that should be found there.
+
+!!! note
+    The setup work will become more complex as we start to test multiple dependency management approaches, multiple versions of Django, multiple versions of Python, and multiple OSes. But the overall approach described here shouldn't change significantly.
 
 
 
