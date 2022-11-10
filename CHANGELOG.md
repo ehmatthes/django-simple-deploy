@@ -6,6 +6,18 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+- Updated unit test suite.
+    - Unit test runs add `simple_deploy` to `INSTALLED_APPS` after last commit, like most end users would.
+    - Unit tests are reorganized to separate tests for each platform, and to have a dedicated set of platform-agnostic tests.
+    - Most shell scripts have been moved to a `utils/` directory.
+    - A much simpler approach to testing invalid CLI calls is used.
+    - Includes a basic set of unit tests for Fly.io configuration .
+    - Each `unit_tests/platforms/` dir contains a `reference_files` directory. When unit tests run, modified sample project files are compared to these reference files. This makes it much easier to reason about unit tests, and provides a nice set of files to see exactly what changes `simple_deploy` makes to the sample project's files.
+    - The sample project is only built once for every test session, rather than once per test module. The test project is reset for each new test module. This results in a speedup from ~52s to ~16s for the entire suite at this point. More importantly, testing more platforms and dependency management approaches will only incrementally increase test duration, rather than multiplying test duration.
+    - Official documentation covers how to run unit tests.
+
 ### 0.5.7
 
 - Started the Contributing section on the official documentation:

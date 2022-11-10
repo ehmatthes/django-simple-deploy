@@ -17,15 +17,12 @@ cd "$tmp_dir"
 # Activate existing venv.
 source b_env/bin/activate
 
-# For testing deployment to Heroku:
-# At this point simple_deploy expects `heroku create` to have been run,
-#   or expects us to use `--automate-all` to call `heroku create`.
-# How mock this call? Need to get output for `heroku apps:info`.
-
 # Run configuration-only version of simple_deploy.
 # The flags and other conditions vary for testing different platforms, so
 #   call each in its own if block.
-if [ "$target_platform" = platform_sh ]; then
+if [ "$target_platform" = fly_io ]; then
+    python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
+elif [ "$target_platform" = platform_sh ]; then
     # Deployment to Platform.sh currently requires local installation of
     #   platformshconfig.
     pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig

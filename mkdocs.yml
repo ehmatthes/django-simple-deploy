@@ -12,6 +12,9 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true 
   - def_list
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
 
 nav:
   - 'Introduction': 'index.md'
@@ -31,6 +34,9 @@ nav:
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'
     - 'Strengths and Limitations': 'design_docs/strengths_limitations.md'
+  - 'Unit Tests':
+    - 'unit_tests/index.md'
+    - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'    
   - 'Maintaining':
     - 'maintaining/index.md'
     - 'Merging PRs': 'maintaining/merging_prs.md'
