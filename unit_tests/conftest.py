@@ -29,12 +29,17 @@ def tmp_project(tmp_path_factory):
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
+    diag_fp = Path('/Users/eric/Desktop/diagnostic.txt')
+    with open(diag_fp, 'w') as f:
+        f.write("Hello from tmp_project.\n")
+        f.write(f"{__file__}")
+
     # Return the location of the temp project.
     return tmp_proj_dir
 
 
 @pytest.fixture(scope='module')
-def reset_test_project(tmp_project):
+def reset_test_project(tmp_project, request):
     """Reset the test project, so it can be used again by another test module,
     which may be another platform.
     """
@@ -42,3 +47,9 @@ def reset_test_project(tmp_project):
     cmd = f"sh utils/reset_test_project.sh {tmp_project}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
+
+    diag_fp = Path('/Users/eric/Desktop/diagnostic.txt')
+    with open(diag_fp, 'a') as f:
+        f.write("\n\nHello from test_project.\n")
+        f.write(f"\n{request.module.__name__}")
+        f.write(f"\n{request.path}")

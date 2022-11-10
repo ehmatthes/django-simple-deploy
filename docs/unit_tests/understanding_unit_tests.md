@@ -131,5 +131,6 @@ This command tells pytest to find all the files starting with `test_` in the `pl
 - [How to use fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html)
 - [Autouse fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html#autouse-fixtures-fixtures-you-don-t-have-to-request)
 - [How to capture stdout/stderr output](https://docs.pytest.org/en/7.2.x/how-to/capture-stdout-stderr.html)
-- [Parametrizing fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html#parametrizing-fixtures)
 - Fixture [scope](https://docs.pytest.org/en/latest/how-to/fixtures.html#scope-sharing-fixtures-across-classes-modules-packages-or-session)
+- Fixtures [reference](https://docs.pytest.org/en/latest/reference/fixtures.html#reference-fixtures)
+- [Parametrizing fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html#parametrizing-fixtures)
