@@ -10,14 +10,6 @@ import unit_tests.utils.ut_helper_functions as hf
 
 # --- Fixtures ---
 
-@pytest.fixture(scope='module', autouse=True)
-def run_simple_deploy(reset_test_project, tmp_project):
-    # Call simple_deploy here, so it can target this module's platform.
-    sd_root_dir = Path(__file__).parents[3]
-    cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p heroku -s {sd_root_dir}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
-
 
 # --- Test modifications to project files. ---
 
