@@ -1,4 +1,4 @@
-import subprocess
+import subprocess, re
 from pathlib import Path
 from time import sleep
 
@@ -53,3 +53,30 @@ def reset_test_project(tmp_project, request):
         f.write("\n\nHello from test_project.\n")
         f.write(f"\n{request.module.__name__}")
         f.write(f"\n{request.path}")
+
+
+@pytest.fixture(scope='module', autouse=True)
+def run_simple_deploy(reset_test_project, tmp_project, request):
+    """Call simple deploy, targeting the platform that's currently being tested.
+    This auto-runs for all test modules in the /unit_tests/platforms/ directory.
+    """
+
+    # Identify the platform that's being tested. We're looking for the element
+    #   in the test module path immediately after /unit_tests/platforms/.
+    re_platform = r".*/unit_tests/platforms/(.*?)/.*"
+    test_module_path = request.path
+    m = re.match(re_platform, str(test_module_path))
+    # assert not str(test_module_path)
+    assert m
+    if m:
+        platform = m.group(1)
+        assert platform == 'fly_io'
+    else:
+        # The currently running test module is not in /unit_tests/platforms/, so it
+        #   doesn't need to run simple_deploy.
+        return
+
+    sd_root_dir = Path(__file__).parent.parent
+    cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p {platform} -s {sd_root_dir}"
+    cmd_parts = cmd.split()
+    subprocess.run(cmd_parts)
