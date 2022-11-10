@@ -125,7 +125,7 @@ This command tells pytest to find all the files starting with `test_` in the `pl
 
 ## Writing tests for a new platform
 
-## More pytest references
+## pytest references
 
 - [About fixtures](https://docs.pytest.org/en/latest/explanation/fixtures.html)
 - [How to use fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html)

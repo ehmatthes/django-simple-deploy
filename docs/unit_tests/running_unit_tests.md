@@ -1,10 +1,10 @@
 ---
-title: "Running the Unit Tests"
+title: "Running Unit Tests"
 hide:
     - footer
 ---
 
-# Running the Unit Tests
+# Running Unit Tests
 
 This page focuses solely on running unit tests. If you want to understand the overall unit testing process, or write unit tests for a newly-supported platform, see the rest of the documentation in this section.
 

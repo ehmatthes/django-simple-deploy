@@ -37,7 +37,7 @@ nav:
     - 'Strengths and Limitations': 'design_docs/strengths_limitations.md'
   - 'Unit Tests':
     - 'unit_tests/index.md'
-    - 'Running the Unit Tests': 'unit_tests/running_unit_tests.md'
+    - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'
     - 'Understanding the Unit Tests': 'unit_tests/understanding_unit_tests.md'
   - 'Maintaining':
     - 'maintaining/index.md'
