@@ -66,11 +66,9 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     re_platform = r".*/unit_tests/platforms/(.*?)/.*"
     test_module_path = request.path
     m = re.match(re_platform, str(test_module_path))
-    # assert not str(test_module_path)
-    assert m
+
     if m:
         platform = m.group(1)
-        assert platform == 'fly_io'
     else:
         # The currently running test module is not in /unit_tests/platforms/, so it
         #   doesn't need to run simple_deploy.
