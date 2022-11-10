@@ -13,7 +13,6 @@ import unit_tests.utils.ut_helper_functions as hf
 @pytest.fixture(scope='module')
 def run_simple_deploy(reset_test_project, tmp_project):
     # Call simple_deploy here, so it can target this module's platform.
-    # cmd = f"sh call_simple_deploy.sh -d {tmp_project} -p platform_sh"
     sd_root_dir = Path(__file__).parents[3]
     cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p platform_sh -s {sd_root_dir}"
     cmd_parts = cmd.split()

@@ -17,7 +17,7 @@ import pytest
 # --- Fixtures ---
 
 @pytest.fixture(scope="module", autouse=True)
-def commit_test_project(tmp_project):
+def commit_test_project(reset_test_project, tmp_project):
     """Start each test run with a clean git status.
     The initial project state has an unclean status, after adding simple_deploy
       to INSTALLED_APPS. It's much easier to verify that these invalid commands
