@@ -95,7 +95,7 @@ Let's go through this from top to bottom:
 
     - `scope="session"`: The fixture is loaded once for the entire test run; the fixture that sets up the sample test project has session-level scope.
     - `scope="module"`: The fixture is loaded once for each module where it's used; the fixture that resets the sample test project has module-level scope.
-    - The other possibilities for scope are `function`, `class`, and `package`. These scopes are not currently used in the `django-simple-deploy` test suite.
+    - The other possibilities for scope are `function`, `class`, and `package`. These scopes are not currently used in the `django-simple-deploy` test suite. The default scope is `function`.
     - Read more at [Scope: sharing fixtures across classes, modules, packages or session](https://docs.pytest.org/en/latest/how-to/fixtures.html#scope-sharing-fixtures-across-classes-modules-packages-or-session)
 
 
