@@ -63,28 +63,52 @@ unit_tests $ tree -L 4
     └── ut_helper_functions.py
 ```
 
-Let's go through this from top to bottom:
+Let's go through this from top to bottom.
 
-- We need an `__init__.py` file at the root of `unit_tests/` so nested test files can import from `utils/`.
-- `conftest.py` contains three fixtures[^1]:
-    - `tmp_project()` creates a temporary directory where we can set up a full virtual environment for the sample project we're going to test against. It calls `utils/setup_project.sh` which copies the sample project, builds a virtual environment, makes an initial commit, and adds `simple_deploy` to the test project's `INSTALLED_APPS`. It has a session-level scope[^2], and returns the absolute path to the temporary directory where the test project was created.
-    - `reset_test_project()` resets the sample project so we can run `simple_deploy` repeatedly, without having to rebuild the entire test project for each set of tests. It does this by calling `utils/reset_test_project.sh`. This fixture has a module-level scope.
-    - `run_simple_deploy()` has a module-level scope, with `autouse=True`. This means the fixture runs automatically for all test modules in the test suite. An `if` block in the fixture makes sure it exits without doing anything if a specific platform is not being targeted. This fixture runs `reset_test_project()` immediately before running `simple_deploy`.
-- `platform_agnostic_tests` contains a set of tests that don't relate to any specific platform.
-    - `test_invalid_cli_commands.py` tests invalid ways users might call `simple_deploy`, without a valid `--platform` argument.
-- The `platforms/` directory contains all platform-specific test files.
-    - In the `fly_io` directory, `reference_files` contains files like `settings.py`, as they should look after a successful run of `simple_deploy` targeting deployment to Fly.io.
-    - `test_flyio_config.py`
-        - This file has a module-scoped fixture called `run_simple_deploy()`, which loads the `reset_test_project()` fixture and then calls `utils/call_simple_deploy.sh`. This runs `simple_deploy` with the appropriate `--platform` argument, and the `--unit-testing` flag.
-        - It tests modification to project files such as `settings.py`, `requirements.txt`, and `.gitignore`.
-        - It tests platform-specific files such as `fly.toml`, `Dockerfile`, and `.dockerignore`.
-        - It tests that a log file is created, and that the log file contains platform-specific output.
-    - The other directories in `platforms/` contain similar files for the other supported platforms. The file `heroku/modify_allowed_hosts.sh` is leftover from the earlier clunky way of starting to test special situations; this file will likely be removed before long.
-- The `utils/` directory contains scrips that are used by multiple test files. (Some people think `utils/` is a bad name, like `misc`, but it's used here to imply that these scripts have utility across multiple test modules.)
-    - `call_git_log.sh` and `call_git_status.sh` are used to verify that the test sample project hasn't been changed after running invalid variations of the `simple_deploy` command.
-    - `call_simple_deploy_invalid.sh` modifies invalid commands to include the `--unit-testing` flag. This approach allows test functions to contain the exact variations of the `simple_deploy` command that we expect end users to accidentally use.
-    - `commit_test_project.sh` lets fixtures make commits against the test project.
-    - `ut_helper_functions.py` contains one function, `check_reference_file()`, that's used in all platform-specific tests. As the tests grow and get refactored periodically, I expect this module to expand to more than this one function.
+### `__init__.py`
+
+We need an `__init__.py` file at the root of `unit_tests/` so nested test files can import from `utils/`.
+
+### `conftest.py`
+
+This file contains three fixtures[^1]:
+
+- `tmp_project()` creates a temporary directory where we can set up a full virtual environment for the sample project we're going to test against. It calls `utils/setup_project.sh` which copies the sample project, builds a virtual environment, makes an initial commit, and adds `simple_deploy` to the test project's `INSTALLED_APPS`. It has a session-level scope[^2], and returns the absolute path to the temporary directory where the test project was created.
+- `reset_test_project()` resets the sample project so we can run `simple_deploy` repeatedly, without having to rebuild the entire test project for each set of tests. It does this by calling `utils/reset_test_project.sh`. This fixture has a module-level scope.
+- `run_simple_deploy()` has a module-level scope, with `autouse=True`. This means the fixture runs automatically for all test modules in the test suite. An `if` block in the fixture makes sure it exits without doing anything if a specific platform is not being targeted. This fixture runs `reset_test_project()` immediately before running `simple_deploy`.
+
+### `platform_agnostic_tests/`
+
+This directory contains a set of tests that don't relate to any specific platform.
+
+- `test_invalid_cli_commands.py` tests invalid ways users might call `simple_deploy`, without a valid `--platform` argument.
+
+### `platforms/`
+
+This directory contains all platform-specific test files. Let's take a closer look at `fly_io/`:
+
+- `reference_files/` contains files like `settings.py`, as they should look after a successful run of `simple_deploy` targeting deployment to Fly.io.
+- `test_flyio_config.py` does the following:
+    - Tests modifications to project files such as `settings.py`, `requirements.txt`, and `.gitignore`.
+    - Verifies the creation of platform-specific files such as `fly.toml`, `Dockerfile`, and `.dockerignore`.
+    - Tests that a log file is created, and that the log file contains platform-specific output.
+
+The other directories in `platforms/` contain similar files for the other supported platforms.
+
+!!! note
+    The file `heroku/modify_allowed_hosts.sh` is leftover from the earlier clunky way of starting to test special situations; this file will likely be removed before long.
+
+### `utils/`
+
+The `utils/` directory contains scrips that are used by multiple test files.
+
+- `call_git_log.sh` and `call_git_status.sh` are used to verify that the test sample project hasn't been changed after running invalid variations of the `simple_deploy` command.
+- `call_simple_deploy_invalid.sh` modifies invalid commands to include the `--unit-testing` flag. This approach allows test functions to contain the exact variations of the `simple_deploy` command that we expect end users to accidentally use.
+- `commit_test_project.sh` lets fixtures make commits against the test project.
+- `ut_helper_functions.py` contains one function, `check_reference_file()`, that's used in all platform-specific tests. As the tests grow and get refactored periodically, I expect this module to expand to more than this one function.
+
+!!! note
+    Some people think `utils/` is a bad name, like `misc`, but it's used here to imply that these scripts have utility across multiple test modules.
 
 
 [^1]: For the purposes of this project, a *fixture* is a function that prepares for a test, or set of tests. For example, we use a fixture to copy the sample project from `django-simple-deploy/sample_project/blog_project/` to a temporary directory, and then build a full virtual environment for that project. Another fixture is used to call `simple_deploy` against the sample project; yet another fixture is used to reset the project for subsequent tests. To learn more, see [About fixtures](https://docs.pytest.org/en/latest/explanation/fixtures.html) and [How to use fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html).
