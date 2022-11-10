@@ -6,7 +6,7 @@ hide:
 
 # Understanding the Unit Tests
 
-The unit test suite for `django-simple-deploy` is likely to grow increasingly complex over time. If you haven't done extensive testing, it can be a little overwhelming to dig into the test suite as a whole. The goal of this page is to explain the structure of the unit test suite, so that it continue to run efficiently and effectively as the project evolves.
+The unit test suite for `django-simple-deploy` is likely to grow increasingly complex over time. If you haven't done extensive testing, it can be a little overwhelming to dig into the test suite as a whole. The goal of this page is to explain the structure of the unit test suite, so that it continues to run efficiently and effectively as the project evolves.
 
 The complexity comes from trying to do all of the following:
 
@@ -61,19 +61,18 @@ unit_tests $ tree -L 4
     ├── reset_test_project.sh
     ├── setup_project.sh
     └── ut_helper_functions.py
-
-9 directories, 26 files
 ```
 
 Let's go through this from top to bottom:
 
 - We need an `__init__.py` file at the root of `unit_tests/` so nested test files can import from `utils/`.
-- `conftest.py` contains two fixtures[^1]:
-    - `tmp_project()` creates a temporary directory for the copy of the sample project we're going to test against. It calls `utils/setup_project.sh` which copies the sample project, builds a virtual environment, makes an initial commit, and adds `simple_deploy` to the test project's `INSTALLED_APPS`. It has a session-level scope[^2], and returns the absolute path to the temporary directory where the test project will live.
-    - `reset_test_project()` resets the sample project so we can run `simple_deploy` again, without having to rebuild the entire test project environment. It does this by calling `utils/reset_test_project.sh`. This fixture has a module-level scope.
+- `conftest.py` contains three fixtures[^1]:
+    - `tmp_project()` creates a temporary directory where we can set up a full virtual environment for the sample project we're going to test against. It calls `utils/setup_project.sh` which copies the sample project, builds a virtual environment, makes an initial commit, and adds `simple_deploy` to the test project's `INSTALLED_APPS`. It has a session-level scope[^2], and returns the absolute path to the temporary directory where the test project was created.
+    - `reset_test_project()` resets the sample project so we can run `simple_deploy` repeatedly, without having to rebuild the entire test project for each set of tests. It does this by calling `utils/reset_test_project.sh`. This fixture has a module-level scope.
+    - `run_simple_deploy()` has a module-level scope, with `autouse=True`. This means the fixture runs automatically for all test modules in the test suite. An `if` block in the fixture makes sure it exits without doing anything if a specific platform is not being targeted. This fixture runs `reset_test_project()` immediately before running `simple_deploy`.
 - `platform_agnostic_tests` contains a set of tests that don't relate to any specific platform.
     - `test_invalid_cli_commands.py` tests invalid ways users might call `simple_deploy`, without a valid `--platform` argument.
-- The `platforms` directory contains all platform-specific test files.
+- The `platforms/` directory contains all platform-specific test files.
     - In the `fly_io` directory, `reference_files` contains files like `settings.py`, as they should look after a successful run of `simple_deploy` targeting deployment to Fly.io.
     - `test_flyio_config.py`
         - This file has a module-scoped fixture called `run_simple_deploy()`, which loads the `reset_test_project()` fixture and then calls `utils/call_simple_deploy.sh`. This runs `simple_deploy` with the appropriate `--platform` argument, and the `--unit-testing` flag.
@@ -127,10 +126,13 @@ This command tells pytest to find all the files starting with `test_` in the `pl
 
 ## pytest references
 
-- [About fixtures](https://docs.pytest.org/en/latest/explanation/fixtures.html)
-- [How to use fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html)
-- [Autouse fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html#autouse-fixtures-fixtures-you-don-t-have-to-request)
-- [How to capture stdout/stderr output](https://docs.pytest.org/en/7.2.x/how-to/capture-stdout-stderr.html)
-- Fixture [scope](https://docs.pytest.org/en/latest/how-to/fixtures.html#scope-sharing-fixtures-across-classes-modules-packages-or-session)
-- Fixtures [reference](https://docs.pytest.org/en/latest/reference/fixtures.html#reference-fixtures)
-- [Parametrizing fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html#parametrizing-fixtures)
+- Fixtures
+    - [About fixtures](https://docs.pytest.org/en/latest/explanation/fixtures.html)
+    - [How to use fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html)
+    - [Autouse fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html#autouse-fixtures-fixtures-you-don-t-have-to-request)
+    - Fixture [scope](https://docs.pytest.org/en/latest/how-to/fixtures.html#scope-sharing-fixtures-across-classes-modules-packages-or-session)
+    - Fixtures [reference](https://docs.pytest.org/en/latest/reference/fixtures.html#reference-fixtures)
+    - [Parametrizing fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html#parametrizing-fixtures)
+- Misc
+    - [How to capture stdout/stderr output](https://docs.pytest.org/en/7.2.x/how-to/capture-stdout-stderr.html)
+    - This is the [best discussion](https://stackoverflow.com/questions/34466027/in-pytest-what-is-the-use-of-conftest-py-files) I've found about `conftest.py`.
