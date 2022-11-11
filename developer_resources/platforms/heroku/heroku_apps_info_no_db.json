@@ -1,0 +1,57 @@
+{
+  "addons": [],
+  "app": {
+    "acm": false,
+    "archived_at": null,
+    "buildpack_provided_description": null,
+    "build_stack": {
+      "id": "5fc4e202-3efa-40a9-9789-3e104b74cf89",
+      "name": "heroku-22"
+    },
+    "created_at": "2023-12-05T20:38:27Z",
+    "id": "5d5fb3d4-9a55-495b-bb4d-07ce2882891e",
+    "git_url": "https://git.heroku.com/morning-stream-39950.git",
+    "maintenance": false,
+    "name": "morning-stream-39950",
+    "owner": {
+      "email": "ehmatthes@gmail.com",
+      "id": "15a0f166-f274-4ff9-998f-08d4090ab1bd"
+    },
+    "region": {
+      "id": "59accabd-516d-4f0e-83e6-6e3757701145",
+      "name": "us"
+    },
+    "organization": null,
+    "team": null,
+    "space": null,
+    "internal_routing": null,
+    "released_at": "2023-12-05T20:38:27Z",
+    "repo_size": null,
+    "slug_size": null,
+    "stack": {
+      "id": "5fc4e202-3efa-40a9-9789-3e104b74cf89",
+      "name": "heroku-22"
+    },
+    "updated_at": "2023-12-05T20:38:32Z",
+    "web_url": "https://morning-stream-39950-c00bb43ba1fd.herokuapp.com/"
+  },
+  "dynos": [],
+  "collaborators": [
+    {
+      "created_at": "2023-12-05T20:38:27Z",
+      "id": "15a0f166-f274-4ff9-998f-08d4090ab1bd",
+      "updated_at": "2023-12-05T20:38:27Z",
+      "user": {
+        "email": "ehmatthes@gmail.com",
+        "federated": false,
+        "id": "15a0f166-f274-4ff9-998f-08d4090ab1bd"
+      },
+      "app": {
+        "id": "5d5fb3d4-9a55-495b-bb4d-07ce2882891e",
+        "name": "morning-stream-39950"
+      },
+      "role": "owner"
+    }
+  ],
+  "pipeline_coupling": null
+}

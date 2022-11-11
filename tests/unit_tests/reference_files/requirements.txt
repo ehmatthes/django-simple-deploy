@@ -1,0 +1,18 @@
+asgiref==3.5.2
+certifi==2022.9.24
+charset-normalizer==2.1.1
+
+# Here's a comment and some blank lines, for testing.
+
+Django==4.1.2
+django-bootstrap5==22.1
+idna==3.4
+requests==2.28.1
+sqlparse==0.4.3
+urllib3==1.26.12
+
+# Some requirements with various format specifiers.
+matplotlib>=2.0
+
+plotly # Comment after the package name.
+awesome-deployment-package

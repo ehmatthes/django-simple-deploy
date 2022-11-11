@@ -1,768 +1,680 @@
-"""Handles all platform-agnostic aspects of the deployment process."""
+"""Manage deployement to a variety of platforms.
 
-# This is the command that's called to automate deployment.
-# - It starts the process, and then dispatches to platform-specific helpers.
-# - Each helper gets a reference to this command object.
+Configuration-only mode: 
+    $ python manage.py simple_deploy --platform <platform-name>
+    Configures project for deployment to the specified platform.
 
+Automated mode:
+    $ python manage.py simple_deploy --platform <platform-name> --automate-all
+    Configures project for deployment, *and* issues platform's CLI commands to create
+    any resources needed for deployment. Also commits changes, and pushes project.
 
-import sys, os, platform, re, subprocess, logging
+Overview:
+    This is the command that's called to manage the configuration. In the automated
+    mode, it also makes the actual deployment. The entire process is coordinated in 
+    handle():
+    - Parse the CLI options that were passed.
+    - Start logging, unless suppressed.
+    - Validate the set of arguments that were passed.
+    - Inspect the user's system.
+    - Inspect the project.
+    - Get confirmation for an automated run, if appropriate.
+    - Call the platform's `validate_platform()` method.
+    - In automated mode, call the platform's `prep_automate_all()` method.
+    - Add django-simple-deploy to project requirements.
+    - Call the platform's `deploy()` method.
+
+See the project documentation for more about this process:
+    https://django-simple-deploy.readthedocs.io/en/latest/
+"""
+
+import sys, os, platform, re, subprocess, logging, shlex
 from datetime import datetime
 from pathlib import Path
+from importlib import import_module
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.conf import settings
 
-from simple_deploy.management.commands.utils import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
-from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
-from simple_deploy.management.commands.utils import deploy_messages_flyio as flyio_msgs
+import toml
 
-from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
-from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
-from simple_deploy.management.commands.utils.deploy_flyio import FlyioDeployer
+from . import deploy_messages as d_msgs
+from . import utils as sd_utils
+from . import cli
 
 
 class Command(BaseCommand):
-    """Perform the initial deployment of a simple project.
-    Configure as much as possible automatically.
+    """Configure a project for deployment to a specific platform.
+
+    If using --automate-all, carry out the actual deployment as well.
     """
+
+    # Show a summary of simple_deploy in the help text.
+    help = "Configures your project for deployment to the specified platform."
+
+    def __init__(self):
+        """Customize help output."""
+
+        # Keep default BaseCommand args out of help text.
+        self.suppressed_base_arguments.update(
+            [
+                "--version",
+                "-v",
+                "--settings",
+                "--pythonpath",
+                "--traceback",
+                "--no-color",
+                "--force-color",
+            ]
+        )
+        # Ensure that --skip-checks is not included in help output.
+        self.requires_system_checks = []
+
+        super().__init__()
+
+    def create_parser(self, prog_name, subcommand, **kwargs):
+        """Customize the ArgumentParser object that will be created."""
+        epilog = "For more help, see the full documentation at: "
+        epilog += "https://django-simple-deploy.readthedocs.io"
+        parser = super().create_parser(
+            prog_name,
+            subcommand,
+            usage=cli.get_usage(),
+            epilog=epilog,
+            add_help=False,
+            **kwargs,
+        )
+
+        return parser
 
     def add_arguments(self, parser):
         """Define CLI options."""
-
-        # --- Platform-agnostic arguments ---
-
-        parser.add_argument('--automate-all',
-            help="Automate all aspects of deployment?",
-            action='store_true')
-
-        parser.add_argument('--platform', type=str,
-            help="Which platform do you want to deploy to?",
-            default='')
-
-        # Allow users to skip logging.
-        parser.add_argument('--no-logging',
-            help="Do you want a record of simple_deploy's output?",
-            action='store_true')
-
-        # Allow users to use simple_deploy even with an unclean git status.
-        parser.add_argument('--ignore-unclean-git',
-            help="Run simple_deploy even with an unclean `git status` message.",
-            action='store_true')
-
-        # --- Platform.sh arguments ---
-
-        # Allow users to set the deployed project name. This is the name that
-        #   will be used by the platform, which may be different than the name
-        #   used in the `startproject` command. See the Platform.sh script
-        #   for use of this flag.
-        parser.add_argument('--deployed-project-name', type=str,
-            help="What name should the platform use for this project?\n(This is normally discovered automatically through inspection.)",
-            default='')
-
-        # Allow users to specify the region for a project when using --automate-all.
-        parser.add_argument('--region', type=str,
-            help="Which region do you want to deploy to?",
-            default='us-3.platform.sh')
-
-        # --- Developer arguments ---
-
-        # If we're doing local unit testing, we need to avoid some network
-        #   calls.
-        parser.add_argument('--unit-testing',
-            help="Used for local unit testing, to avoid network calls.",
-            action='store_true')
-
-        parser.add_argument('--integration-testing',
-            help="Used for integration testing, to avoid confirmations.",
-            action='store_true')
-
+        sd_cli = cli.SimpleDeployCLI(parser)
 
     def handle(self, *args, **options):
-        """Parse options, and dispatch to platform-specific helpers."""
-        self.stdout.write("Configuring project for deployment...")
+        """Manage the overall configuration process.
 
-        # Parse CLI options, and validate the set of arguments we've been given.
+        Parse options, start logging, validate the simple_deploy command used, inspect
+        the user's system, inspect the project.
+        Verify that the user should be able to deploy to this platform.
+        Add django-simple-deploy to project requirements.
+        Call the platform-specific deploy() method.
+        """
+        self.write_output("Configuring project for deployment...", skip_logging=True)
+
+        # CLI options need to be parsed before logging starts, in case --no-logging
+        # has been passed.
         self._parse_cli_options(options)
-        self._validate_command()
 
-        # Inspect system; we'll run some system commands differently on Windows.
-        self._inspect_system()
-
-        # Inspect project here. If there's anything we can't work with locally,
-        #   we want to recognize that now and exit before making any changes
-        #   to the project, and before making any remote calls.
-        self._inspect_project()
-
-        # Confirm --automate-all, if needed. Currently, this needs to happen before
-        #   _validate_platform(), because fly_io takes action based on automate_all
-        #   in _validate_platform().
-        # Then build the platform-specifc deployer instance, and do platform-specific
-        #   validation. 
-        self._confirm_automate_all()
-        self._validate_platform()
-
-        # All validation has been completed. Make platform-agnostic modifications.
-        # Start with logging.
         if self.log_output:
             self._start_logging()
-            # Log the options used for this run.
-            self.write_output(f"CLI args: {options}", write_to_console=False)
+            self._log_cli_args(options)
 
-        # First action that could fail, but should happen after logging, is
-        #   calling platform-specific prep_automate_all(). This usually creates
-        #   an empty project on the target platform. This is one of the steps
-        #   most likely to fail, so it should be called before other modifications.
-        if self.automate_all:
-            self.platform_deployer.prep_automate_all()
-
+        self._validate_command()
+        self._inspect_system()
+        self._inspect_project()
         self._add_simple_deploy_req()
 
-        # During development, sometimes helpful to exit before calling deploy().
-        # print('bye')
-        # sys.exit()
-
-        # All platform-agnostic work has been completed. Call platform-specific
-        #   deploy() method.
+        self._create_deployer()
         self.platform_deployer.deploy()
 
+    # --- Methods used here, and also by platform-specific modules ---
 
-    # --- Internal methods; used only in this class ---
-
-    def _parse_cli_options(self, options):
-        """Parse cli options."""
-
-        # Platform-agnostic arguments.
-        self.automate_all = options['automate_all']
-        self.platform = options['platform']
-        # This is a True-to-disable option; turn it into a more intuitive flag?
-        self.log_output = not(options['no_logging'])
-        self.ignore_unclean_git = options['ignore_unclean_git']
-
-        # Platform.sh arguments.
-        self.deployed_project_name = options['deployed_project_name']
-        self.region = options['region']
-
-        # Developer arguments.
-        self.unit_testing = options['unit_testing']
-        self.integration_testing = options['integration_testing']
-
-
-    def _validate_command(self):
-        """Make sure the command has been called with a valid set of arguments.
-        """
-        if not self.platform:
-            self.write_output(d_msgs.requires_platform_flag, write_to_console=False)
-            raise CommandError(d_msgs.requires_platform_flag)
-
-
-    def _validate_platform(self):
-        """Find out which platform we're targeting, and instantiate the
-        platform-specific deployer object. Also, call any necessary
-        platform-specific validation and confirmation methods here.
-        """
-        if self.platform == 'heroku':
-            self.write_output("  Targeting Heroku deployment...", skip_logging=True)
-            self.platform_deployer = HerokuDeployer(self)
-        elif self.platform == 'platform_sh':
-            self.write_output("  Targeting platform.sh deployment...", skip_logging=True)
-            self.platform_deployer = PlatformshDeployer(self)
-            self.platform_deployer.confirm_preliminary()
-        elif self.platform == 'fly_io':
-            self.write_output("  Targeting Fly.io deployment...", skip_logging=True)
-            self.platform_deployer = FlyioDeployer(self)
-            self.platform_deployer.confirm_preliminary()
-        else:
-            error_msg = f"The platform {self.platform} is not currently supported."
-            raise CommandError(error_msg)
-
-        self.platform_deployer.validate_platform()
-
-
-    def _confirm_automate_all(self):
-        """If the --automate-all flag has been passed, confirm that the user
-        really wants us to take these actions for them.
-        """
-
-        # Placing this test here makes handle() much cleaner.
-        if not self.automate_all:
-            return
-
-        # Confirm the user knows exactly what will be automated; this
-        #   message is specific to each platform.
-        if self.platform == 'heroku':
-            msg = dh_msgs.confirm_automate_all
-        elif self.platform == 'platform_sh':
-            msg = plsh_msgs.confirm_automate_all
-        elif self.platform == 'fly_io':
-            msg = flyio_msgs.confirm_automate_all
-        else:
-            # The platform name is not valid!
-            # DEV: This should be removed when the logic around when to call
-            #   _validate_platform() has been cleaned up.
-            # See issue #120: https://github.com/ehmatthes/django-simple-deploy/issues/120
-            error_msg = f"The platform {self.platform} is not currently supported."
-            raise CommandError(error_msg)
-
-        self.write_output(msg, skip_logging=True)
-        confirmed = self.get_confirmation(skip_logging=True)
-
-        if confirmed:
-            self.write_output("Automating all steps...", skip_logging=True)
-        else:
-            # Quit and have the user run the command again; don't assume not
-            #   wanting to automate means they want to configure.
-            self.write_output(d_msgs.cancel_automate_all, skip_logging=True)
-            sys.exit()
-
-
-    def _start_logging(self):
-        """Set up for logging."""
-        # Create a log directory if needed. Then create the log file, and 
-        #   log the creation of the log directory if it happened.
-        # In many libraries, one log file is created and then that file is
-        #   appended to, and it's on the user to manage log sizes.
-        # In this project, the user is expected to run simple_deploy
-        #   once, or maybe a couple times if they make a mistake and it exits.
-        # So, we should never have runaway log creation. It could be really
-        #   helpful to see how many logs are created, and it's also simpler
-        #   to review what happened if every log file represents a single run.
-        # To create a new log file each time simple_deploy is run, we append
-        #   a timestamp to the log filename.
-        created_log_dir = self._create_log_dir()
-
-        timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
-        log_filename = f"simple_deploy_{timestamp}.log"
-        verbose_log_path = self.log_dir_path / log_filename
-        verbose_logger = logging.basicConfig(level=logging.INFO,
-                filename=verbose_log_path,
-                format='%(asctime)s %(levelname)s: %(message)s')
-
-        self.write_output("Logging run of `manage.py simple_deploy`...",
-                write_to_console=False)
-
-        if created_log_dir:
-            self.write_output(f"Created {self.log_dir_path}.")
-
-        # Make sure we're ignoring sd logs.
-        self._ignore_sd_logs()
-
-
-    def _create_log_dir(self):
-        """Create a directory to hold log files, if not already present.
-        Returns True if created directory, False if directory was already
-          present. Can't log from here, because log file has not been
-          created yet.
-        """
-        self.log_dir_path = settings.BASE_DIR / Path('simple_deploy_logs')
-        if not self.log_dir_path.exists():
-            self.log_dir_path.mkdir()
-            return True
-        else:
-            return False
-
-
-    def _ignore_sd_logs(self):
-        """Add log dir to .gitignore.
-        Adds a .gitignore file if one is not found.
-        """
-        ignore_msg = "# Ignore logs from simple_deploy."
-        ignore_msg += "\nsimple_deploy_logs/\n"
-
-        # Assume .gitignore is in same directory as .git/ directory.
-        # gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
-        gitignore_path = self.git_path / '.gitignore'
-        if not gitignore_path.exists():
-            # Make the .gitignore file, and add log directory.
-            gitignore_path.write_text(ignore_msg)
-            self.write_output("No .gitignore file found; created .gitignore.")
-            self.write_output("Added simple_deploy_logs/ to .gitignore.")
-        else:
-            # Append log directory to .gitignore if it's not already there.
-            # In r+ mode, a single read moves file pointer to end of file,
-            #   setting up for appending.
-            with open(gitignore_path, 'r+') as f:
-                gitignore_contents = f.read()
-                if 'simple_deploy_logs/' not in gitignore_contents:
-                    f.write(f"\n{ignore_msg}")
-                    self.write_output("Added simple_deploy_logs/ to .gitignore")
-
-
-    def _strip_secret_key(self, line):
-        """Strip secret key value from log file lines."""
-        if 'SECRET_KEY:' in line:
-            new_line = line.split('SECRET_KEY:')[0]
-            new_line += 'SECRET_KEY: *value hidden*'
-            return new_line
-        else:
-            return line
-
-
-    def _inspect_system(self):
-        """Inspect the user's local system for relevant information.
-
-        Currently, we only need to know whether we're on Windows or macOS. The
-          first need was just for Windows, which is why the variables are
-          self.on_windows rather than something more general like self.user_system.
-        Also, keep in mind that we can't use a name like self.platform, because
-          platform almost always has a different meaning in this project.
-
-        Some system-specific notes:
-        - Some CLI commands are os-specific.
-        - Some subsystem calls need to be made a specific way depending on the os.
-        """
-        self.use_shell = False
-        self.on_windows, self.on_macos = False, False
-        if os.name == 'nt':
-            # DEV: This should use platform.system() as well, but I'm not on Windows
-            #   at the moment, so can't test it properly.
-            self.on_windows = True
-            self.use_shell = True
-        elif platform.system() == 'Darwin':
-            self.on_macos = True
-
-
-    def _inspect_project(self):
-        """Find out everything we need to know about the project, before
-        making any remote calls.
-
-        - Determine project name.
-        - Find .git/ directory.
-        - Find out if this is a nested project or not.
-        - Find significant paths: settings, project root, .git/ location.
-        - Get the dependency management approach: requirements.txt, Pipenv, or
-            Poetry.
-        - Get the current requirements.          
-
-        This method does the minimum introspection needed before making any
-          remote calls. Anything that would cause us to exit before making the
-          first remote call should be done here.
-        """
-
-        # Get project name. There are a number of ways to get the project
-        #   name; for now we'll assume the root url config file has not
-        #   been moved from the default location.
-        # DEV: Use this code when we can require Python >=3.9.
-        # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
-        self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
-
-        # Get project root, from settings.
-        #   We wrap this in Path(), because settings files generated before 3.1
-        #   had settings.BASE_DIR as a string. Many projects that have been upgraded
-        #   to more recent versions may still have this in settings.py.
-        # This handles string values for settings.BASE_DIR, and has no impact
-        #   when settings.BASE_DIR is already a Path object.
-        self.project_root = Path(settings.BASE_DIR)
-
-        # Find .git location, and make sure there's a clean status.
-        self._find_git_dir()
-        self._check_git_status()
-
-        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
-
-        self._get_dep_man_approach()
-        self._get_current_requirements()
-
-
-    def _find_git_dir(self):
-        """Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
-        If it's in BASE_DIR.parent, this is a project with a nested
-          directory structure.
-
-        This method also sets self.nested_project. A nested project has the
-          structure set up by:
-           `django-admin startproject project_name`
-        A non-nested project has manage.py at the root level, started by:
-           `django-admin startproject .`
-        This matters for knowing where manage.py is, and knowing where the
-         .git dir is likely to be.
-        """
-        if Path(self.project_root / '.git').exists():
-            self.git_path = Path(self.project_root)
-            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
-            self.nested_project = False
-        elif (Path(self.project_root).parent / Path('.git')).exists():
-            self.git_path = Path(self.project_root).parent
-            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
-            self.nested_project = True
-        else:
-            error_msg = "Could not find a .git/ directory."
-            error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
-            raise CommandError(error_msg)
-
-
-    def _check_git_status(self):
-        """Make sure we're starting from a clean working state.
-        We really want to encourage users to be able to easily undo
-          configuration changes. This is especially true for automate-all.
-
-        We do continue work if the only uncommitted change is adding 'simple_deploy'
-          to INSTALLED_APPS.
-
-        Returns:
-            - None, if we can contine our work.
-            - raises CommandError if we shouldn't continue.
-        """
-
-        if self.ignore_unclean_git:
-            # People can override this check.
-            return
-
-        # If 'working tree clean' is in output of `git status`, we can definitely
-        #   continue our work.
-        cmd = "git status"
-        output_obj = self.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-
-        if "working tree clean" in output_str:
-            return
-
-        # `git status` indicated that uncommitted changes have been made.
-        # Run `git diff`, and see if there are any changes beyond adding
-        #   'simple_deploy' to INSTALLED_APPS.
-        cmd = "git diff"
-        output_obj = self.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-
-        if not self._diff_output_clean(output_str):
-            # There are uncommitted changes beyond just adding simple_deploy to
-            #   INSTALLED_APPS, so we need to bail.
-            error_msg = d_msgs.unclean_git_status
-            if self.automate_all:
-                error_msg += d_msgs.unclean_git_automate_all
-            raise CommandError(error_msg)
-
-
-    def _diff_output_clean(self, output_str):
-        """Check output of `git diff`.
-        If there are any lines that start with '- ', that indicates a deletion,
-        and we'll bail.
-
-        If there's more than one line starting with '+ ', that indicates more
-        than one addition, and we'll bail.
-
-        If there's only one addition, and it's 'simple_deploy' being added to
-        INSTALLED_APPS, we can continue.
-
-        Returns:
-            - True if output of `git diff` is okay to continue.
-            - False if output of `git diff` indicates we should bail.
-        """
-        num_deletions = output_str.count('\n- ')
-        num_additions = output_str.count('\n+ ')
-
-        if (num_deletions > 0) or (num_additions > 1):
-            return False
-
-        # There's only one addition. Check if it's anything other than
-        #   simple_deploy being added to INSTALLED_APPS.
-        # Note: This is not an overly specific test. We're not checking
-        #   which file was changed, but there's no real reason someone would add
-        #   'simple_deploy' by itself in another file.
-        re_diff = r"""(\n\+{1}\s+[',"]simple_deploy[',"],)"""
-        m = re.search(re_diff, output_str)
-        if m:
-            # The only addition was 'simple_deploy', we can move on.
-            return True
-        else:
-            # There was a change, but it wasn't just 'simple_deploy'.
-            # We should bail and have user look at their status.
-            return False
-
-
-    def _get_dep_man_approach(self):
-        """Identify which dependency management approach the project uses.
-        req_txt, poetry, or pipenv.
-        """
-
-        # In a simple project, I don't think we should find both Pipfile
-        #   and requirements.txt. However, if there's both, prioritize Pipfile.
-        self.using_req_txt = 'requirements.txt' in os.listdir(self.git_path)
-
-        # DEV: If both req_txt and Pipfile are found, could just use req.txt.
-        #      That's Heroku's prioritization, I believe. Address this if
-        #      anyone has such a project, and ask why they have both initially.
-        self.using_pipenv = 'Pipfile' in os.listdir(self.git_path)
-        if self.using_pipenv:
-            self.using_req_txt = False
-
-        self.using_poetry = 'pyproject.toml' in os.listdir(self.git_path)
-        if self.using_poetry:
-            # Heroku does not recognize pyproject.toml, so we'll export to
-            #   a requirements.txt file, and then work from that. This should
-            #   not affect the user's local environment.
-            cmd = 'poetry export -f requirements.txt --output requirements.txt --without-hashes'
-            output = self.execute_subp_run(cmd)
-            self.write_output(output, skip_logging=True)
-            self.using_req_txt = True
-
-        # Exit if we haven't found any requirements.
-        if not any((self.using_req_txt, self.using_pipenv)):
-            error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-            self.write_output(error_msg, write_to_console=False, skip_logging=True)
-            raise CommandError(error_msg)
-
-
-    def _get_current_requirements(self):
-        """Get current project requirements, before adding any new ones.
-        """
-        if self.using_req_txt:
-            # Build path to requirements.txt.
-            self.req_txt_path = f"{self.git_path}/requirements.txt"
-
-            # Get list of requirements, with versions.
-            with open(f"{self.git_path}/requirements.txt") as f:
-                requirements = f.readlines()
-                self.requirements = [r.rstrip() for r in requirements]
-
-        if self.using_pipenv:
-            # Build path to Pipfile.
-            self.pipfile_path = f"{self.git_path}/Pipfile"
-
-            # Get list of requirements.
-            self.requirements = self._get_pipfile_requirements()
-
-
-    def _add_simple_deploy_req(self):
-        """Add this project to requirements.txt."""
-        # Since the simple_deploy app is in INCLUDED_APPS, it needs to be
-        #   required. If it's not, Heroku will reject the push.
-        # This step isn't needed for Pipenv users, because when they install
-        #   django-simple-deploy it's automatically added to Pipfile.
-        if self.using_req_txt:
-            self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
-            self.add_req_txt_pkg('django-simple-deploy')
-
-
-    def _get_pipfile_requirements(self):
-        """Get a list of requirements that are already in the Pipfile."""
-        with open(self.pipfile_path) as f:
-            lines = f.readlines()
-
-        requirements = []
-        in_packages = False
-        for line in lines:
-            # Ignore all lines until we've found the start of packages.
-            #   Stop parsing when we hit dev-packages.
-            if '[packages]' in line:
-                in_packages = True
-                continue
-            elif '[dev-packages]' in line:
-                # Ignore dev packages for now.
-                break
-
-            if in_packages:
-                pkg_name = line.split('=')[0].rstrip()
-
-                # Ignore blank lines.
-                if pkg_name:
-                    requirements.append(pkg_name)
-
-        return requirements
-
-
-    def _write_pipfile_pkg(self, package_name, version=""):
-        """Write package to Pipfile."""
-
-        with open(self.pipfile_path) as f:
-            pipfile_text = f.read()
-
-        if not version:
-            version = '*'
-
-        # Don't make ugly comments; make space to align comments.
-        #   Align at column 30, so take away name length, and version spec space.
-        tab_string = ' ' * (30 - len(package_name) - 5 - len(version))
-
-        # Write package name right after [packages].
-        #   For simple projects, this shouldn't cause any issues.
-        #   If ordering matters, we can address that later.
-        new_pkg_string = f'[packages]\n{package_name} = "{version}"{tab_string}# Added by simple_deploy command.'
-        pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
-
-        with open(self.pipfile_path, 'w') as f:
-            f.write(pipfile_text)
-
-        self.write_output(f"    Added {package_name} to Pipfile.")
-
-
-    # --- Methods also used by platform-specific scripts ---
-
-    def write_output(self, output_obj, log_level='INFO',
-            write_to_console=True, skip_logging=False):
+    def write_output(self, output, write_to_console=True, skip_logging=False):
         """Write output to the appropriate places.
-        Output may be a string, or an instance of subprocess.CompletedProcess.
 
-        Need to skip logging before log file is configured.
+        Typically, this is used for writing output to the console as the configuration
+        and deployment work is carried out.  Output may be a string, or an instance of
+        subprocess.CompletedProcess.
+
+        Output that's passed to this method typically needs to be logged as well, unless
+        skip_logging has been passed. This is useful, for example, when writing
+        sensitive information to the console.
+
+        Returns:
+            None
         """
+        output_str = sd_utils.get_string_from_output(output)
 
-        # Extract the subprocess output as a string.
-        if isinstance(output_obj, subprocess.CompletedProcess):
-            # Assume output is either stdout or stderr.
-            output_str = output_obj.stdout.decode()
-            if not output_str:
-                output_str = output_obj.stderr.decode()
-        elif isinstance(output_obj, str):
-            output_str = output_obj
-
-        # Almost always write to console. Input from prompts is not streamed
-        #   because user just typed it into the console.
         if write_to_console:
             self.stdout.write(output_str)
 
-        # Log when appropriate. Log as a series of single lines, for better
-        #   log file parsing. 
-        if self.log_output and not skip_logging:
-            for line in output_str.splitlines():
-                # Strip secret key from any line that holds it.
-                line = self._strip_secret_key(line)
-                logging.info(line)
+        if not skip_logging:
+            self.log_info(output_str)
 
+    def log_info(self, output):
+        """Log output, which may be a string or CompletedProcess instance."""
+        if self.log_output:
+            output_str = sd_utils.get_string_from_output(output)
+            sd_utils.log_output_string(output_str)
 
-    def execute_subp_run_parts(self, cmd_parts):
-        """This is similar to execute_subp_run(), but it receives a list of
-        command parts rather than a string command. Having this separate method
-        is cleaner than having nested if statements in execute_subp_run().
+    def run_quick_command(self, cmd, check=False, skip_logging=False):
+        """Run a command that should finish quickly.
 
-        Currently this is used to issue a git commit command, where running
-          cmd.split() would split on the commit message.
+        Commands that should finish quickly can be run more simply than commands that
+        will take a long time. For quick commands, we can capture output and then deal
+        with it however we like, and the user won't notice that we first captured
+        the output.
 
-        DEV: May want to make execute_subp_run() examine cmd that's received,
-        and dispatch the work based on whether it receives a string or sequence.
-        """
-        if self.on_windows:
-            cmd_string = ' '.join(cmd_parts)
-            output = subprocess.run(cmd_string, shell=True, capture_output=True)
-        else:
-            output = subprocess.run(cmd_parts, capture_output=True)
-
-        return output
-
-
-    def execute_subp_run(self, cmd, check=False):
-        """Execute subprocess.run() command.
-        We're running commands differently on Windows, so this method
-          takes a command and runs it appropriately on each system.
-
-        The `check` parameter is included because some callers will need to 
-          handle exceptions. For an example, see prep_automate_all() in
-          deploy_platformsh.py. Most callers will only check whether returncode
-          is nonzero, and not need to involve exception handling.
+        The `check` parameter is included because some callers will need to handle
+        exceptions. For example, see prep_automate_all() in deploy_platformsh.py. Most
+        callers will only check stderr, or maybe the returncode; they won't need to
+        involve exception handling.
 
         Returns:
-            - CompletedProcess instance
-            - if check=True is passed, raises CalledProcessError. 
+            CompletedProcess
+
+        Raises:
+            CalledProcessError: If check=True is passed, will raise CPError instead of
+            returning a CompletedProcess instance with an error code set.
         """
+        if not skip_logging:
+            self.log_info(f"\n{cmd}")
+
         if self.on_windows:
             output = subprocess.run(cmd, shell=True, capture_output=True)
         else:
-            cmd_parts = cmd.split()
+            cmd_parts = shlex.split(cmd)
             output = subprocess.run(cmd_parts, capture_output=True, check=check)
 
         return output
 
+    def run_slow_command(self, cmd, skip_logging=False):
+        """Run a command that may take some time.
 
-    def execute_command(self, cmd, skip_logging=False):
-        """Execute command, and stream output while logging.
-        This method is intended for commands that run long enough that we 
-        can't use a simple subprocess.run(capture_output=True), which doesn't
-        stream any output until the command is finished. That works for logging,
-        but makes it seem as if the deployment is hanging. This is an issue
-        especially on platforms like Azure that have some steps that take minutes
-        to run.
+        For commands that may take a while, we need to stream output to the user, rather
+        than just capturing it. Otherwise, the command will appear to hang.
         """
 
         # DEV: This only captures stderr right now.
-        #   This is used for commands that run long enough that we don't
-        #   want to use a simple subprocess.run(capture_output=True). Right
-        #   now that's only the `git push heroku` call. That call writes to
-        #   stderr; I'm not sure how to stream both stdout and stderr.
+        # The first call I used this for was `git push heroku`. That call writes to
+        # stderr; I believe streaming to stdout and stderr requires multithreading. The
+        # current approach seems to be working for all calls that use it.
         #
-        #     This will also be needed for long-running steps on other platforms,
-        #   which may or may not write to stderr. Adding a parameter
-        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
-        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
-        #   topic date back to Python2/3 days.
+        # Adding a parameter stdout=subprocess.PIPE and adding a separate identical loop
+        # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
+        # this topic date back to Python2/3 days.
+        if not skip_logging:
+            self.log_info(f"\n{cmd}")
+
         cmd_parts = cmd.split()
-        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
-            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
+        with subprocess.Popen(
+            cmd_parts,
+            stderr=subprocess.PIPE,
+            bufsize=1,
+            universal_newlines=True,
+            shell=self.use_shell,
+        ) as p:
             for line in p.stderr:
                 self.write_output(line, skip_logging=skip_logging)
 
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
-
-    def add_req_txt_pkg(self, package_name):
-        """Add a package to requirements.txt, if not already present."""
-        root_package_name = package_name.split('<')[0]
-
-        # Note: This does not check for specific versions. It gives priority
-        #   to any version already specified in requirements.
-        pkg_present = any(root_package_name in r for r in self.requirements)
-
-        if pkg_present:
-            self.write_output(f"    Found {root_package_name} in requirements file.")
-        else:
-            with open(self.req_txt_path, 'a') as f:
-                # Align comments, so we don't make req_txt file ugly.
-                #   Version specs are in package_name in req_txt approach.
-                tab_string = ' ' * (30 - len(package_name))
-                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
-
-            self.write_output(f"    Added {package_name} to requirements.txt.")
-
-
-    def add_pipenv_pkg(self, package_name, version=""):
-        """Add a package to Pipfile, if not already present."""
-        pkg_present = any(package_name in r for r in self.requirements)
-
-        if pkg_present:
-            self.write_output(f"    Found {package_name} in Pipfile.")
-        else:
-            self._write_pipfile_pkg(package_name, version)
-
-
-    def get_confirmation(self, skip_logging=False):
+    def get_confirmation(
+        self, msg="Are you sure you want to do this?", skip_logging=False
+    ):
         """Get confirmation for an action.
-        This method assumes an appropriate message has already been displayed
-          about what is to be done.
-        This method shows a yes|no prompt, and returns True or False.
-        """
-        prompt = "\nAre you sure you want to do this? (yes|no) "
-        confirmed = ''
 
-        # If doing integration testing, always return True.
-        if self.integration_testing:
+        Assumes an appropriate message has already been displayed about what is to be
+        done. Shows a yes|no prompt. You can pass a different message for the prompt; it
+        should be phrased to elicit a yes/no response.
+
+        Returns:
+            bool: True if confirmation granted, False if not granted.
+        """
+        prompt = f"\n{msg} (yes|no) "
+        confirmed = ""
+
+        # If doing e2e testing, always return True.
+        if self.e2e_testing:
             self.write_output(prompt, skip_logging=skip_logging)
-            msg = "  Confirmed for integration testing..."
+            msg = "  Confirmed for e2e testing..."
+            self.write_output(msg, skip_logging=skip_logging)
+            return True
+
+        if self.unit_testing:
+            self.write_output(prompt, skip_logging=skip_logging)
+            msg = "  Confirmed for unit testing..."
             self.write_output(msg, skip_logging=skip_logging)
             return True
 
         while True:
             self.write_output(prompt, skip_logging=skip_logging)
             confirmed = input()
-            if confirmed.lower() in ('y', 'yes'):
+
+            # Log user's response before processing it.
+            self.write_output(
+                confirmed, skip_logging=skip_logging, write_to_console=False
+            )
+
+            if confirmed.lower() in ("y", "yes"):
                 return True
-            elif confirmed.lower() in ('n', 'no'):
+            elif confirmed.lower() in ("n", "no"):
                 return False
             else:
-                self.write_output("  Please answer yes or no.", skip_logging=skip_logging)
+                self.write_output(
+                    "  Please answer yes or no.", skip_logging=skip_logging
+                )
 
+    def add_packages(self, package_list):
+        """Add a set of packages to the project's requirements.
+
+        This is a simple wrapper for add_package(), to make it easier to add multiple
+        requirements at once. If you need to specify a version for a particular package,
+        use add_package().
+
+        Returns:
+            None
+        """
+        for package in package_list:
+            self.add_package(package)
+
+    def add_package(self, package_name, version=""):
+        """Add a package to the project's requirements, if not already present.
+
+        Handles calls with version information with pip formatting:
+            add_package("psycopg2", version="<2.9")
+        The utility methods handle this version information correctly for the dependency
+        management system in use.
+
+        Returns:
+            None
+        """
+        self.write_output(f"\nLooking for {package_name}...")
+
+        if package_name in self.requirements:
+            self.write_output(f"  Found {package_name} in requirements file.")
+            return
+
+        if self.pkg_manager == "pipenv":
+            sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
+        elif self.pkg_manager == "poetry":
+            self._check_poetry_deploy_group()
+            sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
+        else:
+            sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
+
+        self.write_output(f"  Added {package_name} to requirements file.")
 
     def commit_changes(self):
         """Commit changes that have been made to the project.
+
         This should only be called when automate_all is being used.
         """
         if not self.automate_all:
             return
 
         self.write_output("  Committing changes...")
-        cmd = 'git add .'
-        output = self.execute_subp_run(cmd)
+
+        cmd = "git add ."
+        output = self.run_quick_command(cmd)
         self.write_output(output)
-        # If we write this command as a string, the commit message will be split
-        #   incorrectly.
-        cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
-        output = self.execute_subp_run_parts(cmd_parts)
+
+        cmd = 'git commit -m "Configured project for deployment."'
+        output = self.run_quick_command(cmd)
         self.write_output(output)
+
+    # --- Internal methods; used only in this class ---
+
+    def _parse_cli_options(self, options):
+        """Parse CLI options from simple_deploy command."""
+
+        # Platform-agnostic arguments.
+        self.automate_all = options["automate_all"]
+        self.platform = options["platform"]
+        self.log_output = not (options["no_logging"])
+        self.ignore_unclean_git = options["ignore_unclean_git"]
+
+        # Platform.sh arguments.
+        self.deployed_project_name = options["deployed_project_name"]
+        self.region = options["region"]
+
+        # Developer arguments.
+        self.unit_testing = options["unit_testing"]
+        self.e2e_testing = options["e2e_testing"]
+
+    def _start_logging(self):
+        """Set up for logging.
+
+        Create a log directory if needed; create a new log file for every run of
+        simple_deploy. Since simple_deploy should be called once, it's helpful to have
+        separate files for each run. It should only be run more than once when users
+        are fixing errors that are called out by simple_deploy, or if a remote resource
+        hangs.
+
+        Log path is added to .gitignore when the project is inspected.
+        See _inspect_project().
+
+        Returns:
+            None
+        """
+        created_log_dir = self._create_log_dir()
+
+        # Instantiate a logger. Append a timestamp so each new run generates a unique
+        # log filename.
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
+        log_filename = f"simple_deploy_{timestamp}.log"
+        verbose_log_path = self.log_dir_path / log_filename
+        verbose_logger = logging.basicConfig(
+            level=logging.INFO,
+            filename=verbose_log_path,
+            format="%(asctime)s %(levelname)s: %(message)s",
+        )
+
+        self.write_output("Logging run of `manage.py simple_deploy`...")
+        self.write_output(f"Created {verbose_log_path}.")
+
+    def _log_cli_args(self, options):
+        """Log the args used for this call."""
+        self.log_info(f"\nCLI args:")
+        for option, value in options.items():
+            self.log_info(f"  {option}: {value}")
+
+
+    def _create_log_dir(self):
+        """Create a directory to hold log files, if not already present.
+
+        Returns:
+            bool: True if created directory, False if already one present.
+        """
+        self.log_dir_path = settings.BASE_DIR / Path("simple_deploy_logs")
+        if not self.log_dir_path.exists():
+            self.log_dir_path.mkdir()
+            return True
+        else:
+            return False
+
+    def _validate_command(self):
+        """Verify simple_deploy has been called with a valid set of arguments.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If requested platform is supported.
+        """
+        if not self.platform:
+            raise sd_utils.SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
+        elif self.platform in ["fly_io", "platform_sh", "heroku"]:
+            self.write_output(f"\nDeployment target: {self.platform}")
+        else:
+            error_msg = d_msgs.invalid_platform_msg(self.platform)
+            raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
+    def _inspect_system(self):
+        """Inspect the user's local system for relevant information.
+
+        Uses self.on_windows and self.on_macos because those are clean checks to run.
+        May want to refactor to self.user_system at some point. Don't ever use
+        self.platform, because "platform" refers to the host we're deploying to.
+
+        Linux is not mentioned because so far, if it works on macOS it works on Linux.
+        """
+        self.use_shell = False
+        self.on_windows, self.on_macos = False, False
+        if platform.system() == "Windows":
+            self.on_windows = True
+            self.use_shell = True
+            self.log_info("Local platform identified: Windows")
+        elif platform.system() == "Darwin":
+            self.on_macos = True
+            self.log_info("Local platform identified: macOS")
+
+    def _inspect_project(self):
+        """Inspect the local project.
+
+        Find out everything we need to know about the project before making any remote
+        calls.
+            Determine project name.
+            Find paths: .git/, settings, project root.
+            Determine if it's a nested project or not.
+            Get the dependency management approach: requirements.txt, Pipenv, Poetry
+            Get current requirements.
+
+        Anything that might cause us to exit before making the first remote call should
+        be inspected here.
+
+        Sets:
+            self.local_project_name, self.project_root, self.settings_path,
+            self.pkg_manager, self.requirements
+
+        Returns:
+            None
+        """
+        self.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
+        self.log_info(f"Local project name: {self.local_project_name}")
+
+        self.project_root = settings.BASE_DIR
+        self.log_info(f"Project root: {self.project_root}")
+
+        # Find .git location, and make sure there's a clean status.
+        self._find_git_dir()
+        self._check_git_status()
+
+        # Now that we know where .git is, we can ignore simple_deploy logs.
+        if self.log_output:
+            self._ignore_sd_logs()
+
+        self.settings_path = self.project_root / self.local_project_name / "settings.py"
+
+        # Find out which package manager is being used: req_txt, poetry, or pipenv
+        self.pkg_manager = self._get_dep_man_approach()
+        msg = f"Dependency management system: {self.pkg_manager}"
+        self.write_output(msg)
+
+        self.requirements = self._get_current_requirements()
+
+    def _find_git_dir(self):
+        """Find .git/ location.
+
+        Should be in BASE_DIR or BASE_DIR.parent. If it's in BASE_DIR.parent, this is a
+        project with a nested directory structure. A nested project has the structure
+        set up by:
+           `django-admin startproject project_name`
+        A non-nested project has manage.py at the root level, started by:
+           `django-admin startproject .`
+        This matters for knowing where manage.py is, and knowing where the .git/ dir is
+        likely to be.
+
+        Sets:
+            self.git_path, self.nested_project
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If .git/ dir not found.
+        """
+        if (self.project_root / ".git").exists():
+            self.git_path = self.project_root
+            self.write_output(f"Found .git dir at {self.git_path}.")
+            self.nested_project = False
+        elif (self.project_root.parent / ".git").exists():
+            self.git_path = self.project_root.parent
+            self.write_output(f"Found .git dir at {self.git_path}.")
+            self.nested_project = True
+        else:
+            error_msg = "Could not find a .git/ directory."
+            error_msg += (
+                f"\n  Looked in {self.project_root} and in {self.project_root.parent}."
+            )
+            raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
+    def _check_git_status(self):
+        """Make sure all non-simple_deploy changes have already been committed.
+
+        All configuration-specific work should be contained in a single commit. This
+        allows users to easily revert back to the version of the project that worked
+        locally, if the overall deployment effort fails, or if they don't like what
+        simple_deploy does for any reason.
+
+        Don't just look for a clean git status. Some uncommitted changes related to
+        simple_deploy's work is acceptable, for example if they are doing a couple
+        runs to get things right.
+
+        Users can override this check with the --ignore-unclean-git flag.
+
+        Returns:
+            None: If status is such that simple_deploy can continue.
+
+        Raises:
+            SimpleDeployCommandError: If any reason found not to continue.
+        """
+        if self.ignore_unclean_git:
+            msg = "Ignoring git status."
+            self.write_output(msg)
+            return
+
+        cmd = "git status --porcelain"
+        output_obj = self.run_quick_command(cmd)
+        status_output = output_obj.stdout.decode()
+        self.log_info(f"{status_output}")
+
+        cmd = "git diff --unified=0"
+        output_obj = self.run_quick_command(cmd)
+        diff_output = output_obj.stdout.decode()
+        self.log_info(f"{diff_output}\n")
+
+        proceed = sd_utils.check_status_output(status_output, diff_output)
+
+        if proceed:
+            msg = "No uncommitted changes, other than simple_deploy work."
+            self.write_output(msg)
+        else:
+            self._raise_unclean_error()
+
+    def _raise_unclean_error(self):
+        """Raise unclean git status error."""
+        error_msg = d_msgs.unclean_git_status
+        if self.automate_all:
+            error_msg += d_msgs.unclean_git_automate_all
+
+        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
+    def _ignore_sd_logs(self):
+        """Add log dir to .gitignore.
+
+        Adds a .gitignore file if one is not found.
+        """
+        ignore_msg = "simple_deploy_logs/\n"
+
+        gitignore_path = self.git_path / ".gitignore"
+        if not gitignore_path.exists():
+            # Make the .gitignore file, and add log directory.
+            gitignore_path.write_text(ignore_msg, encoding="utf-8")
+            self.write_output("No .gitignore file found; created .gitignore.")
+            self.write_output("Added simple_deploy_logs/ to .gitignore.")
+        else:
+            # Append log directory to .gitignore if it's not already there.
+            contents = gitignore_path.read_text()
+            if "simple_deploy_logs/" not in contents:
+                contents += f"\n{ignore_msg}"
+                gitignore_path.write_text(contents)
+                self.write_output("Added simple_deploy_logs/ to .gitignore")
+
+    def _get_dep_man_approach(self):
+        """Identify which dependency management approach the project uses.
+
+        Looks for most specific tests first: Pipenv, Poetry, then requirements.txt. For
+        example, if a project uses Poetry and has a requirements.txt file, we'll
+        prioritize Poetry.
+
+        Sets:
+            self.pkg_manager
+
+        Returns:
+            str: "req_txt" | "poetry" | "pipenv"
+
+        Raises:
+            SimpleDeployCommandError: If a pkg manager can't be identified.
+        """
+        if (self.git_path / "Pipfile").exists():
+            return "pipenv"
+        elif self._check_using_poetry():
+            return "poetry"
+        elif (self.git_path / "requirements.txt").exists():
+            return "req_txt"
+
+        # Exit if we haven't found any requirements.
+        error_msg = f"Couldn't find any specified requirements in {self.git_path}."
+        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
+    def _check_using_poetry(self):
+        """Check if the project appears to be using poetry.
+
+        Check for a pyproject.toml file with a [tool.poetry] section.
+
+        Returns:
+            bool: True if found, False if not found.
+        """
+        path = self.git_path / "pyproject.toml"
+        if not path.exists():
+            return False
+
+        pptoml_data = toml.load(path)
+        return "poetry" in pptoml_data.get("tool", {})
+
+    def _get_current_requirements(self):
+        """Get current project requirements.
+
+        We need to know which requirements are already specified, so we can add any that
+        are needed on the remote platform. We don't need to deal with version numbers
+        for most packages.
+
+        Sets:
+            self.req_txt_path
+
+        Returns:
+            List[str]: List of strings, each representing a requirement.
+        """
+        msg = "Checking current project requirements..."
+        self.write_output(msg)
+
+        if self.pkg_manager == "req_txt":
+            self.req_txt_path = self.git_path / "requirements.txt"
+            requirements = sd_utils.parse_req_txt(self.req_txt_path)
+        elif self.pkg_manager == "pipenv":
+            self.pipfile_path = self.git_path / "Pipfile"
+            requirements = sd_utils.parse_pipfile(self.pipfile_path)
+        elif self.pkg_manager == "poetry":
+            self.pyprojecttoml_path = self.git_path / "pyproject.toml"
+            requirements = sd_utils.parse_pyproject_toml(self.pyprojecttoml_path)
+
+        # Report findings.
+        msg = "  Found existing dependencies:"
+        self.write_output(msg)
+        for requirement in requirements:
+            msg = f"    {requirement}"
+            self.write_output(msg)
+
+        return requirements
+
+    def _add_simple_deploy_req(self):
+        """Add django-simple-deploy to the project's requirements.
+
+        Since simple_deploy is in INCLUDED_APPS, it needs to be in the project's
+        requirements. If it's missing, platforms will reject the push.
+        """
+        msg = "\nLooking for django-simple-deploy in requirements..."
+        self.write_output(msg)
+        self.add_package("django-simple-deploy")
+
+    def _check_poetry_deploy_group(self):
+        """Make sure a deploy group exists in pyproject.toml."""
+        pptoml_data = toml.load(self.pyprojecttoml_path)
+        try:
+            deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
+        except KeyError:
+            sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
+            msg = "    Added optional deploy group to pyproject.toml."
+            self.write_output(msg)
+
+    def _create_deployer(self):
+        """Instantiate the PlatformDeployer object."""
+        deployer_module = import_module(
+            f".{self.platform}.deploy", package="simple_deploy.management.commands"
+        )
+        self.platform_deployer = deployer_module.PlatformDeployer(self)
+
+    

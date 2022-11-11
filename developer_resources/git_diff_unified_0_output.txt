@@ -1,0 +1,14 @@
+diff --git a/.gitignore b/.gitignore
+index 9c96d1b..95a2c40 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -8,0 +9,2 @@ db.sqlite3
++
++simple_deploy_logs/
+diff --git a/blog/settings.py b/blog/settings.py
+index 6d40136..09dcaa6 100644
+--- a/blog/settings.py
++++ b/blog/settings.py
+@@ -39,0 +40,2 @@ INSTALLED_APPS = [
++    'simple_deploy',
++    'not_simple_deploy',

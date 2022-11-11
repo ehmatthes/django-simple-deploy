@@ -3,10 +3,178 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
+0.6 - Stable deployments on all three platforms
+---
+
+### 0.6.1
+
+### External changes
+
+- Fixes some issues managing Fly and Platform.sh CLI usage on Ubuntu and macOS.
+
+### 0.6.0
+
+Deployments should work on all three platforms, for all major OSes. Any fixes from this point should be much more minor bugfixes, rather than rethinking the overall approach. This should be a transition to 1.0.
+
+#### External changes
+
+- Detects missing Heroku CLI on Ubuntu.
+- Creates a Postgres databse on Heroku as needed.
+- Updates roadmap.
+
+#### Internal changes
+
+- Starts to use `--json` on some Heroku CLI calls.
+
+
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.18
+
+Stabilize deployments to Fly.io. Previously, deployment to Fly.io would fail if you already had an app deployed on Fly. This release addresses that issue, and significantly improves the process for deploying to Fly.
+
+#### External changes
+
+- Shows all the user's undeployed apps on Fly.io, and gets confirmation that the correct app to deploy to has been chosen.
+- If a database is found with a name matching the selected app, gets confirmation that it's okay to use that database.
+- Updates all messages related to Fly.io deployments.
+
+#### Internal changes
+
+- Updated readthedocs config file.
+- Fly `deploy.py` file is longer, and needs some refactoring.
+
+
+### 0.5.17
+
+Improve logging to include all project inspection steps. This should help with development and troubleshooting.
+
+#### External changes
+
+- Logs all system and project inspection steps.
+
+#### Internal changes
+
+- Creates log file immediately, unless `--skip-logging` is used. Previously, a log file wasn't written until we were writing other changes to the project.
+- Implements `SimpleDeployCommandError`, which logs the error before raising `CommandError`. `CommandError` should not be used, unless the error output contains sensitive information.
+- Implements `log_info()` method, which only logs information without writing it to the console.
+
+
+### 0.5.16
+
+Deployment to Platform.sh should be stable. Resumes preliminary support for Fly.io. Heroku deployment is probably broken for new users.
+
+#### External changes
+
+- Updates to documentation:
+    - Updated information in Choosing a Platform.
+    - Many smaller documentation improvements from multiple people looking closely at docs.
+    - Started official documenation for integration tests.
+- Fly.io:
+    - Assumes you have no existing Fly apps.
+    - Identifies lowest-latency region to deploy to; defaults to 'sea' if that information is unattainable.
+    - Deprecate use of `flyctl`; use `fly` consistently throughout.
+- Heroku:
+    - Uses `'*'` for `ALLOWED_HOSTS` on Heroku, as a temp fix.
+
+#### Internal changes
+
+- Added `.venv` to `.gitignore`, so developers don't have to use `dsd_env`.
+- Unit tests:
+    - No longer use shell scripts;
+    - Check for Poetry and Pipenv before running;
+    - No longer require any platform's CLI to be installed;
+    - Fixed `rum` mispelling of `rm` in unit tests using Poetry, which should improve accuracy of unit testing when using Poetry.
+    - Pass on Windows as well as macOS and Linux.
+    - Add `simple_deploy` to Poetry and Pipenv requirements for fly configurations.
+- Integration tests
+    - Converts most existing functionality in integration tests from shell scripts that only work on macOS/ Linux, to cross-platform functionality.
+    - Prints summary of functionality tests.
+- Other changes
+    - Validates pytest call, to run either unit tests or integration tests, not both. Also require `-s` for integration tests.
+    - New tool for standing up a dev environment: `build_dev_env.py`
+    - Started less formal notes about each platform, in *developer_resources/*.
+    - On Fly deployments, updates `fly open` calls to `fly apps open -a <app-name>`. Also updates deprecated `fly regions list -a` to get region with lowest latency.
+
+
+### 0.5.15
+
+#### External changes
+
+- Heroku deployments work again.
+
+#### Internal changes
+
+- Integration test runs `pip cache purge` before installing simple deploy when using `-t pypi` flag.
+    - This flag is often used immediately after making a new release, and this should ensure the new version is installed from PyPI.
+- Calling `pytest` from project root generates a clean, simple reminder to cd to `unit_tests/` first.
+- The version of `psycopg2` no longer needs to be pinned to `<2.9` on Heroku deployments using requirements.txt.
+
+
+### 0.5.14
+
+#### External changes
+
+- Clarified documentation about configuration-only mode. We do sometimes create remote resources on the user's behalf, but only when we can't easily ask users to do so before running `simple_deploy`.
+- All three platforms now support all three dependency management systems (bare `requirements.txt` file, Poetry, and Pipenv).
+- Updated documentation about unit tests.
+- Official documentation includes a roadmap, with a focus on reaching a 1.0 release.
+
+#### Internal changes
+
+- Started platform-agnostic tests for the process of inspecting local projects.
+- The check for whether Poetry is being used is more specific.
+- Every unit test now runs once for each dependency management system.
+- The dependency management system is identified in `simple_deploy.py`, but platform-specific scripts make all decisions about what to do with that information.
+    - Better internal support for platforms to work with requirements. There's a simple `add_package()` method in `simple_deploy.py`, as well as `add_packages()`. These then call the appropriate method for the current dependency management system in use.
+    - Docker-based platforms make appropriate use of specific package managers, ie creating an optional `deploy` group in `pyproject.toml` when Poetry is being used.
+
+### 0.5.13
+
+#### External changes
+
+- The output of `manage.py simple_deploy --help` is significantly improved.
+- CLI-related error messages have been improved.
+- The CLI is thoroughly documented on RtD.
+
+
+#### Internal changes
+
+- Moved all platform-specific files to their own directory. The only reference to a specific platform in *simple_deploy.py* is now the validation of the platform name.
+    - Simplified *setup.cfg* to only refer to the `simple_deploy` package.
+    - Simplified use of the Django template engine to write and modify files for configuration; see `write_file_from_template()` in *utils.py*.
+    - Platform-specific imports are now done dynamically in *simple_deploy.py*, so only the files for the targeted platform are actually imported.
+- Implementation of the CLI has been improved:
+    - All CLI args are now defined in a separate module, `cli.py`.
+    - Help output is covered in a unit test.
+- Other developer-focused documentation improvements:    
+    - Documented maintenance of docs.
+    - Started ADR documentation.
+    - Added Black to requirements, and used it to format the new `cli.py` file.
+
+### 0.5.12
+
+#### External changes:
+- Removes local dependence on `platformshconfig`. Uses `os.environ.get()` locally to check whether deployment-specific settings should be used.
+
+### 0.5.11
+
+#### External changes:
+- Fixed validation of `--platform` argument when used with `--automate-all`.
+
+#### Internal changes:
+- Removed `execute_subp_run_parts()`, and using `shlex.split(cmd)` instead of `cmd.split()`.
+
+### 0.5.10
+
+- Streams output of `platform create` when deploying to Platform.sh using `--automate-all`. This makes it more clear that the deployment has not hung on the `create` step.
+
+### 0.5.9
+
+- When configuring for Fly.io deployments, uses whitenoise to serve static files. Runs collectstatic during the build process.
+
+### 0.5.8
 
 - Updated unit test suite.
     - Unit test runs add `simple_deploy` to `INSTALLED_APPS` after last commit, like most end users would.
@@ -17,7 +185,9 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Each `unit_tests/platforms/` dir contains a `reference_files` directory. When unit tests run, modified sample project files are compared to these reference files. This makes it much easier to reason about unit tests, and provides a nice set of files to see exactly what changes `simple_deploy` makes to the sample project's files.
     - The sample project is only built once for every test session, rather than once per test module. The test project is reset for each new test module. This results in a speedup from ~52s to ~16s for the entire suite at this point. More importantly, testing more platforms and dependency management approaches will only incrementally increase test duration, rather than multiplying test duration.
     - Official documentation covers how to run unit tests. This update also includes some minor but important updates to the unit tests. These updates center around a better use of `autouse=True` where appropriate, and better use and explanation of scope.
+    - In unit tests, we make sure the main branch is named `main`. Some tests expect to see references to the `main` branch in CLI output, and this would have failed on any contributor or CI system with a different default branch name.
 - Configuration works when the target project's `settings.BASE_DIR` is a string. This affects any project whose setting file was generated in Django 3.0 or earlier, and hasn't been updated to use `Path` objects.
+- When configuring for Heroku deployments, Whitenoise is added to middleware. This fixes a bug where the admin site on Heroku deployments does not have access to static resources such as css and js.
 
 ### 0.5.7
 

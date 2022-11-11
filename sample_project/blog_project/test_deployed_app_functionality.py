@@ -130,6 +130,17 @@ assert "Username" in r.text
 assert "Password" in r.text
 
 
+# --- Check styling of admin login page ---
+print("  Checking that admin static assets are available...")
+url = f"{app_url}static/admin/css/login.css"
+r = requests.get(url)
+
+assert r.status_code == 200
+# This is a random line from the default django/contrib/admin/static/admin/css/login.css file.
+assert ".login #container {" in r.text
+assert "Not Found" not in r.text
+
+
 # --- Create an account ---
 #  Uses a session-based approach, to deal with csrf token.
 
@@ -375,15 +386,23 @@ assert r.status_code == 200
 assert '<label class="form-label" for="id_username">Username</label>' in r.text
 
 
-# --- Test that DEBUG is set to False correctly. ---
-print("  Checking that DEBUG is set to False correctly. ---")
-url = f"{app_url}nonexistent_page/"
-r = requests.get(url)
+# --- Test that DEBUG is set correctly. ---
+if 'localhost' not in app_url:
+    print("  Checking that DEBUG is set to False correctly. ---")
+    url = f"{app_url}nonexistent_page/"
+    r = requests.get(url)
 
-assert r.status_code == 404
-assert "Not Found" in r.text
-assert "The requested resource was not found on this server." in r.text
-assert "You're seeing this error because you have DEBUG = True in your Django settings file." not in r.text
+    assert r.status_code == 404
+    assert "Not Found" in r.text
+    assert "The requested resource was not found on this server." in r.text
+    assert "You're seeing this error because you have DEBUG = True in your Django settings file." not in r.text
+else:
+    print("  Checking that DEBUG is set to True correctly. ---")
+    url = f"{app_url}nonexistent_page/"
+    r = requests.get(url)
+
+    assert r.status_code == 404
+    assert "You're seeing this error because you have DEBUG = True in your Django settings file." not in r.text
 
 
 # --- Everything works! (if you made it to here) --

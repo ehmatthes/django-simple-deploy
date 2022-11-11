@@ -1,9 +1,0 @@
-b_env/
-__pycache__/
-*.pyc
-.DS_Store
-
-db.sqlite3
-
-# Ignore logs from simple_deploy.
-simple_deploy_logs/

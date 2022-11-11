@@ -31,7 +31,18 @@ Making a new release
 
 - Test the released package:
 ```
-(venv)$ ./integration_tests/test_deploy_process.sh -t pypi -p [fly_io|platform_sh|heroku] -d [req_txt|poetry|pipenv]
+$ pytest integration_tests/platforms/<platform-name>/test_deployment.py --pypi -s
+```
+
+    - Sometimes there's a stale cache that causes the previous release to be installed. If you don't check this version, you won't know whether the new release actually works. In the test output, verify that the new version was installed. Look for something like this:
+
+```sh
+integration_tests/platforms/fly_io/test_deployment.py s
+Temp project directory: ...
+...
+Installing collected packages: toml, django-simple-deploy
+Successfully installed django-simple-deploy-0.5.16 toml-0.10.2
+...
 ```
 
 Deleting branches

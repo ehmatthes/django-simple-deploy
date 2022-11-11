@@ -1,0 +1,60 @@
+# This file describes an application. You can have multiple applications
+# in the same project.
+#
+# See https://docs.platform.sh/user_guide/reference/platform-app-yaml.html
+
+# The name of this app. Must be unique within a project.
+name: '{{ deployed_project_name }}'
+
+# The runtime the application uses.
+type: 'python:3.10'
+
+# The relationships of the application with services or other applications.
+#
+# The left-hand side is the name of the relationship as it will be exposed
+# to the application in the PLATFORM_RELATIONSHIPS variable. The right-hand
+# side is in the form `<service name>:<endpoint name>`.
+relationships:
+    database: "db:postgresql"
+
+# The configuration of app when it is exposed to the web.
+web:
+    # Whether your app should speak to the webserver via TCP or Unix socket
+    # https://docs.platform.sh/configuration/app-containers.html#upstream
+    upstream:
+        socket_family: unix
+    # Commands are run once after deployment to start the application process.
+    commands:
+        start: "gunicorn -w 4 -b unix:$SOCKET {{ project_name }}.wsgi:application"
+    locations:
+        "/":
+            passthru: true
+        "/static":
+            root: "static"
+            expires: 1h
+            allow: true
+
+# The size of the persistent disk of the application (in MB).
+disk: 512
+
+# Set a local R/W mount for logs
+mounts:
+    'logs':
+        source: local
+        source_path: logs
+
+# The hooks executed at various points in the lifecycle of the application.
+hooks:
+  # The build hook runs before the application is deployed, and is useful for
+  # assembling the codebase.
+  # DEV: Why remove logs right after making them?
+  #      Also, may want to split requirements into requirements.txt and requirements_remote.txt.
+  build: |
+    pip install --upgrade pip
+    pip install -r requirements.txt
+
+    mkdir logs
+    python manage.py collectstatic
+    rm -rf logs
+  deploy: |
+    python manage.py migrate
