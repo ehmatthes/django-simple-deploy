@@ -22,18 +22,18 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
         python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         platform:
-          - name: Heroku
-            platform: heroku
-            test_path: platforms/heroku
-          - name: Fly.io
-            platform: fly_io
-            test_path: platforms/fly_io
-          - name: Platform.sh
-            platform: platform_sh
-            test_path: platforms/platform_sh
           - name: Agnostic
             platform: agnostic
             test_path: platform_agnostic_tests
+          - name: Fly.io
+            platform: fly_io
+            test_path: platforms/fly_io
+          - name: Heroku
+            platform: heroku
+            test_path: platforms/heroku
+          - name: Platform.sh
+            platform: platform_sh
+            test_path: platforms/platform_sh
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -53,14 +53,26 @@ jobs:
         if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'windows-')
         run: |
           iwr https://fly.io/install.ps1 -useb | iex
-      - name: Install Platform.sh CLI (Linux/WIndows/macOS)
-        if: matrix.platform.platform == 'platform_sh'
-        run: |
-          curl -sS https://platform.sh/cli/installer | php
       - name: Install Heroku CLI (Linux/Windows/macOS)
         if: matrix.platform.platform == 'heroku'
         run: |
           npm install -g heroku
+      - name: Install Platform.sh CLI (Linux/WIndows/macOS)
+        if: matrix.platform.platform == 'platform_sh'
+        run: |
+          curl -sS https://platform.sh/cli/installer | php
+      - name: Check Fly.io CLI installation
+        if: matrix.platform.platform == 'fly_io'
+        run: |
+          flyctl --version
+      - name: Check Heroku CLI installation
+        if: matrix.platform.platform == 'heroku'
+        run: |
+          heroku --version
+      - name: Check Platform.sh CLI installation
+        if: matrix.platform.platform == 'platform_sh'
+        run: |
+          platform --version
       - name: Run tests
         run: |
           cd unit_tests
