@@ -20,12 +20,20 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11.0-beta.5 - 3.11']
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
         platform:
           - name: Heroku
             platform: heroku
+            test_path: platforms/heroku
+          - name: Fly.io
+            platform: fly_io
+            test_path: platforms/fly_io
           - name: Platform.sh
-            platform: platformsh
+            platform: platform_sh
+            test_path: platforms/platform_sh
+          - name: Platform Agnostic
+            platform: platform_agnostic
+            test_path: platform_agnostic_tests
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v3
@@ -40,7 +48,7 @@ jobs:
     - name: Run tests
       run: |
         cd unit_tests
-        pytest test_${{ matrix.platform.platform }}_config.py --basetemp=dsd_temp
+        pytest platforms/${{ matrix.platform.platform }}/ --basetemp=dsd_temp
     - name: Compress test results
       if: always()
       run: |
