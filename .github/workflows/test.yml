@@ -52,6 +52,8 @@ jobs:
         if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'windows-')
         run: |
           iwr https://fly.io/install.ps1 -useb | iex
+          dir $HOME/.fly
+          echo $PATH
       - name: Install Heroku CLI (Linux/Windows/macOS)
         if: matrix.platform.platform == 'heroku'
         run: |
