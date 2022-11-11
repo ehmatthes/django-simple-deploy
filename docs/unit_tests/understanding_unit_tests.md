@@ -320,6 +320,61 @@ Note that the first test module doesn't finish running for about 12s (on my syst
 
 ## Running platform-agnostic tests
 
+The platform-agnostic tests are structured a little differently. Right now these are just a couple tests to verify that invalid CLI calls that don't target a specific platform are handled appropriately.
+
+Here's the relevant parts of `test_invalid_cli_commands.py`:
+
+```python hl_lines="29"
+@pytest.fixture(scope="module", autouse=True)
+def commit_test_project(reset_test_project, tmp_project):
+    ...
+    commit_msg = "Start with clean state before calling invalid command."
+    cmd = f"sh utils/commit_test_project.sh {tmp_project}"
+    ...
+
+# --- Helper functions ---
+
+def make_invalid_call(tmp_proj_dir, invalid_sd_command):
+    ...
+    cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_proj_dir}'
+    ...
+
+def check_project_unchanged(tmp_proj_dir, capfd):
+    ...
+    call_git_status(tmp_proj_dir)
+    captured = capfd.readouterr()
+    assert "On branch main\nnothing to commit, working tree clean" in captured.out
+
+    call_git_log(tmp_proj_dir)
+    captured = capfd.readouterr()
+    assert "Start with clean state before calling invalid command." in captured.out
+
+# --- Test modifications to settings.py ---
+
+def test_bare_call(tmp_project, capfd):
+    """Call simple_deploy with no arguments."""
+    invalid_sd_command = "python manage.py simple_deploy"
+
+    make_invalid_call(tmp_project, invalid_sd_command)
+    captured = capfd.readouterr()
+
+    assert "The --platform flag is required;" in captured.err
+    assert "Please re-run the command with a --platform option specified." in captured.err
+    assert "$ python manage.py simple_deploy --platform platform_sh" in captured.err
+    check_project_unchanged(tmp_project, capfd)
+
+
+def test_invalid_platform_call(tmp_project, capfd):
+    ...
+
+```
+
+This test module has a single fixture with module-level scope, and `autouse=True`. This fixture is run once as soon as this test module is loaded. The fixture makes sure the test project is reset, and then makes a new commit. We want to verify that invalid commands don't change the project, and that's easiest to do with a clean git status.
+
+Let's just look at the first test function, `test_bare_call()`. The highlighted line shows the exact command we want to test, `python manage.py simple_deploy`. This command is passed to the helper function `make_invalid_call()`, which calls `utils/call_simple_deploy_invalid.sh`. Unit tests require the `--unit-testing` flag, which the shell script adds in before making the call to `simple_deploy`. The end result is that our test functions get to contain the exact invalid commands that we expect end users to accidentally use.
+
+The test function makes sure the user sees an appropriate error message, by examining the [captured terminal output](https://docs.pytest.org/en/7.2.x/how-to/capture-stdout-stderr.html). This is (mostly) the same output that end users will see. It also calls the helper function `check_project_unchanged()`, which makes sure there's a clean `git status` and that the last log message (returned by `git log -1 --pretty=oneline`) contains the same commit message that was used in the fixture at the top of this module.
+
 ## Running the entire test suite
 
 ## Extending tests
