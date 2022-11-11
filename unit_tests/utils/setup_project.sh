@@ -32,7 +32,10 @@ pip install -e "$sd_root_dir/"
 # Make it easier to verify what was installed when developing this script.
 pip freeze > installed_packages.txt
 
-# Make an initial commit.
+# Make an initial commit. We call `git branch -m main` because tests may be run
+#  on systems where the default branch is something else such as `master` or `trunk`.
+#  This applies to contributors' systems, and CI systems. Later tests will expect to 
+#  see messages about being on the `main` branch.
 git init
 git branch -m main
 git add .
