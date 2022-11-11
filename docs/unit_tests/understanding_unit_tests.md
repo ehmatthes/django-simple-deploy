@@ -377,9 +377,72 @@ The test function makes sure the user sees an appropriate error message, by exam
 
 ## Running the entire test suite
 
-## Extending tests
+Running the entire test suite puts together everything described above:
 
-## Writing tests for a new platform
+```
+(dsd_env)unit_tests $ pytest
+==================== test session starts ====================
+platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
+rootdir: django-simple-deploy
+collected 22 items
+
+platform_agnostic_tests/test_invalid_cli_commands.py ..
+platforms/fly_io/test_flyio_config.py .......
+platforms/heroku/test_heroku_config.py .......
+platforms/platform_sh/test_platformsh_config.py ......
+==================== 22 passed in 18.16s ====================
+```
+
+The test project is set up once, and reset for each test module that's run.
+
+## Examining the modified test project
+
+It can be really helpful to see exactly what a test run of `simple_deploy` does to the sample project. The original sample project is in `sample_project/`, and the modified version after running unit tests is stored wherever pytest [makes tmp directories](https://docs.pytest.org/en/latest/how-to/tmp_path.html#the-default-base-temporary-directory) on your system. That's typically a subfolder in your system's default temporary directory.
+
+A quick way to find the exact path to the temp directory is to uncomment the following highlighted line in the `tmp_project()` fixture in `conftest.py`:
+
+```python hl_lines="7"
+@pytest.fixture(scope='session')
+def tmp_project(tmp_path_factory):
+    ...
+    # To see where pytest creates the tmp_proj_dir, uncomment the following line.
+    #   All tests will fail, but the AssertionError will show you the full path
+    #   to tmp_proj_dir.
+    # assert not tmp_proj_dir
+    ...    
+
+    return tmp_proj_dir
+```
+
+The next time you run the unit tests, this assert will fail, and the output will show you the path that was created:
+
+```
+(dsd_env)unit_tests $ pytest -x
+...
+>    assert not tmp_proj_dir
+E    AssertionError: assert not PosixPath('/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-274/blog_project0')
+```
+
+You can navigate to this folder in a terminal, and interact with the project in any way you want. It has a virtual environment, so you can activate it and run the project if you want.
+
+!!! note
+    The command `pytest -x` tells pytest to run the full test suite, but stop after the first failed test.
+
+## Updating packages in `vendor/`
+
+The sole purpose of the `vendor/` directory is to facilitate unit testing. To add a new package to the directory:
+
+```
+(dsd_env) $ pip download --dest vendor/ package_name
+```
+
+To upgrade all packages in `vendor/`:
+
+```
+$ rm -rf vendor/
+$ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
+$ pip download --dest vendor/ platformshconfig
+```
 
 ## pytest references
 
