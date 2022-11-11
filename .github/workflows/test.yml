@@ -70,6 +70,7 @@ jobs:
       - name: Check Platform.sh CLI installation
         if: matrix.platform.platform == 'platform_sh'
         run: |
+          echo $PATH
           platform --version
       - name: Run tests
         run: |
