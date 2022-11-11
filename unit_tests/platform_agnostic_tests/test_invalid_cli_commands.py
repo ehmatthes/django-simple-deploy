@@ -76,7 +76,7 @@ def check_project_unchanged(tmp_proj_dir, capfd):
     assert "Start with clean state before calling invalid command." in captured.out
 
 
-# --- Test modifications to settings.py ---
+# --- Test invalid variations of the `simple_deploy` command ---
 
 def test_bare_call(tmp_project, capfd):
     """Call simple_deploy with no arguments."""
