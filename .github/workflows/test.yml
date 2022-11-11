@@ -60,7 +60,7 @@ jobs:
       - name: Check Fly.io CLI installation
         if: matrix.platform.platform == 'fly_io'
         run: |
-          flyctl --version
+          flyctl version
       - name: Check Heroku CLI installation
         if: matrix.platform.platform == 'heroku'
         run: |
