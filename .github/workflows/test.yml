@@ -51,12 +51,11 @@ jobs:
       - name: Install Heroku CLI (Linux/Windows/macOS)
         if: matrix.platform.platform == 'heroku'
         run: |
-          npm install -g heroku
+          npm install -g --force heroku
       - name: Install Platform.sh CLI (Linux/Windows/macOS)
         if: matrix.platform.platform == 'platform_sh'
         run: |
           curl -sS https://platform.sh/cli/installer | php
-          cat ~/.bash_profile
           echo "$HOME/.platformsh/bin" >> $GITHUB_PATH
           . $HOME/.platformsh/shell-config.rc
       - name: Check Fly.io CLI installation
@@ -70,7 +69,6 @@ jobs:
       - name: Check Platform.sh CLI installation
         if: matrix.platform.platform == 'platform_sh'
         run: |
-          echo $PATH
           platform --version
       - name: Run tests
         run: |
