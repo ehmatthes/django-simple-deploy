@@ -32,6 +32,9 @@ pip install -e "$sd_root_dir/"
 # Make it easier to verify what was installed when developing this script.
 pip freeze > installed_packages.txt
 
+# Make sure the default branch is main.
+git config --global init.defaultBranch main
+
 # Make an initial commit.
 git init
 git add .
