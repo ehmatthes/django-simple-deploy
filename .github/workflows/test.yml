@@ -45,9 +45,13 @@ jobs:
         run: python -m pip install --upgrade pip
       - name: Install Python dependencies
         run: python -m pip install -r requirements.txt
-      - name: Install Fly.io CLI
-        if: matrix.platform.platform == 'fly_io'
+      - name: Install Fly.io CLI (Linux/macOS)
+        if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'macos-') || startsWith(matrix.os, 'ubuntu-')
         uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Install Fly.io CLI (Windows)
+        if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'windows-')
+        run: |
+          iwr https://fly.io/install.ps1 -useb | iex
       - name: Install Heroku CLI (Linux/Windows/macOS)
         if: matrix.platform.platform == 'heroku'
         run: |
