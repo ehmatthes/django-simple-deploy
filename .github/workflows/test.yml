@@ -24,16 +24,16 @@ jobs:
         platform:
           - name: Agnostic
             platform: agnostic
-            test_path: platform_agnostic_tests
+            test_path: platform_agnostic_tests/
           - name: Fly.io
             platform: fly_io
-            test_path: platforms/fly_io
+            test_path: platforms/fly_io/
           - name: Heroku
             platform: heroku
-            test_path: platforms/heroku
+            test_path: platforms/heroku/
           - name: Platform.sh
             platform: platform_sh
-            test_path: platforms/platform_sh
+            test_path: platforms/platform_sh/
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
@@ -49,18 +49,23 @@ jobs:
         if: matrix.platform.platform == 'fly_io' && (startsWith(matrix.os, 'macos-') || startsWith(matrix.os, 'ubuntu-'))
         run: |
           curl -L https://fly.io/install.sh | sh
+          echo "FLYCTL_INSTALL='/Users/runner/.fly'" >> $GITHUB_ENV
+          echo "$FLYCTL_INSTALL/bin" >> $GITHUB_PATH
       - name: Install Fly.io CLI (Windows)
         if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'windows-')
         run: |
           iwr https://fly.io/install.ps1 -useb | iex
+          echo "FLYCTL_INSTALL='C:\Users\runneradmin\.fly'" >> $GITHUB_ENV
+          echo "$FLYCTL_INSTALL\bin" >> $GITHUB_PATH
       - name: Install Heroku CLI (Linux/Windows/macOS)
         if: matrix.platform.platform == 'heroku'
         run: |
           npm install -g heroku
-      - name: Install Platform.sh CLI (Linux/WIndows/macOS)
+      - name: Install Platform.sh CLI (Linux/Windows/macOS)
         if: matrix.platform.platform == 'platform_sh'
         run: |
           curl -sS https://platform.sh/cli/installer | php
+          source ~/.bash_profile
       - name: Check Fly.io CLI installation
         if: matrix.platform.platform == 'fly_io'
         run: |
@@ -76,7 +81,7 @@ jobs:
       - name: Run tests
         run: |
           cd unit_tests
-          pytest platforms/${{ matrix.platform.platform }}/ --basetemp=dsd_temp
+          pytest ${{ matrix.platform.test_path }} --basetemp=dsd_temp
       - name: Compress test results
         if: always()
         run: |
