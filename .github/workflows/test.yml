@@ -15,12 +15,12 @@ env:
 
 jobs:
   unit_tests:
-    name: ${{ matrix.platform.name }} with Python ${{ matrix.python-version }} on ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }}
+    name: test (${{ matrix.platform.name }}, Python ${{ matrix.python-version }}, ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }})
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11']
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
         platform:
           - name: Heroku
             platform: heroku
@@ -36,27 +36,43 @@ jobs:
             test_path: platform_agnostic_tests
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    - name: Update pip
-      run: python -m pip install --upgrade pip 
-    - name: Install dependencies
-      run: python -m pip install -r requirements.txt
-    - name: Run tests
-      run: |
-        cd unit_tests
-        pytest platforms/${{ matrix.platform.platform }}/ --basetemp=dsd_temp
-    - name: Compress test results
-      if: always()
-      run: |
-        cd unit_tests
-        7z a -tzip dsd_temp.zip dsd_temp/*current
-    - name: Upload artifacts
-      if: always()
-      uses: actions/upload-artifact@v3
-      with:
-        name: ${{ matrix.platform.platform }}-py${{ matrix.python-version }}-${{ matrix.os }}
-        path: ./unit_tests/dsd_temp.zip
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Update pip
+        run: python -m pip install --upgrade pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd unit_tests
+          pytest platforms/${{ matrix.platform.platform }}/ --basetemp=dsd_temp
+      - name: Install Fly.io CLI (Linux/macOS)
+        if: matrix.platform.platform == 'fly_io' && (startsWith(matrix.os, 'macos-') || startsWith(matrix.os, 'ubuntu-'))
+        run: |
+          curl -L https://fly.io/install.sh | sh
+      - name: Install Fly.io CLI (Windows)
+        if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'windows-')
+        run: |
+          iwr https://fly.io/install.ps1 -useb | iex
+      - name: Install Platform.sh CLI (Linux/WIndows/macOS)
+        if: matrix.platform.platform == 'platform_sh'
+        run: |
+          curl -sS https://platform.sh/cli/installer | php
+      - name: Install Heroku CLI (Linux/Windows/macOS)
+        if: matrix.platform.platform == 'heroku'
+        run: |
+          npm install -g heroku
+      - name: Compress test results
+        if: always()
+        run: |
+          cd unit_tests
+          7z a -tzip dsd_temp.zip dsd_temp/*current
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform.platform }}-py${{ matrix.python-version }}-${{ matrix.os }}
+          path: ./unit_tests/dsd_temp.zip
