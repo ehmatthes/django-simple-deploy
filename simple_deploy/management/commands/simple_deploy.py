@@ -347,7 +347,12 @@ class Command(BaseCommand):
         self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
 
         # Get project root, from settings.
-        self.project_root = settings.BASE_DIR
+        #   We wrap this in Path(), because settings files generated before 3.1
+        #   had settings.BASE_DIR as a string. Many projects that have been upgraded
+        #   to more recent versions may still have this in settings.py.
+        # This handles string values for settings.BASE_DIR, and has no impact
+        #   when settings.BASE_DIR is already a Path object.
+        self.project_root = Path(settings.BASE_DIR)
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
