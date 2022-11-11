@@ -12,7 +12,6 @@ To understand this project, please start at the [main readme](../README.md) if y
     - [Roadmap](roadmap.md)
     - [Development process](development_process.md)
     - [General Approach to Supporting Platforms](supporting_platforms.md)
-    - [Unit Tests](unit_tests.md)
     - [Integration Tests](integration_tests.md)
     - [Contributing](contributing.md)
     - [Code of Conduct](code_of_conduct.md)
