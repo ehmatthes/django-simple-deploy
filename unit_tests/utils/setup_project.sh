@@ -34,6 +34,7 @@ pip freeze > installed_packages.txt
 
 # Make an initial commit.
 git init
+git branch -m main
 git add .
 git commit -am "Initial commit."
 git tag -am '' INITIAL_STATE
