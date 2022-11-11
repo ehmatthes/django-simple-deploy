@@ -15,6 +15,7 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - footnotes
 
 nav:
   - 'Introduction': 'index.md'
@@ -36,7 +37,8 @@ nav:
     - 'Strengths and Limitations': 'design_docs/strengths_limitations.md'
   - 'Unit Tests':
     - 'unit_tests/index.md'
-    - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'    
+    - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'
+    - 'Understanding the Unit Tests': 'unit_tests/understanding_unit_tests.md'
   - 'Maintaining':
     - 'maintaining/index.md'
     - 'Merging PRs': 'maintaining/merging_prs.md'

@@ -64,3 +64,4 @@ If you're new to using pytest, here are some useful notes. (If you have any sugg
 
 - `pytest -x`
     - This is identical to `pytest --exitfirst`, which stops after the first failing test. This is especially helpful when diagnosing unit test failures.
+    - A number of ways to run `pytest` are described in [How to invoke pytest](https://docs.pytest.org/en/latest/how-to/usage.html).

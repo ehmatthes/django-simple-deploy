@@ -10,42 +10,34 @@ import unit_tests.utils.ut_helper_functions as hf
 
 # --- Fixtures ---
 
-@pytest.fixture(scope='module')
-def run_simple_deploy(reset_test_project, tmp_project):
-    # Call simple_deploy here, so it can target this module's platform.
-    sd_root_dir = Path(__file__).parents[3]
-    cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p platform_sh -s {sd_root_dir}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
-
 
 # --- Test modifications to project files. ---
 
-def test_settings(tmp_project, run_simple_deploy):
+def test_settings(tmp_project):
     """Verify settings have been changed for Platform.sh."""
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'platform_sh')
 
-def test_requirements_txt(tmp_project, run_simple_deploy):
+def test_requirements_txt(tmp_project):
     """Test that the requirements.txt file is correct."""
     hf.check_reference_file(tmp_project, 'requirements.txt', 'platform_sh')
 
-def test_gitignore(tmp_project, run_simple_deploy):
+def test_gitignore(tmp_project):
     """Test that .gitignore has been modified correctly."""
     hf.check_reference_file(tmp_project, '.gitignore', 'platform_sh')
 
 
 # --- Test Platform.sh yaml files ---
 
-def test_platform_app_yaml_file(tmp_project, run_simple_deploy):
+def test_platform_app_yaml_file(tmp_project):
     hf.check_reference_file(tmp_project, '.platform.app.yaml', 'platform_sh')
 
-def test_services_yaml_file(tmp_project, run_simple_deploy):
+def test_services_yaml_file(tmp_project):
     hf.check_reference_file(tmp_project, '.platform/services.yaml', 'platform_sh')
 
 
 # --- Test logs ---
 
-def test_log_dir(run_simple_deploy, tmp_project):
+def test_log_dir(tmp_project):
     """Test that the log directory exists, and contains an appropriate log file."""
     log_path = Path(tmp_project / 'simple_deploy_logs')
     assert log_path.exists()
