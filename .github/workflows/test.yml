@@ -56,7 +56,7 @@ jobs:
         if: matrix.platform.platform == 'platform_sh'
         run: |
           curl -sS https://platform.sh/cli/installer | php
-          source ~/.bash_profile
+          cat ~/.bash_profile
       - name: Check Fly.io CLI installation
         if: matrix.platform.platform == 'fly_io'
         run: |
