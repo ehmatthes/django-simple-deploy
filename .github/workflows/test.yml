@@ -58,6 +58,7 @@ jobs:
           curl -sS https://platform.sh/cli/installer | php
           cat ~/.bash_profile
           echo '$HOME/.platformsh/bin' >> $GITHUB_PATH
+          . $HOME/.platformsh/shell-config.rc
       - name: Check Fly.io CLI installation
         if: matrix.platform.platform == 'fly_io'
         run: |
