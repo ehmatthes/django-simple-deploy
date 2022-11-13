@@ -6,6 +6,10 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### 0.5.9
+
+- When configuring for Fly.io deployments, uses whitenoise to serve static files. Runs collectstatic during the build process.
+
 ### 0.5.8
 
 - Updated unit test suite.
