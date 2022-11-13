@@ -130,6 +130,17 @@ assert "Username" in r.text
 assert "Password" in r.text
 
 
+# --- Check styling of admin login page ---
+print("  Checking that admin static assets are available...")
+url = f"{app_url}static/admin/css/login.css"
+r = requests.get(url)
+
+assert r.status_code == 200
+# This is a random line from the default django/contrib/admin/static/admin/css/login.css file.
+assert ".login #container {" in r.text
+assert "Not Found" not in r.text
+
+
 # --- Create an account ---
 #  Uses a session-based approach, to deal with csrf token.
 

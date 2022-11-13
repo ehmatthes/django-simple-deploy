@@ -238,6 +238,12 @@ class HerokuDeployer:
         msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
         self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
+        new_setting = 'i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")'
+        new_setting += '\n    MIDDLEWARE.insert(i + 1, "whitenoise.middleware.WhiteNoiseMiddleware")'
+        msg_added = "    Added Whitenoise to middleware."
+        msg_already_set = "    Found Whitenoise in middleware."
+        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist.
