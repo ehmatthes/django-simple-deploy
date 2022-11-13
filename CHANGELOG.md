@@ -17,8 +17,9 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Each `unit_tests/platforms/` dir contains a `reference_files` directory. When unit tests run, modified sample project files are compared to these reference files. This makes it much easier to reason about unit tests, and provides a nice set of files to see exactly what changes `simple_deploy` makes to the sample project's files.
     - The sample project is only built once for every test session, rather than once per test module. The test project is reset for each new test module. This results in a speedup from ~52s to ~16s for the entire suite at this point. More importantly, testing more platforms and dependency management approaches will only incrementally increase test duration, rather than multiplying test duration.
     - Official documentation covers how to run unit tests. This update also includes some minor but important updates to the unit tests. These updates center around a better use of `autouse=True` where appropriate, and better use and explanation of scope.
+    - In unit tests, we make sure the main branch is named `main`. Some tests expect to see references to the `main` branch in CLI output, and this would have failed on any contributor or CI system with a different default branch name.
 - Configuration works when the target project's `settings.BASE_DIR` is a string. This affects any project whose setting file was generated in Django 3.0 or earlier, and hasn't been updated to use `Path` objects.
-- In unit tests, we make sure the main branch is named `main`. Some tests expect to see references to the `main` branch in CLI output, and this would have failed on any contributor or CI system with a different default branch name.
+- When configuring for Heroku deployments, Whitenoise is added to middleware. This fixes a bug where the admin site on Heroku deployments does not have access to static resources such as css and js.
 
 ### 0.5.7
 
