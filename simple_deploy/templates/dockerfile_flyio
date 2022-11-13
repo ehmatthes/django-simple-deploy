@@ -18,8 +18,7 @@ RUN set -ex && \
 
 COPY . /code/
 
-# RUN ON_FLYIO_SETUP=true && python manage.py collectstatic --noinput
-RUN python manage.py collectstatic --noinput
+RUN ON_FLYIO_SETUP="1" python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
