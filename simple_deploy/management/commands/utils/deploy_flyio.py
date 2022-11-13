@@ -44,6 +44,7 @@ class FlyioDeployer:
         self._add_gunicorn()
         self._add_psycopg2_binary()
         self._add_dj_database_url()
+        self._add_whitenoise()
 
         self._conclude_automate_all()
 
@@ -270,6 +271,15 @@ class FlyioDeployer:
             self.sd.add_req_txt_pkg('dj-database-url')
         elif self.sd.using_pipenv:
             self.sd.add_pipenv_pkg('dj-database-url')
+
+    def _add_whitenoise(self):
+        """Add whitenoise to project requirements."""
+        self.sd.write_output("\n  Looking for whitenoise...")
+
+        if self.sd.using_req_txt:
+            self.sd.add_req_txt_pkg('whitenoise')
+        elif self.sd.using_pipenv:
+            self.sd.add_pipenv_pkg('whitenoise')
 
 
     def _conclude_automate_all(self):

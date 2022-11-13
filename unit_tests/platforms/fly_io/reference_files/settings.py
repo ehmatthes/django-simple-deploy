@@ -158,3 +158,11 @@ if os.environ.get("ON_FLYIO"):
 
     # Prevent CSRF "Origin checking failed" issue.
     CSRF_TRUSTED_ORIGINS = ['https://my_blog_project.fly.dev']
+
+if os.environ.get("ON_FLYIO_SETUP") or os.environ.get("ON_FLYIO"):
+     # from https://whitenoise.evans.io/en/stable/#quickstart-for-django-apps
+     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+     STATIC_URL = '/static/'
+     STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+     i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
+     MIDDLEWARE.insert(i + 1,"whitenoise.middleware.WhiteNoiseMiddleware")
