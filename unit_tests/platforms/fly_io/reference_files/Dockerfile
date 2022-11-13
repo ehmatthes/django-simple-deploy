@@ -18,9 +18,7 @@ RUN set -ex && \
 
 COPY . /code/
 
-# This is in the default Fly.io Dockerfile, but doesn't work with the current
-#   workflow used by simple_deploy.
-# RUN python manage.py collectstatic --noinput
+RUN ON_FLYIO_SETUP="1" python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
