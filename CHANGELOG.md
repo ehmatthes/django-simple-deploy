@@ -6,7 +6,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.8
 
 - Updated unit test suite.
     - Unit test runs add `simple_deploy` to `INSTALLED_APPS` after last commit, like most end users would.
