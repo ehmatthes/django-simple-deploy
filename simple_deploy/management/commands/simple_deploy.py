@@ -629,6 +629,9 @@ class Command(BaseCommand):
 
         DEV: May want to make execute_subp_run() examine cmd that's received,
         and dispatch the work based on whether it receives a string or sequence.
+          Also, may want to use shlex.split() for splitting commands. I originally
+        broke this into two methods because I wasn't aware of shlex.split(), which
+        probably works for all use cases in simple_deploy.
         """
         if self.on_windows:
             cmd_string = ' '.join(cmd_parts)
@@ -675,8 +678,9 @@ class Command(BaseCommand):
         # DEV: This only captures stderr right now.
         #   This is used for commands that run long enough that we don't
         #   want to use a simple subprocess.run(capture_output=True). Right
-        #   now that's only the `git push heroku` call. That call writes to
-        #   stderr; I'm not sure how to stream both stdout and stderr.
+        #   now that's the `git push heroku` call. That call writes to
+        #   stderr; I'm not sure how to stream both stdout and stderr. It also
+        #   affects `platform create` and `platform push`.
         #
         #     This will also be needed for long-running steps on other platforms,
         #   which may or may not write to stderr. Adding a parameter
