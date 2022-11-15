@@ -6,6 +6,10 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### 0.5.10
+
+- Streams output of `platform create` when deploying to Platform.sh using `--automate-all`. This makes it more clear that the deployment has not hung on the `create` step.
+
 ### 0.5.9
 
 - When configuring for Fly.io deployments, uses whitenoise to serve static files. Runs collectstatic during the build process.
