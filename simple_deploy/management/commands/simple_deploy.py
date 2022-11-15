@@ -629,6 +629,9 @@ class Command(BaseCommand):
 
         DEV: May want to make execute_subp_run() examine cmd that's received,
         and dispatch the work based on whether it receives a string or sequence.
+          Also, may want to use shlex.split() for splitting commands. I originally
+        broke this into two methods because I wasn't aware of shlex.split(), which
+        probably works for all use cases in simple_deploy.
         """
         if self.on_windows:
             cmd_string = ' '.join(cmd_parts)
