@@ -678,8 +678,9 @@ class Command(BaseCommand):
         # DEV: This only captures stderr right now.
         #   This is used for commands that run long enough that we don't
         #   want to use a simple subprocess.run(capture_output=True). Right
-        #   now that's only the `git push heroku` call. That call writes to
-        #   stderr; I'm not sure how to stream both stdout and stderr.
+        #   now that's the `git push heroku` call. That call writes to
+        #   stderr; I'm not sure how to stream both stdout and stderr. It also
+        #   affects `platform create` and `platform push`.
         #
         #     This will also be needed for long-running steps on other platforms,
         #   which may or may not write to stderr. Adding a parameter
