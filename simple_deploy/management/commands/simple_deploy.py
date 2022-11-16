@@ -83,6 +83,7 @@ class Command(BaseCommand):
         self.stdout.write("Configuring project for deployment...")
 
         # Parse CLI options, and validate the set of arguments we've been given.
+        #   _validate_command() instantiates a PlatformDeployer object.
         self._parse_cli_options(options)
         self._validate_command()
 
@@ -95,12 +96,11 @@ class Command(BaseCommand):
         self._inspect_project()
 
         # Confirm --automate-all, if needed. Currently, this needs to happen before
-        #   _validate_platform(), because fly_io takes action based on automate_all
+        #   validate_platform(), because fly_io takes action based on automate_all
         #   in _validate_platform().
-        # Then build the platform-specifc deployer instance, and do platform-specific
-        #   validation. 
+        # Then do platform-specific validation.
         self._confirm_automate_all()
-        self._validate_platform()
+        self.platform_deployer.validate_platform()
 
         # All validation has been completed. Make platform-agnostic modifications.
         # Start with logging.
@@ -118,10 +118,6 @@ class Command(BaseCommand):
 
         self._add_simple_deploy_req()
 
-        # During development, sometimes helpful to exit before calling deploy().
-        # print('bye')
-        # sys.exit()
-
         # All platform-agnostic work has been completed. Call platform-specific
         #   deploy() method.
         self.platform_deployer.deploy()
@@ -135,6 +131,7 @@ class Command(BaseCommand):
         # Platform-agnostic arguments.
         self.automate_all = options['automate_all']
         self.platform = options['platform']
+        
         # This is a True-to-disable option; turn it into a more intuitive flag?
         self.log_output = not(options['no_logging'])
         self.ignore_unclean_git = options['ignore_unclean_git']
@@ -150,18 +147,22 @@ class Command(BaseCommand):
 
     def _validate_command(self):
         """Make sure the command has been called with a valid set of arguments.
+        Returns:
+        - None
+        - Calls methods that will raise a CommandError if the command is invalid.
+        """
+        # Right now, we're just validating the platform argument. There will be
+        #   more validation, so keep this method in place.
+        self._validate_platform_arg()
+
+
+    def _validate_platform_arg(self):
+        """Find out which platform we're targeting, and instantiate the
+        platform-specific deployer object.
         """
         if not self.platform:
-            self.write_output(d_msgs.requires_platform_flag, write_to_console=False)
             raise CommandError(d_msgs.requires_platform_flag)
-
-
-    def _validate_platform(self):
-        """Find out which platform we're targeting, and instantiate the
-        platform-specific deployer object. Also, call any necessary
-        platform-specific validation and confirmation methods here.
-        """
-        if self.platform == 'heroku':
+        elif self.platform == 'heroku':
             self.write_output("  Targeting Heroku deployment...", skip_logging=True)
             self.platform_deployer = HerokuDeployer(self)
         elif self.platform == 'platform_sh':
@@ -175,8 +176,6 @@ class Command(BaseCommand):
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
-
-        self.platform_deployer.validate_platform()
 
 
     def _confirm_automate_all(self):
@@ -196,13 +195,6 @@ class Command(BaseCommand):
             msg = plsh_msgs.confirm_automate_all
         elif self.platform == 'fly_io':
             msg = flyio_msgs.confirm_automate_all
-        else:
-            # The platform name is not valid!
-            # DEV: This should be removed when the logic around when to call
-            #   _validate_platform() has been cleaned up.
-            # See issue #120: https://github.com/ehmatthes/django-simple-deploy/issues/120
-            error_msg = f"The platform {self.platform} is not currently supported."
-            raise CommandError(error_msg)
 
         self.write_output(msg, skip_logging=True)
         confirmed = self.get_confirmation(skip_logging=True)

@@ -87,13 +87,26 @@ def test_bare_call(tmp_project, capfd):
 
     assert "The --platform flag is required;" in captured.err
     assert "Please re-run the command with a --platform option specified." in captured.err
-    assert "$ python manage.py simple_deploy --platform platform_sh" in captured.err
+    assert "$ python manage.py simple_deploy --platform fly_io" in captured.err
     check_project_unchanged(tmp_project, capfd)
 
 
 def test_invalid_platform_call(tmp_project, capfd):
     """Call simple_deploy with an invalid --platform argument."""
     invalid_sd_command = "python manage.py simple_deploy --platform unsupported_platform_name"
+
+    make_invalid_call(tmp_project, invalid_sd_command)
+    captured = capfd.readouterr()
+
+    assert "The platform unsupported_platform_name is not currently supported." in captured.err
+    check_project_unchanged(tmp_project, capfd)
+
+
+def test_invalid_platform_call_automate_all(tmp_project, capfd):
+    """Call simple_deploy with an invalid --platform argument,
+    and `--automate-all`.
+    """
+    invalid_sd_command = "python manage.py simple_deploy --platform unsupported_platform_name --automate-all"
 
     make_invalid_call(tmp_project, invalid_sd_command)
     captured = capfd.readouterr()
