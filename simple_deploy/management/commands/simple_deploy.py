@@ -98,8 +98,7 @@ class Command(BaseCommand):
         # Confirm --automate-all, if needed. Currently, this needs to happen before
         #   validate_platform(), because fly_io takes action based on automate_all
         #   in _validate_platform().
-        # Then build the platform-specifc deployer instance, and do platform-specific
-        #   validation. 
+        # Then do platform-specific validation.
         self._confirm_automate_all()
         self.platform_deployer.validate_platform()
 
@@ -119,10 +118,6 @@ class Command(BaseCommand):
 
         self._add_simple_deploy_req()
 
-        # During development, sometimes helpful to exit before calling deploy().
-        # print('bye')
-        # sys.exit()
-
         # All platform-agnostic work has been completed. Call platform-specific
         #   deploy() method.
         self.platform_deployer.deploy()
@@ -136,6 +131,7 @@ class Command(BaseCommand):
         # Platform-agnostic arguments.
         self.automate_all = options['automate_all']
         self.platform = options['platform']
+        
         # This is a True-to-disable option; turn it into a more intuitive flag?
         self.log_output = not(options['no_logging'])
         self.ignore_unclean_git = options['ignore_unclean_git']
