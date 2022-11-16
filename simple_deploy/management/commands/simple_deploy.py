@@ -100,7 +100,8 @@ class Command(BaseCommand):
         # Then build the platform-specifc deployer instance, and do platform-specific
         #   validation. 
         self._confirm_automate_all()
-        self._validate_platform()
+        # self._validate_platform()
+        self.platform_deployer.validate_platform()
 
         # All validation has been completed. Make platform-agnostic modifications.
         # Start with logging.
@@ -150,10 +151,19 @@ class Command(BaseCommand):
 
     def _validate_command(self):
         """Make sure the command has been called with a valid set of arguments.
+        Returns:
+        - None
+        - Calls methods that will raise a CommandError if the command is invalid.
         """
+        # Right now, we're just validating the platform argument. There will be
+        #   more validation, so keep this method in place.
         if not self.platform:
             self.write_output(d_msgs.requires_platform_flag, write_to_console=False)
             raise CommandError(d_msgs.requires_platform_flag)
+
+        self._validate_platform()
+
+
 
 
     def _validate_platform(self):
@@ -176,7 +186,7 @@ class Command(BaseCommand):
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
 
-        self.platform_deployer.validate_platform()
+        # self.platform_deployer.validate_platform()
 
 
     def _confirm_automate_all(self):
