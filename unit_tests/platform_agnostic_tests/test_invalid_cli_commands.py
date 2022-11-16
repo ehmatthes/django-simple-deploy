@@ -100,3 +100,16 @@ def test_invalid_platform_call(tmp_project, capfd):
 
     assert "The platform unsupported_platform_name is not currently supported." in captured.err
     check_project_unchanged(tmp_project, capfd)
+
+
+def test_invalid_platform_call_automate_all(tmp_project, capfd):
+    """Call simple_deploy with an invalid --platform argument,
+    and `--automate-all`.
+    """
+    invalid_sd_command = "python manage.py simple_deploy --platform unsupported_platform_name --automate-all"
+
+    make_invalid_call(tmp_project, invalid_sd_command)
+    captured = capfd.readouterr()
+
+    assert "The platform unsupported_platform_name is not currently supported." in captured.err
+    check_project_unchanged(tmp_project, capfd)
