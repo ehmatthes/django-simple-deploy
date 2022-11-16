@@ -619,29 +619,6 @@ class Command(BaseCommand):
                 logging.info(line)
 
 
-    # def execute_subp_run_parts(self, cmd_parts):
-    #     """This is similar to execute_subp_run(), but it receives a list of
-    #     command parts rather than a string command. Having this separate method
-    #     is cleaner than having nested if statements in execute_subp_run().
-
-    #     Currently this is used to issue a git commit command, where running
-    #       cmd.split() would split on the commit message.
-
-    #     DEV: May want to make execute_subp_run() examine cmd that's received,
-    #     and dispatch the work based on whether it receives a string or sequence.
-    #       Also, may want to use shlex.split() for splitting commands. I originally
-    #     broke this into two methods because I wasn't aware of shlex.split(), which
-    #     probably works for all use cases in simple_deploy.
-    #     """
-    #     if self.on_windows:
-    #         cmd_string = ' '.join(cmd_parts)
-    #         output = subprocess.run(cmd_string, shell=True, capture_output=True)
-    #     else:
-    #         output = subprocess.run(cmd_parts, capture_output=True)
-
-    #     return output
-
-
     def execute_subp_run(self, cmd, check=False):
         """Execute subprocess.run() command.
         We're running commands differently on Windows, so this method
@@ -660,7 +637,6 @@ class Command(BaseCommand):
         if self.on_windows:
             output = subprocess.run(cmd, shell=True, capture_output=True)
         else:
-            # cmd_parts = cmd.split()
             cmd_parts = shlex.split(cmd)
             output = subprocess.run(cmd_parts, capture_output=True, check=check)
 
@@ -764,14 +740,10 @@ class Command(BaseCommand):
             return
 
         self.write_output("  Committing changes...")
+
         cmd = 'git add .'
         output = self.execute_subp_run(cmd)
         self.write_output(output)
-        # If we write this command as a string, the commit message will be split
-        #   incorrectly.
-        # cmd_parts = ['git', 'commit', '-am', '"Configured project for deployment."']
-        # output = self.execute_subp_run_parts(cmd_parts)
-        # self.write_output(output)
 
         cmd = 'git commit -am "Configured project for deployment."'
         output = self.execute_subp_run(cmd)
