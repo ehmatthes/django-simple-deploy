@@ -87,7 +87,7 @@ def test_bare_call(tmp_project, capfd):
 
     assert "The --platform flag is required;" in captured.err
     assert "Please re-run the command with a --platform option specified." in captured.err
-    assert "$ python manage.py simple_deploy --platform platform_sh" in captured.err
+    assert "$ python manage.py simple_deploy --platform fly_io" in captured.err
     check_project_unchanged(tmp_project, capfd)
 
 

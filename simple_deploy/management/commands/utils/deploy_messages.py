@@ -38,12 +38,13 @@ for deployment, run simple_deploy again without the --automate-all flag.
 requires_platform_flag = """
 The --platform flag is required; you must specify which platform you want to 
 deploy your project to.
-- Current options are `heroku` and `platform_sh`.
+- Current options are: fly_io, platform_sh, and heroku
 - Example usage:
-  $ python manage.py simple_deploy --platform heroku
+  $ python manage.py simple_deploy --platform fly_io
   $ python manage.py simple_deploy --platform platform_sh
+  $ python manage.py simple_deploy --platform heroku
 
-For more detailed information, see https://github.com/ehmatthes/django-simple-deploy/blob/main/docs/cli_args.md
+For more detailed information, see https://django-simple-deploy.readthedocs.io/en/latest/
 
 Please re-run the command with a --platform option specified.
 """
