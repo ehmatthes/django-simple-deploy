@@ -6,10 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+0.5.11 Unreleased
 
-- Internal changes:
-    - Removed `execute_subp_run_parts()`, and using `shlex.split(cmd)` instead of `cmd.split()`.
+#### Internal changes:
+- Removed `execute_subp_run_parts()`, and using `shlex.split(cmd)` instead of `cmd.split()`.
+
+#### External changes:
+- Fixed validation of `--platform` argument when used with `--automate-all`.
 
 ### 0.5.10
 
