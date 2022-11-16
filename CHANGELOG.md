@@ -6,6 +6,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+- Internal changes:
+    - Removed `execute_subp_run_parts()`, and using `shlex.split(cmd)` instead of `cmd.split()`.
+
 ### 0.5.10
 
 - Streams output of `platform create` when deploying to Platform.sh using `--automate-all`. This makes it more clear that the deployment has not hung on the `create` step.
