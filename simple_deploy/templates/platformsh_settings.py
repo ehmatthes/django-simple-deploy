@@ -1,13 +1,12 @@
 {{ current_settings }}
 
-
-# platform.sh settings
+# Platform.sh settings.
 import os
 
-# Import some Platform.sh settings from the environment.
-# if config.is_valid_platform():
 if os.environ.get("PLATFORM_APPLICATION_NAME"):
+    # Import some Platform.sh settings from the environment.
     from platformshconfig import Config
+    
     config = Config()
 
     ALLOWED_HOSTS.append('*')
