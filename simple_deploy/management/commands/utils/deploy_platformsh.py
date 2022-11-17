@@ -313,7 +313,7 @@ class PlatformshDeployer:
           a command errored out.
         """
         self._validate_cli()
-        self._validate_platformshconfig()
+        # self._validate_platformshconfig()
 
         # When running unit tests, will not be logged into CLI.
         if not self.sd.unit_testing:
