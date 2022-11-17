@@ -6,7 +6,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-0.5.11 Unreleased
+### 0.5.12
+
+#### External changes:
+- Removes local dependence on `platformshconfig`. Uses `os.environ.get()` locally to check whether deployment-specific settings should be used.
+
+### 0.5.11
 
 #### Internal changes:
 - Removed `execute_subp_run_parts()`, and using `shlex.split(cmd)` instead of `cmd.split()`.
