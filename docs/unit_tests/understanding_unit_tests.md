@@ -254,7 +254,6 @@ Here's `call_simple_deploy.sh`:
 if [ "$target_platform" = fly_io ]; then
     python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
 elif [ "$target_platform" = platform_sh ]; then
-    pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig
     python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
 elif [ "$target_platform" = heroku ]; then
     python manage.py simple_deploy --unit-testing --platform "$target_platform"
@@ -441,7 +440,6 @@ To upgrade all packages in `vendor/`:
 ```
 $ rm -rf vendor/
 $ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
-$ pip download --dest vendor/ platformshconfig
 ```
 
 ## pytest references
