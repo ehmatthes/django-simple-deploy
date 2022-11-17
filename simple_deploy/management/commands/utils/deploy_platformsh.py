@@ -313,7 +313,6 @@ class PlatformshDeployer:
           a command errored out.
         """
         self._validate_cli()
-        self._validate_platformshconfig()
 
         # When running unit tests, will not be logged into CLI.
         if not self.sd.unit_testing:
@@ -357,17 +356,6 @@ class PlatformshDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         if output_obj.returncode:
             raise CommandError(plsh_msgs.cli_not_installed)
-
-
-    def _validate_platformshconfig(self):
-        """If not using automate-all, make sure platformshconfig is installed
-        locally.
-        """
-        if not self.sd.automate_all:
-            cmd = 'pip show platformshconfig'
-            output_obj = self.sd.execute_subp_run(cmd)
-            if output_obj.returncode:
-                raise CommandError(plsh_msgs.platformshconfig_not_installed)
 
 
     def _get_platformsh_project_name(self):

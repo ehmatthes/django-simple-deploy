@@ -23,9 +23,6 @@ source b_env/bin/activate
 if [ "$target_platform" = fly_io ]; then
     python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
 elif [ "$target_platform" = platform_sh ]; then
-    # Deployment to Platform.sh currently requires local installation of
-    #   platformshconfig.
-    pip install --no-index --find-links="$sd_root_dir/vendor/" platformshconfig
     # Test use of a custom deployed project name.
     python manage.py simple_deploy --unit-testing --platform "$target_platform" --deployed-project-name my_blog_project
 elif [ "$target_platform" = heroku ]; then
