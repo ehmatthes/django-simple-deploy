@@ -12,7 +12,7 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
-from . import deploy_messages
+from . import deploy_messages as d_msgs
 from .fly_io import deploy_messages as flyio_msgs
 # from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
 # from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
