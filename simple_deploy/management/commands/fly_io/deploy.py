@@ -19,6 +19,17 @@ from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
 
+
+from django.template.utils import get_app_template_dirs
+from django.template.loaders.filesystem import Loader as FilesystemLoader
+
+class MyLoader(FilesystemLoader):
+    def get_dirs(self):
+        my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
+        print("ML dirs:", my_dirs)
+        return my_dirs
+
+
 class FlyioDeployer:
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
@@ -117,14 +128,53 @@ class FlyioDeployer:
         else:
             # Generate file from template.
             self.sd.write_output("    No Dockerfile found. Generating file...")
-            my_loader = Loader(Engine.get_default())
-            my_template = my_loader.get_template('dockerfile_flyio')
+            # my_loader = Loader(Engine.get_default())
+            # print("----- MYLOADER -----")
+            # print(my_loader.__dict__)
+            # if not my_loader.dirs:
+            #     my_loader.dirs = []
+            # my_loader.dirs.append('/Users/eric/projects/django-simple-deploy/simple_deploy/management/commands/fly_io/templates')
+            # print(my_loader.__dict__)
+            # my_template = my_loader.get_template('dockerfile')
+
+
+            # from django.template.loaders.filesystem import Loader as FilesystemLoader
+            # my_loader = FilesystemLoader(engine=Engine.get_default(),
+            #     dirs=['/Users/eric/projects/django-simple-deploy/simple_deploy/management/commands/fly_io'])
+            # my_template = my_loader.get_template('dockerfile')
+
+            # my_loader = MyLoader(Engine.get_default())
+            # my_template = my_loader.get_template('dockerfile')
+
+            my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
+            # my_loader = FilesystemLoader(engine=Engine.get_default(), dirs=my_dirs)
+            # print("----- MYLOADER -----")
+            # print("dirs:", my_loader.dirs)
+            # print("dict:", my_loader.__dict__)
+            # # my_template = my_loader.get_template('dockerfile')
+            # # print("my_template:", my_template.__dict__)
+            # assert my_loader.engine.render_to_string
+            # my_string = my_loader.engine.render_to_string('dockerfile')
+            # print("my_string:", my_string)
+
 
             # Build context dict for template.
             context = {
                 'django_project_name': self.sd.project_name, 
                 }
-            template_string = render_to_string('dockerfile_flyio', context)
+
+            # template_string = my_loader.engine.render_to_string('dockerfile', context)
+            # template_string = my_template.render_to_string.
+            # template_string = my_template.render(context)
+
+
+            # Build an engine, give it my loader, see if it can use render_to_string().
+            my_engine = Engine(dirs=my_dirs)
+
+            template_string = my_engine.render_to_string('dockerfile', context)
+
+
+
 
             path = self.sd.project_root / 'Dockerfile'
             path.write_text(template_string)
@@ -227,7 +277,7 @@ class FlyioDeployer:
         # Add Fly.io settings block.
         self.sd.write_output("    No Fly.io settings found in settings.py; adding settings...")
         my_loader = Loader(Engine.get_default())
-        my_template = my_loader.get_template('flyio_settings.py')
+        my_template = my_loader.get_template('settings.py')
 
         # Build context dict for template.
         safe_settings_string = mark_safe(settings_string)
@@ -235,7 +285,7 @@ class FlyioDeployer:
             'current_settings': safe_settings_string,
             'deployed_project_name': self.deployed_project_name,
         }
-        template_string = render_to_string('flyio_settings.py', context)
+        template_string = render_to_string('settings.py', context)
 
         path = Path(self.sd.settings_path)
         path.write_text(template_string)
