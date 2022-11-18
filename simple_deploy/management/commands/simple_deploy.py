@@ -12,14 +12,14 @@ from pathlib import Path
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
-from simple_deploy.management.commands.utils import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
-from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
-from simple_deploy.management.commands.utils import deploy_messages_flyio as flyio_msgs
+from . import deploy_messages
+from .fly_io import deploy_messages as flyio_msgs
+# from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
+# from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
 
-from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
-from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
-from simple_deploy.management.commands.utils.deploy_flyio import FlyioDeployer
+from .fly_io.deploy import FlyioDeployer
+# from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
+# from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
 
 
 class Command(BaseCommand):

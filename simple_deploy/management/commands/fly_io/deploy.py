@@ -15,8 +15,8 @@ from django.template.loaders.app_directories import Loader
 from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
-from simple_deploy.management.commands.utils import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import deploy_messages_flyio as flyio_msgs
+from simple_deploy.management.commands import deploy_messages as d_msgs
+from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
 
 class FlyioDeployer:
