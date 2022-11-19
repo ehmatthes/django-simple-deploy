@@ -10,16 +10,15 @@ from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
-from django.template.engine import Engine
-from django.template.loaders.app_directories import Loader
-from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
-from simple_deploy.management.commands.utils import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import deploy_messages_flyio as flyio_msgs
+from simple_deploy.management.commands import deploy_messages as d_msgs
+from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
+
+from simple_deploy.management.commands.utils import write_file_from_template
 
 
-class FlyioDeployer:
+class PlatformDeployer:
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
     """
@@ -117,17 +116,12 @@ class FlyioDeployer:
         else:
             # Generate file from template.
             self.sd.write_output("    No Dockerfile found. Generating file...")
-            my_loader = Loader(Engine.get_default())
-            my_template = my_loader.get_template('dockerfile_flyio')
 
-            # Build context dict for template.
             context = {
                 'django_project_name': self.sd.project_name, 
                 }
-            template_string = render_to_string('dockerfile_flyio', context)
-
             path = self.sd.project_root / 'Dockerfile'
-            path.write_text(template_string)
+            write_file_from_template(path, 'dockerfile', context)
 
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
@@ -193,18 +187,11 @@ class FlyioDeployer:
             self.sd.write_output("    Found existing fly.toml file.")
         else:
             # Generate file from template.
-            self.sd.write_output("    No fly.toml file found. Generating file...")
-            my_loader = Loader(Engine.get_default())
-            my_template = my_loader.get_template('fly.toml')
-
-            # Build context dict for template.
             context = {
                 'deployed_project_name': self.deployed_project_name, 
                 }
-            template_string = render_to_string('fly.toml', context)
-
             path = self.sd.project_root / 'fly.toml'
-            path.write_text(template_string)
+            write_file_from_template(path, 'fly.toml', context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
@@ -226,19 +213,14 @@ class FlyioDeployer:
 
         # Add Fly.io settings block.
         self.sd.write_output("    No Fly.io settings found in settings.py; adding settings...")
-        my_loader = Loader(Engine.get_default())
-        my_template = my_loader.get_template('flyio_settings.py')
 
-        # Build context dict for template.
         safe_settings_string = mark_safe(settings_string)
         context = {
             'current_settings': safe_settings_string,
             'deployed_project_name': self.deployed_project_name,
         }
-        template_string = render_to_string('flyio_settings.py', context)
-
         path = Path(self.sd.settings_path)
-        path.write_text(template_string)
+        write_file_from_template(path, 'settings.py', context)
 
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)

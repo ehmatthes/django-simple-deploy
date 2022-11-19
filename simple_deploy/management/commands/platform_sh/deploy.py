@@ -11,16 +11,15 @@ from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
-from django.template.engine import Engine
-from django.template.loaders.app_directories import Loader
-from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
-from simple_deploy.management.commands.utils import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
+from simple_deploy.management.commands import deploy_messages as d_msgs
+from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
+
+from simple_deploy.management.commands.utils import write_file_from_template
 
 
-class PlatformshDeployer:
+class PlatformDeployer:
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
     """
@@ -69,25 +68,17 @@ class PlatformshDeployer:
         with open(self.sd.settings_path) as f:
             settings_string = f.read()
 
-        if 'if config.is_valid_platform():' in settings_string:
+        if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in settings_string:
             self.sd.write_output("\n    Found platform.sh settings block in settings.py.")
             return
 
         # Add platformsh settings block.
-        # This comes from a template, which will make it easier to modify things
-        #   like ALLOWED_HOSTS. This approach may work better for other platforms
-        #   as well.
         self.sd.write_output("    No platform.sh settings found in settings.py; adding settings...")
-        my_loader = Loader(Engine.get_default())
-        my_template = my_loader.get_template('platformsh_settings.py')
 
-        # Build context dict for template.
         safe_settings_string = mark_safe(settings_string)
         context = {'current_settings': safe_settings_string}
-        template_string = render_to_string('platformsh_settings.py', context)
-
         path = Path(self.sd.settings_path)
-        path.write_text(template_string)
+        write_file_from_template(path, 'settings.py', context)
 
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
@@ -106,7 +97,7 @@ class PlatformshDeployer:
         self.found_platformsh_settings = False
         self.current_platformsh_settings_lines = []
         for line in settings_lines:
-            if "if config.is_valid_platform():" in line:
+            if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in line:
                 self.found_platformsh_settings = True
             if self.found_platformsh_settings:
                 self.current_platformsh_settings_lines.append(line)
@@ -124,18 +115,13 @@ class PlatformshDeployer:
         else:
             # Generate file from template.
             self.sd.write_output("    No .platform.app.yaml file found. Generating file...")
-            my_loader = Loader(Engine.get_default())
-            my_template = my_loader.get_template('platform.app.yaml')
 
-            # Build context dict for template.
             context = {
                 'project_name': self.sd.project_name, 
                 'deployed_project_name': self.deployed_project_name
                 }
-            template_string = render_to_string('platform.app.yaml', context)
-
             path = self.sd.project_root / '.platform.app.yaml'
-            path.write_text(template_string)
+            write_file_from_template(path, 'platform.app.yaml', context)
 
             msg = f"\n    Generated .platform.app.yaml file: {path}"
             self.sd.write_output(msg)
@@ -216,16 +202,9 @@ class PlatformshDeployer:
             self.sd.write_output("    Found existing services.yaml file.")
         else:
             # Generate file from template.
-            # DEV: We're not modifying this file, so it can just be copied 
-            #   from templates file to .platform/ directory.
             self.sd.write_output("    No services.yaml file found. Generating file...")
-            my_loader = Loader(Engine.get_default())
-            my_template = my_loader.get_template('services.yaml')
-
-            template_string = render_to_string('services.yaml')
-
             path = self.platform_dir_path / 'services.yaml'
-            path.write_text(template_string)
+            write_file_from_template(path, 'services.yaml')
 
             msg = f"\n    Generated services.yaml file: {path}"
             self.sd.write_output(msg)

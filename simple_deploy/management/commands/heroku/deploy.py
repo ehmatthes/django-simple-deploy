@@ -7,11 +7,11 @@ from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 
-from simple_deploy.management.commands.utils import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
+from simple_deploy.management.commands import deploy_messages as d_msgs
+from simple_deploy.management.commands.heroku import deploy_messages as dh_msgs
 
 
-class HerokuDeployer:
+class PlatformDeployer:
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
     """

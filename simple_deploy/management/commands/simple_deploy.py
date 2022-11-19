@@ -8,18 +8,12 @@
 import sys, os, platform, re, subprocess, logging, shlex
 from datetime import datetime
 from pathlib import Path
+from importlib import import_module
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
-from simple_deploy.management.commands.utils import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
-from simple_deploy.management.commands.utils import deploy_messages_platformsh as plsh_msgs
-from simple_deploy.management.commands.utils import deploy_messages_flyio as flyio_msgs
-
-from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
-from simple_deploy.management.commands.utils.deploy_platformsh import PlatformshDeployer
-from simple_deploy.management.commands.utils.deploy_flyio import FlyioDeployer
+from . import deploy_messages as d_msgs
 
 
 class Command(BaseCommand):
@@ -157,25 +151,29 @@ class Command(BaseCommand):
 
 
     def _validate_platform_arg(self):
-        """Find out which platform we're targeting, and instantiate the
-        platform-specific deployer object.
+        """Find out which platform we're targeting, instantiate the
+        platform-specific deployer object and platform-specific messages, and 
+        get confirmation about using a platform with preliminary support.
         """
         if not self.platform:
             raise CommandError(d_msgs.requires_platform_flag)
-        elif self.platform == 'heroku':
-            self.write_output("  Targeting Heroku deployment...", skip_logging=True)
-            self.platform_deployer = HerokuDeployer(self)
-        elif self.platform == 'platform_sh':
-            self.write_output("  Targeting platform.sh deployment...", skip_logging=True)
-            self.platform_deployer = PlatformshDeployer(self)
-            self.platform_deployer.confirm_preliminary()
-        elif self.platform == 'fly_io':
-            self.write_output("  Targeting Fly.io deployment...", skip_logging=True)
-            self.platform_deployer = FlyioDeployer(self)
-            self.platform_deployer.confirm_preliminary()
+        elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
+            self.write_output(f"  Deployment target: {self.platform}", skip_logging=True)
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
+
+        self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
+
+        deployer_module = import_module(f".{self.platform}.deploy", package='simple_deploy.management.commands')
+        self.platform_deployer = deployer_module.PlatformDeployer(self)
+
+        try:
+            self.platform_deployer.confirm_preliminary()
+        except AttributeError:
+            # The targeted platform does not have a preliminary warning.
+            pass
+
 
 
     def _confirm_automate_all(self):
@@ -187,16 +185,8 @@ class Command(BaseCommand):
         if not self.automate_all:
             return
 
-        # Confirm the user knows exactly what will be automated; this
-        #   message is specific to each platform.
-        if self.platform == 'heroku':
-            msg = dh_msgs.confirm_automate_all
-        elif self.platform == 'platform_sh':
-            msg = plsh_msgs.confirm_automate_all
-        elif self.platform == 'fly_io':
-            msg = flyio_msgs.confirm_automate_all
-
-        self.write_output(msg, skip_logging=True)
+        # Confirm the user knows exactly what will be automated.
+        self.write_output(self.platform_msgs.confirm_automate_all, skip_logging=True)
         confirmed = self.get_confirmation(skip_logging=True)
 
         if confirmed:
