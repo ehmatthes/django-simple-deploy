@@ -21,18 +21,6 @@ from django.template.engine import Engine
 from django.template.utils import get_app_template_dirs
 from django.template.loaders.filesystem import Loader as FilesystemLoader
 
-def get_template_string(template, context):
-    """Get a template string that can be used to write a modified file.
-    For example, add a settings block to settings.py, or write a Dockerfile.
-
-    Returns:
-    - String containing full file that can be written.
-    """
-    my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
-    my_engine = Engine(dirs=my_dirs)
-    template_string = my_engine.render_to_string(template, context)
-
-    return template_string
 
 def write_file_from_template(path, template, context):
     """Write a file based on a platform-specific template.
@@ -153,10 +141,7 @@ class FlyioDeployer:
             context = {
                 'django_project_name': self.sd.project_name, 
                 }
-            # template_string = get_template_string('dockerfile', context)
             path = self.sd.project_root / 'Dockerfile'
-            # path.write_text(template_string)
-
             write_file_from_template(path, 'dockerfile', context)
 
             msg = f"\n    Generated Dockerfile: {path}"
@@ -226,10 +211,8 @@ class FlyioDeployer:
             context = {
                 'deployed_project_name': self.deployed_project_name, 
                 }
-            template_string = get_template_string('fly.toml', context)
-
             path = self.sd.project_root / 'fly.toml'
-            path.write_text(template_string)
+            write_file_from_template(path, 'fly.toml', context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
@@ -257,10 +240,8 @@ class FlyioDeployer:
             'current_settings': safe_settings_string,
             'deployed_project_name': self.deployed_project_name,
         }
-        template_string = get_template_string('settings.py', context)
-
         path = Path(self.sd.settings_path)
-        path.write_text(template_string)
+        write_file_from_template(path, 'settings.py', context)
 
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
