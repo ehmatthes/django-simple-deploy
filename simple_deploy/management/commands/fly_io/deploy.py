@@ -34,6 +34,19 @@ def get_template_string(template, context):
 
     return template_string
 
+def write_file_from_template(path, template, context):
+    """Write a file based on a platform-specific template.
+    This may be a whole new file, such as a Dockerfile. Or, we may be modifying
+      an existing file such as settings.py.
+    Returns:
+    - None
+    """
+    my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
+    my_engine = Engine(dirs=my_dirs)
+
+    template_string = my_engine.render_to_string(template, context)
+    path.write_text(template_string)
+
 
 class FlyioDeployer:
     """Perform the initial deployment of a simple project.
@@ -140,9 +153,11 @@ class FlyioDeployer:
             context = {
                 'django_project_name': self.sd.project_name, 
                 }
-            template_string = get_template_string('dockerfile', context)
+            # template_string = get_template_string('dockerfile', context)
             path = self.sd.project_root / 'Dockerfile'
-            path.write_text(template_string)
+            # path.write_text(template_string)
+
+            write_file_from_template(path, 'dockerfile', context)
 
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
