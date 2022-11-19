@@ -15,25 +15,7 @@ from django.utils.safestring import mark_safe
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
-
-
-from django.template.engine import Engine
-from django.template.utils import get_app_template_dirs
-from django.template.loaders.filesystem import Loader as FilesystemLoader
-
-
-def write_file_from_template(path, template, context):
-    """Write a file based on a platform-specific template.
-    This may be a whole new file, such as a Dockerfile. Or, we may be modifying
-      an existing file such as settings.py.
-    Returns:
-    - None
-    """
-    my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
-    my_engine = Engine(dirs=my_dirs)
-
-    template_string = my_engine.render_to_string(template, context)
-    path.write_text(template_string)
+from simple_deploy.management.commands.utils import write_file_from_template
 
 
 class FlyioDeployer:
@@ -45,9 +27,6 @@ class FlyioDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
-
-        # Get a renderer to work with templates.
-
 
 
     def deploy(self, *args, **options):
