@@ -157,12 +157,8 @@ class Command(BaseCommand):
         """
         if not self.platform:
             raise CommandError(d_msgs.requires_platform_flag)
-        elif self.platform == 'heroku':
-            self.write_output("  Targeting Heroku deployment...", skip_logging=True)
-        elif self.platform == 'platform_sh':
-            self.write_output("  Targeting Platform.sh deployment...", skip_logging=True)
-        elif self.platform == 'fly_io':
-            self.write_output("  Targeting Fly.io deployment...", skip_logging=True)
+        elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
+            self.write_output(f"  Deployment target: {self.platform}", skip_logging=True)
         else:
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
