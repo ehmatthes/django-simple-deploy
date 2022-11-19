@@ -11,9 +11,6 @@ from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
-from django.template.engine import Engine
-from django.template.loaders.app_directories import Loader
-from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
 from simple_deploy.management.commands import deploy_messages as d_msgs

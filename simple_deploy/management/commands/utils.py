@@ -2,7 +2,6 @@ import inspect, re
 
 from django.template.engine import Engine
 from django.template.utils import get_app_template_dirs
-from django.template.loaders.filesystem import Loader as FilesystemLoader
 
 
 def write_file_from_template(path, template, context=None):
