@@ -26,7 +26,7 @@ def get_template_string(template, context):
     For example, add a settings block to settings.py, or write a Dockerfile.
 
     Returns:
-    - String
+    - String containing full file that can be written.
     """
     my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
     my_engine = Engine(dirs=my_dirs)
@@ -137,18 +137,10 @@ class FlyioDeployer:
             # Generate file from template.
             self.sd.write_output("    No Dockerfile found. Generating file...")
 
-
-            # Build context dict for template.
             context = {
                 'django_project_name': self.sd.project_name, 
                 }
-
-            # my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
-            # my_engine = Engine(dirs=my_dirs)
-            # template_string = my_engine.render_to_string('dockerfile', context)
-
             template_string = get_template_string('dockerfile', context)
-
             path = self.sd.project_root / 'Dockerfile'
             path.write_text(template_string)
 
@@ -216,11 +208,6 @@ class FlyioDeployer:
             self.sd.write_output("    Found existing fly.toml file.")
         else:
             # Generate file from template.
-            # self.sd.write_output("    No fly.toml file found. Generating file...")
-            # my_loader = Loader(Engine.get_default())
-            # my_template = my_loader.get_template('fly.toml')
-
-            # Build context dict for template.
             context = {
                 'deployed_project_name': self.deployed_project_name, 
                 }
@@ -249,10 +236,7 @@ class FlyioDeployer:
 
         # Add Fly.io settings block.
         self.sd.write_output("    No Fly.io settings found in settings.py; adding settings...")
-        # my_loader = Loader(Engine.get_default())
-        # my_template = my_loader.get_template('settings.py')
 
-        # Build context dict for template.
         safe_settings_string = mark_safe(settings_string)
         context = {
             'current_settings': safe_settings_string,
