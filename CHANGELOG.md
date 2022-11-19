@@ -6,6 +6,15 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+#### Internal changes
+
+- Moved all platform-specific files to their own directory. The only reference to a specific platform in *simple_deploy.py* is now the validation of the platform name.
+    - Simplified *setup.cfg* to only refer to the `simple_deploy` package.
+    - Simplified use of the Django template engine to write and modify files for configuration; see `write_file_from_template()` in *utils.py*.
+    - Platform-specific imports are now done dynamically in *simple_deploy.py*, so only the files for the targeted platform are actually imported.
+
 ### 0.5.12
 
 #### External changes:
@@ -13,11 +22,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 ### 0.5.11
 
-#### Internal changes:
-- Removed `execute_subp_run_parts()`, and using `shlex.split(cmd)` instead of `cmd.split()`.
-
 #### External changes:
 - Fixed validation of `--platform` argument when used with `--automate-all`.
+
+#### Internal changes:
+- Removed `execute_subp_run_parts()`, and using `shlex.split(cmd)` instead of `cmd.split()`.
 
 ### 0.5.10
 
