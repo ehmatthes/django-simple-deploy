@@ -5,7 +5,7 @@ from django.template.utils import get_app_template_dirs
 from django.template.loaders.filesystem import Loader as FilesystemLoader
 
 
-def write_file_from_template(path, template, context):
+def write_file_from_template(path, template, context=None):
     """Write a file based on a platform-specific template.
     This may be a whole new file, such as a Dockerfile. Or, we may be modifying
       an existing file such as settings.py.
@@ -13,7 +13,7 @@ def write_file_from_template(path, template, context):
     Returns:
     - None
     """
-    
+
     # Get the platform name from the file that's importing this function.
     #   This may need to be moved to its own file if it ends up being imported
     #   from different places.
