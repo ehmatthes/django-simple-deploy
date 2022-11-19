@@ -15,11 +15,11 @@ from django.conf import settings
 from . import deploy_messages as d_msgs
 from .fly_io import deploy_messages as flyio_msgs
 from .platform_sh import deploy_messages as plsh_msgs
-# from simple_deploy.management.commands.utils import deploy_messages_heroku as dh_msgs
+from .heroku import deploy_messages as dh_msgs
 
 from .fly_io.deploy import FlyioDeployer
 from .platform_sh.deploy import PlatformshDeployer
-# from simple_deploy.management.commands.utils.deploy_heroku import HerokuDeployer
+from .heroku.deploy import HerokuDeployer
 
 
 class Command(BaseCommand):
