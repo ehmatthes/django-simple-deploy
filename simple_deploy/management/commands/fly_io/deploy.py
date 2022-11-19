@@ -18,7 +18,7 @@ from simple_deploy.management.commands.fly_io import deploy_messages as flyio_ms
 from simple_deploy.management.commands.utils import write_file_from_template
 
 
-class FlyioDeployer:
+class PlatformDeployer:
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
     """

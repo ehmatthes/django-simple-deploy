@@ -19,7 +19,7 @@ from simple_deploy.management.commands.platform_sh import deploy_messages as pls
 from simple_deploy.management.commands.utils import write_file_from_template
 
 
-class PlatformshDeployer:
+class PlatformDeployer:
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
     """

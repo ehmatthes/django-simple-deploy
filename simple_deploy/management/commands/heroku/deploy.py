@@ -11,7 +11,7 @@ from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.heroku import deploy_messages as dh_msgs
 
 
-class HerokuDeployer:
+class PlatformDeployer:
     """Perform the initial deployment of a simple project.
     Configure as much as possible automatically.
     """
