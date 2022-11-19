@@ -163,7 +163,7 @@ class Command(BaseCommand):
             error_msg = f"The platform {self.platform} is not currently supported."
             raise CommandError(error_msg)
 
-        platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
+        self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
 
         deployer_module = import_module(f".{self.platform}.deploy", package='simple_deploy.management.commands')
         self.platform_deployer = deployer_module.PlatformDeployer(self)
@@ -186,7 +186,7 @@ class Command(BaseCommand):
             return
 
         # Confirm the user knows exactly what will be automated.
-        self.write_output(platform_msgs.confirm_automate_all, skip_logging=True)
+        self.write_output(self.platform_msgs.confirm_automate_all, skip_logging=True)
         confirmed = self.get_confirmation(skip_logging=True)
 
         if confirmed:
