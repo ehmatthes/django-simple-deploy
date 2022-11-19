@@ -10,9 +10,6 @@ from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
-from django.template.engine import Engine
-from django.template.loaders.app_directories import Loader
-from django.template.loader import render_to_string
 from django.utils.safestring import mark_safe
 
 from simple_deploy.management.commands import deploy_messages as d_msgs
@@ -20,14 +17,22 @@ from simple_deploy.management.commands.fly_io import deploy_messages as flyio_ms
 
 
 
+from django.template.engine import Engine
 from django.template.utils import get_app_template_dirs
 from django.template.loaders.filesystem import Loader as FilesystemLoader
 
-class MyLoader(FilesystemLoader):
-    def get_dirs(self):
-        my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
-        print("ML dirs:", my_dirs)
-        return my_dirs
+def get_template_string(template, context):
+    """Get a template string that can be used to write a modified file.
+    For example, add a settings block to settings.py, or write a Dockerfile.
+
+    Returns:
+    - String
+    """
+    my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
+    my_engine = Engine(dirs=my_dirs)
+    template_string = my_engine.render_to_string(template, context)
+
+    return template_string
 
 
 class FlyioDeployer:
@@ -39,6 +44,9 @@ class FlyioDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
+
+        # Get a renderer to work with templates.
+
 
 
     def deploy(self, *args, **options):
@@ -128,34 +136,6 @@ class FlyioDeployer:
         else:
             # Generate file from template.
             self.sd.write_output("    No Dockerfile found. Generating file...")
-            # my_loader = Loader(Engine.get_default())
-            # print("----- MYLOADER -----")
-            # print(my_loader.__dict__)
-            # if not my_loader.dirs:
-            #     my_loader.dirs = []
-            # my_loader.dirs.append('/Users/eric/projects/django-simple-deploy/simple_deploy/management/commands/fly_io/templates')
-            # print(my_loader.__dict__)
-            # my_template = my_loader.get_template('dockerfile')
-
-
-            # from django.template.loaders.filesystem import Loader as FilesystemLoader
-            # my_loader = FilesystemLoader(engine=Engine.get_default(),
-            #     dirs=['/Users/eric/projects/django-simple-deploy/simple_deploy/management/commands/fly_io'])
-            # my_template = my_loader.get_template('dockerfile')
-
-            # my_loader = MyLoader(Engine.get_default())
-            # my_template = my_loader.get_template('dockerfile')
-
-            my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
-            # my_loader = FilesystemLoader(engine=Engine.get_default(), dirs=my_dirs)
-            # print("----- MYLOADER -----")
-            # print("dirs:", my_loader.dirs)
-            # print("dict:", my_loader.__dict__)
-            # # my_template = my_loader.get_template('dockerfile')
-            # # print("my_template:", my_template.__dict__)
-            # assert my_loader.engine.render_to_string
-            # my_string = my_loader.engine.render_to_string('dockerfile')
-            # print("my_string:", my_string)
 
 
             # Build context dict for template.
@@ -163,18 +143,11 @@ class FlyioDeployer:
                 'django_project_name': self.sd.project_name, 
                 }
 
-            # template_string = my_loader.engine.render_to_string('dockerfile', context)
-            # template_string = my_template.render_to_string.
-            # template_string = my_template.render(context)
+            # my_dirs = get_app_template_dirs("management/commands/fly_io/templates")
+            # my_engine = Engine(dirs=my_dirs)
+            # template_string = my_engine.render_to_string('dockerfile', context)
 
-
-            # Build an engine, give it my loader, see if it can use render_to_string().
-            my_engine = Engine(dirs=my_dirs)
-
-            template_string = my_engine.render_to_string('dockerfile', context)
-
-
-
+            template_string = get_template_string('dockerfile', context)
 
             path = self.sd.project_root / 'Dockerfile'
             path.write_text(template_string)
@@ -243,15 +216,15 @@ class FlyioDeployer:
             self.sd.write_output("    Found existing fly.toml file.")
         else:
             # Generate file from template.
-            self.sd.write_output("    No fly.toml file found. Generating file...")
-            my_loader = Loader(Engine.get_default())
-            my_template = my_loader.get_template('fly.toml')
+            # self.sd.write_output("    No fly.toml file found. Generating file...")
+            # my_loader = Loader(Engine.get_default())
+            # my_template = my_loader.get_template('fly.toml')
 
             # Build context dict for template.
             context = {
                 'deployed_project_name': self.deployed_project_name, 
                 }
-            template_string = render_to_string('fly.toml', context)
+            template_string = get_template_string('fly.toml', context)
 
             path = self.sd.project_root / 'fly.toml'
             path.write_text(template_string)
@@ -276,8 +249,8 @@ class FlyioDeployer:
 
         # Add Fly.io settings block.
         self.sd.write_output("    No Fly.io settings found in settings.py; adding settings...")
-        my_loader = Loader(Engine.get_default())
-        my_template = my_loader.get_template('settings.py')
+        # my_loader = Loader(Engine.get_default())
+        # my_template = my_loader.get_template('settings.py')
 
         # Build context dict for template.
         safe_settings_string = mark_safe(settings_string)
@@ -285,7 +258,7 @@ class FlyioDeployer:
             'current_settings': safe_settings_string,
             'deployed_project_name': self.deployed_project_name,
         }
-        template_string = render_to_string('settings.py', context)
+        template_string = get_template_string('settings.py', context)
 
         path = Path(self.sd.settings_path)
         path.write_text(template_string)
