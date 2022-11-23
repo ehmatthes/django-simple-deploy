@@ -1,5 +1,4 @@
 """Defines the CLI for django-simple-deploy.
-
 """
 
 class SimpleDeployCLI:
