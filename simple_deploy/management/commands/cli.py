@@ -7,8 +7,8 @@ class SimpleDeployCLI:
         """Defines the CLI for django-simple-deploy."""
 
         # Define groups of arguments.
-        required_group = parser.add_argument_group('required')
-        testing_group = parser.add_argument_group('testing')
+        required_group = parser.add_argument_group('Required arguments')
+        testing_group = parser.add_argument_group('Arguments for test runs')
 
         # It's tempting to add a `choices=['fly_io', 'platform_sh']` argument to
         #   this entry. But then we get a generic error message. We can write a 
@@ -18,12 +18,12 @@ class SimpleDeployCLI:
             default='')
 
         parser.add_argument('--automate-all',
-            help="Automate all aspects of deployment?",
+            help="Automates all aspects of deployment. Creates resources, makes commits, and runs `push` or `deploy` commands.",
             action='store_true')
 
         # Allow users to skip logging.
         parser.add_argument('--no-logging',
-            help="Do you want a record of simple_deploy's output?",
+            help="Do not create a log of the configuration and deployment process.",
             action='store_true')
 
         # Allow users to use simple_deploy even with an unclean git status.
@@ -38,12 +38,12 @@ class SimpleDeployCLI:
         #   used in the `startproject` command. See the Platform.sh script
         #   for use of this flag.
         parser.add_argument('--deployed-project-name', type=str,
-            help="What name should the platform use for this project?\n(This is normally discovered automatically through inspection.)",
+            help="Provide a name that the platform will use for this project.",
             default='')
 
         # Allow users to specify the region for a project when using --automate-all.
         parser.add_argument('--region', type=str,
-            help="Which region do you want to deploy to?",
+            help="Specify the region that this project will be deployed to.",
             default='us-3.platform.sh')
 
         # --- Developer arguments ---
