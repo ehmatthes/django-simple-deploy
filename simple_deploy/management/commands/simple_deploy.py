@@ -25,6 +25,12 @@ class Command(BaseCommand):
 
     help = "Configures your project for deployment to the specified platform."
 
+    def create_parser(self, prog_name, subcommand, **kwargs):
+        """Customize the ArgumentParser object that will be created."""
+        epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
+        parser = super().create_parser(prog_name, subcommand, epilog=epilog, **kwargs)
+        return parser
+
     def add_arguments(self, parser):
         """Define CLI options."""
         cli = SimpleDeployCLI(parser)
