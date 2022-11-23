@@ -6,7 +6,9 @@ class SimpleDeployCLI:
     def __init__(self, parser):
         """Defines the CLI for django-simple-deploy."""
 
+        # Define groups of arguments.
         required_group = parser.add_argument_group('required')
+        testing_group = parser.add_argument_group('testing')
 
         # It's tempting to add a `choices=['fly_io', 'platform_sh']` argument to
         #   this entry. But then we get a generic error message. We can write a 
@@ -48,10 +50,10 @@ class SimpleDeployCLI:
 
         # If we're doing local unit testing, we need to avoid some network
         #   calls.
-        parser.add_argument('--unit-testing',
+        testing_group.add_argument('--unit-testing',
             help="Used for local unit testing, to avoid network calls.",
             action='store_true')
 
-        parser.add_argument('--integration-testing',
+        testing_group.add_argument('--integration-testing',
             help="Used for integration testing, to avoid confirmations.",
             action='store_true')
