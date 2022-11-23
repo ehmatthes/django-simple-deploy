@@ -6,8 +6,11 @@ class SimpleDeployCLI:
     def __init__(self, parser):
         """Defines the CLI for django-simple-deploy."""
 
-        parser.add_argument('--platform', type=str,
-            help="Which platform do you want to deploy to?",
+        required_group = parser.add_argument_group('required')
+
+        required_group.add_argument('--platform', type=str,
+            help="Specifies the platform where the project will be deployed.",
+            choices=['fly_io', 'platform_sh', 'heroku'],
             default='')
 
         parser.add_argument('--automate-all',
