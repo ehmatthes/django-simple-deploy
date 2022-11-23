@@ -23,6 +23,8 @@ class Command(BaseCommand):
     Configure as much as possible automatically.
     """
 
+    help = "Configures your project for deployment to the specified platform."
+
     def add_arguments(self, parser):
         """Define CLI options."""
         cli = SimpleDeployCLI(parser)
