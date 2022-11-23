@@ -6,13 +6,13 @@ class SimpleDeployCLI:
     def __init__(self, parser):
         """Defines the CLI for django-simple-deploy."""
 
-        parser.add_argument('--automate-all',
-            help="Automate all aspects of deployment?",
-            action='store_true')
-
         parser.add_argument('--platform', type=str,
             help="Which platform do you want to deploy to?",
             default='')
+
+        parser.add_argument('--automate-all',
+            help="Automate all aspects of deployment?",
+            action='store_true')
 
         # Allow users to skip logging.
         parser.add_argument('--no-logging',
