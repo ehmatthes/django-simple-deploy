@@ -74,6 +74,18 @@ makes.
 # These need to be generated in functions, to display information that's 
 #   determined as the script runs.
 
-# No platform-agnostic dynamic strings are needed at this time.
-#   However, some messages that are currently in platform-specific files
-#   can probably be moved here.
+def invalid_platform_msg(requested_platform):
+    """Error message, when an invalid --platform argument is provided."""
+
+    msg = dedent(f"""
+
+        --- The platform "{requested_platform}" is not currently supported. ---
+        
+        - Current options are: fly_io, platform_sh, and heroku
+        - Example usage:
+          $ python manage.py simple_deploy --platform fly_io
+          $ python manage.py simple_deploy --platform platform_sh
+          $ python manage.py simple_deploy --platform heroku
+
+    """)
+    return msg

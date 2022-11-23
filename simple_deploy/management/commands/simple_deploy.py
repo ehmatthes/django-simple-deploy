@@ -116,7 +116,7 @@ class Command(BaseCommand):
         elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
             self.write_output(f"  Deployment target: {self.platform}", skip_logging=True)
         else:
-            error_msg = f"The platform {self.platform} is not currently supported."
+            error_msg = d_msgs.invalid_platform_msg(self.platform)
             raise CommandError(error_msg)
 
         self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')

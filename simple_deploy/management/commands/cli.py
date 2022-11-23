@@ -8,9 +8,11 @@ class SimpleDeployCLI:
 
         required_group = parser.add_argument_group('required')
 
-        required_group.add_argument('--platform', type=str,
+        # It's tempting to add a `choices=['fly_io', 'platform_sh']` argument to
+        #   this entry. But then we get a generic error message. We can write a 
+        #   much better custom message to handle invalid --platform arguments.
+        required_group.add_argument('--platform', '-p', type=str,
             help="Specifies the platform where the project will be deployed.",
-            choices=['fly_io', 'platform_sh', 'heroku'],
             default='')
 
         parser.add_argument('--automate-all',
