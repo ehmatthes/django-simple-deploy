@@ -25,6 +25,15 @@ class Command(BaseCommand):
 
     help = "Configures your project for deployment to the specified platform."
 
+    def _get_usage(self):
+        return '''manage.py simple_deploy --platform PLATFORM_NAME
+            [--automate-all]
+            [--no-logging]
+            [--ignore-unclean-git]
+
+            [--region REGION]
+            [--deployed-project-name DEPLOYED_PROJECT_NAME]'''
+
     def __init__(self):
         # self.suppressed_base_arguments.add('--version')
         # print(self.__dict__)
@@ -42,8 +51,9 @@ class Command(BaseCommand):
     def create_parser(self, prog_name, subcommand, **kwargs):
         """Customize the ArgumentParser object that will be created."""
         epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
-        usage = "Hello."
-        parser = super().create_parser(prog_name, subcommand, epilog=epilog, usage=usage, add_help=False, **kwargs)
+        usage = "manage.py simple_deploy [--platform PLATFORM]"
+        usage += "    [--automate-all]"
+        parser = super().create_parser(prog_name, subcommand, usage=self._get_usage(), epilog=epilog, add_help=False, **kwargs)
         return parser
 
     def add_arguments(self, parser):
