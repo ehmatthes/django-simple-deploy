@@ -1,6 +1,8 @@
 """Defines the CLI for django-simple-deploy.
 """
 
+import argparse
+
 class SimpleDeployCLI:
 
     def __init__(self, parser):
@@ -11,7 +13,6 @@ class SimpleDeployCLI:
         required_group = parser.add_argument_group("Required arguments")
         behavior_group = parser.add_argument_group("Customize simple_deploy's behavior")
         deployment_config_group = parser.add_argument_group("Customize deployment configuration")
-        testing_group = parser.add_argument_group("Arguments for test runs")
 
         # Show our own help message.
         help_group.add_argument("--help", "-h", action="help", help="Show this help message and exit.")
@@ -53,13 +54,12 @@ class SimpleDeployCLI:
             default='us-3.platform.sh')
 
         # --- Developer arguments ---
+        # Since these are never used by end users, they're not included in the
+        #   help text. Make sure these are appropriately documented in other ways.
 
         # If we're doing local unit testing, we need to avoid some network
         #   calls.
-        testing_group.add_argument('--unit-testing',
-            help="Used for local unit testing, to avoid network calls.",
-            action='store_true')
+        parser.add_argument('--unit-testing', action='store_true', help=argparse.SUPPRESS)
 
-        testing_group.add_argument('--integration-testing',
-            help="Used for integration testing, to avoid confirmations.",
-            action='store_true')
+        # Used for integration testing, to avoid confirmations.
+        parser.add_argument('--integration-testing', action='store_true', help=argparse.SUPPRESS)

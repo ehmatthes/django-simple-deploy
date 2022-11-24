@@ -40,11 +40,14 @@ class Command(BaseCommand):
         # print("sba:", self.suppressed_base_arguments)
         self.suppressed_base_arguments.update([
             '--version', '-v', '--settings', '--pythonpath', '--traceback', '--no-color',
-            '--force-color', '--skip-checks'
+            '--force-color'
             ])
         # self.suppressed_base_arguments.add('--skip-checks')
         # self.suppressed_base_arguments.add('--skip-checks')
+
+        # This ensures that --skip-checks is not included in help output.
         self.requires_system_checks = []
+
         super().__init__()
 
 
