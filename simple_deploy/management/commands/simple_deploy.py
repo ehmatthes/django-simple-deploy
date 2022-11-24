@@ -14,8 +14,8 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from . import deploy_messages as d_msgs
-from simple_deploy.management.commands.utils import write_file_from_template
-# from .cli import SimpleDeployCLI, get_usage
+# from simple_deploy.management.commands.utils import write_file_from_template
+from .utils import write_file_from_template
 from . import cli
 
 
