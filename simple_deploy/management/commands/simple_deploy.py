@@ -47,7 +47,7 @@ class Command(BaseCommand):
                 epilog=epilog, add_help=False, **kwargs)
 
         return parser
-        
+
 
     def add_arguments(self, parser):
         """Define CLI options."""
@@ -155,7 +155,6 @@ class Command(BaseCommand):
         except AttributeError:
             # The targeted platform does not have a preliminary warning.
             pass
-
 
 
     def _confirm_automate_all(self):
