@@ -1,0 +1,36 @@
+usage: manage.py simple_deploy --platform PLATFORM_NAME
+        [--automate-all]
+        [--no-logging]
+        [--ignore-unclean-git]
+
+        [--region REGION]
+        [--deployed-project-name DEPLOYED_PROJECT_NAME]
+
+Configures your project for deployment to the specified platform.
+
+Get help:
+  --help, -h            Show this help message and exit.
+
+Required arguments:
+  --platform PLATFORM, -p PLATFORM
+                        Specifies the platform where the project will be
+                        deployed. Options: fly_io | platform_sh | heroku
+
+Customize simple_deploy's behavior:
+  --automate-all        Automates all aspects of deployment. Creates
+                        resources, makes commits, and runs `push` or `deploy`
+                        commands.
+  --no-logging          Do not create a log of the configuration and
+                        deployment process.
+  --ignore-unclean-git  Run simple_deploy even with an unclean `git status`
+                        message.
+
+Customize deployment configuration:
+  --deployed-project-name DEPLOYED_PROJECT_NAME
+                        Provide a name that the platform will use for this
+                        project.
+  --region REGION       Specify the region that this project will be deployed
+                        to.
+
+For more help, see the full documentation at: https://django-simple-
+deploy.readthedocs.io
