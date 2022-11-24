@@ -43,7 +43,7 @@ class Command(BaseCommand):
         """Customize the ArgumentParser object that will be created."""
         epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
         usage = "Hello."
-        parser = super().create_parser(prog_name, subcommand, epilog=epilog, usage=usage, **kwargs)
+        parser = super().create_parser(prog_name, subcommand, epilog=epilog, usage=usage, add_help=False, **kwargs)
         return parser
 
     def add_arguments(self, parser):

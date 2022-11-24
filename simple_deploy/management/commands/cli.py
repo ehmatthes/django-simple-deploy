@@ -7,10 +7,14 @@ class SimpleDeployCLI:
         """Defines the CLI for django-simple-deploy."""
 
         # Define groups of arguments.
+        help_group = parser.add_argument_group("Get help")
         required_group = parser.add_argument_group("Required arguments")
         behavior_group = parser.add_argument_group("Customize simple_deploy's behavior")
         deployment_config_group = parser.add_argument_group("Customize deployment configuration")
         testing_group = parser.add_argument_group("Arguments for test runs")
+
+        # Show our own help message.
+        help_group.add_argument("--help", "-h", action="help", help="Show this help message and exit.")
 
         # It's tempting to add a `choices=['fly_io', 'platform_sh']` argument to
         #   this entry. But then we get a generic error message. We can write a 
