@@ -15,7 +15,8 @@ from django.conf import settings
 
 from . import deploy_messages as d_msgs
 from simple_deploy.management.commands.utils import write_file_from_template
-from .cli import SimpleDeployCLI
+# from .cli import SimpleDeployCLI, get_usage
+from . import cli
 
 
 class Command(BaseCommand):
@@ -23,29 +24,19 @@ class Command(BaseCommand):
     Configure as much as possible automatically.
     """
 
+    # Provide a summary of simple_deploy in the help text.
     help = "Configures your project for deployment to the specified platform."
 
-    def _get_usage(self):
-        return '''manage.py simple_deploy --platform PLATFORM_NAME
-            [--automate-all]
-            [--no-logging]
-            [--ignore-unclean-git]
-
-            [--region REGION]
-            [--deployed-project-name DEPLOYED_PROJECT_NAME]'''
-
     def __init__(self):
-        # self.suppressed_base_arguments.add('--version')
-        # print(self.__dict__)
-        # print("sba:", self.suppressed_base_arguments)
+        """Customize help output."""
+
+        # Keep these default BaseCommand args out of our help text.
         self.suppressed_base_arguments.update([
             '--version', '-v', '--settings', '--pythonpath', '--traceback', '--no-color',
             '--force-color'
             ])
-        # self.suppressed_base_arguments.add('--skip-checks')
-        # self.suppressed_base_arguments.add('--skip-checks')
 
-        # This ensures that --skip-checks is not included in help output.
+        # Ensure that --skip-checks is not included in help output.
         self.requires_system_checks = []
 
         super().__init__()
@@ -56,14 +47,12 @@ class Command(BaseCommand):
         epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
         usage = "manage.py simple_deploy [--platform PLATFORM]"
         usage += "    [--automate-all]"
-        parser = super().create_parser(prog_name, subcommand, usage=self._get_usage(), epilog=epilog, add_help=False, **kwargs)
+        parser = super().create_parser(prog_name, subcommand, usage=cli.get_usage(), epilog=epilog, add_help=False, **kwargs)
         return parser
 
     def add_arguments(self, parser):
         """Define CLI options."""
-        cli = SimpleDeployCLI(parser)
-
-        
+        sd_cli = cli.SimpleDeployCLI(parser)
 
 
     def handle(self, *args, **options):

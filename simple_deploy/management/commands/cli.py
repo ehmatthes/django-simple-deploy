@@ -3,6 +3,17 @@
 
 import argparse
 
+def get_usage():
+    """Return a custom usage text."""
+    return '''manage.py simple_deploy --platform PLATFORM_NAME
+        [--automate-all]
+        [--no-logging]
+        [--ignore-unclean-git]
+
+        [--region REGION]
+        [--deployed-project-name DEPLOYED_PROJECT_NAME]'''
+
+
 class SimpleDeployCLI:
 
     def __init__(self, parser):
