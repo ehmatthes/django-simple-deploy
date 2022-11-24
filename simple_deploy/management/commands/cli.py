@@ -7,27 +7,29 @@ class SimpleDeployCLI:
         """Defines the CLI for django-simple-deploy."""
 
         # Define groups of arguments.
-        required_group = parser.add_argument_group('Required arguments')
-        testing_group = parser.add_argument_group('Arguments for test runs')
+        required_group = parser.add_argument_group("Required arguments")
+        behavior_group = parser.add_argument_group("Customize simple_deploy's behavior")
+        deployment_config_group = parser.add_argument_group("Customize deployment configuration")
+        testing_group = parser.add_argument_group("Arguments for test runs")
 
         # It's tempting to add a `choices=['fly_io', 'platform_sh']` argument to
         #   this entry. But then we get a generic error message. We can write a 
         #   much better custom message to handle invalid --platform arguments.
         required_group.add_argument('--platform', '-p', type=str,
-            help="Specifies the platform where the project will be deployed.",
+            help="Specifies the platform where the project will be deployed. Options: fly_io | platform_sh | heroku",
             default='')
 
-        parser.add_argument('--automate-all',
+        behavior_group.add_argument('--automate-all',
             help="Automates all aspects of deployment. Creates resources, makes commits, and runs `push` or `deploy` commands.",
             action='store_true')
 
         # Allow users to skip logging.
-        parser.add_argument('--no-logging',
+        behavior_group.add_argument('--no-logging',
             help="Do not create a log of the configuration and deployment process.",
             action='store_true')
 
         # Allow users to use simple_deploy even with an unclean git status.
-        parser.add_argument('--ignore-unclean-git',
+        behavior_group.add_argument('--ignore-unclean-git',
             help="Run simple_deploy even with an unclean `git status` message.",
             action='store_true')
 
@@ -37,12 +39,12 @@ class SimpleDeployCLI:
         #   will be used by the platform, which may be different than the name
         #   used in the `startproject` command. See the Platform.sh script
         #   for use of this flag.
-        parser.add_argument('--deployed-project-name', type=str,
+        deployment_config_group.add_argument('--deployed-project-name', type=str,
             help="Provide a name that the platform will use for this project.",
             default='')
 
         # Allow users to specify the region for a project when using --automate-all.
-        parser.add_argument('--region', type=str,
+        deployment_config_group.add_argument('--region', type=str,
             help="Specify the region that this project will be deployed to.",
             default='us-3.platform.sh')
 

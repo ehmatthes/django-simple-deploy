@@ -25,15 +25,32 @@ class Command(BaseCommand):
 
     help = "Configures your project for deployment to the specified platform."
 
+    def __init__(self):
+        # self.suppressed_base_arguments.add('--version')
+        # print(self.__dict__)
+        # print("sba:", self.suppressed_base_arguments)
+        self.suppressed_base_arguments.update([
+            '--version', '-v', '--settings', '--pythonpath', '--traceback', '--no-color',
+            '--force-color', '--skip-checks'
+            ])
+        # self.suppressed_base_arguments.add('--skip-checks')
+        # self.suppressed_base_arguments.add('--skip-checks')
+        self.requires_system_checks = []
+        super().__init__()
+
+
     def create_parser(self, prog_name, subcommand, **kwargs):
         """Customize the ArgumentParser object that will be created."""
         epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
-        parser = super().create_parser(prog_name, subcommand, epilog=epilog, **kwargs)
+        usage = "Hello."
+        parser = super().create_parser(prog_name, subcommand, epilog=epilog, usage=usage, **kwargs)
         return parser
 
     def add_arguments(self, parser):
         """Define CLI options."""
         cli = SimpleDeployCLI(parser)
+
+        
 
 
     def handle(self, *args, **options):
