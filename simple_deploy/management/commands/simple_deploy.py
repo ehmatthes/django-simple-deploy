@@ -14,7 +14,6 @@ from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
 
 from . import deploy_messages as d_msgs
-# from simple_deploy.management.commands.utils import write_file_from_template
 from .utils import write_file_from_template
 from . import cli
 
@@ -30,12 +29,11 @@ class Command(BaseCommand):
     def __init__(self):
         """Customize help output."""
 
-        # Keep these default BaseCommand args out of our help text.
+        # Keep default BaseCommand args out of our help text.
         self.suppressed_base_arguments.update([
             '--version', '-v', '--settings', '--pythonpath', '--traceback', '--no-color',
             '--force-color'
             ])
-
         # Ensure that --skip-checks is not included in help output.
         self.requires_system_checks = []
 
@@ -45,10 +43,11 @@ class Command(BaseCommand):
     def create_parser(self, prog_name, subcommand, **kwargs):
         """Customize the ArgumentParser object that will be created."""
         epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
-        usage = "manage.py simple_deploy [--platform PLATFORM]"
-        usage += "    [--automate-all]"
-        parser = super().create_parser(prog_name, subcommand, usage=cli.get_usage(), epilog=epilog, add_help=False, **kwargs)
+        parser = super().create_parser(prog_name, subcommand, usage=cli.get_usage(),
+                epilog=epilog, add_help=False, **kwargs)
+
         return parser
+        
 
     def add_arguments(self, parser):
         """Define CLI options."""

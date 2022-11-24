@@ -19,7 +19,8 @@ class SimpleDeployCLI:
     def __init__(self, parser):
         """Defines the CLI for django-simple-deploy."""
 
-        # Define groups of arguments.
+        # Define groups of arguments. These groups help generate a clean 
+        #   output for `manage.py simple_deploy --help`
         help_group = parser.add_argument_group("Get help")
         required_group = parser.add_argument_group("Required arguments")
         behavior_group = parser.add_argument_group("Customize simple_deploy's behavior")
@@ -28,12 +29,18 @@ class SimpleDeployCLI:
         # Show our own help message.
         help_group.add_argument("--help", "-h", action="help", help="Show this help message and exit.")
 
+
+        # --- Required platform argument ---
+
         # It's tempting to add a `choices=['fly_io', 'platform_sh']` argument to
         #   this entry. But then we get a generic error message. We can write a 
         #   much better custom message to handle invalid --platform arguments.
         required_group.add_argument('--platform', '-p', type=str,
             help="Specifies the platform where the project will be deployed. Options: fly_io | platform_sh | heroku",
             default='')
+
+
+        # --- Arguments to customize simple_deploy behavior ---
 
         behavior_group.add_argument('--automate-all',
             help="Automates all aspects of deployment. Creates resources, makes commits, and runs `push` or `deploy` commands.",
@@ -49,7 +56,8 @@ class SimpleDeployCLI:
             help="Run simple_deploy even with an unclean `git status` message.",
             action='store_true')
 
-        # --- Platform.sh arguments ---
+
+        # --- Arguments to customize deployment configuration ---
 
         # Allow users to set the deployed project name. This is the name that
         #   will be used by the platform, which may be different than the name
@@ -64,7 +72,9 @@ class SimpleDeployCLI:
             help="Specify the region that this project will be deployed to.",
             default='us-3.platform.sh')
 
-        # --- Developer arguments ---
+
+        # --- Testing arguments ---
+
         # Since these are never used by end users, they're not included in the
         #   help text. Make sure these are appropriately documented in other ways.
 
