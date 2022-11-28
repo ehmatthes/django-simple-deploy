@@ -6,7 +6,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### 0.5.3
+### 0.5.13
 
 #### External changes
 
