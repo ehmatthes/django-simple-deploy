@@ -98,7 +98,7 @@ def test_invalid_platform_call(tmp_project, capfd):
     make_invalid_call(tmp_project, invalid_sd_command)
     captured = capfd.readouterr()
 
-    assert "The platform unsupported_platform_name is not currently supported." in captured.err
+    assert 'The platform "unsupported_platform_name" is not currently supported.' in captured.err
     check_project_unchanged(tmp_project, capfd)
 
 
@@ -111,5 +111,5 @@ def test_invalid_platform_call_automate_all(tmp_project, capfd):
     make_invalid_call(tmp_project, invalid_sd_command)
     captured = capfd.readouterr()
 
-    assert "The platform unsupported_platform_name is not currently supported." in captured.err
+    assert 'The platform "unsupported_platform_name" is not currently supported.' in captured.err
     check_project_unchanged(tmp_project, capfd)

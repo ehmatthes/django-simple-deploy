@@ -52,7 +52,7 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 
     **Using `django-simple-deploy` with Fly.io**
 
-    - [Quick start: Deploying to Fly.io](../fly_io/quick_start.md)
+    - [Quick start: Deploying to Fly.io](../quick_starts/quick_start_flyio.md)
 
 === "Platform.sh"
 
@@ -80,7 +80,7 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 
     **Using `django-simple-deploy` with Platform.sh**
 
-    - [Quick start: Deploying to Platform.sh](../platform_sh/quick_start.md)
+    - [Quick start: Deploying to Platform.sh](../quick_starts/quick_start_platformsh.md)
 
 === "Heroku"
 
@@ -113,7 +113,7 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 
     **Using `django-simple-deploy` with Heroku**
 
-    - [Quick start: Deploying to Heroku](../heroku/quick_start.md)
+    - [Quick start: Deploying to Heroku](../quick_starts/quick_start_heroku.md)
 
 
 ---

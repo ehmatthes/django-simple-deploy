@@ -26,6 +26,7 @@ nav:
     - 'Deploying to Heroku': 'quick_starts/quick_start_heroku.md'
   - 'General Documentation':
     - 'Choosing a Platform': 'general_documentation/choosing_platform.md'
+    - 'Command Line Reference': 'general_documentation/cli_reference.md'
   - 'Contributing':
     - 'contributing/index.md'
     - 'Documenting a Test Run': 'contributing/test_run.md'
@@ -43,6 +44,8 @@ nav:
     - 'maintaining/index.md'
     - 'Merging PRs': 'maintaining/merging_prs.md'
     - 'Managing Releases': 'maintaining/managing_releases.md'
+    - 'Updating Documentation': 'maintaining/updating_docs.md'
+    - 'Architectural Design Record': 'maintaining/adr.md'
     
 
 
