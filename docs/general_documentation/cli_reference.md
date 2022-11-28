@@ -144,3 +144,42 @@ This is a flag that tells `simple-deploy` that we're running unit tests. This ov
 ### `--integration-testing`
 
 This is a flag that's used when running integration tests. It is primarily used to override confirmations for streamlined integration test runs, which carry out actual deployments. This flag is rarely used directly on the command line; it's mainly used in scripts such as `integration_tests/test_flyio_deployment.sh`.
+
+## Default Django options
+
+Custom Django management commands inherit a number of default options, common to all management commands. The documentation shown here is the same as what you'll see if you run the help command for any default Django management command, such as `manage.py help check`, which displays the help information for the `manage.py check` command.
+
+These options aren't displayed in the output for `manage.py simple_deploy --help` because they're not often used when running `simple_deploy`. They are still available, however, if you need to include any of them.
+
+### `--version`
+
+Reports which version of Django is currently installed.
+
+### `--verbosity, -v {0, 1, 2, 3}`
+
+This controls how much information you want to see in the command output.
+
+- 0: minimal output
+- 1: normal output
+- 2: verbose output
+- 3: very verbose output
+
+### `--settings SETTINGS`
+
+The Python path to a settings module, such as `my_project.settings.main`. If this isn't provided, the `DJANGO_SETTINGS_MODULE` environment variable will be used. In a standard Django project, this is the `settings.py` file that's generated when you run `django-admin startproject PROJECT_NAME`.
+
+### `--pythonpath PYTHONPATH`
+
+A directory to add to the Python path, such as `/home/djangoprojects/myproject`.
+
+### `--traceback`
+
+This tells Django to raise `CommandError` exceptions, rather than handling them automatically.
+
+### `--no-color`
+
+This tells Django not to colorize command output.
+
+### `--force-color`
+
+This tells Django to force colorization of the command output.
