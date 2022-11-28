@@ -63,7 +63,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        The goal of simple_deploy is to simplify the initial configuration and deployment process. We want to simplify the path to a working initial deployment, but also help users start to build an understanding of the platform they've chosen, so they can maintain their deployment. For example, the final output message for a successful configuration informs users (briefly) how they can push subsequent changes to their project. We are also going to write a friendly log file that summarizes the configuration that was done, tells people how to push their next set of changes, and provides links to the most important parts of their platform's documentation.
+        The goal of `simple_deploy` is to simplify the initial configuration and deployment process. We want to simplify the path to a working initial deployment, but also help users start to build an understanding of the platform they've chosen, so they can maintain their deployment. For example, the final output message for a successful configuration informs users (briefly) how they can push subsequent changes to their project. We are also going to write a friendly log file that summarizes the configuration that was done, tells people how to push their next set of changes, and provides links to the most important parts of their platform's documentation.
   
   - type: textarea
     attributes:
@@ -96,5 +96,4 @@ body:
         - Integration Testing
             - Add a new file to `integration_tests/` called `test_PLATFORMNAME_deployment.sh`. Running `./integration_tests/test_deploy_process.sh -p PLATFORM_NAME` should carry out a full deployment which pops up in a new browser tab, and runs the functionality tests for the sample project.
 
-        For more information, see [General Approach to Supporting Platforms](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/supporting_platforms.md). This is in `old_docs/`, so it may be somewhat out of date, but it should still be helpful. It will be fully updated and moved to the official documentation at some point before the 1.0 release.
-        "
+        For more information, see [General Approach to Supporting Platforms](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/supporting_platforms.md). This is in `old_docs/`, so it may be somewhat out of date, but it should still be helpful. It will be fully updated and moved to the official documentation at some point before the 1.0 release."
