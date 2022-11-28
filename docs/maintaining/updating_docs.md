@@ -61,4 +61,4 @@ To view the documentation locally, run `mkdocs serve` in the root directory of t
 
 ## Releasing documentation
 
-Maintainers can release new versions of the documentation by running `mkdocs gh-deploy --force` from the root folder (the folder containing `mkdocs.yml`). This will deploy any updates on the main branch to Read the Docs.
+Updated documentation is automatically pushed to RtD once it's on the main branch. Every merge that involves documentation gets pushed automatically.
