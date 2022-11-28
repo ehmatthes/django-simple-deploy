@@ -52,6 +52,11 @@ body:
 
   - type: textarea
     attributes:
+      label: Technical notes
+      description: Briefly describe the changes that `simple_deploy --platform PLATFORM_NAME` would make to the user's project. What new files would be added to their project? What modifications to existing files would be made, such as settings.py? Can you point to an example of these files and changes?
+
+  - type: textarea
+    attributes:
       label: Authentication issues
       description: Authentication for all currently supported platforms happens through the CLI. We don't need to handle authentication at all; if users are not currently logged in, the platform's CLI prompts for a login in a way that doesn't interrupt the configuration or deployment process. Do you foresee any issues with authentication for this platform? If so, what are they, and how would we handle them?
 
