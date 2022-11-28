@@ -48,7 +48,7 @@ body:
   - type: textarea
     attributes:
       label: "Quick Start: Configuration-only deployment"
-      description: What would the configuration-only deployment process look like for this platform? Please write this as a bulleted list, or as a series of commands like you see in the Fly.io Quick Start guide.
+      description: What would the configuration-only deployment process look like for this platform? Please write this as a bulleted list, or as a series of commands like you see in the Fly.io Quick Start guide. Please mention any prerequisites for deployment to this platform as well.
 
   - type: textarea
     attributes:
