@@ -134,3 +134,13 @@ $ python manage.py simple_deploy --platform PLATFORM_NAME --region REGION
 This flag does not take effect for all platforms, and the argument you provide must be one that your platform's CLI recognizes.
 
 ## Developer-focused options
+
+There are two developer-focused options that don't show up in the `manage.py simple_deploy --help` output. These are focused on testing.
+
+### `--unit-testing`
+
+This is a flag that tells `simple-deploy` that we're running unit tests. This overrides any action that would involve a network call. We rarely use this flag ourselves. Instead, it's used when `simple_deploy` is called from a unit testing script, such as `unit_tests/utils/call_simple_deploy.sh`.
+
+### `--integration-testing`
+
+This is a flag that's used when running integration tests. It is primarily used to override confirmations for streamlined integration test runs, which carry out actual deployments. This flag is rarely used directly on the command line; it's mainly used in scripts such as `integration_tests/test_flyio_deployment.sh`.
