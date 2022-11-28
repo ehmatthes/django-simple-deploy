@@ -106,6 +106,31 @@ $ python manage.py simple_deploy --platform PLATFORM_NAME --ignore-unclean-git
 
 ## Customizing configuration
 
+The goal of `simple_deploy` is to keep configuration for deployment as simple as possible. We make most configuration decisions for you, so you don't have to make those decisions for your initial push. However, some deployments may need a little extra configuration information.
 
+### `--deployed-project-name DEPLOYED_PROJECT_NAME`
+
+For some deployments, you may need to specify the name of the project on the target platform. By default, `simple_deploy` tries to use the same name you used when you ran `django-admin startproject PROJECT_NAME`. However, you may have already created a resource on your platform with a different name, or the platform may have created a resource with a different name for you.
+
+If you need to specify the deployed project name, use the `--deployed-project-name`:
+
+```
+$ python manage.py simple_deploy --platform PLATFORM_NAME --deployed-project-name DEPLOYED_PROJECT_NAME
+```
+
+??? note
+    This flag is used in some testing scripts to avoid making network calls to discover the name a platform has chosen for a resource.
+
+### `--region`
+
+When you deploy a project to a hosting service, they start up a virtual server on a physical machine in a datacenter somewhere in the world. Some platforms default to a datacenter near you, while others may default to a server far from your location. The `--region` flag lets you specify a region where your project should be deployed.
+
+Example usage:
+
+```
+$ python manage.py simple_deploy --platform PLATFORM_NAME --region REGION
+```
+
+This flag does not take effect for all platforms, and the argument you provide must be one that your platform's CLI recognizes.
 
 ## Developer-focused options
