@@ -77,11 +77,11 @@ body:
 
   - type: markdown
     attributes:
+      value: "## Technical notes"
+
+  - type: markdown
+    attributes:
       value: |
-        "## Thank you
-
-        Again, thank you for expressing interest in simplifying the deployment process for Django developers. This automated approach can help everyone, from beginners to seasoned Django experts.
-
         Since there isn't formal documentation about building out support for a new platform yet, here's a brief description of what it would take:
 
         - Implementing support
@@ -96,4 +96,13 @@ body:
         - Integration Testing
             - Add a new file to `integration_tests/` called `test_PLATFORMNAME_deployment.sh`. Running `./integration_tests/test_deploy_process.sh -p PLATFORM_NAME` should carry out a full deployment which pops up in a new browser tab, and runs the functionality tests for the sample project.
 
-        For more information, see [General Approach to Supporting Platforms](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/supporting_platforms.md). This is in `old_docs/`, so it may be somewhat out of date, but it should still be helpful. It will be fully updated and moved to the official documentation at some point before the 1.0 release."
+        For more information, see [General Approach to Supporting Platforms](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/supporting_platforms.md). This is in `old_docs/`, so it may be somewhat out of date, but it should still be helpful. It will be fully updated and moved to the official documentation at some point before the 1.0 release.
+
+  - type: markdown
+    attributes:
+      value: "## Thank you"
+
+  - type: markdown
+    attributes:
+      value: |
+        Again, thank you for expressing interest in simplifying the deployment process for Django developers. This automated approach can help everyone, from beginners to seasoned Django experts.
