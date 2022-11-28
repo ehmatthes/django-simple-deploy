@@ -6,7 +6,14 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.3
+
+#### External changes
+
+- The output of `manage.py simple_deploy --help` is significantly improved.
+- CLI-related error messages have been improved.
+- The CLI is thoroughly documented on RtD.
+
 
 #### Internal changes
 
@@ -14,6 +21,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Simplified *setup.cfg* to only refer to the `simple_deploy` package.
     - Simplified use of the Django template engine to write and modify files for configuration; see `write_file_from_template()` in *utils.py*.
     - Platform-specific imports are now done dynamically in *simple_deploy.py*, so only the files for the targeted platform are actually imported.
+- Implementation of the CLI has been improved:
+    - All CLI args are now defined in a separate module, `cli.py`.
+    - Help output is covered in a unit test.
+- Other developer-focused documentation improvements:    
+    - Documented maintenance of docs.
+    - Started ADR documentation.
+    - Added Black to requirements, and used it to format the new `cli.py` file.
 
 ### 0.5.12
 
