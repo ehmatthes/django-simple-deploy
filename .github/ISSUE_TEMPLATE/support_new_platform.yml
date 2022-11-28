@@ -86,6 +86,8 @@ body:
 
         - Implementing support
             - Add a new directory to `simple_deploy/management/commands/`. The name of this directory should be the same name you want people to use in the command `manage.py simple_deploy --platform PLATFORM_NAME`.
+            - Add your platform arg to `_validate_platform_arg()` in `simple_deploy.py`. This should be the only change necessary to `simple_deploy.py`.
+            - In `cli.py`, add your platform arg as an option for the `--platform` argument. This is informational; validation happens in `simple_deploy.py`.
             - Write a `deploy.py` script. Using the script from the `fly_io/` folder is probably a good approach at this point.
             - Write a `deploy_messages.py` file for any platform-specific output messages you'll need.
             - Include a `templates/` directory in your platform's folder for any new files that will need to be created, or any sections that need to be added to existing files.
@@ -95,6 +97,10 @@ body:
             - Write a new file for your platform, called `test_PLATFORMNAME_config.py`. It should test that the sample project is configured correctly when run against your platform. Again, use `test_flyio_config.py` as a template.
         - Integration Testing
             - Add a new file to `integration_tests/` called `test_PLATFORMNAME_deployment.sh`. Running `./integration_tests/test_deploy_process.sh -p PLATFORM_NAME` should carry out a full deployment which pops up in a new browser tab, and runs the functionality tests for the sample project.
+        - Documentation
+            - Add a Quick Start page for your platform.
+            - Add this platform to the home page.
+            - Add an entry about this platform on the Choosing a Platform page.
 
         For more information, see [General Approach to Supporting Platforms](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/supporting_platforms.md). This is in `old_docs/`, so it may be somewhat out of date, but it should still be helpful. It will be fully updated and moved to the official documentation at some point before the 1.0 release.
 
