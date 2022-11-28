@@ -44,6 +44,7 @@ nav:
     - 'maintaining/index.md'
     - 'Merging PRs': 'maintaining/merging_prs.md'
     - 'Managing Releases': 'maintaining/managing_releases.md'
+    - 'Updating Documentation': 'maintaining/updating_docs.md'
     
 
 
