@@ -64,7 +64,7 @@ There are several options to customize `simple_deploy`'s behavior. You can autom
 
 ### `--automate-all`
 
-The recommended way to use `simple_deploy` is in configuration mode. In this mode, `simple_deploy` makes all configuration changes necessary to successfully deploy your project on the given platform. However, it does not commit these changes, it does not create any resources on your behalf, and it doesn not commit any changes. This is good, because it lets you know exactly what you need to create, and you get to review all changes before committing them to your project.
+The recommended (default) way to use `simple_deploy` is in configuration mode. In this mode, `simple_deploy` makes all configuration changes necessary to successfully deploy your project on the given platform. However, it avoids creating any remote resources it doesn't have to, and it does not any commits on your behalf. This is good, because it lets you know exactly what you need to create, and you get to review all changes before committing them to your project.
 
 The `--automate-all` flag tells `simple_deploy` to do everything for you: it creates any resources necessary for deployment on the target platform. It makes all the necessary configuration changes, and makes a new commit for these changes. Finally, it calls your platform's `push` or `deploy` command; you get to sit back and watch your deployed project appear in a new browser tab.
 
