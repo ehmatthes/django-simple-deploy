@@ -4,6 +4,7 @@ FROM python:${PYTHON_VERSION}
 
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
+{% if using_pipenv %}ENV PIPENV_PIPFILE /tmp/Pipfile{% endif %}
 
 RUN mkdir -p /code
 
@@ -11,8 +12,6 @@ WORKDIR /code
 
 {% if using_pipenv %}
 COPY Pipfile /tmp/Pipfile
-
-ENV PIPENV_PIPFILE /tmp/Pipfile
 
 RUN set -ex && \
     pip install --upgrade pip && \
@@ -30,8 +29,16 @@ RUN set -ex && \
 
 COPY . /code/
 
+{% if using_pipenv %}
+RUN ON_FLYIO_SETUP="1" pipenv run python manage.py collectstatic --noinput
+
+EXPOSE 8000
+
+CMD ["pipenv", "run", gunicorn", "--bind", ":8000", "--workers", "2", "{{ django_project_name }}.wsgi"]
+{% else %}
 RUN ON_FLYIO_SETUP="1" python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
 CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "{{ django_project_name }}.wsgi"]
+{% endif %}
