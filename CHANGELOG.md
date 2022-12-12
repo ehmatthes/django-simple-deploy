@@ -12,6 +12,11 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 - Clarified documentation about configuration-only mode. We do sometimes create remote resources on the user's behalf, but only when we can't easily ask users to do so before running `simple_deploy`.
 
+#### Internal changes
+
+- Started platform-agnostic tests for the process of inspecting local projects.
+- The check for whether Poetry is being used is more specific.
+
 ### 0.5.13
 
 #### External changes
