@@ -118,7 +118,8 @@ class PlatformDeployer:
             self.sd.write_output("    No Dockerfile found. Generating file...")
 
             context = {
-                'django_project_name': self.sd.project_name, 
+                'django_project_name': self.sd.project_name,
+                'using_pipenv': self.sd.using_pipenv,
                 }
             path = self.sd.project_root / 'Dockerfile'
             write_file_from_template(path, 'dockerfile', context)

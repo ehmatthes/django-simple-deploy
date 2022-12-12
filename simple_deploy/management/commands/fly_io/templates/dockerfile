@@ -9,12 +9,24 @@ RUN mkdir -p /code
 
 WORKDIR /code
 
+{% if using_pipenv %}
+COPY Pipfile /tmp/Pipfile
+
+ENV PIPENV_PIPFILE /tmp/Pipfile
+
+RUN set -ex && \
+    pip install --upgrade pip && \
+    pip install pipenv && \
+    pipenv install && \
+    rm -rf /root/.cache/
+{% else %}
 COPY requirements.txt /tmp/requirements.txt
 
 RUN set -ex && \
     pip install --upgrade pip && \
     pip install -r /tmp/requirements.txt && \
     rm -rf /root/.cache/
+{% endif %}
 
 COPY . /code/
 
