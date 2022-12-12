@@ -189,7 +189,8 @@ class PlatformDeployer:
         else:
             # Generate file from template.
             context = {
-                'deployed_project_name': self.deployed_project_name, 
+                'deployed_project_name': self.deployed_project_name,
+                'using_pipenv': self.sd.using_pipenv,
                 }
             path = self.sd.project_root / 'fly.toml'
             write_file_from_template(path, 'fly.toml', context)
