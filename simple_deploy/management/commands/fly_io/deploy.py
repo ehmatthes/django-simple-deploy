@@ -105,7 +105,19 @@ class PlatformDeployer:
 
 
     def _add_dockerfile(self):
-        """Add a minimal dockerfile."""
+        """Add a minimal dockerfile.
+
+        Different dependency management systems need different Dockerfiles.
+        We could send an argument to the template to dynamically generate the
+          appropriate dockerfile, but that makes the template *much* harder to
+          read and reason about. It's much nicer to keep that logic in here, and
+          have a couple clean templates that read almost as easily as the final
+          dockerfiles that are generated for each dependency management system.
+
+        Returns:
+        - path to Dockerfile that was gnerated.
+        - None, if an existing Dockerfile was found.
+        """
 
         # File should be in project root, if present.
         self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Dockerfile...")
@@ -122,7 +134,6 @@ class PlatformDeployer:
                 }
 
             path = self.sd.project_root / 'Dockerfile'
-            # Pipenv users need a different Dockerfile.
             if self.sd.using_pipenv:
                 dockerfile_template = 'dockerfile_pipenv'
             else:
