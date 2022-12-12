@@ -34,7 +34,7 @@ RUN ON_FLYIO_SETUP="1" pipenv run python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["pipenv", "run", gunicorn", "--bind", ":8000", "--workers", "2", "{{ django_project_name }}.wsgi"]
+CMD ["pipenv", "run", "gunicorn", "--bind", ":8000", "--workers", "2", "{{ django_project_name }}.wsgi"]
 {% else %}
 RUN ON_FLYIO_SETUP="1" python manage.py collectstatic --noinput
 
