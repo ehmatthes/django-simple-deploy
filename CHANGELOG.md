@@ -11,6 +11,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 #### External changes
 
 - Clarified documentation about configuration-only mode. We do sometimes create remote resources on the user's behalf, but only when we can't easily ask users to do so before running `simple_deploy`.
+- Fly.io and Platform.sh now support Pipenv-based projects. (Heroku already had support for Pipenv.)
 
 #### Internal changes
 
