@@ -119,10 +119,15 @@ class PlatformDeployer:
 
             context = {
                 'django_project_name': self.sd.project_name,
-                'using_pipenv': self.sd.using_pipenv,
                 }
+
             path = self.sd.project_root / 'Dockerfile'
-            write_file_from_template(path, 'dockerfile', context)
+            # Pipenv users need a different Dockerfile.
+            if self.sd.using_pipenv:
+                dockerfile_template = 'dockerfile_pipenv'
+            else:
+                dockerfile_template = 'dockerfile'
+            write_file_from_template(path, dockerfile_template, context)
 
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
