@@ -121,7 +121,11 @@ class PlatformDeployer:
                 'deployed_project_name': self.deployed_project_name
                 }
             path = self.sd.project_root / '.platform.app.yaml'
-            write_file_from_template(path, 'platform.app.yaml', context)
+            if self.sd.using_pipenv:
+                template_path = 'platform.app.yaml-pipenv'
+            else:
+                template_path = 'platform.app.yaml'
+            write_file_from_template(path, template_path, context)
 
             msg = f"\n    Generated .platform.app.yaml file: {path}"
             self.sd.write_output(msg)

@@ -4,7 +4,7 @@
 # See https://docs.platform.sh/user_guide/reference/platform-app-yaml.html
 
 # The name of this app. Must be unique within a project.
-name: 'my_blog_project'
+name: '{{ deployed_project_name }}'
 
 # The runtime the application uses.
 type: 'python:3.10'
@@ -25,7 +25,7 @@ web:
         socket_family: unix
     # Commands are run once after deployment to start the application process.
     commands:
-        start: "gunicorn -w 4 -b unix:$SOCKET blog.wsgi:application"
+        start: "pipenv run gunicorn -w 4 -b unix:$SOCKET {{ project_name }}.wsgi:application"
     locations:
         "/":
             passthru: true
@@ -51,11 +51,12 @@ hooks:
   #      Also, may want to split requirements into requirements.txt and requirements_remote.txt.
   build: |
     pip install --upgrade pip
-    pip install -r requirements.txt
+    pip install pipenv
+    pipenv install
 
     mkdir logs
-    python manage.py collectstatic
+    pipenv run python manage.py collectstatic
     rm -rf logs
   deploy: |
-    python manage.py migrate
+    pipenv run python manage.py migrate
     

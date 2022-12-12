@@ -40,5 +40,10 @@ processes = []
   guest_path = "/app/public"
   url_prefix = "/static/"
 
+{% if using_pipenv %}
+[deploy]
+  release_command = "pipenv run python manage.py migrate"
+{% else %}
 [deploy]
   release_command = "python manage.py migrate"
+{% endif %}
