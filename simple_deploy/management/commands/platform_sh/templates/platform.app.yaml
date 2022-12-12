@@ -9,12 +9,6 @@ name: '{{ deployed_project_name }}'
 # The runtime the application uses.
 type: 'python:3.10'
 
-# The build-time dependencies of the app.
-# DEV: I don't think these are needed when using pip with requirements.txt.
-# dependencies:
-#     python3:
-#        pipenv: '2018.10.13'
-
 # The relationships of the application with services or other applications.
 #
 # The left-hand side is the name of the relationship as it will be exposed
