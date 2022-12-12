@@ -449,7 +449,7 @@ class Command(BaseCommand):
         if self.using_pipenv:
             self.using_req_txt = False
 
-        self.using_poetry = 'pyproject.toml' in os.listdir(self.git_path)
+        self.using_poetry = self._check_using_poetry()
         if self.using_poetry:
             # Heroku does not recognize pyproject.toml, so we'll export to
             #   a requirements.txt file, and then work from that. This should
@@ -464,6 +464,27 @@ class Command(BaseCommand):
             error_msg = f"Couldn't find any specified requirements in {self.git_path}."
             self.write_output(error_msg, write_to_console=False, skip_logging=True)
             raise CommandError(error_msg)
+
+
+    def _check_using_poetry(self):
+        """Check if the project appears to be using poetry for dependency
+        management. We're looking for poetry.lock, or `[tool.poetry]` in 
+        pyproject.toml.
+
+        Returns:
+        - True if one of these is found.
+        - False if one of these is not found.
+        """
+        if "poetry.lock" in os.listdir(self.git_path):
+            return True
+
+        if 'pyproject.toml' in os.listdir(self.git_path):
+            path = self.git_path / 'pyproject.toml'
+            if "[tool.poetry]" in path.read_text():
+                return True
+
+        # Couldn't find any evidence of using Poetry, so return False.
+        return False
 
 
     def _get_current_requirements(self):
