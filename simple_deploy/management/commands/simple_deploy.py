@@ -467,23 +467,25 @@ class Command(BaseCommand):
 
 
     def _check_using_poetry(self):
-        """Check if the project appears to be using poetry for dependency
-        management. We're looking for poetry.lock, or `[tool.poetry]` in 
-        pyproject.toml.
+        """Check if the project appears to be using poetry.
+
+        Check for a poetry.lock file, or a pyproject.toml file with a
+          [tool.poetry] section.
 
         Returns:
         - True if one of these is found.
         - False if one of these is not found.
         """
-        if "poetry.lock" in os.listdir(self.git_path):
+        path = self.git_path / "poetry.lock"
+        if path.exists():
             return True
 
-        if 'pyproject.toml' in os.listdir(self.git_path):
-            path = self.git_path / 'pyproject.toml'
+        path = self.git_path / "pyproject.toml"
+        if path.exists():
             if "[tool.poetry]" in path.read_text():
                 return True
 
-        # Couldn't find any evidence of using Poetry, so return False.
+        # Couldn't find any evidence of using Poetry.
         return False
 
 
