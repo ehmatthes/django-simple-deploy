@@ -675,6 +675,8 @@ class Command(BaseCommand):
         Returns:
         - None
         """
+        self.write_output(f"\n  Looking for {package_name}...")
+        
         if self.pkg_manager == "pipenv":
             self._add_pipenv_pkg(package_name, version)
         else:

@@ -136,7 +136,6 @@ class PlatformDeployer:
 
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
-        self.sd.write_output("\n  Looking for gunicorn...")
         self.sd.add_package("gunicorn")
 
 

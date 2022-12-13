@@ -133,7 +133,6 @@ class PlatformDeployer:
         """Add requirements for serving on Platform.sh."""
         requirements = ["platformshconfig", "gunicorn", "psycopg2"]
         for requirement in requirements:
-            self.sd.write_output(f"\n  Looking for {requirement}...")
             self.sd.add_package(requirement)
 
 

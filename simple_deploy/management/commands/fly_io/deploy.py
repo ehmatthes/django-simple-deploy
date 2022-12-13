@@ -244,7 +244,6 @@ class PlatformDeployer:
         """Add requirements for serving on Fly.io."""
         requirements = ["gunicorn", "psycopg2-binary", "dj-database-url", "whitenoise"]
         for requirement in requirements:
-            self.sd.write_output(f"\n  Looking for {requirement}...")
             self.sd.add_package(requirement)
 
 
