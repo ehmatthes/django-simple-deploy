@@ -243,8 +243,7 @@ class PlatformDeployer:
     def _add_requirements(self):
         """Add requirements for serving on Fly.io."""
         requirements = ["gunicorn", "psycopg2-binary", "dj-database-url", "whitenoise"]
-        for requirement in requirements:
-            self.sd.add_package(requirement)
+        self.sd.add_packages(requirements)
 
 
     def _conclude_automate_all(self):

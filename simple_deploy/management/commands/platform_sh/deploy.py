@@ -132,8 +132,7 @@ class PlatformDeployer:
     def _add_requirements(self):
         """Add requirements for serving on Platform.sh."""
         requirements = ["platformshconfig", "gunicorn", "psycopg2"]
-        for requirement in requirements:
-            self.sd.add_package(requirement)
+        self.sd.add_packages(requirements)
 
 
     def _check_allowed_hosts(self):

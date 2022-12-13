@@ -661,6 +661,21 @@ class Command(BaseCommand):
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
+    def add_packages(self, package_list):
+        """Adds a set of packages to the project's requirements.
+        
+        This is a simple wrapper for add_package(), to make it easier to add 
+          multiple requirements at once.
+        If you need to specify a version for a particular package,
+          use add_package().
+
+        Returns:
+        - None
+        """
+        for package in package_list:
+            self.add_package(package)
+
+
     def add_package(self, package_name, version=""):
         """Add a pacakage to the project's requirements.
 
@@ -676,7 +691,7 @@ class Command(BaseCommand):
         - None
         """
         self.write_output(f"\n  Looking for {package_name}...")
-        
+
         if self.pkg_manager == "pipenv":
             self._add_pipenv_pkg(package_name, version)
         else:
