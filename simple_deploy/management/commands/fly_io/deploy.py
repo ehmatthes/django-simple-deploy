@@ -134,7 +134,7 @@ class PlatformDeployer:
                 }
 
             path = self.sd.project_root / 'Dockerfile'
-            if self.sd.using_pipenv:
+            if self.sd.pkg_manager == "pipenv":
                 dockerfile_template = 'dockerfile_pipenv'
             else:
                 dockerfile_template = 'dockerfile'
@@ -206,7 +206,7 @@ class PlatformDeployer:
             # Generate file from template.
             context = {
                 'deployed_project_name': self.deployed_project_name,
-                'using_pipenv': self.sd.using_pipenv,
+                'using_pipenv': (self.sd.pkg_manager == "pipenv"),
                 }
             path = self.sd.project_root / 'fly.toml'
             write_file_from_template(path, 'fly.toml', context)
@@ -247,39 +247,22 @@ class PlatformDeployer:
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.sd.write_output("\n  Looking for gunicorn...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('gunicorn')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('gunicorn')
-
+        self.sd.add_pkg("gunicorn")
 
     def _add_psycopg2_binary(self):
         """Add psycopg2-binary to project requirements."""
         self.sd.write_output("\n  Looking for psycopg2-binary...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('psycopg2-binary')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('psycopg2-binary')
+        self.sd.add_pkg("psycopg2-binary")
 
     def _add_dj_database_url(self):
         """Add dj-database-url to project requirements."""
         self.sd.write_output("\n  Looking for dj-database-url...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('dj-database-url')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('dj-database-url')
+        self.sd.add_pkg("dj-database-url")
 
     def _add_whitenoise(self):
         """Add whitenoise to project requirements."""
         self.sd.write_output("\n  Looking for whitenoise...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('whitenoise')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('whitenoise')
+        self.sd.add_pkg("whitenoise")
 
 
     def _conclude_automate_all(self):
