@@ -134,7 +134,7 @@ class PlatformDeployer:
         requirements = ["platformshconfig", "gunicorn", "psycopg2"]
         for requirement in requirements:
             self.sd.write_output(f"\n  Looking for {requirement}...")
-            self.sd.add_pkg(requirement)
+            self.sd.add_package(requirement)
 
 
     def _check_allowed_hosts(self):

@@ -245,7 +245,7 @@ class PlatformDeployer:
         requirements = ["gunicorn", "psycopg2-binary", "dj-database-url", "whitenoise"]
         for requirement in requirements:
             self.sd.write_output(f"\n  Looking for {requirement}...")
-            self.sd.add_pkg(requirement)
+            self.sd.add_package(requirement)
 
 
     def _conclude_automate_all(self):

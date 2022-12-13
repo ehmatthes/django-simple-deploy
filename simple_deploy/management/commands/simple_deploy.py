@@ -517,7 +517,7 @@ class Command(BaseCommand):
         #   django-simple-deploy it's automatically added to Pipfile.
         if self.pkg_manager == "req_txt":
             self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
-            self.add_pkg('django-simple-deploy')
+            self.add_package('django-simple-deploy')
 
 
     def _get_pipfile_requirements(self):
@@ -661,14 +661,14 @@ class Command(BaseCommand):
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
-    def add_pkg(self, package_name, version=""):
+    def add_package(self, package_name, version=""):
         """Add a pacakage to the project's requirements.
 
         This method is pkg_manager-agnostic. It delegates to a method that's 
           specific to the dependency management system that's in use.
 
         Handles calls with version information with pip formatting:
-        - self.sd.add_pkg("psycopg2", version="<2.9")
+        - self.sd.add_package("psycopg2", version="<2.9")
         The delegated methods handle this version information correctly for
           the dependency management system in use.
 

@@ -137,7 +137,7 @@ class PlatformDeployer:
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.sd.write_output("\n  Looking for gunicorn...")
-        self.sd.add_pkg("gunicorn")
+        self.sd.add_package("gunicorn")
 
 
     def _check_allowed_hosts(self):
@@ -173,8 +173,8 @@ class PlatformDeployer:
 
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        self.sd.add_pkg("psycopg2", version="<2.9")
-        self.sd.add_pkg("dj-database-url")
+        self.sd.add_package("psycopg2", version="<2.9")
+        self.sd.add_package("dj-database-url")
 
 
     def _add_db_settings(self):
@@ -201,7 +201,7 @@ class PlatformDeployer:
 
         # Add whitenoise to requirements.
         self.sd.write_output("    Adding staticfiles-related packages...")
-        self.sd.add_pkg("whitenoise")
+        self.sd.add_package("whitenoise")
 
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
