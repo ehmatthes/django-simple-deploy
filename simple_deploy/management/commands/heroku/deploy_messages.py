@@ -46,11 +46,6 @@ def success_msg(pkg_manager, heroku_app_name):
     #   can add a pipenv line when needed.
     newline = '\n'
 
-    if pkg_manager == "pipenv":
-      using_pipenv = True
-    else:
-      using_pipenv = False
-
     msg = dedent(f"""
 
         --- Your project is now configured for deployment on Heroku. ---
@@ -60,7 +55,7 @@ def success_msg(pkg_manager, heroku_app_name):
         - Push the changes to Heroku.
         - Migrate the database on Heroku.
         
-        The following commands should finish your initial deployment:{newline + '        $ pipenv lock' if using_pipenv else ''}
+        The following commands should finish your initial deployment:{newline + '        $ pipenv lock' if pkg_manager == "pipenv" else ''}
         $ git add .
         $ git commit -am "Configured for Heroku deployment."
         $ git push heroku main
