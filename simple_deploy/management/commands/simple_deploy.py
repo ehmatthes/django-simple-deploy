@@ -673,21 +673,24 @@ class Command(BaseCommand):
         if self.pkg_manager == "pipenv":
             self._add_pipenv_pkg(package_name, version)
         else:
-            self._add_req_txt_pkg(package_name)
+            self._add_req_txt_pkg(package_name, version)
 
 
-    def _add_req_txt_pkg(self, package_name):
+    def _add_req_txt_pkg(self, package_name, version):
         """Add a package to requirements.txt, if not already present."""
-        root_package_name = package_name.split('<')[0]
+        # root_package_name = package_name.split('<')[0]
 
         # Note: This does not check for specific versions. It gives priority
         #   to any version already specified in requirements.
-        pkg_present = any(root_package_name in r for r in self.requirements)
+        # pkg_present = any(root_package_name in r for r in self.requirements)
+        pkg_present = any(package_name in r for r in self.requirements)
 
         if pkg_present:
             self.write_output(f"    Found {root_package_name} in requirements file.")
         else:
             with open(self.req_txt_path, 'a') as f:
+                # Add version information back into package name.
+                package_name += version
                 # Align comments, so we don't make req_txt file ugly.
                 #   Version specs are in package_name in req_txt approach.
                 tab_string = ' ' * (30 - len(package_name))
