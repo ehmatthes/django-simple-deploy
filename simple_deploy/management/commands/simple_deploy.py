@@ -323,7 +323,8 @@ class Command(BaseCommand):
 
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
-        self._get_dep_man_approach()
+        # Find out which package manger is being used: req_txt, poetry, or pipenv
+        self.pkg_manager = self._get_dep_man_approach()
         self._get_current_requirements()
 
 
@@ -436,34 +437,33 @@ class Command(BaseCommand):
     def _get_dep_man_approach(self):
         """Identify which dependency management approach the project uses.
         req_txt, poetry, or pipenv.
+
+        Sets the self.pkg_manager attribute.
+        Looks for most specific tests first: Poetry, Pipenv, then requirements.txt.
+          ie if a project uses Poetry and has a requirements.txt file, we'll prioritize
+          Poetry.
+
+        Returns
+        - String representing dependency management system found:
+            req_txt | poetry | pipenv
+        - Raises CommandError if no pkg_manager can be identified.
         """
 
-        # In a simple project, I don't think we should find both Pipfile
-        #   and requirements.txt. However, if there's both, prioritize Pipfile.
-        self.using_req_txt = 'requirements.txt' in os.listdir(self.git_path)
+        path = self.git_path / 'Pipfile'
+        if path.exists():
+            return "req_txt"
 
-        # DEV: If both req_txt and Pipfile are found, could just use req.txt.
-        #      That's Heroku's prioritization, I believe. Address this if
-        #      anyone has such a project, and ask why they have both initially.
-        self.using_pipenv = 'Pipfile' in os.listdir(self.git_path)
-        if self.using_pipenv:
-            self.using_req_txt = False
+        if self._check_using_poetry():
+            return "poetry"
 
-        self.using_poetry = self._check_using_poetry()
-        if self.using_poetry:
-            # Heroku does not recognize pyproject.toml, so we'll export to
-            #   a requirements.txt file, and then work from that. This should
-            #   not affect the user's local environment.
-            cmd = 'poetry export -f requirements.txt --output requirements.txt --without-hashes'
-            output = self.execute_subp_run(cmd)
-            self.write_output(output, skip_logging=True)
-            self.using_req_txt = True
+        path = self.git_path / "requirements.txt"
+        if path.exists():
+            return "req_txt"
 
         # Exit if we haven't found any requirements.
-        if not any((self.using_req_txt, self.using_pipenv)):
-            error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-            self.write_output(error_msg, write_to_console=False, skip_logging=True)
-            raise CommandError(error_msg)
+        error_msg = f"Couldn't find any specified requirements in {self.git_path}."
+        self.write_output(error_msg, write_to_console=False, skip_logging=True)
+        raise CommandError(error_msg)
 
 
     def _check_using_poetry(self):
@@ -492,7 +492,7 @@ class Command(BaseCommand):
     def _get_current_requirements(self):
         """Get current project requirements, before adding any new ones.
         """
-        if self.using_req_txt:
+        if self.pkg_manager == "req_txt":
             # Build path to requirements.txt.
             self.req_txt_path = f"{self.git_path}/requirements.txt"
 
@@ -501,7 +501,7 @@ class Command(BaseCommand):
                 requirements = f.readlines()
                 self.requirements = [r.rstrip() for r in requirements]
 
-        if self.using_pipenv:
+        if self.pkg_manager == "pipenv":
             # Build path to Pipfile.
             self.pipfile_path = f"{self.git_path}/Pipfile"
 
@@ -515,7 +515,7 @@ class Command(BaseCommand):
         #   required. If it's not, Heroku will reject the push.
         # This step isn't needed for Pipenv users, because when they install
         #   django-simple-deploy it's automatically added to Pipfile.
-        if self.using_req_txt:
+        if self.pkg_manager == "req_txt":
             self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
             self.add_req_txt_pkg('django-simple-deploy')
 
