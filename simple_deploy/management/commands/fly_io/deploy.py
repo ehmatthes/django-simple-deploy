@@ -39,11 +39,7 @@ class PlatformDeployer:
         self._add_dockerignore()
         self._add_flytoml_file()
         self._modify_settings()
-
-        self._add_gunicorn()
-        self._add_psycopg2_binary()
-        self._add_dj_database_url()
-        self._add_whitenoise()
+        self._add_requirements()
 
         self._conclude_automate_all()
 
@@ -244,25 +240,12 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
 
-    def _add_gunicorn(self):
-        """Add gunicorn to project requirements."""
-        self.sd.write_output("\n  Looking for gunicorn...")
-        self.sd.add_pkg("gunicorn")
-
-    def _add_psycopg2_binary(self):
-        """Add psycopg2-binary to project requirements."""
-        self.sd.write_output("\n  Looking for psycopg2-binary...")
-        self.sd.add_pkg("psycopg2-binary")
-
-    def _add_dj_database_url(self):
-        """Add dj-database-url to project requirements."""
-        self.sd.write_output("\n  Looking for dj-database-url...")
-        self.sd.add_pkg("dj-database-url")
-
-    def _add_whitenoise(self):
-        """Add whitenoise to project requirements."""
-        self.sd.write_output("\n  Looking for whitenoise...")
-        self.sd.add_pkg("whitenoise")
+    def _add_requirements(self):
+        """Add requirements for serving on Fly.io."""
+        requirements = ["gunicorn", "psycopg2-binary", "dj-database-url", "whitenoise"]
+        for requirement in requirements:
+            self.sd.write_output(f"\n  Looking for {requirement}...")
+            self.sd.add_pkg(requirement)
 
 
     def _conclude_automate_all(self):
