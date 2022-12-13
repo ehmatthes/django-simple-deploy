@@ -517,7 +517,7 @@ class Command(BaseCommand):
         #   django-simple-deploy it's automatically added to Pipfile.
         if self.pkg_manager == "req_txt":
             self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
-            self.add_req_txt_pkg('django-simple-deploy')
+            self.add_pkg('django-simple-deploy')
 
 
     def _get_pipfile_requirements(self):
@@ -661,7 +661,22 @@ class Command(BaseCommand):
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
-    def add_req_txt_pkg(self, package_name):
+    def add_pkg(self, package_name, version=""):
+        """Add a pacakage to the project's requirements.
+
+        This method is pkg_manager-agnostic. It delegates to a method that's 
+          specific to the dependency management system that's in use.
+
+        Returns:
+        - None
+        """
+        if self.pkg_manager == "pipenv":
+            self._add_pipenv_pkg(package_name, version)
+        else:
+            self._add_req_txt_pkg(package_name)
+
+
+    def _add_req_txt_pkg(self, package_name):
         """Add a package to requirements.txt, if not already present."""
         root_package_name = package_name.split('<')[0]
 
@@ -681,7 +696,7 @@ class Command(BaseCommand):
             self.write_output(f"    Added {package_name} to requirements.txt.")
 
 
-    def add_pipenv_pkg(self, package_name, version=""):
+    def _add_pipenv_pkg(self, package_name, version=""):
         """Add a package to Pipfile, if not already present."""
         pkg_present = any(package_name in r for r in self.requirements)
 

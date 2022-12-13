@@ -137,11 +137,7 @@ class PlatformDeployer:
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.sd.write_output("\n  Looking for gunicorn...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('gunicorn')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('gunicorn')
+        self.sd.add_pkg("gunicorn")
 
 
     def _check_allowed_hosts(self):
@@ -177,12 +173,12 @@ class PlatformDeployer:
 
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('psycopg2<2.9')
-            self.sd.add_req_txt_pkg('dj-database-url')
+        if self.sd.pkg_manager == "req_txt":
+            self.sd._add_req_txt_pkg('psycopg2<2.9')
         elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('psycopg2', version="<2.9")
-            self.sd.add_pipenv_pkg('dj-database-url')
+            self.sd._add_pipenv_pkg('psycopg2', version="<2.9")
+
+        self.sd.add_pkg("dj-database-url")
 
 
     def _add_db_settings(self):
@@ -209,10 +205,7 @@ class PlatformDeployer:
 
         # Add whitenoise to requirements.
         self.sd.write_output("    Adding staticfiles-related packages...")
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('whitenoise')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('whitenoise')
+        self.sd.add_pkg("whitenoise")
 
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
@@ -399,7 +392,7 @@ class PlatformDeployer:
                     self.current_branch)
         else:
             # Show steps to finish the deployment process.
-            msg = dh_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
+            msg = dh_msgs.success_msg(self.sd.pkg_manager, self.heroku_app_name)
 
         self.sd.write_output(msg)
 
