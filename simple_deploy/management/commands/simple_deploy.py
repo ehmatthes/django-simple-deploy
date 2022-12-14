@@ -508,12 +508,7 @@ class Command(BaseCommand):
                 requirements = [r.rstrip() for r in requirements]
 
         elif self.pkg_manager == "pipenv":
-            # Build path to Pipfile.
-            self.pipfile_path = f"{self.git_path}/Pipfile"
-
-            # Get list of requirements.
             requirements = self._get_pipfile_requirements()
-
         elif self.pkg_manager == "poetry":
             requirements = self._get_poetry_requirements()
 
@@ -540,7 +535,14 @@ class Command(BaseCommand):
 
 
     def _get_pipfile_requirements(self):
-        """Get a list of requirements that are already in the Pipfile."""
+        """Get a list of requirements that are already in the Pipfile.
+
+        Returns:
+        - List of requirements, without version information.
+        """
+        # The path to pipfile is used when writing to pipfile as well.
+        self.pipfile_path = f"{self.git_path}/Pipfile"
+        
         with open(self.pipfile_path) as f:
             lines = f.readlines()
 
