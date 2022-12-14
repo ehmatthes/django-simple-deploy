@@ -538,25 +538,19 @@ class Command(BaseCommand):
         Returns:
         - List of requirements, with no version information.
         """
+        # This path will be used later, so make it an attribute.
         self.req_txt_path = self.git_path / "requirements.txt"
         contents = self.req_txt_path.read_text()
         lines = contents.split("\n")
-        req_re = r'^(\w*)\W'
+
+        # Parse requirements file, without including version information.
+        req_re = r'^([a-zA-Z0-9\-]*)'
         requirements = []
         for line in lines:
-            m = re.search(req_re, line, flags=re.MULTILINE)
+            m = re.search(req_re, line)#, flags=re.MULTILINE)
             if m:
                 requirements.append(m.group(1))
-
-        # print(requirements)
-        # sys.exit()
-
-
-
-        # # Get list of requirements, with versions.
-        # with open(f"{self.git_path}/requirements.txt") as f:
-        #     requirements = f.readlines()
-        #     self.requirements = [r.rstrip() for r in requirements]
+        print(requirements)
 
         return requirements
 
