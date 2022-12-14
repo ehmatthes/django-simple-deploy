@@ -467,4 +467,39 @@ class PlatformDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         if output_obj.returncode:
             raise CommandError(dh_msgs.cli_not_installed)
+
+        # Respond appropriately if the local project uses Poetry.
+        if self.sd.pkg_manager == "poetry":
+            self.handle_poetry()
+
+
+    def handle_poetry(self):
+        """Respond appropriately if the local project uses Poetry.
+
+        If the project uses Poetry, generate a requirements.txt file, and 
+          override the initial value of self.sd.pkg_manager.
+        
+        Heroku does not work directly with Poetry, so we need to generate
+          a requirements.txt file for the user, which we can then add requirements
+          to. We should inform the user about this, as they may be used to 
+          just working with Poetry's requirements specification files.
+
+        This should probably be addressed in the success message as well,
+          and in the summary file. They will need to update the requirements.txt
+          file whenever they install additional packages.
+
+        Returns:
+        - None
+        """
+        msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
+        self.sd.write_output(msg, skip_logging=True)
+
+        cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output, skip_logging=True)
+
+        # From this point forward, we'll treat this user the same as anyone
+        #   who's using a bare requirements.txt file.
+        self.sd.pkg_manager = "req_txt"
+        self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
     

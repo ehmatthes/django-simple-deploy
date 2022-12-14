@@ -161,7 +161,8 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     rm requirements.txt
     rm Pipfile
 
-    poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
+    # poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
+    poetry_cmd="poetry"
 
     # DEV: Poetry cache issues have been really hard to troubleshoot. At one point
     #   testing against pypi code that doesn't even recognize poetry projects
@@ -243,9 +244,18 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     #   Use pip to install the appropriate version here, just like in the req_txt block.
     #   Then manually add django-simple-deploy to pyproject.toml, so the remote version
     #   will just install from pypi.
-    pip install $dependency_string
+    # pip install $dependency_string
+    # version_spec='"*"'
+    # sed -i "" "s#requests#django-simple-deploy = $version_spec\nrequests#" pyproject.toml
+    poetry add --editable $dependency_string
+    # Now modify pyproject.toml to specify non-local version of django-simple-deploy.
     version_spec='"*"'
-    sed -i "" "s#requests#django-simple-deploy = $version_spec\nrequests#" pyproject.toml
+    script_dir_str='"'
+    script_dir_str+=$script_dir
+    script_dir_str+='"'
+    sed -i "" "s#django-simple-deploy = {path = $script_dir_str, develop = true}#django-simple-deploy = $version_spec#" pyproject.toml
+    # Recreate lock file, because that's what Poetry will use to generate requirements.txt.
+    poetry lock
 fi
 
 # Clean up build/ dir that pip leaves behind.

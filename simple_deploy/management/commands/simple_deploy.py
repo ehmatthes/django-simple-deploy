@@ -492,6 +492,9 @@ class Command(BaseCommand):
     def _get_current_requirements(self):
         """Get current project requirements, before adding any new ones.
         """
+        msg = "  Checking current project requirements..."
+        self.write_output(msg, skip_logging=True)
+
         if self.pkg_manager == "req_txt":
             # Build path to requirements.txt.
             self.req_txt_path = f"{self.git_path}/requirements.txt"
@@ -501,12 +504,23 @@ class Command(BaseCommand):
                 requirements = f.readlines()
                 self.requirements = [r.rstrip() for r in requirements]
 
-        if self.pkg_manager == "pipenv":
+        elif self.pkg_manager == "pipenv":
             # Build path to Pipfile.
             self.pipfile_path = f"{self.git_path}/Pipfile"
 
             # Get list of requirements.
             self.requirements = self._get_pipfile_requirements()
+
+        elif self.pkg_manager == "poetry":
+            self.requirements = self._get_poetry_requirements()
+
+        # Report findings. 
+        msg = "    Found existing dependencies:"
+        self.write_output(msg, skip_logging=True)
+
+        for requirement in self.requirements:
+            msg = f"      {requirement}"
+            self.write_output(msg, skip_logging=True)
 
 
     def _add_simple_deploy_req(self):
@@ -570,6 +584,29 @@ class Command(BaseCommand):
             f.write(pipfile_text)
 
         self.write_output(f"    Added {package_name} to Pipfile.")
+
+
+    def _get_poetry_requirements(self):
+        """Get a list of requirements that Poetry is already tracking.
+
+        Uses `poetry show`.
+
+        Returns:
+        - List of requirements, with no version information.
+        """
+        cmd = "poetry show"
+        output = self.execute_subp_run(cmd)
+        output_str = output.stdout.decode().strip()
+        print("--- poetry show ---")
+        print(output_str)
+        print("---")
+
+        # Package names are the first element of each nonempty line of output.
+        lines = output_str.split("\n")
+        print("---\n", lines, "\n---")
+        requirements = [line.split()[0] for line in lines]
+
+        return requirements
 
 
     # --- Methods also used by platform-specific scripts ---
