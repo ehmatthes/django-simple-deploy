@@ -547,10 +547,9 @@ class Command(BaseCommand):
         req_re = r'^([a-zA-Z0-9\-]*)'
         requirements = []
         for line in lines:
-            m = re.search(req_re, line)#, flags=re.MULTILINE)
+            m = re.search(req_re, line)
             if m:
                 requirements.append(m.group(1))
-        print(requirements)
 
         return requirements
 
