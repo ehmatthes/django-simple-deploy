@@ -499,14 +499,7 @@ class Command(BaseCommand):
         self.write_output(msg, skip_logging=True)
 
         if self.pkg_manager == "req_txt":
-            # Build path to requirements.txt.
-            self.req_txt_path = f"{self.git_path}/requirements.txt"
-
-            # Get list of requirements, with versions.
-            with open(f"{self.git_path}/requirements.txt") as f:
-                requirements = f.readlines()
-                requirements = [r.rstrip() for r in requirements]
-
+            requirements = self._get_req_txt_requirements()
         elif self.pkg_manager == "pipenv":
             requirements = self._get_pipfile_requirements()
         elif self.pkg_manager == "poetry":
@@ -515,7 +508,6 @@ class Command(BaseCommand):
         # Report findings. 
         msg = "    Found existing dependencies:"
         self.write_output(msg, skip_logging=True)
-
         for requirement in requirements:
             msg = f"      {requirement}"
             self.write_output(msg, skip_logging=True)
@@ -534,6 +526,41 @@ class Command(BaseCommand):
             self.add_package('django-simple-deploy')
 
 
+    def _get_req_txt_requirements(self):
+        """Get a list of requirements from the current requirements.txt file.
+
+        Parses requirements.txt file directly, rather than using a command
+          like `pip list`. `pip list` lists all installed packages, but they
+          may not be in requirements.txt, depending on when `pip freeze` was
+          last run. This is different than other dependency management systems,
+          which write to various requirements files whenever a package is installed.
+
+        Returns:
+        - List of requirements, with no version information.
+        """
+        self.req_txt_path = self.git_path / "requirements.txt"
+        contents = self.req_txt_path.read_text()
+        lines = contents.split("\n")
+        req_re = r'^(\w*)\W'
+        requirements = []
+        for line in lines:
+            m = re.search(req_re, line, flags=re.MULTILINE)
+            if m:
+                requirements.append(m.group(1))
+
+        # print(requirements)
+        # sys.exit()
+
+
+
+        # # Get list of requirements, with versions.
+        # with open(f"{self.git_path}/requirements.txt") as f:
+        #     requirements = f.readlines()
+        #     self.requirements = [r.rstrip() for r in requirements]
+
+        return requirements
+
+
     def _get_pipfile_requirements(self):
         """Get a list of requirements that are already in the Pipfile.
 
@@ -542,7 +569,7 @@ class Command(BaseCommand):
         """
         # The path to pipfile is used when writing to pipfile as well.
         self.pipfile_path = f"{self.git_path}/Pipfile"
-        
+
         with open(self.pipfile_path) as f:
             lines = f.readlines()
 
