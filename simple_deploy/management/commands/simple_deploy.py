@@ -325,7 +325,7 @@ class Command(BaseCommand):
 
         # Find out which package manger is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
-        self._get_current_requirements()
+        self.requirements = self._get_current_requirements()
 
 
     def _find_git_dir(self):
@@ -491,6 +491,9 @@ class Command(BaseCommand):
 
     def _get_current_requirements(self):
         """Get current project requirements, before adding any new ones.
+
+        Returns:
+        - List of requirements, with no version information.
         """
         msg = "  Checking current project requirements..."
         self.write_output(msg, skip_logging=True)
@@ -502,25 +505,27 @@ class Command(BaseCommand):
             # Get list of requirements, with versions.
             with open(f"{self.git_path}/requirements.txt") as f:
                 requirements = f.readlines()
-                self.requirements = [r.rstrip() for r in requirements]
+                requirements = [r.rstrip() for r in requirements]
 
         elif self.pkg_manager == "pipenv":
             # Build path to Pipfile.
             self.pipfile_path = f"{self.git_path}/Pipfile"
 
             # Get list of requirements.
-            self.requirements = self._get_pipfile_requirements()
+            requirements = self._get_pipfile_requirements()
 
         elif self.pkg_manager == "poetry":
-            self.requirements = self._get_poetry_requirements()
+            requirements = self._get_poetry_requirements()
 
         # Report findings. 
         msg = "    Found existing dependencies:"
         self.write_output(msg, skip_logging=True)
 
-        for requirement in self.requirements:
+        for requirement in requirements:
             msg = f"      {requirement}"
             self.write_output(msg, skip_logging=True)
+
+        return requirements
 
 
     def _add_simple_deploy_req(self):
@@ -596,14 +601,10 @@ class Command(BaseCommand):
         """
         cmd = "poetry show"
         output = self.execute_subp_run(cmd)
-        output_str = output.stdout.decode().strip()
-        print("--- poetry show ---")
-        print(output_str)
-        print("---")
 
         # Package names are the first element of each nonempty line of output.
+        output_str = output.stdout.decode().strip()
         lines = output_str.split("\n")
-        print("---\n", lines, "\n---")
         requirements = [line.split()[0] for line in lines]
 
         return requirements
