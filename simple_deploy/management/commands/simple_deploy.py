@@ -754,6 +754,8 @@ class Command(BaseCommand):
 
         if self.pkg_manager == "pipenv":
             self._add_pipenv_pkg(package_name, version)
+        elif self.pkg_manager == "poetry":
+            self._add_poetry_pkg(package_name, version)
         else:
             self._add_req_txt_pkg(package_name, version)
 
@@ -775,6 +777,49 @@ class Command(BaseCommand):
                 f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
 
             self.write_output(f"    Added {package_name} to requirements.txt.")
+
+
+    def _add_poetry_pkg(self, package_name, version):
+        """Add a package when project is using Poetry.
+
+        Adds an entry to pyproject.toml, without modifying the lock file.
+        Ensures the optional "deploy" group exists, and creates it if not.
+        Returns:
+        - None
+        """
+        self._check_poetry_deploy_group()
+
+        pass
+
+
+    def _check_poetry_deploy_group(self):
+        """Make sure that an optional deploy group exists in pyproject.toml.
+
+        If the group does not exist, write that group in pyproject.toml.
+          Establish the opening lines as an attribute, to make it easier to
+          add packages later.
+
+        Returns:
+        - None
+        """
+        self.group_string = "[tool.poetry.group.deploy]\noptional = true\n"
+
+        self.pyprojecttoml_path = self.git_path / "pyproject.toml"
+        contents = self.pyprojecttoml_path.read_text()
+
+        if self.group_string in contents:
+            # Group already exists, we don't need to do anything.
+            return
+        
+        # Group not found, so create it now.
+        contents += f"\n\n{self.group_string}"
+        self.pyprojecttoml_path.write_text(contents)
+
+        msg = '    Added optional "deploy" group to pyproject.toml.'
+        self.write_output(msg)
+
+        sys.exit()
+
 
 
     def _add_pipenv_pkg(self, package_name, version=""):

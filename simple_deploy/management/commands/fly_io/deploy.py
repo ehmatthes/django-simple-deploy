@@ -55,6 +55,12 @@ class PlatformDeployer:
         msg = "Setting ON_FLYIO secret..."
         self.sd.write_output(msg)
 
+        # Skip when unit testing.
+        if self.sd.unit_testing:
+            msg = "  Skipping for unit testing."
+            self.sd.write_output(msg)
+            return
+
         # First check if secret has already been set.
         cmd = f"flyctl secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
@@ -81,6 +87,12 @@ class PlatformDeployer:
         """
         msg = "Setting DEBUG secret..."
         self.sd.write_output(msg)
+
+        # Skip when unit testing.
+        if self.sd.unit_testing:
+            msg = "  Skipping for unit testing."
+            self.sd.write_output(msg)
+            return
 
         # First check if secret has already been set.
         cmd = f"flyctl secrets list -a {self.deployed_project_name}"
