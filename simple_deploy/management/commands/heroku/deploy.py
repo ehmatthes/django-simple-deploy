@@ -498,6 +498,9 @@ class PlatformDeployer:
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output, skip_logging=True)
 
+        msg = "    Wrote requirements.txt file."
+        self.sd.write_output(msg, skip_logging=True)
+
         # From this point forward, we'll treat this user the same as anyone
         #   who's using a bare requirements.txt file.
         self.sd.pkg_manager = "req_txt"
