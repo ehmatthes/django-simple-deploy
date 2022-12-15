@@ -798,10 +798,9 @@ class Command(BaseCommand):
         #   Define new requirement entry, read contents, replace group definition
         #   with group definition plus new requirement line. This has the effect
         #   of adding each new requirement to the beginning of the deploy group.
-        if version:
-            new_req_line = f'{package_name} = "{version}"'
-        else:
-            new_req_line = f'{package_name} = "*"'
+        if not version:
+            version = "*"
+        new_req_line = f'{package_name} = "{version}"'
 
         contents = self.pyprojecttoml_path.read_text()
         new_group_string = f"{self.poetry_group_string}{new_req_line}\n"
@@ -821,7 +820,7 @@ class Command(BaseCommand):
         - None
         """
         self.poetry_group_string = "[tool.poetry.group.deploy]\noptional = true\n"
-        self.poetry_group_string += "\n[tool.poetry.group.docs.dependencies]\n"
+        self.poetry_group_string += "\n[tool.poetry.group.deploy.dependencies]\n"
 
         self.pyprojecttoml_path = self.git_path / "pyproject.toml"
         contents = self.pyprojecttoml_path.read_text()
