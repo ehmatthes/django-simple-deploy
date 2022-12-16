@@ -328,6 +328,7 @@ class Command(BaseCommand):
         self.pkg_manager = self._get_dep_man_approach()
         msg = f"  Dependency management system: {self.pkg_manager}"
         self.write_output(msg, skip_logging=True)
+
         self.requirements = self._get_current_requirements()
 
 
@@ -776,22 +777,26 @@ class Command(BaseCommand):
 
 
     def _add_req_txt_pkg(self, package_name, version):
-        """Add a package to requirements.txt, if not already present."""
+        """Add a package to requirements.txt, if not already present.
+
+        Returns:
+        - None
+        """
         # Note: This does not check for specific versions. It gives priority
         #   to any version already specified in requirements.
-        pkg_present = any(package_name in r for r in self.requirements)
-
-        if pkg_present:
+        if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in requirements file.")
-        else:
-            with open(self.req_txt_path, 'a') as f:
-                # Add version information to package name, ie "pscopg2<2.9".
-                package_name += version
-                # Align comments, so we don't make req_txt file ugly.
-                tab_string = ' ' * (30 - len(package_name))
-                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
+            return
 
-            self.write_output(f"    Added {package_name} to requirements.txt.")
+        # Package not in requirements.txt, so add it.
+        with open(self.req_txt_path, 'a') as f:
+            # Add version information to package name, ie "pscopg2<2.9".
+            package_name += version
+            # Align comments, so we don't make req_txt file ugly.
+            tab_string = ' ' * (30 - len(package_name))
+            f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
+
+        self.write_output(f"    Added {package_name} to requirements.txt.")
 
 
     def _add_poetry_pkg(self, package_name, version):
