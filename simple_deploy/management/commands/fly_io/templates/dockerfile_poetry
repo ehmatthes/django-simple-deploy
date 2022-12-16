@@ -13,7 +13,11 @@ COPY pyproject.toml /tmp/pyproject.toml
 
 # Regenerate lock file, because we trust pyproject.toml but not poetry.lock.
 RUN set -ex && \
-    curl -sSL https://install.python-poetry.org | python3 - && \
+    pip install --upgrade pip && \
+    pip install poetry && \
+    ls -alh && \
+    cd /tmp/ && \
+    poetry config virtualenvs.create false && \
     poetry lock && \
     poetry install --with deploy && \
     rm -rf /root/.cache/
