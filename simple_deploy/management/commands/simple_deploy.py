@@ -12,6 +12,7 @@ from importlib import import_module
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
+import toml
 
 from . import deploy_messages as d_msgs
 from .utils import write_file_from_template
@@ -616,18 +617,30 @@ class Command(BaseCommand):
     def _get_poetry_requirements(self):
         """Get a list of requirements that Poetry is already tracking.
 
-        Uses `poetry show`.
+        Parses pyproject.toml file. It's easier to work with the output of 
+          `poetry show`, but that examines poetry.lock. We are interested in
+          what's written to pyproject.toml, not what's in the lock file.
 
         Returns:
         - List of requirements, with no version information.
         """
-        cmd = "poetry show"
-        output = self.execute_subp_run(cmd)
+        # We'll use this again, so make it an attribute.
+        self.pyprojecttoml_path = self.git_path / "pyproject.toml"
+        parsed_toml = toml.loads(self.pyprojecttoml_path.read_text())
 
-        # Package names are the first element of each nonempty line of output.
-        output_str = output.stdout.decode().strip()
-        lines = output_str.split("\n")
-        requirements = [line.split()[0] for line in lines]
+        # For now, just examine main requirements and deploy group requirements.
+        main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
+        requirements = list(main_reqs)
+        try:
+            deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
+        except KeyError:
+            # This group doesn't exist yet, which is fine.
+            pass
+        else:
+            requirements += list(deploy_reqs)
+
+        # Remove python as a requirement, as we're only interested in packages.
+        requirements.remove("python")
 
         return requirements
 
@@ -790,6 +803,8 @@ class Command(BaseCommand):
         self._check_poetry_deploy_group()
 
         # Check if package already in pyproject.toml.
+        print(f"--- Adding {package_name}")
+        print('requirements: ', self.requirements)
         if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in requirements file.")
             return
@@ -822,7 +837,6 @@ class Command(BaseCommand):
         self.poetry_group_string = "[tool.poetry.group.deploy]\noptional = true\n"
         self.poetry_group_string += "\n[tool.poetry.group.deploy.dependencies]\n"
 
-        self.pyprojecttoml_path = self.git_path / "pyproject.toml"
         contents = self.pyprojecttoml_path.read_text()
 
         if self.poetry_group_string in contents:
