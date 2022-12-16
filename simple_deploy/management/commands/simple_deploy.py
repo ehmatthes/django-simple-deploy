@@ -857,10 +857,12 @@ class Command(BaseCommand):
 
 
     def _add_pipenv_pkg(self, package_name, version=""):
-        """Add a package to Pipfile, if not already present."""
-        pkg_present = any(package_name in r for r in self.requirements)
+        """Add a package to Pipfile, if not already present.
 
-        if pkg_present:
+        Returns:
+        - None
+        """
+        if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in Pipfile.")
         else:
             self._write_pipfile_pkg(package_name, version)
