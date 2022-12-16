@@ -810,8 +810,6 @@ class Command(BaseCommand):
         self._check_poetry_deploy_group()
 
         # Check if package already in pyproject.toml.
-        print(f"--- Adding {package_name}")
-        print('requirements: ', self.requirements)
         if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in requirements file.")
             return
