@@ -9,11 +9,13 @@ RUN mkdir -p /code
 
 WORKDIR /code
 
-COPY requirements.txt /tmp/requirements.txt
+COPY pyproject.toml /tmp/pyproject.toml
 
+# Regenerate lock file, because we trust pyproject.toml but not poetry.lock.
 RUN set -ex && \
     curl -sSL https://install.python-poetry.org | python3 - && \
-    poetry install --with deploy
+    poetry lock && \
+    poetry install --with deploy && \
     rm -rf /root/.cache/
 
 COPY . /code/
