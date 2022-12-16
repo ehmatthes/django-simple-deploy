@@ -326,6 +326,8 @@ class Command(BaseCommand):
 
         # Find out which package manger is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
+        msg = f"  Dependency management system: {self.pkg_manager}"
+        self.write_output(msg, skip_logging=True)
         self.requirements = self._get_current_requirements()
 
 

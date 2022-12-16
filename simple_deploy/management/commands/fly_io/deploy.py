@@ -142,7 +142,9 @@ class PlatformDeployer:
                 }
 
             path = self.sd.project_root / 'Dockerfile'
-            if self.sd.pkg_manager == "pipenv":
+            if self.sd.pkg_manager == "poetry":
+                dockerfile_template = "dockerfile_poetry"
+            elif self.sd.pkg_manager == "pipenv":
                 dockerfile_template = 'dockerfile_pipenv'
             else:
                 dockerfile_template = 'dockerfile'
