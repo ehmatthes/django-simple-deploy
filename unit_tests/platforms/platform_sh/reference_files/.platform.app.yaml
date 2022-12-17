@@ -58,4 +58,3 @@ hooks:
     rm -rf logs
   deploy: |
     python manage.py migrate
-    
