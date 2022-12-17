@@ -51,14 +51,10 @@ hooks:
   #      Also, may want to split requirements into requirements.txt and requirements_remote.txt.
   build: |
     pip install --upgrade pip
-    pip install poetry
-    poetry config virtualenvs.create false
-    poetry lock
-    poetry install --with deploy
+    pip install -r requirements.txt
 
     mkdir logs
     python manage.py collectstatic
     rm -rf logs
   deploy: |
     python manage.py migrate
-    

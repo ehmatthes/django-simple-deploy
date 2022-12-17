@@ -121,7 +121,7 @@ class PlatformDeployer:
             if self.sd.pkg_manager == 'poetry':
                 template_path = 'poetry.platform.app.yaml'
             elif self.sd.pkg_manager == "pipenv":
-                template_path = 'platform.app.yaml-pipenv'
+                template_path = 'pipenv.platform.app.yaml'
             else:
                 template_path = 'platform.app.yaml'
             write_file_from_template(path, template_path, context)
