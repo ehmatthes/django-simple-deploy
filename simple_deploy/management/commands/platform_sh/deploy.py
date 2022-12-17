@@ -118,7 +118,9 @@ class PlatformDeployer:
                 'deployed_project_name': self.deployed_project_name
                 }
             path = self.sd.project_root / '.platform.app.yaml'
-            if self.sd.pkg_manager == "pipenv":
+            if self.sd.pkg_manager == 'poetry':
+                template_path = 'poetry.platform.app.yaml'
+            elif self.sd.pkg_manager == "pipenv":
                 template_path = 'platform.app.yaml-pipenv'
             else:
                 template_path = 'platform.app.yaml'
