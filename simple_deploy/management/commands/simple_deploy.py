@@ -453,9 +453,8 @@ class Command(BaseCommand):
         - Raises CommandError if no pkg_manager can be identified.
         """
 
-        path = self.git_path / 'Pipfile'
-        if path.exists():
-            return "req_txt"
+        if (self.git_path / "Pipfile").exists():
+            return "pipenv"
 
         if self._check_using_poetry():
             return "poetry"
