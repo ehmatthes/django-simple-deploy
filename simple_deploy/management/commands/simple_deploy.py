@@ -443,7 +443,7 @@ class Command(BaseCommand):
         req_txt, poetry, or pipenv.
 
         Sets the self.pkg_manager attribute.
-        Looks for most specific tests first: Poetry, Pipenv, then requirements.txt.
+        Looks for most specific tests first: Pipenv, Poetry, then requirements.txt.
           ie if a project uses Poetry and has a requirements.txt file, we'll prioritize
           Poetry.
 
@@ -452,15 +452,11 @@ class Command(BaseCommand):
             req_txt | poetry | pipenv
         - Raises CommandError if no pkg_manager can be identified.
         """
-
         if (self.git_path / "Pipfile").exists():
             return "pipenv"
-
-        if self._check_using_poetry():
+        elif self._check_using_poetry():
             return "poetry"
-
-        path = self.git_path / "requirements.txt"
-        if path.exists():
+        elif (self.git_path / "requirements.txt").exists():
             return "req_txt"
 
         # Exit if we haven't found any requirements.
