@@ -10,15 +10,6 @@ import unit_tests.utils.ut_helper_functions as hf
 
 # --- Fixtures ---
 
-@pytest.fixture(autouse=True)
-def pkg_manager(request):
-    """Get the fixture parameter that specifies the pkg_manager in use.
-
-    Returns:
-    - String representing package manager: req_txt | poetry | pipenv
-    """
-    return request.node.callspec.params.get("reset_test_project")
-
 
 # --- Test modifications to project files. ---
 
@@ -26,7 +17,7 @@ def test_settings(tmp_project):
     """Verify settings have been changed for Platform.sh."""
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'heroku')
 
-def test_requirements_txt(tmp_project):
+def test_requirements_txt(tmp_project, pkg_manager):
     """Test that the requirements.txt file is correct."""
     if pkg_manager == "req_txt":
         hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
@@ -36,7 +27,7 @@ def test_requirements_txt(tmp_project):
     elif pkg_manager == "pipenv":
         assert not Path("requirements.txt").exists()
 
-def test_pipfile(tmp_project):
+def test_pipfile(tmp_project, pkg_manager):
     """Test that Pipfile is correct."""
     if pkg_manager in ("req_txt", "poetry"):
         assert not Path("Pipfile").exists()
