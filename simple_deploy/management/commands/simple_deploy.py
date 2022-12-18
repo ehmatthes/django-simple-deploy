@@ -556,6 +556,10 @@ class Command(BaseCommand):
     def _get_pipfile_requirements(self):
         """Get a list of requirements that are already in the Pipfile.
 
+        Parses Pipfile, because we don't want to trust a lock file, and we need
+          to examine packages that may be listed in Pipfile but not currently
+          installed.
+
         Returns:
         - List of requirements, without version information.
         """
