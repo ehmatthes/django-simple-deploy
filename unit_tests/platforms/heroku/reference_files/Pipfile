@@ -1,0 +1,18 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+whitenoise = "*"              # Added by simple_deploy command.
+dj-database-url = "*"         # Added by simple_deploy command.
+psycopg2 = "<2.9"             # Added by simple_deploy command.
+gunicorn = "*"                # Added by simple_deploy command.
+django = "*"
+django-bootstrap5 = "*"
+requests = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.10"
