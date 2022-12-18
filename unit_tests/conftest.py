@@ -66,3 +66,13 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p {platform} -s {sd_root_dir}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
+
+
+# @pytest.fixture(scope="function", autouse=True)
+# def pkg_manager(request):
+#     """Get the fixture parameter that specifies the pkg_manager in use.
+
+#     Returns:
+#     - String representing package manager: req_txt | poetry | pipenv
+#     """
+#     return request.node.callspec.params.get("reset_test_project")

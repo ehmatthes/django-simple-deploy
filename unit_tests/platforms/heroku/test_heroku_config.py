@@ -26,7 +26,7 @@ def test_settings(tmp_project):
     """Verify settings have been changed for Platform.sh."""
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'heroku')
 
-def test_requirements_txt(request, tmp_project):
+def test_requirements_txt(tmp_project):
     """Test that the requirements.txt file is correct."""
     if pkg_manager == "req_txt":
         hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
@@ -36,7 +36,7 @@ def test_requirements_txt(request, tmp_project):
     elif pkg_manager == "pipenv":
         assert not Path("requirements.txt").exists()
 
-def test_pipfile(request, tmp_project):
+def test_pipfile(tmp_project):
     """Test that Pipfile is correct."""
     if pkg_manager in ("req_txt", "poetry"):
         assert not Path("Pipfile").exists()
