@@ -19,8 +19,11 @@ def test_settings(tmp_project):
 
 def test_requirements_txt(request, tmp_project):
     """Test that the requirements.txt file is correct."""
-    assert request.node.callspec.params.get("reset_test_project") == "req_txt"
-    hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
+    pkg_manager = request.node.callspec.params.get("reset_test_project") == "req_txt"
+    if pkg_manager in ("req_txt", "poetry"):
+        hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
+    elif pkg_manager == "pipenv":
+        assert not Path("requirements.txt").exists()
 
 def test_gitignore(tmp_project):
     """Test that .gitignore has been modified correctly."""
