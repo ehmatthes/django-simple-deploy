@@ -17,8 +17,9 @@ def test_settings(tmp_project):
     """Verify settings have been changed for Platform.sh."""
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'heroku')
 
-def test_requirements_txt(tmp_project):
+def test_requirements_txt(request, tmp_project):
     """Test that the requirements.txt file is correct."""
+    assert request.node.callspec.params.get("reset_test_project") == "req_txt"
     hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
 
 def test_gitignore(tmp_project):
