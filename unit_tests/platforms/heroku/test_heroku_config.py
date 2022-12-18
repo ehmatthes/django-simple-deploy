@@ -34,6 +34,14 @@ def test_pipfile(tmp_project, pkg_manager):
     elif pkg_manager == "pipenv":
         hf.check_reference_file(tmp_project, "Pipfile", "heroku")
 
+def test_pyproject_toml(tmp_project, pkg_manager):
+    """Test that pyproject.toml is correct."""
+    if pkg_manager in ("req_txt", "pipenv"):
+        assert not Path("pyproject.toml").exists()
+    elif pkg_manager == "poetry":
+        # The file should be unchanged from the original, but it should exist.
+        hf.check_reference_file(tmp_project, "pyproject.toml", "heroku")
+
 def test_gitignore(tmp_project):
     """Test that .gitignore has been modified correctly."""
     hf.check_reference_file(tmp_project, '.gitignore', 'heroku')

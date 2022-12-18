@@ -68,7 +68,7 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     subprocess.run(cmd_parts)
 
 
-@pytest.fixture(scope="function", autouse=True)
+@pytest.fixture()
 def pkg_manager(request):
     """Get the fixture parameter that specifies the pkg_manager in use.
 
