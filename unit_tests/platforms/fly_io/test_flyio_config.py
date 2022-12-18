@@ -20,9 +20,30 @@ def test_settings(tmp_project):
     """
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'fly_io')
 
-def test_requirements_txt(tmp_project):
+# def test_requirements_txt(tmp_project):
+#     """Test that the requirements.txt file is correct."""
+#     hf.check_reference_file(tmp_project, 'requirements.txt', 'fly_io')
+
+def test_requirements_txt(tmp_project, pkg_manager):
     """Test that the requirements.txt file is correct."""
-    hf.check_reference_file(tmp_project, 'requirements.txt', 'fly_io')
+    if pkg_manager == "req_txt":
+        hf.check_reference_file(tmp_project, 'requirements.txt', 'fly_io')
+    elif pkg_manager in ["poetry", "pipenv"]:
+        assert not Path("requirements.txt").exists()
+
+def test_pyproject_toml(tmp_project, pkg_manager):
+    """Test that pyproject.toml is correct."""
+    if pkg_manager in ("req_txt", "pipenv"):
+        assert not Path("pyproject.toml").exists()
+    elif pkg_manager == "poetry":
+        hf.check_reference_file(tmp_project, "pyproject.toml", "fly_io")
+
+def test_pipfile(tmp_project, pkg_manager):
+    """Test that Pipfile is correct."""
+    if pkg_manager in ("req_txt", "poetry"):
+        assert not Path("Pipfile").exists()
+    elif pkg_manager == "pipenv":
+        hf.check_reference_file(tmp_project, "Pipfile", "fly_io")
 
 def test_gitignore(tmp_project):
     """Test that .gitignore has been modified correctly."""
@@ -31,10 +52,12 @@ def test_gitignore(tmp_project):
 
 # --- Test Fly.io-specific files ---
 
+@pytest.mark.skip
 def test_creates_fly_toml_file(tmp_project):
     """Verify that fly.toml is created correctly."""
     hf.check_reference_file(tmp_project, 'fly.toml', 'fly_io')
 
+@pytest.mark.skip
 def test_creates_dockerfile(tmp_project):
     """Verify that dockerfile is created correctly."""
     hf.check_reference_file(tmp_project, 'Dockerfile', 'fly_io')
