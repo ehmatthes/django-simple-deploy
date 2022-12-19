@@ -10,27 +10,6 @@ cd "$tmp_dir"
 # --- Reset to the initial state of the temp project instance. ---
 git reset --hard INITIAL_STATE
 
-# --- Remove dependency management files not needed for this package manager. ---
-echo "here" >> diag.txt
-ls -alh . >> diag.txt
-echo "tmp_dir: $tmp_dir" >> diag.txt
-echo "pkg_manager: $pkg_manager" >> diag.txt
-if [ "$pkg_manager" = 'req_txt' ]; then
-    rm pyproject.toml
-    rm Pipfile
-    echo "req_txt" >> diag.txt
-elif [ "$pkg_manager" = 'poetry' ]; then
-    rm requirements.txt
-    rm Pipfile
-    echo "poetry" >> diag.txt
-elif [ "$pkg_manager" = 'pipenv' ]; then
-    rm requirements.txt
-    rm pyproject.toml
-    echo "poetry" >> diag.txt
-fi
-echo "here 2" >> diag.txt
-ls -alh >> diag.txt
-
 # --- Remove any files that may remain. ---
 # Fly.io
 rm fly.toml
@@ -47,6 +26,30 @@ rm -rf static/
 
 # All platforms
 rm -rf simple_deploy_logs/
+rum -rf __pycache__/
+rm poetry.lock
+
+# --- Remove dependency management files not needed for this package manager. ---
+echo "--- before pkg_manager setup ---" >> diag.txt
+echo "pkg_manager: $pkg_manager" >> diag.txt
+echo "--- ---"
+ls -alh . >> diag.txt
+if [ "$pkg_manager" = 'req_txt' ]; then
+    rm pyproject.toml
+    rm Pipfile
+    echo "req_txt" >> diag.txt
+elif [ "$pkg_manager" = 'poetry' ]; then
+    rm requirements.txt
+    rm Pipfile
+    echo "poetry" >> diag.txt
+elif [ "$pkg_manager" = 'pipenv' ]; then
+    rm requirements.txt
+    rm pyproject.toml
+    echo "poetry" >> diag.txt
+fi
+echo "--- after pkg_manager setup" >> diag.txt
+ls -alh >> diag.txt
+echo "--- ---"
 
 # --- Add simple_deploy to INSTALLED_APPS. ---
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
