@@ -77,3 +77,14 @@ Support for a new platform starts out as a proof-of-concept, showing that deploy
     - On Fly.io, we create a database and connect it to the app that the user created, or that we created in a fully automated run. But if they were to run `simple_deploy` multiple times, they'd create a new database each time. That could get costly quickly, so we bail if we detect a database on the user's account. This means people can only use `simple_deploy` on Fly.io if they'd don't already have a project deployed there. This process needs to be refined.
     - Platform.sh is probably closest to having a stable process. The process needs a little more review, and needs some refinements such as setting a more specific value for `ALLOWED_HOSTS`. We also need to look at how well `simple_deploy` supports someone who's pushing multiple projects to Platform.sh.
     - Heroku recently dropped their free tier. This doesn't affect `simple_deploy` a whole lot, but the process needs some review around which resources are configured automatically for Heroku deployments, and how clearly we are communicating this to users.
+
+## Other notes
+
+There are a number of other questions to answer formally, and tasks to complete, before releasing a 1.0 version:
+
+- Is the API stable enough for a 1.0 release?
+- Should we adopt a plugin-based approach?
+    - If not, what's the plan when a number of additional platforms want to build support into `django-simple-deploy`?
+- Write a deprecation plan for platforms that go out of business, or are no longer appropriate for `simple_deploy` to support.
+- Write a stability policy.    
+- Review all open issues, and label everything as pre-1.0 and post-1.0. Complete all pre-1.0 tasks.
