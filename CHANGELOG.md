@@ -6,17 +6,23 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.14
 
 #### External changes
 
 - Clarified documentation about configuration-only mode. We do sometimes create remote resources on the user's behalf, but only when we can't easily ask users to do so before running `simple_deploy`.
-- Fly.io and Platform.sh now support Pipenv-based projects. (Heroku already had support for Pipenv.)
+- All three platforms now support all three dependency management systems (bare `requirements.txt` file, Poetry, and Pipenv).
+- Updated documentation about unit tests.
+- Official documentation includes a roadmap, with a focus on reaching a 1.0 release.
 
 #### Internal changes
 
 - Started platform-agnostic tests for the process of inspecting local projects.
 - The check for whether Poetry is being used is more specific.
+- Every unit test now runs once for each dependency management system.
+- The dependency management system is identified in `simple_deploy.py`, but platform-specific scripts make all decisions about what to do with that information.
+    - Better internal support for platforms to work with requirements. There's a simple `add_package()` method in `simple_deploy.py`, as well as `add_packages()`. These then call the appropriate method for the current dependency management system in use.
+    - Docker-based platforms make appropriate use of specific package managers, ie creating an optional `deploy` group in `pyproject.toml` when Poetry is being used.
 
 ### 0.5.13
 
