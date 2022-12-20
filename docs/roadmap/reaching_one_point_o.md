@@ -82,9 +82,9 @@ Support for a new platform starts out as a proof-of-concept, showing that deploy
 
 There are a number of other questions to answer formally, and tasks to complete, before releasing a 1.0 version:
 
-- Is the API stable enough for a 1.0 release?
-- Should we adopt a plugin-based approach?
-    - If not, what's the plan when a number of additional platforms want to build support into `django-simple-deploy`?
-- Write a deprecation plan for platforms that go out of business, or are no longer appropriate for `simple_deploy` to support.
-- Write a stability policy.    
-- Review all open issues, and label everything as pre-1.0 and post-1.0. Complete all pre-1.0 tasks.
+- [ ] Is the API stable enough for a 1.0 release?
+- [ ] Should we adopt a plugin-based approach?
+    - [ ] If not, what's the plan when a number of additional platforms want to build support into `django-simple-deploy`?
+- [ ] Write a deprecation plan for platforms that go out of business, or are no longer appropriate for `simple_deploy` to support.
+- [ ] Write a stability policy.    
+- [ ] Review all open issues, and label everything as pre-1.0 and post-1.0. Complete all pre-1.0 tasks.
