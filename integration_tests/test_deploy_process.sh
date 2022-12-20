@@ -213,6 +213,9 @@ echo "  Installing django-simple-deploy..."
 if [ "$target" = pypi ]; then
     # Dependency string is just the package name.
     echo "    Installing PyPI version of simple-deploy..."
+    # Clear pip cache, because we often use this flag immediately after
+    #   making a new release.
+    pip cache purge
     dependency_string="django-simple-deploy"
 else
     # Install from the local directory.

@@ -20,10 +20,6 @@ def test_settings(tmp_project):
     """
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'fly_io')
 
-# def test_requirements_txt(tmp_project):
-#     """Test that the requirements.txt file is correct."""
-#     hf.check_reference_file(tmp_project, 'requirements.txt', 'fly_io')
-
 def test_requirements_txt(tmp_project, pkg_manager):
     """Test that the requirements.txt file is correct."""
     if pkg_manager == "req_txt":
