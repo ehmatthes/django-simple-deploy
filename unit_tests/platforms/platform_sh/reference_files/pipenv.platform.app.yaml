@@ -25,7 +25,7 @@ web:
         socket_family: unix
     # Commands are run once after deployment to start the application process.
     commands:
-        start: "gunicorn -w 4 -b unix:$SOCKET blog.wsgi:application"
+        start: "pipenv run gunicorn -w 4 -b unix:$SOCKET blog.wsgi:application"
     locations:
         "/":
             passthru: true
@@ -51,10 +51,12 @@ hooks:
   #      Also, may want to split requirements into requirements.txt and requirements_remote.txt.
   build: |
     pip install --upgrade pip
-    pip install -r requirements.txt
+    pip install pipenv
+    pipenv install
 
     mkdir logs
-    python manage.py collectstatic
+    pipenv run python manage.py collectstatic
     rm -rf logs
   deploy: |
-    python manage.py migrate
+    pipenv run python manage.py migrate
+    

@@ -39,11 +39,7 @@ class PlatformDeployer:
         self._add_dockerignore()
         self._add_flytoml_file()
         self._modify_settings()
-
-        self._add_gunicorn()
-        self._add_psycopg2_binary()
-        self._add_dj_database_url()
-        self._add_whitenoise()
+        self._add_requirements()
 
         self._conclude_automate_all()
 
@@ -58,6 +54,12 @@ class PlatformDeployer:
         """
         msg = "Setting ON_FLYIO secret..."
         self.sd.write_output(msg)
+
+        # Skip when unit testing.
+        if self.sd.unit_testing:
+            msg = "  Skipping for unit testing."
+            self.sd.write_output(msg)
+            return
 
         # First check if secret has already been set.
         cmd = f"flyctl secrets list -a {self.deployed_project_name}"
@@ -85,6 +87,12 @@ class PlatformDeployer:
         """
         msg = "Setting DEBUG secret..."
         self.sd.write_output(msg)
+
+        # Skip when unit testing.
+        if self.sd.unit_testing:
+            msg = "  Skipping for unit testing."
+            self.sd.write_output(msg)
+            return
 
         # First check if secret has already been set.
         cmd = f"flyctl secrets list -a {self.deployed_project_name}"
@@ -134,7 +142,9 @@ class PlatformDeployer:
                 }
 
             path = self.sd.project_root / 'Dockerfile'
-            if self.sd.using_pipenv:
+            if self.sd.pkg_manager == "poetry":
+                dockerfile_template = "dockerfile_poetry"
+            elif self.sd.pkg_manager == "pipenv":
                 dockerfile_template = 'dockerfile_pipenv'
             else:
                 dockerfile_template = 'dockerfile'
@@ -206,7 +216,7 @@ class PlatformDeployer:
             # Generate file from template.
             context = {
                 'deployed_project_name': self.deployed_project_name,
-                'using_pipenv': self.sd.using_pipenv,
+                'using_pipenv': (self.sd.pkg_manager == "pipenv"),
                 }
             path = self.sd.project_root / 'fly.toml'
             write_file_from_template(path, 'fly.toml', context)
@@ -244,42 +254,10 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
 
-    def _add_gunicorn(self):
-        """Add gunicorn to project requirements."""
-        self.sd.write_output("\n  Looking for gunicorn...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('gunicorn')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('gunicorn')
-
-
-    def _add_psycopg2_binary(self):
-        """Add psycopg2-binary to project requirements."""
-        self.sd.write_output("\n  Looking for psycopg2-binary...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('psycopg2-binary')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('psycopg2-binary')
-
-    def _add_dj_database_url(self):
-        """Add dj-database-url to project requirements."""
-        self.sd.write_output("\n  Looking for dj-database-url...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('dj-database-url')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('dj-database-url')
-
-    def _add_whitenoise(self):
-        """Add whitenoise to project requirements."""
-        self.sd.write_output("\n  Looking for whitenoise...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('whitenoise')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('whitenoise')
+    def _add_requirements(self):
+        """Add requirements for serving on Fly.io."""
+        requirements = ["gunicorn", "psycopg2-binary", "dj-database-url", "whitenoise"]
+        self.sd.add_packages(requirements)
 
 
     def _conclude_automate_all(self):

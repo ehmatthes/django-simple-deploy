@@ -161,8 +161,6 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     rm requirements.txt
     rm Pipfile
 
-    poetry_cmd="/Users/eric/Library/Python/3.10/bin/poetry"
-
     # DEV: Poetry cache issues have been really hard to troubleshoot. At one point
     #   testing against pypi code that doesn't even recognize poetry projects
     #   was passing. The only explanation was it was using local code, even
@@ -179,22 +177,22 @@ elif [ "$dep_man_approach" = 'poetry' ]; then
     # 
     # This approach fails, because --no-interaction accepts default answer,
     #   which is 'no'.
-    # $poetry_cmd cache clear --all pypi --no-interaction
+    # poetry cache clear --all pypi --no-interaction
     #
     # This should pipe 'y' to the command, but it doesn't seem to work.
     #   (It was failing when run after creating b_env, maybe it works better
     #   before making the new venv?)
-    yes | $poetry_cmd cache clear --all pypi
+    yes | poetry cache clear --all pypi
 
     # Make a new venv in this tmp project directory, so Poetry will use it,
     #   and we can destroy it at the end of testing.
     python3 -m venv b_env
     source b_env/bin/activate
 
-    $poetry_cmd install
+    poetry install
 
     echo "--- info ---"
-    $poetry_cmd env info
+    poetry env info
 fi
 
 echo "  Initializing Git repostitory..."
@@ -237,15 +235,19 @@ elif [ "$dep_man_approach" = 'pipenv' ]; then
     script_dir_str+='"'
     sed -i "" "s#django-simple-deploy = {path = $script_dir_str}#django-simple-deploy = $version_spec#" Pipfile
 elif [ "$dep_man_approach" = 'poetry' ]; then
-    # Poetry throws an error if I try to install from a local directory using this command:
-    # $poetry_cmd add $dependency_string
-    # So, workaround since we only need the development version installed locally, not on Heroku:
-    #   Use pip to install the appropriate version here, just like in the req_txt block.
-    #   Then manually add django-simple-deploy to pyproject.toml, so the remote version
-    #   will just install from pypi.
-    pip install $dependency_string
+    # Poetry has the same issue here as Pipenv; a local install doesn't work on the remote server.
+    #   simple_deploy doesn't actually run on the remote server, so just install the latest version
+    #   there, regardless of which version we're testing.
+    # Note this is not an editable install, just a regular installation from a local source.
+    poetry add $dependency_string
+    # Now modify pyproject.toml to specify non-local version of django-simple-deploy.
     version_spec='"*"'
-    sed -i "" "s#requests#django-simple-deploy = $version_spec\nrequests#" pyproject.toml
+    script_dir_str='"'
+    script_dir_str+=$script_dir
+    script_dir_str+='"'
+    sed -i "" "s#django-simple-deploy = {path = $script_dir_str}#django-simple-deploy = $version_spec#" pyproject.toml
+    # Recreate lock file, because that's what Poetry will use to generate requirements.txt.
+    poetry lock
 fi
 
 # Clean up build/ dir that pip leaves behind.

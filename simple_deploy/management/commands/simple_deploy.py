@@ -12,6 +12,7 @@ from importlib import import_module
 
 from django.core.management.base import BaseCommand, CommandError
 from django.conf import settings
+import toml
 
 from . import deploy_messages as d_msgs
 from .utils import write_file_from_template
@@ -323,8 +324,12 @@ class Command(BaseCommand):
 
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
-        self._get_dep_man_approach()
-        self._get_current_requirements()
+        # Find out which package manger is being used: req_txt, poetry, or pipenv
+        self.pkg_manager = self._get_dep_man_approach()
+        msg = f"  Dependency management system: {self.pkg_manager}"
+        self.write_output(msg, skip_logging=True)
+
+        self.requirements = self._get_current_requirements()
 
 
     def _find_git_dir(self):
@@ -436,34 +441,28 @@ class Command(BaseCommand):
     def _get_dep_man_approach(self):
         """Identify which dependency management approach the project uses.
         req_txt, poetry, or pipenv.
+
+        Sets the self.pkg_manager attribute.
+        Looks for most specific tests first: Pipenv, Poetry, then requirements.txt.
+          ie if a project uses Poetry and has a requirements.txt file, we'll prioritize
+          Poetry.
+
+        Returns
+        - String representing dependency management system found:
+            req_txt | poetry | pipenv
+        - Raises CommandError if no pkg_manager can be identified.
         """
-
-        # In a simple project, I don't think we should find both Pipfile
-        #   and requirements.txt. However, if there's both, prioritize Pipfile.
-        self.using_req_txt = 'requirements.txt' in os.listdir(self.git_path)
-
-        # DEV: If both req_txt and Pipfile are found, could just use req.txt.
-        #      That's Heroku's prioritization, I believe. Address this if
-        #      anyone has such a project, and ask why they have both initially.
-        self.using_pipenv = 'Pipfile' in os.listdir(self.git_path)
-        if self.using_pipenv:
-            self.using_req_txt = False
-
-        self.using_poetry = self._check_using_poetry()
-        if self.using_poetry:
-            # Heroku does not recognize pyproject.toml, so we'll export to
-            #   a requirements.txt file, and then work from that. This should
-            #   not affect the user's local environment.
-            cmd = 'poetry export -f requirements.txt --output requirements.txt --without-hashes'
-            output = self.execute_subp_run(cmd)
-            self.write_output(output, skip_logging=True)
-            self.using_req_txt = True
+        if (self.git_path / "Pipfile").exists():
+            return "pipenv"
+        elif self._check_using_poetry():
+            return "poetry"
+        elif (self.git_path / "requirements.txt").exists():
+            return "req_txt"
 
         # Exit if we haven't found any requirements.
-        if not any((self.using_req_txt, self.using_pipenv)):
-            error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-            self.write_output(error_msg, write_to_console=False, skip_logging=True)
-            raise CommandError(error_msg)
+        error_msg = f"Couldn't find any specified requirements in {self.git_path}."
+        self.write_output(error_msg, write_to_console=False, skip_logging=True)
+        raise CommandError(error_msg)
 
 
     def _check_using_poetry(self):
@@ -491,22 +490,28 @@ class Command(BaseCommand):
 
     def _get_current_requirements(self):
         """Get current project requirements, before adding any new ones.
+
+        Returns:
+        - List of requirements, with no version information.
         """
-        if self.using_req_txt:
-            # Build path to requirements.txt.
-            self.req_txt_path = f"{self.git_path}/requirements.txt"
+        msg = "  Checking current project requirements..."
+        self.write_output(msg, skip_logging=True)
 
-            # Get list of requirements, with versions.
-            with open(f"{self.git_path}/requirements.txt") as f:
-                requirements = f.readlines()
-                self.requirements = [r.rstrip() for r in requirements]
+        if self.pkg_manager == "req_txt":
+            requirements = self._get_req_txt_requirements()
+        elif self.pkg_manager == "pipenv":
+            requirements = self._get_pipfile_requirements()
+        elif self.pkg_manager == "poetry":
+            requirements = self._get_poetry_requirements()
 
-        if self.using_pipenv:
-            # Build path to Pipfile.
-            self.pipfile_path = f"{self.git_path}/Pipfile"
+        # Report findings. 
+        msg = "    Found existing dependencies:"
+        self.write_output(msg, skip_logging=True)
+        for requirement in requirements:
+            msg = f"      {requirement}"
+            self.write_output(msg, skip_logging=True)
 
-            # Get list of requirements.
-            self.requirements = self._get_pipfile_requirements()
+        return requirements
 
 
     def _add_simple_deploy_req(self):
@@ -515,13 +520,52 @@ class Command(BaseCommand):
         #   required. If it's not, Heroku will reject the push.
         # This step isn't needed for Pipenv users, because when they install
         #   django-simple-deploy it's automatically added to Pipfile.
-        if self.using_req_txt:
+        if self.pkg_manager == "req_txt":
             self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
-            self.add_req_txt_pkg('django-simple-deploy')
+            self.add_package('django-simple-deploy')
+
+
+    def _get_req_txt_requirements(self):
+        """Get a list of requirements from the current requirements.txt file.
+
+        Parses requirements.txt file directly, rather than using a command
+          like `pip list`. `pip list` lists all installed packages, but they
+          may not be in requirements.txt, depending on when `pip freeze` was
+          last run. This is different than other dependency management systems,
+          which write to various requirements files whenever a package is installed.
+
+        Returns:
+        - List of requirements, with no version information.
+        """
+        # This path will be used later, so make it an attribute.
+        self.req_txt_path = self.git_path / "requirements.txt"
+        contents = self.req_txt_path.read_text()
+        lines = contents.split("\n")
+
+        # Parse requirements file, without including version information.
+        req_re = r'^([a-zA-Z0-9\-]*)'
+        requirements = []
+        for line in lines:
+            m = re.search(req_re, line)
+            if m:
+                requirements.append(m.group(1))
+
+        return requirements
 
 
     def _get_pipfile_requirements(self):
-        """Get a list of requirements that are already in the Pipfile."""
+        """Get a list of requirements that are already in the Pipfile.
+
+        Parses Pipfile, because we don't want to trust a lock file, and we need
+          to examine packages that may be listed in Pipfile but not currently
+          installed.
+
+        Returns:
+        - List of requirements, without version information.
+        """
+        # The path to pipfile is used when writing to pipfile as well.
+        self.pipfile_path = f"{self.git_path}/Pipfile"
+
         with open(self.pipfile_path) as f:
             lines = f.readlines()
 
@@ -570,6 +614,37 @@ class Command(BaseCommand):
             f.write(pipfile_text)
 
         self.write_output(f"    Added {package_name} to Pipfile.")
+
+
+    def _get_poetry_requirements(self):
+        """Get a list of requirements that Poetry is already tracking.
+
+        Parses pyproject.toml file. It's easier to work with the output of 
+          `poetry show`, but that examines poetry.lock. We are interested in
+          what's written to pyproject.toml, not what's in the lock file.
+
+        Returns:
+        - List of requirements, with no version information.
+        """
+        # We'll use this again, so make it an attribute.
+        self.pyprojecttoml_path = self.git_path / "pyproject.toml"
+        parsed_toml = toml.loads(self.pyprojecttoml_path.read_text())
+
+        # For now, just examine main requirements and deploy group requirements.
+        main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
+        requirements = list(main_reqs)
+        try:
+            deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
+        except KeyError:
+            # This group doesn't exist yet, which is fine.
+            pass
+        else:
+            requirements += list(deploy_reqs)
+
+        # Remove python as a requirement, as we're only interested in packages.
+        requirements.remove("python")
+
+        return requirements
 
 
     # --- Methods also used by platform-specific scripts ---
@@ -661,31 +736,132 @@ class Command(BaseCommand):
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
-    def add_req_txt_pkg(self, package_name):
-        """Add a package to requirements.txt, if not already present."""
-        root_package_name = package_name.split('<')[0]
+    def add_packages(self, package_list):
+        """Adds a set of packages to the project's requirements.
+        
+        This is a simple wrapper for add_package(), to make it easier to add 
+          multiple requirements at once.
+        If you need to specify a version for a particular package,
+          use add_package().
 
+        Returns:
+        - None
+        """
+        for package in package_list:
+            self.add_package(package)
+
+
+    def add_package(self, package_name, version=""):
+        """Add a pacakage to the project's requirements.
+
+        This method is pkg_manager-agnostic. It delegates to a method that's 
+          specific to the dependency management system that's in use.
+
+        Handles calls with version information with pip formatting:
+        - self.sd.add_package("psycopg2", version="<2.9")
+        The delegated methods handle this version information correctly for
+          the dependency management system in use.
+
+        Returns:
+        - None
+        """
+        self.write_output(f"\n  Looking for {package_name}...")
+
+        if self.pkg_manager == "pipenv":
+            self._add_pipenv_pkg(package_name, version)
+        elif self.pkg_manager == "poetry":
+            self._add_poetry_pkg(package_name, version)
+        else:
+            self._add_req_txt_pkg(package_name, version)
+
+
+    def _add_req_txt_pkg(self, package_name, version):
+        """Add a package to requirements.txt, if not already present.
+
+        Returns:
+        - None
+        """
         # Note: This does not check for specific versions. It gives priority
         #   to any version already specified in requirements.
-        pkg_present = any(root_package_name in r for r in self.requirements)
+        if package_name in self.requirements:
+            self.write_output(f"    Found {package_name} in requirements file.")
+            return
 
-        if pkg_present:
-            self.write_output(f"    Found {root_package_name} in requirements file.")
-        else:
-            with open(self.req_txt_path, 'a') as f:
-                # Align comments, so we don't make req_txt file ugly.
-                #   Version specs are in package_name in req_txt approach.
-                tab_string = ' ' * (30 - len(package_name))
-                f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
+        # Package not in requirements.txt, so add it.
+        with open(self.req_txt_path, 'a') as f:
+            # Add version information to package name, ie "pscopg2<2.9".
+            package_name += version
+            # Align comments, so we don't make req_txt file ugly.
+            tab_string = ' ' * (30 - len(package_name))
+            f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
 
-            self.write_output(f"    Added {package_name} to requirements.txt.")
+        self.write_output(f"    Added {package_name} to requirements.txt.")
 
 
-    def add_pipenv_pkg(self, package_name, version=""):
-        """Add a package to Pipfile, if not already present."""
-        pkg_present = any(package_name in r for r in self.requirements)
+    def _add_poetry_pkg(self, package_name, version):
+        """Add a package when project is using Poetry.
 
-        if pkg_present:
+        Adds an entry to pyproject.toml, without modifying the lock file.
+        Ensures the optional "deploy" group exists, and creates it if not.
+        Returns:
+        - None
+        """
+        self._check_poetry_deploy_group()
+
+        # Check if package already in pyproject.toml.
+        if package_name in self.requirements:
+            self.write_output(f"    Found {package_name} in requirements file.")
+            return
+
+        # Add package to pyproject.toml.
+        #   Define new requirement entry, read contents, replace group definition
+        #   with group definition plus new requirement line. This has the effect
+        #   of adding each new requirement to the beginning of the deploy group.
+        if not version:
+            version = "*"
+        new_req_line = f'{package_name} = "{version}"'
+
+        contents = self.pyprojecttoml_path.read_text()
+        new_group_string = f"{self.poetry_group_string}{new_req_line}\n"
+        contents = contents.replace(self.poetry_group_string, new_group_string)
+        self.pyprojecttoml_path.write_text(contents)
+
+        self.write_output(f"    Added {package_name} to pyproject.toml.")
+
+    def _check_poetry_deploy_group(self):
+        """Make sure that an optional deploy group exists in pyproject.toml.
+
+        If the group does not exist, write that group in pyproject.toml.
+          Establish the opening lines as an attribute, to make it easier to
+          add packages later.
+
+        Returns:
+        - None
+        """
+        self.poetry_group_string = "[tool.poetry.group.deploy]\noptional = true\n"
+        self.poetry_group_string += "\n[tool.poetry.group.deploy.dependencies]\n"
+
+        contents = self.pyprojecttoml_path.read_text()
+
+        if self.poetry_group_string in contents:
+            # Group already exists, we don't need to do anything.
+            return
+        
+        # Group not found, so create it now.
+        contents += f"\n\n{self.poetry_group_string}"
+        self.pyprojecttoml_path.write_text(contents)
+
+        msg = '    Added optional "deploy" group to pyproject.toml.'
+        self.write_output(msg)
+
+
+    def _add_pipenv_pkg(self, package_name, version=""):
+        """Add a package to Pipfile, if not already present.
+
+        Returns:
+        - None
+        """
+        if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in Pipfile.")
         else:
             self._write_pipfile_pkg(package_name, version)

@@ -33,12 +33,12 @@ def tmp_project(tmp_path_factory):
     return tmp_proj_dir
 
 
-@pytest.fixture(scope='module')
-def reset_test_project(tmp_project):
+@pytest.fixture(scope='module', params=["req_txt", "poetry", "pipenv"])
+def reset_test_project(request, tmp_project):
     """Reset the test project, so it can be used again by another test module,
     which may be another platform.
     """
-    cmd = f"sh utils/reset_test_project.sh {tmp_project}"
+    cmd = f"sh utils/reset_test_project.sh {tmp_project} {request.param}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
 
@@ -66,3 +66,13 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p {platform} -s {sd_root_dir}"
     cmd_parts = cmd.split()
     subprocess.run(cmd_parts)
+
+
+@pytest.fixture()
+def pkg_manager(request):
+    """Get the fixture parameter that specifies the pkg_manager in use.
+
+    Returns:
+    - String representing package manager: req_txt | poetry | pipenv
+    """
+    return request.node.callspec.params.get("reset_test_project")

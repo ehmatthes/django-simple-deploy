@@ -65,3 +65,7 @@ If you're new to using pytest, here are some useful notes. (If you have any sugg
 - `pytest -x`
     - This is identical to `pytest --exitfirst`, which stops after the first failing test. This is especially helpful when diagnosing unit test failures.
     - A number of ways to run `pytest` are described in [How to invoke pytest](https://docs.pytest.org/en/latest/how-to/usage.html).
+- `pytest -k`
+    - Run a single test, or a test matching a pattern.
+    - For example, if you want to run the test for the `pyproject.toml` file on Fly.io, you can use the following command: `$ pytest -k platforms/fly_io test_pyproject_toml`. This will actually run any test in the module that has that phrase in its name, but practically this is an effective way to isolate tests.
+    - Pytest docs: [Using -k expr to select tests based on their name](https://docs.pytest.org/en/latest/example/markers.html#using-k-expr-to-select-tests-based-on-their-name)

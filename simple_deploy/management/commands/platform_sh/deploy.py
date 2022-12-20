@@ -38,10 +38,7 @@ class PlatformDeployer:
         # DEV: Group this with later yaml generation methods.
         self._generate_platform_app_yaml()
 
-        # DEV: These can be done in one pass.
-        self._add_platformshconfig()
-        self._add_gunicorn()
-        self._add_psycopg2()
+        self._add_requirements()
 
         # DEV: These could be refactored.
         self._make_platform_dir()
@@ -121,8 +118,10 @@ class PlatformDeployer:
                 'deployed_project_name': self.deployed_project_name
                 }
             path = self.sd.project_root / '.platform.app.yaml'
-            if self.sd.using_pipenv:
-                template_path = 'platform.app.yaml-pipenv'
+            if self.sd.pkg_manager == 'poetry':
+                template_path = 'poetry.platform.app.yaml'
+            elif self.sd.pkg_manager == "pipenv":
+                template_path = 'pipenv.platform.app.yaml'
             else:
                 template_path = 'platform.app.yaml'
             write_file_from_template(path, template_path, context)
@@ -132,34 +131,10 @@ class PlatformDeployer:
             return path
 
 
-    def _add_platformshconfig(self):
-        """Add platformshconfig to project requirements."""
-        self.sd.write_output("\n  Looking for platformshconfig...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('platformshconfig')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('platformshconfig')
-
-
-    def _add_gunicorn(self):
-        """Add gunicorn to project requirements."""
-        self.sd.write_output("\n  Looking for gunicorn...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('gunicorn')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('gunicorn')
-
-
-    def _add_psycopg2(self):
-        """Add psycopg2 to project requirements."""
-        self.sd.write_output("\n  Looking for psycopg2...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('psycopg2')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('psycopg2')
+    def _add_requirements(self):
+        """Add requirements for serving on Platform.sh."""
+        requirements = ["platformshconfig", "gunicorn", "psycopg2"]
+        self.sd.add_packages(requirements)
 
 
     def _check_allowed_hosts(self):

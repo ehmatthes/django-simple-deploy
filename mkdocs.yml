@@ -3,6 +3,10 @@ site_name: django-simple-deploy
 repo_url: https://github.com/ehmatthes/django-simple-deploy/
 
 markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
   - tables
   - pymdownx.highlight:
       anchor_linenums: true
@@ -10,7 +14,9 @@ markdown_extensions:
   - pymdownx.snippets
   - pymdownx.superfences
   - pymdownx.tabbed:
-      alternate_style: true 
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: false
   - def_list
   - admonition
   - pymdownx.details
@@ -46,6 +52,9 @@ nav:
     - 'Managing Releases': 'maintaining/managing_releases.md'
     - 'Updating Documentation': 'maintaining/updating_docs.md'
     - 'Architectural Design Record': 'maintaining/adr.md'
+  - 'Roadmap':
+    - 'roadmap/index.md'
+    - 'roadmap/reaching_one_point_o.md'    
     
 
 

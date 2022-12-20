@@ -136,12 +136,7 @@ class PlatformDeployer:
 
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
-        self.sd.write_output("\n  Looking for gunicorn...")
-
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('gunicorn')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('gunicorn')
+        self.sd.add_package("gunicorn")
 
 
     def _check_allowed_hosts(self):
@@ -177,12 +172,8 @@ class PlatformDeployer:
 
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('psycopg2<2.9')
-            self.sd.add_req_txt_pkg('dj-database-url')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('psycopg2', version="<2.9")
-            self.sd.add_pipenv_pkg('dj-database-url')
+        self.sd.add_package("psycopg2", version="<2.9")
+        self.sd.add_package("dj-database-url")
 
 
     def _add_db_settings(self):
@@ -209,10 +200,7 @@ class PlatformDeployer:
 
         # Add whitenoise to requirements.
         self.sd.write_output("    Adding staticfiles-related packages...")
-        if self.sd.using_req_txt:
-            self.sd.add_req_txt_pkg('whitenoise')
-        elif self.sd.using_pipenv:
-            self.sd.add_pipenv_pkg('whitenoise')
+        self.sd.add_package("whitenoise")
 
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
@@ -399,7 +387,7 @@ class PlatformDeployer:
                     self.current_branch)
         else:
             # Show steps to finish the deployment process.
-            msg = dh_msgs.success_msg(self.sd.using_pipenv, self.heroku_app_name)
+            msg = dh_msgs.success_msg(self.sd.pkg_manager, self.heroku_app_name)
 
         self.sd.write_output(msg)
 
@@ -479,4 +467,42 @@ class PlatformDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         if output_obj.returncode:
             raise CommandError(dh_msgs.cli_not_installed)
+
+        # Respond appropriately if the local project uses Poetry.
+        if self.sd.pkg_manager == "poetry":
+            self.handle_poetry()
+
+
+    def handle_poetry(self):
+        """Respond appropriately if the local project uses Poetry.
+
+        If the project uses Poetry, generate a requirements.txt file, and 
+          override the initial value of self.sd.pkg_manager.
+        
+        Heroku does not work directly with Poetry, so we need to generate
+          a requirements.txt file for the user, which we can then add requirements
+          to. We should inform the user about this, as they may be used to 
+          just working with Poetry's requirements specification files.
+
+        This should probably be addressed in the success message as well,
+          and in the summary file. They will need to update the requirements.txt
+          file whenever they install additional packages.
+
+        Returns:
+        - None
+        """
+        msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
+        self.sd.write_output(msg, skip_logging=True)
+
+        cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.write_output(output, skip_logging=True)
+
+        msg = "    Wrote requirements.txt file."
+        self.sd.write_output(msg, skip_logging=True)
+
+        # From this point forward, we'll treat this user the same as anyone
+        #   who's using a bare requirements.txt file.
+        self.sd.pkg_manager = "req_txt"
+        self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
     

@@ -17,9 +17,30 @@ def test_settings(tmp_project):
     """Verify settings have been changed for Platform.sh."""
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'heroku')
 
-def test_requirements_txt(tmp_project):
+def test_requirements_txt(tmp_project, pkg_manager):
     """Test that the requirements.txt file is correct."""
-    hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
+    if pkg_manager == "req_txt":
+        hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
+    elif pkg_manager == "poetry":
+        hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
+                reference_filename="poetry.requirements.txt")
+    elif pkg_manager == "pipenv":
+        assert not Path("requirements.txt").exists()
+
+def test_pipfile(tmp_project, pkg_manager):
+    """Test that Pipfile is correct."""
+    if pkg_manager in ("req_txt", "poetry"):
+        assert not Path("Pipfile").exists()
+    elif pkg_manager == "pipenv":
+        hf.check_reference_file(tmp_project, "Pipfile", "heroku")
+
+def test_pyproject_toml(tmp_project, pkg_manager):
+    """Test that pyproject.toml is correct."""
+    if pkg_manager in ("req_txt", "pipenv"):
+        assert not Path("pyproject.toml").exists()
+    elif pkg_manager == "poetry":
+        # The file should be unchanged from the original, but it should exist.
+        hf.check_reference_file(tmp_project, "pyproject.toml", "heroku")
 
 def test_gitignore(tmp_project):
     """Test that .gitignore has been modified correctly."""

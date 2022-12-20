@@ -12,12 +12,15 @@ The complexity comes from trying to do all of the following:
 
 - Run tests that focus on the CLI.
 - Run tests that target multiple platforms.
-- Run tests that focus on different dependency management systems. *(not yet implemented)*
+- Run tests that focus on different dependency management systems.
 - Run tests against nested and unnested versions of the sample project. *(not yet implemented)*
 - Run tests against multiple versions of Django. *(not yet implemented)*
 - Run tests against multiple versions of Python. *(not yet implemented)*
 
 For every test run listed here, `simple_deploy` needs to be called against a fresh version of the sample project. That's a lot of testing!
+
+!!! note
+    Some of what you see here may be a little out of date, ie exact directory and file listings. However, the ideas here are kept fully up to date. If you see something in the unit tests that you don't understand, please feel free to open an issue and ask about it.
 
 ## Organization of the test suite
 
@@ -71,11 +74,12 @@ We need an `__init__.py` file at the root of `unit_tests/` so nested test files 
 
 ### `conftest.py`
 
-This file contains three fixtures[^1]:
+This file contains four fixtures[^1]:
 
 - `tmp_project()` creates a temporary directory where we can set up a full virtual environment for the sample project we're going to test against. It calls `utils/setup_project.sh` which copies the sample project, builds a virtual environment, makes an initial commit, and adds `simple_deploy` to the test project's `INSTALLED_APPS`. It has a session-level scope[^2], and returns the absolute path to the temporary directory where the test project was created.
 - `reset_test_project()` resets the sample project so we can run `simple_deploy` repeatedly, without having to rebuild the entire test project for each set of tests. It does this by calling `utils/reset_test_project.sh`. This fixture has a module-level scope.
 - `run_simple_deploy()` has a module-level scope, with `autouse=True`. This means the fixture runs automatically for all test modules in the test suite. An `if` block in the fixture makes sure it exits without doing anything if a specific platform is not being targeted. This fixture runs `reset_test_project()` immediately before running `simple_deploy`.
+- `pkg_manager()` has a function-level scope. Any function that includes this fixture will have access to the parameter that specifies which dependency management system is currently being tested. It will return `req_txt`, `poetry`, or `pipenv`. We use this to know what changes to expect in the modified project.
 
 ### `platform_agnostic_tests/`
 
@@ -273,26 +277,35 @@ Here's one of the test functions that we can focus on:
 import unit_tests.utils.ut_helper_functions as hf
 ...
 
-def test_creates_dockerfile(tmp_project):
+def test_creates_dockerfile(tmp_project, pkg_manager):
     """Verify that dockerfile is created correctly."""
-    hf.check_reference_file(tmp_project, 'Dockerfile', 'fly_io')
+    if pkg_manager == "req_txt":
+        hf.check_reference_file(tmp_project, 'dockerfile', 'fly_io')
+    elif pkg_manager == "poetry":
+        hf.check_reference_file(tmp_project, "dockerfile", "fly_io",
+                reference_filename="poetry.dockerfile")
 ...
 ```
 
 The test file imports the `utils/ut_helper_functions.py` module, which contains functions that are useful to test modules in different platform-specific directories.
 
- The function `test_creates_dockerfile()` has one argument, `tmp_project`. Here pytest takes the return value from the `tmp_project()` fixture, and assigns it to the variable `tmp_project`. This can be a little confusing; we have a fixture  in `conftest.py` called `tmp_project()`, but in the current test function `tmp_project` refers to the return value of `tmp_project()`. If this is confusing, keep in mind that **in this test function, `tmp_proj` is the path to the directory containing the test project.**
+ The function `test_creates_dockerfile()` has two arguments, `tmp_project` and `pkg_manager`. Here pytest takes the return value from the `tmp_project()` fixture, and assigns it to the variable `tmp_project`. This can be a little confusing; we have a fixture  in `conftest.py` called `tmp_project()`, but in the current test function `tmp_project` refers to the return value of `tmp_project()`. If this is confusing, keep in mind that **in this test function, `tmp_proj` is the path to the directory containing the test project.**
 
-The actual test function is only one line! We call `check_reference_file()`, which compares a file from the test project against the corresponding reference file. Here we make sure the `Dockerfile` that's created during the test run matches the reference `unit_tests/platforms/fly_io/reference_files/Dockerfile`. If your current local version of `django-simple-deploy` generates a `Dockerfile` for Fly.io deployments that doesn't match this file, you'll know. :)
+ The `pkg_manager` fixture tells us which depency management system is currently being tested: a bare `requirements.txt` file, Poetry, or Pipenv. We need to know this because each of these uses a slightly different `Dockerfile`.
+
+In the body of the test function we check the current value of `pkg_manager` and then call `check_reference_file()`, which compares a file from the test project against the corresponding reference file. For `req_txt`, we make sure the `Dockerfile` that's created during the test run matches the reference `unit_tests/platforms/fly_io/reference_files/Dockerfile`. If your current local version of `django-simple-deploy` generates a `Dockerfile` for Fly.io deployments that doesn't match this file, you'll know. For Poetry, the reference filename doesn't match the generic generated filename, so we pass the optional `reference_filename` argument.
+
+!!! note
+    Reference filenames usually have a `platform_name.generic_filename.file_extension` pattern. It's really helpful to prepend the platform name so that we keep the original file extension, which enables syntax highlighting available when opening these files.
 
 ### Conclusion
 
-That's a whole lot of setup work for a one-line test function! But the advantage of all that setup work is that we can write hundreds, or thousands of small test functions without adding much to the setup work.
+That's a whole lot of setup work for a relatively short test function! But the advantage of all that setup work is that we can write hundreds, or thousands of small test functions without adding much to the setup work. Each test also runs three times: once for `req_txt`, once for `poetry`, and once for `pipenv`.
 
 The rest of the test functions in `test_flyio_config.py` work in a similar way, except for `test_log_dir()`. That function inspects several aspects of the log directory, and the log file that should be found there.
 
 !!! note
-    The setup work will become more complex as we start to test multiple dependency management approaches, multiple versions of Django, multiple versions of Python, and multiple OSes. But the overall approach described here shouldn't change significantly. We'll still have a bunch of setup work followed by a large number of smaller, specific test functions.
+    The setup work will become more complex as we start to test multiple versions of Django, multiple versions of Python, and multiple OSes. But the overall approach described here shouldn't change significantly. We'll still have a bunch of setup work followed by a large number of smaller, specific test functions.
 
 
 ## Testing multiple platforms
@@ -380,16 +393,18 @@ Running the entire test suite puts together everything described above:
 
 ```
 (dsd_env)unit_tests $ pytest
-==================== test session starts ====================
+==================== test session starts ===============================
 platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
 rootdir: django-simple-deploy
-collected 22 items
+collected 93 items
 
-platform_agnostic_tests/test_invalid_cli_commands.py ..
-platforms/fly_io/test_flyio_config.py .......
-platforms/heroku/test_heroku_config.py .......
-platforms/platform_sh/test_platformsh_config.py ......
-==================== 22 passed in 18.16s ====================
+platform_agnostic_tests/test_invalid_cli_commands.py .........
+platform_agnostic_tests/test_project_inspection.py sss
+platform_agnostic_tests/test_valid_cli_commands.py ...
+platforms/fly_io/test_flyio_config.py ...........................
+platforms/heroku/test_heroku_config.py ...........................
+platforms/platform_sh/test_platformsh_config.py ........................
+==================== 90 passed, 3 skipped in 25.78s ====================
 ```
 
 The test project is set up once, and reset for each test module that's run.
@@ -426,6 +441,20 @@ You can navigate to this folder in a terminal, and interact with the project in 
 
 !!! note
     The command `pytest -x` tells pytest to run the full test suite, but stop after the first failed test.
+
+## Updating reference files
+
+Examining the test project is an efficient way to update reference files. Say you've just updated the code for generating a Dockerfile for a specific package management system, ie Poetry. You can run the test suite with `pytest -x`, and it will fail at the test that checks the Dockerfile for that platform when Poetry is in use. You can examine the test project, open the Dockerfile, and verify that it was generated correctly for the sample project. If it is, copy this file into the `reference_files/` directory, and the tests should pass.
+
+## Examining failures for parametrized tests
+
+When a parametrized test fails, there's some important information in the output. For example, here's some sample output from a failed test run:
+
+```
+FAILED platforms/platform_sh/test_platformsh_config.py::test_platform_app_yaml_file[poetry] - AssertionError
+```
+
+This tells us that the test `test_platform_app_yaml_file` in `test_platformsh_config.py` failed, when the value of `pkg_manager` was `poetry`. So, we need to look at how `simple_deploy` configures the `.platform.app.yaml` file when Poetry is in use.
 
 ## Updating packages in `vendor/`
 

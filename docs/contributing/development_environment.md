@@ -178,6 +178,25 @@ To reset the project, run `git reset --hard commit_hash`, using the hash of the 
 
 Now you're ready to do your own development work on `simple_deploy`. Make a new branch on your fork of the project, and make any changes you want to the codebase. When you want to see if your changes improve the configuration and deployment process, go back to the [Run `simple_deploy` locally](#run-simple_deploy-against-the-test-project) section and repeat those steps.
 
+### Helpful flags for development work
+
+The `--unit-testing` and `--ignore-unclean-git` flags can be really helpful when doing development work. For example say you're revising the approach to generating a dockerfile for Poetry users when deploying to Fly.io. You've modified some of the project's code, and you want to see how it impacts your demo project. Run the following command:
+
+```
+$ python manage.py simple_deploy --platform fly_io --unit-testing
+```
+
+This won't run the unit tests, but it will skip the same network calls that are skipped during unit testing. You should see most of the same configuration that's done during a normal run, using sample resource names.
+
+When you've made more changes and want to run `simple_deploy` again, but all you're interested in is the Dockerfile that's generated, run the following two commands:
+
+```
+$ rm Dockerfile
+$ python manage.py simple_deploy --platform fly_io --unit-testing --ignore-unclean-git
+```
+
+This will avoid network calls and use sample resource names again, and it will ignore the fact that you have significant uncommitted changes. A new Dockerfile should be generated, and you can repeat these steps to rapidly develop the code that generates the Dockerfile.
+
 ## Making a PR
 
 When this project is more mature, there will be a clear routine for running tests before opening a new PR. But testing this project is not straightforward. For example, there's no need to run a full test suite making multiple full deployments for every possible PR. If you're satisfied with your work and think it should be merged into the main project, feel free to open a PR.

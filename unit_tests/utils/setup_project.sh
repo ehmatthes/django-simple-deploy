@@ -17,10 +17,6 @@ rsync -ar ../sample_project/blog_project/ "$tmp_dir"
 # All remaining work is done in the temp dir.
 cd "$tmp_dir"
 
-# Set up for testing Heroku deployment.
-rm pyproject.toml
-rm Pipfile
-
 # Build a venv and install requirements.
 python3 -m venv b_env
 source b_env/bin/activate

@@ -7,11 +7,21 @@ The functions in this module are not specific to any one platform. If a function
 from pathlib import Path
 import filecmp
 
-def check_reference_file(tmp_proj_dir, filepath, platform):
+def check_reference_file(tmp_proj_dir, filepath, platform,
+        reference_filename=""):
     """Check that the test version of the file matches the reference version
     of the file.
 
     - filepath: relative path from tmp_proj_dir to test file
+    - reference_filename: the name of the  reference file, if it has a
+      different name than the generated file
+
+    Asserts:
+    - Asserts that the file at `filepath` matches the reference file of the 
+      same name, or the specific reference file given.
+
+    Returns:
+    - None
     """
 
     # Root directory of local simple_deploy project.
@@ -23,7 +33,10 @@ def check_reference_file(tmp_proj_dir, filepath, platform):
     # There are no subdirectories in references/, so we only need to keep
     #   the actual filename.
     # For example if filepath is `blog/settings.py`, we only want `settings.py`.
-    filename = Path(filepath).name
+    if reference_filename:
+        filename = Path(reference_filename)
+    else:
+        filename = Path(filepath).name
     fp_reference = Path(f'platforms/{platform}/reference_files/{filename}')
 
     # The test file and reference file will always have different modified
