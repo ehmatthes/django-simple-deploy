@@ -6,6 +6,15 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+#### External changes
+
+#### Internal changes
+
+- Integration test runs `pip cache purge` before installing simple deploy when using `-t pypi` flag.
+    - This flag is often used immediately after making a new release, and this should ensure the new version is installed from PyPI.
+
 ### 0.5.14
 
 #### External changes
