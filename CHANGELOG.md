@@ -14,6 +14,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 - Integration test runs `pip cache purge` before installing simple deploy when using `-t pypi` flag.
     - This flag is often used immediately after making a new release, and this should ensure the new version is installed from PyPI.
+- Calling `pytest` from project root generates a clean, simple reminder to cd to `unit_tests/` first.
 
 ### 0.5.14
 
