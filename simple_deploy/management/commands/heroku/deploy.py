@@ -172,7 +172,7 @@ class PlatformDeployer:
 
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        self.sd.add_package("psycopg2", version="<2.9")
+        self.sd.add_package("psycopg2")
         self.sd.add_package("dj-database-url")
 
 
