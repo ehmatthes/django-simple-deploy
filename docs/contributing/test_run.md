@@ -118,4 +118,8 @@ If you have any final thoughts about how `django-simple-deploy` works, please sh
 
 ## What next?
 
-Feel free to do as many test runs as you want. For example you might want to deploy to a different platform, or try a different dependency management system, or deploy a different project. If you want to contribute in other ways, see the main [Contributing](index.md) page for a variety of ways to help out.
+Feel free to do as many test runs as you want. For example you might want to deploy to a different platform, or try a different dependency management system, or deploy a different project.
+
+This is also a great time to try running the [integration tests](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/integration_tests.md) for the platform you just targeted. Integration tests automate everything you just did. (Documentation for integration tests has not been migrated here yet.)
+
+If you want to contribute in other ways, see the main [Contributing](index.md) page for a variety of ways to help out.

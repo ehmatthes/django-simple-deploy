@@ -25,7 +25,7 @@ The tests run against your local version of this project. So if you want to work
 
 - Clone the repository, and make a virtual environment from the `requirements.txt` file.
 - Make any changes to the project you're interested in.
-- Run the tests: `$ ./integration_tests/test_deploy_process.sh -p [heroku|platform_sh]`
+- Run the tests: `$ ./integration_tests/test_deploy_process.sh -p [fly_io|heroku|platform_sh]`
 
 Actual steps
 ---
@@ -39,7 +39,7 @@ $ python3 -m venv dsd_env
 $ source dsd_env/bin/activate
 (dsd_env)$ pip install --upgrade pip
 (dsd_env)$ pip install requirements.txt
-(dsd_env)$ ./integration_tests/test_deploy_process.sh -p [heroku|platform_sh]
+(dsd_env)$ ./integration_tests/test_deploy_process.sh -p [fly_io|heroku|platform_sh]
 ```
 
 Testing the latest PyPI release
@@ -48,7 +48,7 @@ Testing the latest PyPI release
 To test the latest release on PyPI instead of your local version of the project, use the `-t pypi` argument:
 
 ```
-(dsd_env)$ ./integration_tests/test_deploy_process.sh -p [heroku|platform_sh] -t pypi
+(dsd_env)$ ./integration_tests/test_deploy_process.sh -p [fly_io|heroku|platform_sh] -t pypi
 ```
 
 Other testing options
@@ -57,7 +57,7 @@ Other testing options
 Here are all the flags and options for each flag. The first option listed for each flag is the default:
 
 ```
-./integration_tests/test_deploy_process.sh -y -t [development_version|pypi] -d [req_txt|poetry|pipenv] -p [heroku] -o [automate_all]
+./integration_tests/test_deploy_process.sh -y -t [development_version|pypi] -d [req_txt|poetry|pipenv] -p [fly_io|heroku|platform_sh] -o [automate_all]
 ```
 
 - `-y`: Skip all confirmations in the bash test script, ie "Is it okay to make a tmp dir in your home directory." The first time you run integration testing, you should not use this flag. Once you've seen what the scripts do, you may want to use this flag.
@@ -66,7 +66,7 @@ Here are all the flags and options for each flag. The first option listed for ea
 - `-d`: Dependency management approach that's being tested.
     - `req_txt`, `poetry`, `pipenv`
 - `-p`: Platform to push to.
-    - `heroku`, `platform_sh`
+    - `fly_io`, `heroku`, `platform_sh`
 - `-o`: Options for the simple_deploy run.
     - `automate_all`
 
@@ -88,6 +88,7 @@ Testing other platforms
 ---
 
 - The `-p` flag specifies which platform to test actual deployment against:
+    - Test Fly.io deployment: `$ ./integration_tests/test_deploy_process.sh -p fly_io`
     - Test Heroku deployment: `$ ./integration_tests/test_deploy_process.sh -p heroku`
     - Test Platform.sh deployment: `$ ./integration_tests/test_deploy_process.sh -p platform_sh`
 
