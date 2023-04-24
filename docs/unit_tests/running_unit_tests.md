@@ -58,6 +58,39 @@ Similarly, you can run just the platform-agnostic tests:
 (dsd_env)unit_tests $ pytest platform_agnostic_tests/
 ```
 
+Resolving failures
+---
+
+One of the most straightforward ways to resolve test failures is to examine the test project itself. For this to work, you need to make sure the test suite stops immediately after the failure. Otherwise, the test project from the failing test will be written over by the next test.
+
+Calling pytest with the `-x` flag, `pytest -x`, causes the test suite to stop running after the first failing test. You can then examine the test project, and look at exactly how the configuration failed.
+
+For example, here's the output from a test failure:
+
+```
+(dsd_env)$ pytest -x
+...
+platforms/heroku/test_heroku_config.py ..........F
+=========================================================== FAILURES ============
+________________________________________________ test_requirements_txt[poetry] __
+
+tmp_project = PosixPath(
+    '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
+pkg_manager = 'poetry'
+...
+>           hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
+
+platforms/heroku/test_heroku_config.py:25: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+tmp_proj_dir = PosixPath(
+    '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
+filepath = 'requirements.txt', platform = 'heroku', reference_filename = 'poetry.requirements.txt'
+...
+```
+
+This output shows you where to find the test project, in this case `blog_project0`, on your system. It also shows you the reference file that the failing test was comparing against. You can then inspect the test project, open the corresponding reference file, and begin troubleshooting.
+
 ## Helpful pytest notes
 
 If you're new to using pytest, here are some useful notes. (If you have any suggestions for what else to include here, please feel free to share them.)
