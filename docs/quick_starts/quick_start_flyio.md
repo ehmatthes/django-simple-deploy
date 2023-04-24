@@ -32,6 +32,9 @@ $ pip install django-simple-deploy
 
 Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure your app:
 
+!!! note
+    The `fly` and `flyctl` commands are used on the Fly.io docs interchangeably, we will be using `fly` here.
+
 ```
 $ fly apps create --generate-name
 $ python manage.py simple_deploy --platform fly_io
