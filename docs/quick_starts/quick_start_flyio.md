@@ -4,8 +4,7 @@ hide:
     - footer
 ---
 
-Quick Start: Deploying to Fly.io
-===
+# Quick Start: Deploying to Fly.io
 
 ## Overview
 

@@ -4,8 +4,7 @@ hide:
     - footer
 ---
 
-Quick Start: Deploying to Platform.sh
-===
+# Quick Start: Deploying to Platform.sh
 
 ## Overview
 

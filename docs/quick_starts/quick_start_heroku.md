@@ -4,8 +4,7 @@ hide:
     - footer
 ---
 
-Quick Start: Deploying to Heroku
-===
+# Quick Start: Deploying to Heroku
 
 ## Overview
 
