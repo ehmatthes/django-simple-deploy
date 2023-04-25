@@ -203,7 +203,7 @@ When this project is more mature, there will be a clear routine for running test
 
 ## Running unit tests
 
-Restructuring the unit tests is one of the higher-priority issues. When that work is being done, documentation for unit tests will be moved to the official documentation. For now, if you're interested in running the unit tests, see the [old documentation for unit tests](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/unit_tests.md).
+If you're interested in running the unit tests, please refer to [Unit tests](../unit_tests/index.md).
 
 ## Running integration tests
 
