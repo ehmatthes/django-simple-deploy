@@ -11,6 +11,6 @@ urllib3==1.26.15 ; python_version >= "3.9" and python_version < "4"
 
 django-simple-deploy          # Added by simple_deploy command.
 gunicorn                      # Added by simple_deploy command.
-psycopg2<2.9                  # Added by simple_deploy command.
+psycopg2                      # Added by simple_deploy command.
 dj-database-url               # Added by simple_deploy command.
 whitenoise                    # Added by simple_deploy command.
