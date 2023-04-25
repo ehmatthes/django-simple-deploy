@@ -12,7 +12,7 @@ You can run unit tests for a single platform, or for all platforms. Currently, i
 
 ## Setting up a development environment
 
-If you haven't already set up a development environment for `django-simple-deploy`, see these [brief instructions](../../contributing/development_environment/).
+If you haven't already set up a development environment for `django-simple-deploy`, see these [brief instructions](../contributing/development_environment.md).
 
 ## Running the entire test suite
 
