@@ -1,3 +1,4 @@
+#!/usr/bin/env bash 
 # Reset the test project, so it's ready to be used by another test module.
 #   It may be used by a different platform than the previous run.
 
@@ -5,7 +6,7 @@ tmp_dir="$1"
 pkg_manager="$2"
 
 # All remaining work is done in the temp dir.
-cd "$tmp_dir"
+cd "$tmp_dir" || { echo "Temporary Directory $tmp_dir access failed"; exit 1; }
 
 # --- Reset to the initial state of the temp project instance. ---
 git reset --hard INITIAL_STATE

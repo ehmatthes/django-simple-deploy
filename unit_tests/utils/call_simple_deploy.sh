@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 # Call simple_deploy for the given platform.
 
 # Flags:
@@ -7,14 +8,16 @@ do
     case "${flag}" in
         d) tmp_dir=${OPTARG};;
         p) target_platform=${OPTARG};;
-        s) sd_root_dir=${OPTARG};;
+        *) echo "usage: $0 [-d] [-p]" >&2
+           exit 1 ;;
     esac
 done
 
 # All remaining work is done in the temp dir.
-cd "$tmp_dir"
+cd "$tmp_dir" || { echo "Temporary Directory $tmp_dir access failed"; exit 1; }
 
 # Activate existing venv.
+# shellcheck source=/dev/null
 source b_env/bin/activate
 
 # Run configuration-only version of simple_deploy.

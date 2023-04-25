@@ -1,3 +1,4 @@
+#!/usr/bin/env bash 
 # Set up the test project.
 
 # Flags:
@@ -8,6 +9,8 @@ do
     case "${flag}" in
         d) tmp_dir=${OPTARG};;
         s) sd_root_dir=${OPTARG};;
+        *) echo "usage: $0 [-d] [-s]" >&2
+           exit 1 ;;
     esac
 done
 
@@ -15,10 +18,11 @@ done
 rsync -ar ../sample_project/blog_project/ "$tmp_dir"
 
 # All remaining work is done in the temp dir.
-cd "$tmp_dir"
+cd "$tmp_dir" || { echo "Temporary Directory $tmp_dir creation failed"; exit 1; }
 
 # Build a venv and install requirements.
 python3 -m venv b_env
+# shellcheck source=/dev/null
 source b_env/bin/activate
 pip install --no-index --find-links="$sd_root_dir/vendor/" -r requirements.txt
 

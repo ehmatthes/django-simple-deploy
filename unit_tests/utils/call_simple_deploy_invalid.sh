@@ -1,10 +1,11 @@
+#!/usr/bin/env bash
 # Call simple_deploy for the given platform.
 
 tmp_dir="$1"
 invalid_sd_command="$2"
 
 # All remaining work is done in the temp dir.
-cd "$tmp_dir"
+cd "$tmp_dir" || { echo "Temporary Directory $tmp_dir access failed"; exit 1; }
 
 # Activate existing venv.
 source b_env/bin/activate
