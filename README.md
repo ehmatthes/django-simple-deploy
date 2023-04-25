@@ -1,5 +1,5 @@
-django-simple-deploy
-===
+# django-simple-deploy
+
 
 The full documentation for this project is at [Read the Docs](https://django-simple-deploy.readthedocs.io/en/latest/).
 
