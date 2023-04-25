@@ -18,47 +18,123 @@ In order to run the unit tests, you will need to have installed Flyio CLI, Herok
 
 ### Installing flyio CLI
 
-1. Visit [Flyio Docs](https://fly.io/docs/hands-on/install-flyctl/) and follow the instructions for installing `flyctl`.
-2. If you encounter any issues with `brew`, you can install `flyctl` using the following `curl`:
-```
-curl -L https://fly.io/install.sh | sh
-```
-3. Make sure `flyctl` is added to the PATH environment variable, so the tests can find it. You can check that by running:
+You can visit [Flyio Docs](https://fly.io/docs/hands-on/install-flyctl/) and follow the instructions for installing `flyctl` on each platform or follow the instructions below. Make sure `flyctl` is added to the PATH environment variable, so the tests can find it. You can check that by running:
 ```
 fly help
 ```
 
+=== "macOS"
+
+    1. You can use [Homebrew](https://docs.brew.sh/Installation):
+    ```
+    brew install flyio
+    ```
+    2. If you encounter any issues with `brew`, you can install `flyctl` using the following `curl`:
+    ```
+    curl -L https://fly.io/install.sh | sh
+    ```
+
+=== "Linux"
+
+    1. You can install it using `curl`:
+    ```
+    curl -L https://fly.io/install.sh | sh
+    ```
+
+=== "Windows"
+
+    1. Run the Powershell install script:
+    ```
+    powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+    ```
+
+
 ### Installing Heroku CLI
 
-1. Visit [Heroku-CLI Docs](https://devcenter.heroku.com/articles/heroku-cli) and follow the instructions for installing Heroku CLI.
-2. If you encounter any issues, you can install `heroki-cli` using `npm` ([Installation Guide](https://nodejs.org/en/download)), with the following command:
-```
-npm install -g heroku
-```
-3. Make sure `Heroku CLI` is installed and working by running:
+You can visit [Heroku-CLI Docs](https://devcenter.heroku.com/articles/heroku-cli) and follow the instructions for installing `Heroku-CLI` on each platform or follow the instructions below. Make sure `Heroku CLI` is installed and working by running:
 ```
 heroku --version
 ```
 
+=== "macOS"
+
+    1. You can use [Homebrew](https://docs.brew.sh/Installation):
+    ```
+    brew tap heroku/brew && brew install heroku
+    ```
+    2. If you encounter any issues, you can install `heroki-cli` using `npm` ([Installation Guide](https://nodejs.org/en/download)), with the following command:
+    ```
+    npm install -g heroku
+    ```
+
+=== "Linux/Windows"
+
+    1. You can install `heroki-cli` using `npm` ([Installation Guide](https://nodejs.org/en/download)), with the following command:
+    ```
+    npm install -g heroku
+    ```
+
+
 ### Installing PlatformSH CLI
 
-1. Visit [PlatformSH Docs](https://docs.platform.sh/administration/cli.html) and follow the instructions for installing PlatformSH CLI.
-2. If you encounter any issues, you can install `platformsh-cli` using the following command:
-```
-curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | INSTALL_METHOD=raw bash
-```
-3. Make sure `PlatformSH CLI` is installed and working by running:
+You can visit [PlatformSH Docs](https://docs.platform.sh/administration/cli.html) and follow the instructions for installing `PlatformSH` on each platform or follow the instructions below. Make sure `PlatformSH CLI` is installed and working by running:
 ```
 platform --version
 ```
 
+=== "macOS"
+
+    1. You can use [Homebrew](https://docs.brew.sh/Installation):
+    ```
+    brew install platformsh/tap/platformsh-cli
+    ```
+    2. If you encounter any issues, you can install `platformsh-cli` using the following command:
+    ```
+    curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | INSTALL_METHOD=raw bash
+    ```
+
+=== "Linux"
+
+    1. You can install it using `curl`:
+    ```
+    curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | bash
+    ```
+
+=== "Windows"
+
+    1. You can install it using [scoop](https://scoop.sh/):
+    ```
+    scoop bucket add platformsh https://github.com/platformsh/homebrew-tap.git
+    scoop install platform
+    ```
+
 ### Installing Poetry
 
-1. Visit [Poetry Docs](https://python-poetry.org/docs/#installation) and follow the instructions for installing Poetry.
-2. In general, the following pip command works fine:
+You can visit [Poetry Docs](https://python-poetry.org/docs/#installation) and follow the instructions for installing `Poetry` on each platform or follow the instructions below. Make sure `Poetry` is installed and working by running:
 ```
-pip install poetry
+poetry --version
 ```
+
+    === "macOS/Linux"
+
+    1. You can install it using `pip`:
+
+    ```
+    pip install poetry
+    ```
+
+    2. If you encounter any issues, you can install it using `curl`:
+    ```
+    curl -sSL https://install.python-poetry.org | python3 -
+    ```
+
+    === "Windows"
+
+    1. Run the following command on the Powershell:
+    ```
+    (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+    ```
+
 
 ## Running the entire test suite
 
