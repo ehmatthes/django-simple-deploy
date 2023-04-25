@@ -115,7 +115,7 @@ You can visit [Poetry Docs](https://python-poetry.org/docs/#installation) and fo
 poetry --version
 ```
 
-    === "macOS/Linux"
+=== "macOS/Linux"
 
     1. You can install it using `pip`:
 
@@ -128,7 +128,7 @@ poetry --version
     curl -sSL https://install.python-poetry.org | python3 -
     ```
 
-    === "Windows"
+=== "Windows"
 
     1. Run the following command on the Powershell:
     ```
