@@ -1,5 +1,7 @@
 # django-simple-deploy
 
+Initial Django deployments made easy.
+
 
 The full documentation for this project is at [Read the Docs](https://django-simple-deploy.readthedocs.io/en/latest/).
 
