@@ -144,7 +144,7 @@ Here's where fixtures come into play. pytest first runs any fixture with a scope
 
 - All fixtures with `scope="session"` will be run.
 - Any fixture with a scope relevant to the test function that's about to be run, with `autouse=True`, will be run.
-- Any fixture whose name appears in the test function's list of paremeters will be run. 
+- Any fixture whose name appears in the test function's list of parameters will be run.
 
 #### The `tmp_project()` fixture
 
@@ -163,7 +163,7 @@ def tmp_project(tmp_path_factory):
 
 This fixture calls a [built-in fixture](https://docs.pytest.org/en/latest/reference/reference.html#std-fixture-tmp_path_factory), `tmp_path_factory`, which allows us to request temporary directories for use during test runs. These directories are managed entirely by pytest, so we don't have to worry about cleaning them up later.
 
-We make a temporary directory, and assign the full path for this directory to `tmp_proj_dir`. We then call `setup_project.sh`. Finally, we return `tmp_proj_dir`. Any test function with `tmp_project` in its paremeter list will have access to this value.
+We make a temporary directory, and assign the full path for this directory to `tmp_proj_dir`. We then call `setup_project.sh`. Finally, we return `tmp_proj_dir`. Any test function with `tmp_project` in its parameter list will have access to this value.
 
 #### The `setup_project.sh` file
 
@@ -288,7 +288,7 @@ The test file imports the `utils/ut_helper_functions.py` module, which contains 
 
  The function `test_creates_dockerfile()` has two arguments, `tmp_project` and `pkg_manager`. Here pytest takes the return value from the `tmp_project()` fixture, and assigns it to the variable `tmp_project`. This can be a little confusing; we have a fixture  in `conftest.py` called `tmp_project()`, but in the current test function `tmp_project` refers to the return value of `tmp_project()`. If this is confusing, keep in mind that **in this test function, `tmp_proj` is the path to the directory containing the test project.**
 
- The `pkg_manager` fixture tells us which depency management system is currently being tested: a bare `requirements.txt` file, Poetry, or Pipenv. We need to know this because each of these uses a slightly different `Dockerfile`.
+ The `pkg_manager` fixture tells us which dependency management system is currently being tested: a bare `requirements.txt` file, Poetry, or Pipenv. We need to know this because each of these uses a slightly different `Dockerfile`.
 
 In the body of the test function we check the current value of `pkg_manager` and then call `check_reference_file()`, which compares a file from the test project against the corresponding reference file. For `req_txt`, we make sure the `Dockerfile` that's created during the test run matches the reference `unit_tests/platforms/fly_io/reference_files/Dockerfile`. If your current local version of `django-simple-deploy` generates a `Dockerfile` for Fly.io deployments that doesn't match this file, you'll know. For Poetry, the reference filename doesn't match the generic generated filename, so we pass the optional `reference_filename` argument.
 
