@@ -26,7 +26,7 @@ For every test run listed here, `simple_deploy` needs to be called against a fre
 
 Here's the file structure of the unit test suite:
 
-```
+```sh
 unit_tests $ tree -L 4
 .
 ├── __init__.py
@@ -114,24 +114,21 @@ The `utils/` directory contains scrips that are used by multiple test files.
 !!! note
     Some people think `utils/` is a bad name, like `misc`, but it's used here to imply that these scripts have utility across multiple test modules.
 
-
 [^1]: For the purposes of this project, a *fixture* is a function that prepares for a test, or set of tests. For example, we use a fixture to copy the sample project from `django-simple-deploy/sample_project/blog_project/` to a temporary directory, and then build a full virtual environment for that project. Another fixture is used to call `simple_deploy` against the sample project; yet another fixture is used to reset the project for subsequent tests. To learn more, see [About fixtures](https://docs.pytest.org/en/latest/explanation/fixtures.html) and [How to use fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html).
 
 [^2]:
-    Every fixture has a *scope*, which controls how often a fixture is loaded when it's needed. 
+    Every fixture has a *scope*, which controls how often a fixture is loaded when it's needed.
 
     - `scope="session"`: The fixture is loaded once for the entire test run; the fixture that sets up the sample test project has session-level scope.
     - `scope="module"`: The fixture is loaded once for each module where it's used; the fixture that resets the sample test project has module-level scope.
     - The other possibilities for scope are `function`, `class`, and `package`. These scopes are not currently used in the `django-simple-deploy` test suite. The default scope is `function`.
     - Read more at [Scope: sharing fixtures across classes, modules, packages or session](https://docs.pytest.org/en/latest/how-to/fixtures.html#scope-sharing-fixtures-across-classes-modules-packages-or-session)
 
-
-
 ## Testing a single platform
 
 With all that said, let's look at what actually happens when we test a single platform; we'll see in what order the resources described above are used. As an example, let's look at what happens when we issue the following call:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest platforms/fly_io/
 ```
 
@@ -307,12 +304,11 @@ The rest of the test functions in `test_flyio_config.py` work in a similar way, 
 !!! note
     The setup work will become more complex as we start to test multiple versions of Django, multiple versions of Python, and multiple OSes. But the overall approach described here shouldn't change significantly. We'll still have a bunch of setup work followed by a large number of smaller, specific test functions.
 
-
 ## Testing multiple platforms
 
 What's the difference when we test multiple platforms? Not much; let's consider what happens when we test against two platforms in one test run:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest platforms/fly_io platforms/platform_sh
 ==================== test session starts ====================
 platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
@@ -391,7 +387,7 @@ The test function makes sure the user sees an appropriate error message, by exam
 
 Running the entire test suite puts together everything described above:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest
 ==================== test session starts ===============================
 platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
@@ -423,14 +419,14 @@ def tmp_project(tmp_path_factory):
     #   All tests will fail, but the AssertionError will show you the full path
     #   to tmp_proj_dir.
     # assert not tmp_proj_dir
-    ...    
+    ...
 
     return tmp_proj_dir
 ```
 
 The next time you run the unit tests, this assert will fail, and the output will show you the path that was created:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest -x
 ...
 >    assert not tmp_proj_dir
@@ -460,13 +456,13 @@ This tells us that the test `test_platform_app_yaml_file` in `test_platformsh_co
 
 The sole purpose of the `vendor/` directory is to facilitate unit testing. To add a new package to the directory:
 
-```
+```sh
 (dsd_env) $ pip download --dest vendor/ package_name
 ```
 
 To upgrade all packages in `vendor/`:
 
-```
+```sh
 $ rm -rf vendor/
 $ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
 ```

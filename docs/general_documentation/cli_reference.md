@@ -12,7 +12,7 @@ hide:
 
 For a quick summary of the most important CLI options, run `manage.py simple_deploy --help`. Here's the output:
 
-```
+```sh
 $ python manage.py simple_deploy --help
 usage: manage.py simple_deploy --platform PLATFORM_NAME
         [--automate-all]
@@ -54,7 +54,7 @@ When you're deploying a project, you need to target a specific platform. This is
 
 Example usage:
 
-```
+```sh
 $ python manage.py simple_deploy --platform fly_io
 ```
 
@@ -70,7 +70,7 @@ The `--automate-all` flag tells `simple_deploy` to do everything for you: it cre
 
 Example usage:
 
-```
+```sh
 $ python manage.py simple_deploy --platform PLATFORM_NAME --automate-all
 ```
 
@@ -86,7 +86,7 @@ If you want to skip logging, you can pass the `--no-logging` flag.
 
 Example usage:
 
-```
+```sh
 $ python manage.py simple_deploy --platform PLATFORM_NAME --no-logging
 ```
 
@@ -100,7 +100,7 @@ If you have a specific reason to run `simple_deploy` without a clean state, you 
 
 Example usage:
 
-```
+```sh
 $ python manage.py simple_deploy --platform PLATFORM_NAME --ignore-unclean-git
 ```
 
@@ -114,7 +114,7 @@ For some deployments, you may need to specify the name of the project on the tar
 
 If you need to specify the deployed project name, use the `--deployed-project-name`:
 
-```
+```sh
 $ python manage.py simple_deploy --platform PLATFORM_NAME --deployed-project-name DEPLOYED_PROJECT_NAME
 ```
 
@@ -127,7 +127,7 @@ When you deploy a project to a hosting service, they start up a virtual server o
 
 Example usage:
 
-```
+```sh
 $ python manage.py simple_deploy --platform PLATFORM_NAME --region REGION
 ```
 
