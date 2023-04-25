@@ -2,12 +2,13 @@
 
 Initial Django deployments made easy.
 
+## Documentation
 
 The full documentation for this project is at [Read the Docs](https://django-simple-deploy.readthedocs.io/en/latest/).
 
 Some documentation has not been moved to Read the Docs yet. You may find what you're looking for in the `old_docs/` directory, but some of that information is out of date.
 
-*Initial Django deployments made easy*
+## Quickstart
 
 This app gives you a management command that configures your project for an initial deployment. It targets [Fly.io](https://fly.io), [Platform.sh](https://platform.sh), and [Heroku](https://heroku.com) at the moment, and can be expanded to target other platforms as well.
 
