@@ -14,6 +14,52 @@ You can run unit tests for a single platform, or for all platforms. Currently, i
 
 If you haven't already set up a development environment for `django-simple-deploy`, see these [brief instructions](../contributing/development_environment/#make-a-local-working-copy-of-the-project).
 
+In order to run the unit tests, you will need to have installed Flyio CLI, Heroku CLI, PlatformSH CLI and Poetry.
+
+### Installing flyio CLI
+
+1. Visit [Flyio Docs](https://fly.io/docs/hands-on/install-flyctl/) and follow the instructions for installing `flyctl`.
+2. If you encounter any issues with `brew`, you can install `flyctl` using the following `curl`:
+```
+curl -L https://fly.io/install.sh | sh
+```
+3. Make sure `flyctl` is added to the PATH environment variable, so the tests can find it. You can check that by running:
+```
+fly help
+```
+
+### Installing Heroku CLI
+
+1. Visit [Heroku-CLI Docs](https://devcenter.heroku.com/articles/heroku-cli) and follow the instructions for installing Heroku CLI.
+2. If you encounter any issues, you can install `heroki-cli` using `npm` ([Installation Guide](https://nodejs.org/en/download)), with the following command:
+```
+npm install -g heroku
+```
+3. Make sure `Heroku CLI` is installed and working by running:
+```
+heroku --version
+```
+
+### Installing PlatformSH CLI
+
+1. Visit [PlatformSH Docs](https://docs.platform.sh/administration/cli.html) and follow the instructions for installing PlatformSH CLI.
+2. If you encounter any issues, you can install `platformsh-cli` using the following command:
+```
+curl -fsSL https://raw.githubusercontent.com/platformsh/cli/main/installer.sh | INSTALL_METHOD=raw bash
+```
+3. Make sure `PlatformSH CLI` is installed and working by running:
+```
+platform --version
+```
+
+### Installing Poetry
+
+1. Visit [Poetry Docs](https://python-poetry.org/docs/#installation) and follow the instructions for installing Poetry.
+2. In general, the following pip command works fine:
+```
+pip install poetry
+```
+
 ## Running the entire test suite
 
 To run the entire test suite, `cd` into the `unit_tests/` directory, and then run `pytest`. Make sure you're working in an active virtual environment.
