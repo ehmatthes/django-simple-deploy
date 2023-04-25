@@ -50,7 +50,6 @@ Documentation uses [Material for MkDocs](https://squidfunk.github.io/mkdocs-mate
 - The documentation configuration file `mkdocs.yml` lives in the root folder.
 - The main help page for maintaining an established Material project is [here](https://squidfunk.github.io/mkdocs-material/reference/).
 
-
 ### Updating documentation
 
 - To update the documentation, modify any of the existing files in `docs/`. If you feel the need to create a new section in the docs, please bring this up in an issue or discussion first.

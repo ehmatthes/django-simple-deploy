@@ -45,17 +45,3 @@ By automating all of the initial configuration, we can make any choices we want 
 `django-simple-deploy` aims to help you push projects from your local environment to a remote deployment environment. If a platform requires you to first push your project to an external hosting platform such as GitHub, `simple_deploy` can't currently mediate that process.
 
 For platforms like this, `simple_deploy` may be able to configure projects for deployment. You would then be able to push your project to GitHub, and the rest of the platform's deployment process would work. The current priority is on platforms that do not require this intermediate step.
-
-
-
-
-
-
-
-
-
-
-
-
-
-

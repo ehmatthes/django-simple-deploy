@@ -35,7 +35,7 @@ There are many ways to contribute. Choose the option that fits you best, and sta
 - Respond to either of the two open discussions:
     - [Open questions](https://github.com/ehmatthes/django-simple-deploy/discussions/132), a short list of questions related to reaching the stability needed for a 1.0 release.
     - [Working towards idempotency](https://github.com/ehmatthes/django-simple-deploy/discussions/169), a focused question about making sure repeated `manage.py simple_deploy` calls will not cause issues in a project.
-- If you're ready to dig into the codebase, see the [Setting Up a Development Environment](development_environment.md) page.    
+- If you're ready to dig into the codebase, see the [Setting Up a Development Environment](development_environment.md) page.
 
 Code of Conduct
 ---
