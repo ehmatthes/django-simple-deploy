@@ -9,10 +9,11 @@ Reviewing PRs
 
 
 
-- Fetch the PR branch to your local repository: `git fetch origin pull/ID/head:BRANCH_NAME`
+- Consider installing the [GitHub CLI](https://cli.github.com) tool. It makes much of this workflow simpler.
+- Fetch the PR branch to your local repository: `gh pr checkout PR_ID`
     - For more, see [Checking out pull requests locally](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally).
-- Check out the branch.
 - Make review comments based on local review.
+- Remember to switch back to whichever branch you want to resume work on.
 
 Merging PRs
 ---
