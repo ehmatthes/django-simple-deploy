@@ -16,13 +16,42 @@ Also, if you haven't done so already, please review the [Testing on Your Own Acc
 
 First, fork the `django-simple-deploy` project on GitHub. If you haven't done this before, look for the Fork button in the upper right corner of the project's [home page](https://github.com/ehmatthes/django-simple-deploy/). This will copy the main branch of the project to a new repo under your account.
 
-Next, clone this repository to your local system and install the necessary dependencies:
+Next, clone your Github (replace `<username>` with your username):
+
+```bash
+$ git clone git@github.com:<username>/django-simple-deploy.git
+# (You can use both SSH-based or HTTPS-based URLs.)
+```
+
+Add an `upstream` remote, then configure `git` to pull `main` from `upstream` and always push to `origin`:
+
+```bash
+$ cd django-simple-deploy
+$ git remote add upstream https://github.com/ehmatthes/django-simple-deploy
+$ git config branch.main.remote upstream
+$ git remote set-url --push upstream git@github.com:<your-username>/django-simple-deploy.git
+```
+
+You can verify that `git` is configured correctly by running:
+
+```bash
+$ git remote -v
+origin  git@github.com:<username>/django-simple-deploy.git (fetch)
+origin  git@github.com:<username>/django-simple-deploy.git (push)
+upstream        https://github.com/ehmatthes/django-simple-deploy (fetch)
+upstream        git@github.com:<username>/django-simple-deploy.git (push)
+
+$ git config branch.main.remote
+upstream
+```
+
+If you did everything correctly, you should now have a copy of the code in the `django-simple-deploy` directory and two remotes that refer to your own GitHub fork (`origin`) and the official **django-simple-deploy** repository (`upstream`).
+
+Now, considering that you are in the django-simple-deploy directory, create a virtual environment and install the necessary dependencies:
 
 === "macOS/Linux"
 
     ```
-    $ git clone https://github.com/YOUR_GITHUB_USERNAME/django-simple-deploy.git
-    $ cd django-simple-deploy
     $ python3 -m venv dsd_env
     $ source dsd_env/bin/activate
     $ pip install --upgrade pip
@@ -32,14 +61,11 @@ Next, clone this repository to your local system and install the necessary depen
 === "Windows"
 
     ```
-    > git clone https://github.com/YOUR_GITHUB_USERNAME/django-simple-deploy.git
-    > cd django-simple-deploy
     > python -m venv dsd_env
     > dsd_env\Scripts\activate
     > pip install --upgrade pip
     > pip install -r requirements.txt
     ```
-
 
 ## Make a test project to run `simple_deploy` against
 
