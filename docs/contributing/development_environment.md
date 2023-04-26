@@ -36,8 +36,8 @@ You can verify that `git` is configured correctly by running:
 
 ```bash
 $ git remote -v
-origin  git@github-pessoal:<username>/django-simple-deploy.git (fetch)
-origin  git@github-pessoal:<username>/django-simple-deploy.git (push)
+origin  git@github.com:<username>/django-simple-deploy.git (fetch)
+origin  git@github.com:<username>/django-simple-deploy.git (push)
 upstream        https://github.com/ehmatthes/django-simple-deploy (fetch)
 upstream        git@github.com:<username>/django-simple-deploy.git (push)
 
