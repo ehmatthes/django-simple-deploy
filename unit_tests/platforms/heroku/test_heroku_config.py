@@ -1,12 +1,9 @@
 """Unit tests for django-simple-deploy, targeting Heroku."""
 
 from pathlib import Path
-import subprocess
 
-import pytest
 
 import unit_tests.utils.ut_helper_functions as hf
-
 
 # --- Fixtures ---
 
@@ -14,7 +11,7 @@ import unit_tests.utils.ut_helper_functions as hf
 # --- Test modifications to project files. ---
 
 def test_settings(tmp_project):
-    """Verify settings have been changed for Platform.sh."""
+    """Verify settings have been changed for heroku."""
     hf.check_reference_file(tmp_project, 'blog/settings.py', 'heroku')
 
 def test_requirements_txt(tmp_project, pkg_manager):
