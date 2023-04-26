@@ -28,9 +28,13 @@ First, install `django-simple-deploy`, and add `simple_deploy` to `INSTALLED_APP
 ```
 $ pip install django-simple-deploy
 # Add "simple_deploy" to INSTALLED_APPS in settings.py.
+$ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
 Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure your app:
+
+!!! note
+    The `fly` and `flyctl` commands are used on the Fly.io docs interchangeably, we will be using `fly` here.
 
 ```
 $ fly apps create --generate-name

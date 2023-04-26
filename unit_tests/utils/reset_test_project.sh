@@ -26,7 +26,7 @@ rm -rf static/
 
 # All platforms
 rm -rf simple_deploy_logs/
-rum -rf __pycache__/
+rm -rf __pycache__/
 rm poetry.lock
 
 # --- Remove dependency management files not needed for this package manager. ---

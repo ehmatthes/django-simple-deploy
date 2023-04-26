@@ -29,6 +29,7 @@ First, install `django-simple-deploy`, and add `simple_deploy` to `INSTALLED_APP
 ```
 $ pip install django-simple-deploy
 # Add "simple_deploy" to INSTALLED_APPS in settings.py.
+$ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
 Now create a new Platform.sh app using the CLI, and run `simple_deploy` to configure your app:

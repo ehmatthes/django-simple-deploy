@@ -6,7 +6,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.15
 
 #### External changes
 
@@ -15,6 +15,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 - Integration test runs `pip cache purge` before installing simple deploy when using `-t pypi` flag.
     - This flag is often used immediately after making a new release, and this should ensure the new version is installed from PyPI.
 - Calling `pytest` from project root generates a clean, simple reminder to cd to `unit_tests/` first.
+- The version of `psycopg2` no longer needs to be pinned to `<2.9` on Heroku deployments using requirements.txt.
 
 ### 0.5.14
 
