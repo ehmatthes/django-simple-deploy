@@ -18,7 +18,7 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 
 |                       | Fly.io             | Platform.sh             | Heroku                                                      |
 | --------------------- | ------------------ | ----------------------- | ----------------------------------------------------------- |
-| CreditCards required for trial | No                 | No                      | Yes, after [11/28/22](https://blog.heroku.com/next-chapter) |
+| Credit Cards required for trial | Yes                | No                      | Yes, after [11/28/22](https://blog.heroku.com/next-chapter) |
 | Free trial length     | Unlimited time | 30 days | No free trial after 11/28/22 |
 | Cheapest paid plan    | $1.94/mo              | $10/mo                  | [$10/mo](https://blog.heroku.com/new-low-cost-plans) ($5 Eco dyno + $5 Mini Postgres)                     |
 | Company founded       | 2017               | 2012                    | 2007                                                        |
