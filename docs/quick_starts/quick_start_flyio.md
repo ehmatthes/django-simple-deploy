@@ -4,8 +4,7 @@ hide:
     - footer
 ---
 
-Quick Start: Deploying to Fly.io
-===
+# Quick Start: Deploying to Fly.io
 
 ## Overview
 
@@ -25,7 +24,7 @@ Deployment to Fly.io requires three things:
 
 First, install `django-simple-deploy`, and add `simple_deploy` to `INSTALLED_APPS` in *settings.py*:
 
-```
+```sh
 $ pip install django-simple-deploy
 # Add "simple_deploy" to INSTALLED_APPS in settings.py.
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
@@ -36,7 +35,7 @@ Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure 
 !!! note
     The `fly` and `flyctl` commands are used on the Fly.io docs interchangeably, we will be using `fly` here.
 
-```
+```sh
 $ fly apps create --generate-name
 $ python manage.py simple_deploy --platform fly_io
 ```
@@ -45,7 +44,7 @@ $ python manage.py simple_deploy --platform fly_io
 
 If you want to continue with the deployment process, commit these changes and run the `deploy` command. When deployment is complete, use the `open` command to see the deployed version of your project:
 
-```
+```sh
 $ git add .
 $ git commit -m "Configured for deployment to Fly.io."
 $ fly deploy
@@ -58,7 +57,7 @@ You can find a record of the deployment process in `simple_deploy_logs`. It cont
 
 If you want, you can automate this entire process. This involves just three steps:
 
-```
+```sh
 $ pip install django-simple-deploy
 # Add `simple_deploy` to INSTALLED_APPS in settings.py.
 $ python manage.py simple_deploy --platform fly_io --automate-all
@@ -70,7 +69,7 @@ You should see a bunch of output as Fly.io resources are created for you, your p
 
 After the initial deployment, you're almost certainly going to make further changes to your project. When you've updated your project and it works locally, you can commit these changes and push your project again, without using `simple_deploy`:
 
-```
+```sh
 $ git status
 $ git add .
 $ git commit -m "Updated project."
@@ -79,9 +78,9 @@ $ fly deploy
 
 ## Running management commands
 
-To run management commands such as `migrate` against the deployed project, use the `ssh` comand to log into a console on the remote server:
+To run management commands such as `migrate` against the deployed project, use the `ssh` command to log into a console on the remote server:
 
-```
+```sh
 $ fly ssh console
 ```
 
@@ -89,5 +88,4 @@ $ fly ssh console
 
 If deployment does not work, please feel free to open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues). Please share the OS you're  using locally, and the specific error message or unexpected behavior you saw. If the project you're deploying is hosted in a public repository, please share that as well.
 
-Please remember that `django-simple-deploy` is in a preliminary state. That said, I'd love to know the specific issues people are running into so we can reach a 1.0 state in a reasonable timeframe.
-
+Please remember that `django-simple-deploy` is in a preliminary state. That said, I'd love to know the specific issues people are running into so we can reach a 1.0 state in a reasonable time frame.

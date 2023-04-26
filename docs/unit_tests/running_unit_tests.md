@@ -12,7 +12,7 @@ You can run unit tests for a single platform, or for all platforms. Currently, i
 
 ## Setting up a development environment
 
-If you haven't already set up a development environment for `django-simple-deploy`, see these [brief instructions](../../contributing/development_environment/).
+If you haven't already set up a development environment for `django-simple-deploy`, see these [brief instructions](../contributing/development_environment.md).
 
 ## Running the entire test suite
 
@@ -22,7 +22,7 @@ To run the entire test suite, `cd` into the `unit_tests/` directory, and then ru
 
     Make sure you are in the `unit_tests/` directory! If you run `pytest` from the root directory, you'll start running integration tests as well. Since integration tests almost always try to make resources on an external platform, the two kinds of tests should always be kept separate.
 
-```
+```sh
 (dsd_env) $ cd unit_tests/
 (dsd_env)unit_tests $ pytest
 ```
@@ -46,7 +46,7 @@ platforms/platform_sh/test_platformsh_config.py ......
 
 Let's say you're focused on supporting Fly.io, and you just want to run tests for that platform. Here's how to do that:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest platforms/fly_io/
 ```
 
@@ -54,12 +54,11 @@ Let's say you're focused on supporting Fly.io, and you just want to run tests fo
 
 Similarly, you can run just the platform-agnostic tests:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest platform_agnostic_tests/
 ```
 
-Resolving failures
----
+## Resolving failures
 
 One of the most straightforward ways to resolve test failures is to examine the test project itself. For this to work, you need to make sure the test suite stops immediately after the failure. Otherwise, the test project from the failing test will be written over by the next test.
 
@@ -67,27 +66,27 @@ Calling pytest with the `-x` flag, `pytest -x`, causes the test suite to stop ru
 
 For example, here's the output from a test failure:
 
-```
-(dsd_env)$ pytest -x
-...
-platforms/heroku/test_heroku_config.py ..........F
-=========================================================== FAILURES ============
-________________________________________________ test_requirements_txt[poetry] __
+    ```sh
+    (dsd_env)$ pytest -x
+    ...
+    platforms/heroku/test_heroku_config.py ..........F
+    =========================================================== FAILURES ============
+    ________________________________________________ test_requirements_txt[poetry] __
 
-tmp_project = PosixPath(
-    '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
-pkg_manager = 'poetry'
-...
->           hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
+    tmp_project = PosixPath(
+        '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
+    pkg_manager = 'poetry'
+    ...
+    >           hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
 
-platforms/heroku/test_heroku_config.py:25: 
-_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+    platforms/heroku/test_heroku_config.py:25:
+    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-tmp_proj_dir = PosixPath(
-    '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
-filepath = 'requirements.txt', platform = 'heroku', reference_filename = 'poetry.requirements.txt'
-...
-```
+    tmp_proj_dir = PosixPath(
+        '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
+    filepath = 'requirements.txt', platform = 'heroku', reference_filename = 'poetry.requirements.txt'
+    ...
+    ```
 
 This output shows you where to find the test project, in this case `blog_project0`, on your system. It also shows you the reference file that the failing test was comparing against. You can then inspect the test project, open the corresponding reference file, and begin troubleshooting.
 

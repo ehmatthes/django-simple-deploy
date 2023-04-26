@@ -28,4 +28,3 @@ Everyone who learns Django has a similar path. They pick some resource - the Dja
 What if people new to Django didn't have to dig into a platform's documentation in order to deploy their project? What if people could just make an account on a platform, run a few commands, and see their project deployed? That's the vision of django-simple-deploy.
 
 The management command `python manage.py simple_deploy --platform platform_name --automate-all` allows people to push their project to a cloud provider in four steps. There's still plenty to learn about deployment, but this project allows people to see their project deployed before they dig into their provider's documentation.
- 

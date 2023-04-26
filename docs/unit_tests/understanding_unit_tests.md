@@ -26,7 +26,7 @@ For every test run listed here, `simple_deploy` needs to be called against a fre
 
 Here's the file structure of the unit test suite:
 
-```
+```sh
 unit_tests $ tree -L 4
 .
 ├── __init__.py
@@ -114,24 +114,21 @@ The `utils/` directory contains scrips that are used by multiple test files.
 !!! note
     Some people think `utils/` is a bad name, like `misc`, but it's used here to imply that these scripts have utility across multiple test modules.
 
-
 [^1]: For the purposes of this project, a *fixture* is a function that prepares for a test, or set of tests. For example, we use a fixture to copy the sample project from `django-simple-deploy/sample_project/blog_project/` to a temporary directory, and then build a full virtual environment for that project. Another fixture is used to call `simple_deploy` against the sample project; yet another fixture is used to reset the project for subsequent tests. To learn more, see [About fixtures](https://docs.pytest.org/en/latest/explanation/fixtures.html) and [How to use fixtures](https://docs.pytest.org/en/latest/how-to/fixtures.html).
 
 [^2]:
-    Every fixture has a *scope*, which controls how often a fixture is loaded when it's needed. 
+    Every fixture has a *scope*, which controls how often a fixture is loaded when it's needed.
 
     - `scope="session"`: The fixture is loaded once for the entire test run; the fixture that sets up the sample test project has session-level scope.
     - `scope="module"`: The fixture is loaded once for each module where it's used; the fixture that resets the sample test project has module-level scope.
     - The other possibilities for scope are `function`, `class`, and `package`. These scopes are not currently used in the `django-simple-deploy` test suite. The default scope is `function`.
     - Read more at [Scope: sharing fixtures across classes, modules, packages or session](https://docs.pytest.org/en/latest/how-to/fixtures.html#scope-sharing-fixtures-across-classes-modules-packages-or-session)
 
-
-
 ## Testing a single platform
 
 With all that said, let's look at what actually happens when we test a single platform; we'll see in what order the resources described above are used. As an example, let's look at what happens when we issue the following call:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest platforms/fly_io/
 ```
 
@@ -147,7 +144,7 @@ Here's where fixtures come into play. pytest first runs any fixture with a scope
 
 - All fixtures with `scope="session"` will be run.
 - Any fixture with a scope relevant to the test function that's about to be run, with `autouse=True`, will be run.
-- Any fixture whose name appears in the test function's list of paremeters will be run. 
+- Any fixture whose name appears in the test function's list of parameters will be run.
 
 #### The `tmp_project()` fixture
 
@@ -166,7 +163,7 @@ def tmp_project(tmp_path_factory):
 
 This fixture calls a [built-in fixture](https://docs.pytest.org/en/latest/reference/reference.html#std-fixture-tmp_path_factory), `tmp_path_factory`, which allows us to request temporary directories for use during test runs. These directories are managed entirely by pytest, so we don't have to worry about cleaning them up later.
 
-We make a temporary directory, and assign the full path for this directory to `tmp_proj_dir`. We then call `setup_project.sh`. Finally, we return `tmp_proj_dir`. Any test function with `tmp_project` in its paremeter list will have access to this value.
+We make a temporary directory, and assign the full path for this directory to `tmp_proj_dir`. We then call `setup_project.sh`. Finally, we return `tmp_proj_dir`. Any test function with `tmp_project` in its parameter list will have access to this value.
 
 #### The `setup_project.sh` file
 
@@ -291,7 +288,7 @@ The test file imports the `utils/ut_helper_functions.py` module, which contains 
 
  The function `test_creates_dockerfile()` has two arguments, `tmp_project` and `pkg_manager`. Here pytest takes the return value from the `tmp_project()` fixture, and assigns it to the variable `tmp_project`. This can be a little confusing; we have a fixture  in `conftest.py` called `tmp_project()`, but in the current test function `tmp_project` refers to the return value of `tmp_project()`. If this is confusing, keep in mind that **in this test function, `tmp_proj` is the path to the directory containing the test project.**
 
- The `pkg_manager` fixture tells us which depency management system is currently being tested: a bare `requirements.txt` file, Poetry, or Pipenv. We need to know this because each of these uses a slightly different `Dockerfile`.
+ The `pkg_manager` fixture tells us which dependency management system is currently being tested: a bare `requirements.txt` file, Poetry, or Pipenv. We need to know this because each of these uses a slightly different `Dockerfile`.
 
 In the body of the test function we check the current value of `pkg_manager` and then call `check_reference_file()`, which compares a file from the test project against the corresponding reference file. For `req_txt`, we make sure the `Dockerfile` that's created during the test run matches the reference `unit_tests/platforms/fly_io/reference_files/Dockerfile`. If your current local version of `django-simple-deploy` generates a `Dockerfile` for Fly.io deployments that doesn't match this file, you'll know. For Poetry, the reference filename doesn't match the generic generated filename, so we pass the optional `reference_filename` argument.
 
@@ -307,12 +304,11 @@ The rest of the test functions in `test_flyio_config.py` work in a similar way, 
 !!! note
     The setup work will become more complex as we start to test multiple versions of Django, multiple versions of Python, and multiple OSes. But the overall approach described here shouldn't change significantly. We'll still have a bunch of setup work followed by a large number of smaller, specific test functions.
 
-
 ## Testing multiple platforms
 
 What's the difference when we test multiple platforms? Not much; let's consider what happens when we test against two platforms in one test run:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest platforms/fly_io platforms/platform_sh
 ==================== test session starts ====================
 platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
@@ -391,7 +387,7 @@ The test function makes sure the user sees an appropriate error message, by exam
 
 Running the entire test suite puts together everything described above:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest
 ==================== test session starts ===============================
 platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
@@ -423,14 +419,14 @@ def tmp_project(tmp_path_factory):
     #   All tests will fail, but the AssertionError will show you the full path
     #   to tmp_proj_dir.
     # assert not tmp_proj_dir
-    ...    
+    ...
 
     return tmp_proj_dir
 ```
 
 The next time you run the unit tests, this assert will fail, and the output will show you the path that was created:
 
-```
+```sh
 (dsd_env)unit_tests $ pytest -x
 ...
 >    assert not tmp_proj_dir
@@ -460,13 +456,13 @@ This tells us that the test `test_platform_app_yaml_file` in `test_platformsh_co
 
 The sole purpose of the `vendor/` directory is to facilitate unit testing. To add a new package to the directory:
 
-```
+```sh
 (dsd_env) $ pip download --dest vendor/ package_name
 ```
 
 To upgrade all packages in `vendor/`:
 
-```
+```sh
 $ rm -rf vendor/
 $ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
 ```

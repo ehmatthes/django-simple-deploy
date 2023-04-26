@@ -18,7 +18,7 @@ Even if you know how to deploy a Django project, a lot of the work to configure 
 
 ## People experimenting with other platforms
 
-When people outgrow their go-to deployment platform, they look around at other platforms. It is laborious to learn how to deploy a Django project on a number of different platforms, even if you are experienced withh deployment in general. Even if you follow a platform's Django docs and push your project successfully, it doesn't mean you have an optimal Django configuration on that platform. A mature version of `django-simple-deploy` would give you a working deployment quickly, which you can then examine and compare to the platform's documentation, and configuration for other platforms as well.
+When people outgrow their go-to deployment platform, they look around at other platforms. It is laborious to learn how to deploy a Django project on a number of different platforms, even if you are experienced with deployment in general. Even if you follow a platform's Django docs and push your project successfully, it doesn't mean you have an optimal Django configuration on that platform. A mature version of `django-simple-deploy` would give you a working deployment quickly, which you can then examine and compare to the platform's documentation, and configuration for other platforms as well.
 
 ## Authors/creators, teachers and trainers
 
@@ -28,6 +28,6 @@ This does not just apply to people teaching deployment. If you're focusing on a 
 
 ## Platform hosts
 
-Platform providers might benefit from a mature version of `django-simple-deploy` as well. Ever provider needs to include detailed documentation for how to deploy a Django project; there's no way around that. No one can develop a `simple_deploy` script for a new platform without some form of documentation for that platform. However, platform providers may want to include a short callout at the top of a "Getting Started" writeup, showing how to get a working Django deployment on their platform quickly. Then readers could explore the working deployment, rather than having to get every deployment step right on their own the first time through the deployment process.
+Platform providers might benefit from a mature version of `django-simple-deploy` as well. Ever provider needs to include detailed documentation for how to deploy a Django project; there's no way around that. No one can develop a `simple_deploy` script for a new platform without some form of documentation for that platform. However, platform providers may want to include a short call-out at the top of a "Getting Started" writeup, showing how to get a working Django deployment on their platform quickly. Then readers could explore the working deployment, rather than having to get every deployment step right on their own the first time through the deployment process.
 
 When new users can't get a project deployed successfully, they're likely to abandon the platform. `simple_deploy` could be a useful tool in onboarding for platform providers.

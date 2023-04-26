@@ -10,7 +10,7 @@ hide:
 
 Here's what automated deployment on [Fly.io](https://fly.io) looks like:
 
-```
+```sh
 $ pip install django-simple-deploy
 # Add simple_deploy to INSTALLED_APPS.
 $ python manage.py simple_deploy --platform fly_io --automate-all
@@ -18,8 +18,7 @@ $ python manage.py simple_deploy --platform fly_io --automate-all
 
 After these three steps, your project should open in a new browser tab. :)
 
-Quick Start
----
+## Quick Start
 
 For help deploying to a specific platform, start here:
 
@@ -27,8 +26,7 @@ For help deploying to a specific platform, start here:
 - [Deploying to Platform.sh](quick_starts/quick_start_platformsh.md)
 - [Deploying to Heroku](quick_starts/quick_start_heroku.md)
 
-More resources
----
+## More resources
 
 - If you're not sure which platform to choose, here's an [overview](general_documentation/choosing_platform.md) of the different platforms.
 - If you're interested in the motivations for `django-simple-deploy`, start with the [Rationale](design_docs/rationale.md).

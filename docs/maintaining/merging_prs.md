@@ -7,8 +7,6 @@ hide:
 Reviewing PRs
 ---
 
-
-
 - Consider installing the [GitHub CLI](https://cli.github.com) tool. It makes much of this workflow simpler.
 - Fetch the PR branch to your local repository: `gh pr checkout PR_ID`
     - For more, see [Checking out pull requests locally](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/reviewing-changes-in-pull-requests/checking-out-pull-requests-locally).

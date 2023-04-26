@@ -28,22 +28,22 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 === "Fly.io"
 
     **Known for**
-    
+
     * Fly.io automatically deploys your project to physical servers spread around the world. The goal is that your app will be equally responsive to users around the world.
-    
+
     **Strengths**
-    
+
     * Fly.io does not require a credit card for its free trial, and the free trial does not have a time limit.
     * Even after you enter a credit card, the free offering is enough to keep a small app running.
     * Offers a [public forum](https://community.fly.io) for support, and allows you to search for issues (and resolutions) that others have had.
     * Fly.io seems to be well regarded in the post-Heroku era.
-    
+
     **Issues**
-    
+
     * I am not aware of any specific issues with Fly.io at the moment, but the distributed server model may not be suitable for all projects.
-    
+
     **Links**
-    
+
     * [Fly.io home page](https://fly.io/)
     * [Pricing](https://fly.io/docs/about/pricing/)
     * [Docs home page](https://fly.io/docs/)
@@ -57,22 +57,22 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 === "Platform.sh"
 
     **Known for**
-    
+
     * Platform.sh is a managed hosting platform that focuses on making continuous deployment easy and safe. They even tell you it's okay to deploy on Fridays. :)
-    
+
     **Strengths**
-    
+
     * Platform.sh does not require a credit card for its free trial.
     * Once you have an environment set up with Platform.sh' tools, pushing a project and maintaining it is as straightforward as it is on any other comparable platform.
 
-    
+
     **Issues**
-    
+
     * Error messages about resource usage are unclear. For example, new users are limited to two new apps per day until they have been billed successfully three times. Since billing occurs once a month, this limit applies for several months, even though you're willing to pay for usage. Also, if you try to create a new project and it fails because of this issue, you don't get a specific error message. You have to contact support to find out if this is the reason for failure, or if something else went wrong.
     * The CLI requires PHP for installation, and requires a bash shell for deployment. This isn't particularly difficult on macOS or Linux, but installation is not straightforward on Windows if you don't already have Windows Subsystem for Linux (WSL) installed, or a comparable bash-compatible environment.
-    
+
     **Links**
-    
+
     * [Platform.sh home page](https://platform.sh)
     * [Pricing](https://platform.sh/pricing/)
     * [Docs home page](https://docs.platform.sh)
@@ -85,22 +85,22 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 === "Heroku"
 
     **Known for**
-    
+
     * Heroku was the original "Platform as a Service (PaaS)" provider. Heroku pioneered the simple `git push heroku main` deployment process that most other platforms are trying to build on today.
     * Heroku is known for being more expensive than options such as VPS providers, and AWS. However, they quite reasonably argue that using Heroku requires less developer focus than unmanaged solutions like a VPS or AWS. You get to spend more of your time building your project, and less time acting as a sysadmin.
-    
+
     **Strengths**
-    
+
     * Heroku has been managing automated deployments longer than any of the other platforms supported by `django-simple-deploy`.
 
     **Issues**
-    
+
     * Heroku was a great platform in the late 2000s through the mid 2010s, but then it began to stagnate. Packages that were recommended for deployment were archived and unmaintained, even though they were officially still recommended. Heroku "just worked" for a long time, but recently that neglect has caught up to them. They are in the midst of restructuring their platform, and people are reasonably concerned about Heroku's long-term stability.
     * Heroku has had major incidents and outages recently, which they took a long time to resolve and communicated poorly about. This is more significant reason many people have moved away from them in recent months.
     * Heroku was famous for a very generous free tier, where you could deploy up to 5 apps at a time including a small Heroku Postgres database. This kind of offering sounds nice, but it also draws abuse. Heroku was constantly fighting things like auto-deployed crypto miners. They recently [announced the end of the free tier](https://blog.heroku.com/next-chapter). Their cheapest plans are still reasonably priced, though, so the end of the free tier should not rule them out as a hosting option.
-    
+
     **Links**
-    
+
     * [Heroku home page](https://www.heroku.com)
     * [Pricing](https://www.heroku.com/pricing)
         * *Note: Heroku's lowest-priced tiers are in the process of being [restructured](https://blog.heroku.com/new-low-cost-plans).*
@@ -115,6 +115,4 @@ This page summarizes the major strengths and potential drawbacks of each platfor
 
     - [Quick start: Deploying to Heroku](../quick_starts/quick_start_heroku.md)
 
-
 ---
-

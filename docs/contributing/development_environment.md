@@ -91,13 +91,13 @@ If you're going to copy a project from this directory, start by copying the enti
 
 ### Copy the standalone test project
 
-The [standalone test project](https://github.com/ehmatthes/dsd_sample_blog_reqtxt) is maintained to make it easier for people to [document a test run](http://localhost:8000/contributing/test_run/). You are welcome to use this project when working on `simple_deploy`.
+The [standalone test project](https://github.com/ehmatthes/dsd_sample_blog_reqtxt) is maintained to make it easier for people to [document a test run](test_run.md). You are welcome to use this project when working on `simple_deploy`.
 
 Clone the test repo to a directory outside of the `django-simple-deploy/` directory:
 
-```
-$ git clone https://github.com/ehmatthes/dsd_sample_blog_reqtxt.git
-```
+    ```sh
+    $ git clone https://github.com/ehmatthes/dsd_sample_blog_reqtxt.git
+    ```
 
 ## Make sure the test project works
 
@@ -161,10 +161,10 @@ If the tests pass, you're ready to run a deployment using your local version of 
 
 Before you run `simple_deploy`, make a commit so you can more easily do repeated deployments without having to build the test project from scratch:
 
-```
-$ git add .
-$ git commit -am "Initial state, before using simple_deploy."
-```
+    ```sh
+    $ git add .
+    $ git commit -am "Initial state, before using simple_deploy."
+    ```
 
 ## Make an editable install of `django-simple-deploy`
 
@@ -172,9 +172,9 @@ To use your local version of `django-simple-deploy`, we'll install `simple_deplo
 
 Here's how to make the editable install:
 
-```
-$ python -m pip install -e /local/path/to/django-simple-deploy/
-```
+    ```sh
+    $ python -m pip install -e /local/path/to/django-simple-deploy/
+    ```
 
 ## Run `simple_deploy` against the test project
 
@@ -184,9 +184,9 @@ Now, visit the [Quick Start](../quick_starts/index.md) page for the platform you
 
 To make sure the deployment worked, run the functionality tests against the deployed version of the sample project:
 
-```
-$ python test_deployed_app_functionality.py --url https://deployed-project-url
-```
+    ```sh
+    $ python test_deployed_app_functionality.py --url https://deployed-project-url
+    ```
 
 Keep in mind that the `--flush-db` command will not work on a deployed project. Also, note that these automated tests don't always work on projects that are deployed using the lowest-tier resources on the target platform. If you see the deployed site in the browser but the tests fail, try clicking through different pages and making a user account. It's possible that the project works for manual use, but doesn't respond well to rapid automated test requests.
 
@@ -208,18 +208,18 @@ Now you're ready to do your own development work on `simple_deploy`. Make a new 
 
 The `--unit-testing` and `--ignore-unclean-git` flags can be really helpful when doing development work. For example say you're revising the approach to generating a dockerfile for Poetry users when deploying to Fly.io. You've modified some of the project's code, and you want to see how it impacts your demo project. Run the following command:
 
-```
-$ python manage.py simple_deploy --platform fly_io --unit-testing
-```
+    ```sh
+    $ python manage.py simple_deploy --platform fly_io --unit-testing
+    ```
 
 This won't run the unit tests, but it will skip the same network calls that are skipped during unit testing. You should see most of the same configuration that's done during a normal run, using sample resource names.
 
 When you've made more changes and want to run `simple_deploy` again, but all you're interested in is the Dockerfile that's generated, run the following two commands:
 
-```
-$ rm Dockerfile
-$ python manage.py simple_deploy --platform fly_io --unit-testing --ignore-unclean-git
-```
+    ```sh
+    $ rm Dockerfile
+    $ python manage.py simple_deploy --platform fly_io --unit-testing --ignore-unclean-git
+    ```
 
 This will avoid network calls and use sample resource names again, and it will ignore the fact that you have significant uncommitted changes. A new Dockerfile should be generated, and you can repeat these steps to rapidly develop the code that generates the Dockerfile.
 
@@ -229,7 +229,7 @@ When this project is more mature, there will be a clear routine for running test
 
 ## Running unit tests
 
-Restructuring the unit tests is one of the higher-priority issues. When that work is being done, documentation for unit tests will be moved to the official documentation. For now, if you're interested in running the unit tests, see the [old documentation for unit tests](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/unit_tests.md).
+If you're interested in running the unit tests, please refer to [Unit tests](../unit_tests/index.md).
 
 ## Running integration tests
 
