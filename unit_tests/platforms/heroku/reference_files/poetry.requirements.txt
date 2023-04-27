@@ -1,13 +1,13 @@
 asgiref==3.6.0 ; python_version >= "3.9" and python_version < "4.0"
-certifi==2022.12.7 ; python_version >= "3.9" and python_version < "4"
-charset-normalizer==3.1.0 ; python_version >= "3.9" and python_version < "4"
+certifi==2022.12.7 ; python_version >= "3.9" and python_version < "4.0"
+charset-normalizer==3.1.0 ; python_version >= "3.9" and python_version < "4.0"
 django-bootstrap5==23.1 ; python_version >= "3.9" and python_version < "4.0"
 django==4.2 ; python_version >= "3.9" and python_version < "4.0"
-idna==3.4 ; python_version >= "3.9" and python_version < "4"
-requests==2.28.2 ; python_version >= "3.9" and python_version < "4"
+idna==3.4 ; python_version >= "3.9" and python_version < "4.0"
+requests==2.29.0 ; python_version >= "3.9" and python_version < "4.0"
 sqlparse==0.4.4 ; python_version >= "3.9" and python_version < "4.0"
 tzdata==2023.3 ; python_version >= "3.9" and python_version < "4.0" and sys_platform == "win32"
-urllib3==1.26.15 ; python_version >= "3.9" and python_version < "4"
+urllib3==1.26.15 ; python_version >= "3.9" and python_version < "4.0"
 
 django-simple-deploy          # Added by simple_deploy command.
 gunicorn                      # Added by simple_deploy command.
