@@ -56,39 +56,31 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     settings_file_path.write_text(new_settings_content)
 
 
-def call_simple_deploy(tmp_dir, invalid_sd_command):
-    # Change to the temp dir
+def call_simple_deploy(tmp_dir, sd_command):
+    """Make a call to simple_deploy, using the arguments passed in sd_command.
+
+    Returns:
+    - stdout, stderr
+
+    These are both strings.
+    """
+
+    # Change to the temp dir.
     os.chdir(tmp_dir)
 
-    # print(f"tmp_dir: {tmp_dir}")
+    # Add --unit-testing argument to the call.
+    sd_command = sd_command.replace("simple_deploy", "simple_deploy --unit-testing")
 
-    # # Activate existing virtual environment
-    # venv_activate = Path(tmp_dir) / "b_env" / "bin" / "activate"
-    # activate_command = f"source {venv_activate}"
-    # source_env = subprocess.Popen(activate_command, stdout=subprocess.PIPE, shell=True, executable="/bin/zsh")
-    # source_env.communicate()
-
-    # Add --unit-testing argument to call
-    invalid_sd_command = invalid_sd_command.replace("simple_deploy", "simple_deploy --unit-testing")
-
-    # Get the path to the Python interpreter in the virtual environment
+    # Get the path to the Python interpreter in the virtual environment.
+    #   We'll use the full path to the interpreter, rather than trying to rely on
+    #   an active venv.
     python_exe = Path(tmp_dir) / "b_env" / "bin" / "python"
-    # Replace 'python' with the path to the virtual environment's Python interpreter
-    invalid_sd_command = invalid_sd_command.replace("python", str(python_exe))
+    sd_command = sd_command.replace("python", str(python_exe))
 
-    # Make invalid call
-    invalid_call = subprocess.Popen(split(invalid_sd_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout, stderr = invalid_call.communicate()
-    # assert not stdout
-    # assert not stderr
+    # Make the call to simple_deploy.
+    #   The `text=True` argument causes this to return stdout and stderr as strings, not objects.
+    sd_call = subprocess.Popen(split(sd_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = sd_call.communicate()
 
-
-
-    # Make invalid call
-    # print('--- HERE ---', file=sys.stderr)
-    # sys.stderr.write('=== HERE ===')
-    # print(invalid_sd_command, end='')
-    # invalid_call = subprocess.Popen(split(invalid_sd_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    # stdout, stderr = invalid_call.communicate()
-
+    # Return stdout and stderr.
     return stdout, stderr
