@@ -6,6 +6,8 @@ invalid_sd_command="$2"
 # All remaining work is done in the temp dir.
 cd "$tmp_dir"
 
+echo "tmp_dir: $tmp_dir"
+
 # Activate existing venv.
 source b_env/bin/activate
 
