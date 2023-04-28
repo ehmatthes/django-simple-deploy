@@ -13,6 +13,9 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     - Install the local, editable version of simple_deploy.
     - Make an initial commit.
     - Add simple_deploy to INSTALLED_APPS.
+
+    Returns:
+    - None
     """
 
     # Copy sample project to temp dir.
