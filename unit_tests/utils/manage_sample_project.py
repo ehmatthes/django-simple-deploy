@@ -6,35 +6,41 @@ from shutil import copytree
 from shlex import split
 
 def setup_project(tmp_proj_dir, sd_root_dir):
+    """Set up the test project.
+    - Copy the sample project to a temp dir.
+    - Set up a venv.
+    - Install requiremenst for the sample project.
+    - Install the local, editable version of simple_deploy.
+    - Make an initial commit.
+    - Add simple_deploy to INSTALLED_APPS.
+    """
+
+    # Copy sample project to temp dir.
     sample_project_dir = sd_root_dir / "sample_project/blog_project"
     copytree(sample_project_dir, tmp_proj_dir, dirs_exist_ok=True)
 
+    # Create a virtual envronment. Set the path to the environemnt, instead of
+    #   activating it. It's easier to use the venv directly than to activate it,
+    #   with all these separate subprocess.run() calls.
     venv_dir = tmp_proj_dir / "b_env"
     subprocess.run([sys.executable, "-m", "venv", venv_dir])
 
+    # Install requirements for sample project, from vendor/.
+    #   Don't upgrade pip, as that would involve a network call. When troubleshooting,
+    #   keep in mind someone at some point might just need to upgrade their pip.
     pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
     requirements_path = tmp_proj_dir / "requirements.txt"
     subprocess.run([pip_path, "install", "--no-index", "--find-links", sd_root_dir / "vendor", "-r", requirements_path])
 
-
-
-    # HERE. 
-    # This is the line that causes lots of errors.
-    # Interrupting before this line means simple deploy is not available in the test project.
-    # There is no stderr output when stopping here.
-    subprocess.run([pip_path, "install", "--upgrade", "pip"])
+    # Install the local version of simple_deploy (the version we're testing).
+    # Note: We don't need an editable install, but a non-editable install is *much* slower.
+    #   We may be able to use --cache-dir to address this, but -e is working fine right now.
     subprocess.run([pip_path, "install", "-e", sd_root_dir])
-    # assert False
 
-    # sd_root_dir: PosixPath('/Users/eric/projects/django-simple-deploy')
-    # Try going into the test project directory before and after this line is run,
-    #   and see if simple_deploy is installed, and runs --help.
-
-    # HERE.
-    
-
-    subprocess.run([pip_path, "freeze"], stdout=open(tmp_proj_dir / "installed_packages.txt", "w"))
-
+    # Make an initial git commit, so we can reset the project every time we want
+    #   to test a different simple_deploy command. This is much more efficient than
+    #   tearing down the whole sample project and rebuilding it from scratch.
+    # We use a git tag to do the reset, instead of trying to capture the initial hash.
     git_exe = "git"
     os.chdir(tmp_proj_dir)
     subprocess.run([git_exe, "init"])
@@ -43,13 +49,11 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     subprocess.run([git_exe, "commit", "-am", "Initial commit."])
     subprocess.run([git_exe, "tag", "-am", "", "INITIAL_STATE"])
 
+    # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_proj_dir / "blog/settings.py"
-    with open(settings_file_path, "r") as f:
-        settings_content = f.read()
-
-    new_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
-    with open(settings_file_path, "w") as f:
-        f.write(new_content)
+    settings_content = settings_file_path.read_text()
+    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    settings_file_path.write_text(new_settings_content)
 
 
 def call_simple_deploy(tmp_dir, invalid_sd_command):

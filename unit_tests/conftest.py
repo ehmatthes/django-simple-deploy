@@ -27,9 +27,7 @@ def tmp_project(tmp_path_factory):
     #   to tmp_proj_dir.
     # assert not tmp_proj_dir
     
-    # cmd = f'sh utils/setup_project.sh -d {tmp_proj_dir} -s {sd_root_dir}'
-    # cmd_parts = cmd.split()
-    # subprocess.run(cmd_parts)
+    # Copy sample project to tmp dir, and set up the project for using simple_deploy.
     msp.setup_project(tmp_proj_dir, sd_root_dir)
 
     # Return the location of the temp project.
@@ -41,13 +39,9 @@ def reset_test_project(request, tmp_project):
     """Reset the test project, so it can be used again by another test module,
     which may be another platform.
     """
-    # sd_root_dir = Path(__file__).parent.parent
-    # script_path = sd_root_dir / "utils" / "reset_test_project.sh"
-
     unit_test_dir = Path(__file__).parent
-    reset_script_path = unit_test_dir/ "utils/reset_test_project.sh"
+    reset_script_path = unit_test_dir / "utils/reset_test_project.sh"
     cmd = f"sh {reset_script_path} {tmp_project} {request.param}"
-
 
     # cmd = f"sh utils/reset_test_project.sh {tmp_project} {request.param}"
     cmd_parts = cmd.split()
