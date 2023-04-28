@@ -6,6 +6,8 @@ import subprocess
 
 import pytest
 
+from ..utils import manage_sample_project as msp
+
 
 # --- Fixtures ---
 
@@ -24,14 +26,15 @@ def make_valid_call(tmp_proj_dir, valid_sd_command):
     #   This keeps valid_sd_command as one argument.
     # DEV: Naming inconsistency; the existing call_simple_deploy_invalid.sh actually
     #   works for making valid test calls as well.
-    unit_test_dir = Path(__file__).parent
-    call_sd_invalid_path = unit_test_dir/ "utils/call_simple_deploy_invalid.sh"
-    cmd = f"sh {call_sd_invalid_path} {tmp_proj_dir}"
+    # unit_test_dir = Path(__file__).parent
+    # call_sd_invalid_path = unit_test_dir/ "utils/call_simple_deploy_invalid.sh"
+    # cmd = f"sh {call_sd_invalid_path} {tmp_proj_dir}"
 
-    # cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_proj_dir}'
-    cmd_parts = cmd.split()
-    cmd_parts.append(valid_sd_command)
-    subprocess.run(cmd_parts)
+    # # cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_proj_dir}'
+    # cmd_parts = cmd.split()
+    # cmd_parts.append(valid_sd_command)
+    # subprocess.run(cmd_parts)
+    return msp.call_simple_deploy(tmp_proj_dir, valid_sd_command)
 
 
 # --- Test valid platform-agnostic simple_deploy calls ---
@@ -40,11 +43,13 @@ def test_help_output(tmp_project, capfd):
     """Call `manage.py simple_deploy --help`."""
     valid_sd_command = "python manage.py simple_deploy --help"
 
-    make_valid_call(tmp_project, valid_sd_command)
-    captured = capfd.readouterr()
+    # stdout, stderr = make_valid_call(tmp_project, valid_sd_command)
+    stdout, stderr = msp.call_simple_deploy(tmp_project, valid_sd_command)
+    # captured = capfd.readouterr()
 
     # reference_help_output = Path('platform_agnostic_tests/reference_files/sd_help_output.txt').read_text()
     current_test_dir = Path(__file__).parent
     reference_help_output = (current_test_dir / 'reference_files/sd_help_output.txt').read_text()
 
-    assert captured.out == reference_help_output
+    # assert captured.out == reference_help_output
+    assert stdout == reference_help_output

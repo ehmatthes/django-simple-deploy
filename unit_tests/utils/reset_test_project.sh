@@ -12,22 +12,22 @@ git reset --hard INITIAL_STATE
 
 # --- Remove any files that may remain. ---
 # Fly.io
-rm fly.toml
-rm Dockerfile
-rm .dockerignore
+[ -f fly.toml ] && rm fly.toml
+[ -f Dockerfile ] && rm Dockerfile
+[ -f .dockerignore ] && rm .dockerignore
 
 # Platform.sh
-rm .platform.app.yaml
-rm -rf .platform/
+[ -f .platform.app.yaml ] && rm .platform.app.yaml
+[ -d .platform ] && rm -rf .platform/
 
 # Heroku
-rm Procfile
-rm -rf static/
+[ -f Procfile ] && rm Procfile
+[ -d static ] && rm -rf static/
 
 # All platforms
-rm -rf simple_deploy_logs/
-rm -rf __pycache__/
-rm poetry.lock
+[ -d simple_deploy_logs ] && rm -rf simple_deploy_logs/
+[ -d __pycache__ ] && rm -rf __pycache__/
+[ -f poetry.lock ] && rm poetry.lock
 
 # --- Remove dependency management files not needed for this package manager. ---
 if [ "$pkg_manager" = 'req_txt' ]; then
