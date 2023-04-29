@@ -182,7 +182,11 @@ class PlatformDeployer:
         dockerignore_str += ".git/\n"
 
         # Ignore venv dir if a venv is active.
-        venv_dir = os.environ.get("VIRTUAL_ENV")
+        if self.sd.unit_testing:
+            venv_dir = 'b_env'
+        else:
+            venv_dir = os.environ.get("VIRTUAL_ENV")
+            
         if venv_dir:
             venv_path = Path(venv_dir)
             dockerignore_str += f"\n{venv_path.name}/\n"
