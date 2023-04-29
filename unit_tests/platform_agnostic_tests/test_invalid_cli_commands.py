@@ -60,20 +60,23 @@ def commit_test_project(reset_test_project, tmp_project):
 #     subprocess.run(cmd_parts)
 
 
-def call_git_log(tmp_proj_dir):
-    """Call git log."""
-    cmd = f"sh utils/call_git_log.sh {tmp_proj_dir}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
+# def call_git_log(tmp_proj_dir):
+#     """Call git log."""
+#     cmd = f"sh utils/call_git_log.sh {tmp_proj_dir}"
+#     cmd_parts = cmd.split()
+#     subprocess.run(cmd_parts)
 
 
 def check_project_unchanged(tmp_proj_dir, capfd):
     """Check that the project has not been changed."""
     # call_git_status(tmp_proj_dir)
     # captured = capfd.readouterr()
-    git_cmd = "git status"
-    stdout, stderr = msp.call_git_status(tmp_proj_dir, git_cmd)
+    stdout, stderr = msp.make_git_call(tmp_proj_dir, "git status")
     assert "On branch main\nnothing to commit, working tree clean" in stdout
+
+    stdout, stderr = msp.make_git_call(tmp_proj_dir, "git log")
+    assert "Removed unneeded dependency management files." in stdout
+    assert "Added simple_deploy to INSTALLED_APPS." in stdout
 
     # call_git_log(tmp_proj_dir)
     # captured = capfd.readouterr()

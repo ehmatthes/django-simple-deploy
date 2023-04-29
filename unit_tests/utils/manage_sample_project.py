@@ -89,10 +89,10 @@ def call_simple_deploy(tmp_dir, sd_command):
 
     return stdout, stderr
 
-def call_git_status(tmp_dir, git_call):
-    """Call git status on the test project."""
+def make_git_call(tmp_dir, git_call):
+    """Make a git call against the test project."""
     os.chdir(tmp_dir)
-    git_status_call = subprocess.Popen(split(git_call), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-    stdout, stderr = git_status_call.communicate()
+    git_call_object = subprocess.Popen(split(git_call), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = git_call_object.communicate()
 
     return stdout, stderr
