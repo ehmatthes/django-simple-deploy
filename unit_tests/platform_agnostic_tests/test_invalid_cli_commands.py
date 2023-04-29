@@ -53,11 +53,11 @@ def commit_test_project(reset_test_project, tmp_project):
 #     subprocess.run(cmd_parts)
 
 
-def call_git_status(tmp_proj_dir):
-    """Call git status."""
-    cmd = f"sh utils/call_git_status.sh {tmp_proj_dir}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
+# def call_git_status(tmp_proj_dir):
+#     """Call git status."""
+#     cmd = f"sh utils/call_git_status.sh {tmp_proj_dir}"
+#     cmd_parts = cmd.split()
+#     subprocess.run(cmd_parts)
 
 
 def call_git_log(tmp_proj_dir):
