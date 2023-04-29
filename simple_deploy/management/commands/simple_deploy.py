@@ -76,6 +76,8 @@ class Command(BaseCommand):
         #   validate_platform(), because fly_io takes action based on automate_all
         #   in _validate_platform().
         # Then do platform-specific validation.
+        # Note: Some platforms have validation steps to do even when unit testing,
+        #   so we'll let them handle unit testing differences.
         self._confirm_automate_all()
         self.platform_deployer.validate_platform()
 

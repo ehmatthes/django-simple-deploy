@@ -462,11 +462,12 @@ class PlatformDeployer:
         The returncode for a successful command is 0, so anything truthy means
           a command errored out.
         """
-        # Make sure Heroku CLI is installed.
-        cmd = 'heroku --version'
-        output_obj = self.sd.execute_subp_run(cmd)
-        if output_obj.returncode:
-            raise CommandError(dh_msgs.cli_not_installed)
+        # Make sure Heroku CLI is installed, if we're not unit testing.
+        if not self.sd.unit_testing:
+            cmd = 'heroku --version'
+            output_obj = self.sd.execute_subp_run(cmd)
+            if output_obj.returncode:
+                raise CommandError(dh_msgs.cli_not_installed)
 
         # Respond appropriately if the local project uses Poetry.
         if self.sd.pkg_manager == "poetry":
