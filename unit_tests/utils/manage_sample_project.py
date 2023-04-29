@@ -44,6 +44,8 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     #   to test a different simple_deploy command. This is much more efficient than
     #   tearing down the whole sample project and rebuilding it from scratch.
     # We use a git tag to do the reset, instead of trying to capture the initial hash.
+    # Note: This tag refers to the version of the project that contains files for all
+    #   dependency management systems, ie requirements.txt, pyproject.toml, and Pipfile.
     git_exe = "git"
     os.chdir(tmp_proj_dir)
     subprocess.run([git_exe, "init"])
@@ -85,5 +87,12 @@ def call_simple_deploy(tmp_dir, sd_command):
     sd_call = subprocess.Popen(split(sd_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     stdout, stderr = sd_call.communicate()
 
-    # Return stdout and stderr.
+    return stdout, stderr
+
+def call_git_status(tmp_dir, git_call):
+    """Call git status on the test project."""
+    os.chdir(tmp_dir)
+    git_status_call = subprocess.Popen(split(git_call), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    stdout, stderr = git_status_call.communicate()
+
     return stdout, stderr

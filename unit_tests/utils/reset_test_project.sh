@@ -41,5 +41,12 @@ elif [ "$pkg_manager" = 'pipenv' ]; then
     rm pyproject.toml
 fi
 
+# Commit these changes; helpful in diagnosing failed runs, when you cd into the test
+#   project directory and run git status.
+git commit -am "Removed unneeded dependency management files."
+
 # --- Add simple_deploy to INSTALLED_APPS. ---
 sed -i "" "s/# Third party apps./# Third party apps.\n    'simple_deploy',/" blog/settings.py
+
+# Make sure we have a clean status before calling simple_deploy.
+git commit -am "Added simple_deploy to INSTALLED_APPS."

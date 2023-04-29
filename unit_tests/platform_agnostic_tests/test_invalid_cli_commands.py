@@ -36,21 +36,21 @@ def commit_test_project(reset_test_project, tmp_project):
 
 # --- Helper functions ---
 
-def make_invalid_call(tmp_proj_dir, invalid_sd_command):
-    """Make an invalid call.
-    Returns:
-    - None
-    """
+# def make_invalid_call(tmp_proj_dir, invalid_sd_command):
+#     """Make an invalid call.
+#     Returns:
+#     - None
+#     """
 
-    # We have to be careful about how we split cmd before passing it to subprocess.run(),
-    #   because invalid_sd_command has spaces in it. If we simply call cmd.split(), the command
-    #   will be just "python
-    # So, we need to split the first part of the command, and then append invalid_sd_command.
-    #   This keeps invalid_sd_command as one argument.
-    cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_proj_dir}'
-    cmd_parts = cmd.split()
-    cmd_parts.append(invalid_sd_command)
-    subprocess.run(cmd_parts)
+#     # We have to be careful about how we split cmd before passing it to subprocess.run(),
+#     #   because invalid_sd_command has spaces in it. If we simply call cmd.split(), the command
+#     #   will be just "python
+#     # So, we need to split the first part of the command, and then append invalid_sd_command.
+#     #   This keeps invalid_sd_command as one argument.
+#     cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_proj_dir}'
+#     cmd_parts = cmd.split()
+#     cmd_parts.append(invalid_sd_command)
+#     subprocess.run(cmd_parts)
 
 
 def call_git_status(tmp_proj_dir):
@@ -69,13 +69,15 @@ def call_git_log(tmp_proj_dir):
 
 def check_project_unchanged(tmp_proj_dir, capfd):
     """Check that the project has not been changed."""
-    call_git_status(tmp_proj_dir)
-    captured = capfd.readouterr()
-    assert "On branch main\nnothing to commit, working tree clean" in captured.out
+    # call_git_status(tmp_proj_dir)
+    # captured = capfd.readouterr()
+    git_cmd = "git status"
+    stdout, stderr = msp.call_git_status(tmp_proj_dir, git_cmd)
+    assert "On branch main\nnothing to commit, working tree clean" in stdout
 
-    call_git_log(tmp_proj_dir)
-    captured = capfd.readouterr()
-    assert "Start with clean state before calling invalid command." in captured.out
+    # call_git_log(tmp_proj_dir)
+    # captured = capfd.readouterr()
+    # assert "Start with clean state before calling invalid command." in captured.out
 
 
 # --- Test invalid variations of the `simple_deploy` command ---
@@ -92,7 +94,7 @@ def test_bare_call(tmp_project, capfd):
     assert "The --platform flag is required;" in stderr
     assert "Please re-run the command with a --platform option specified." in stderr
     assert "$ python manage.py simple_deploy --platform fly_io" in stderr
-    # check_project_unchanged(tmp_project, capfd)
+    check_project_unchanged(tmp_project, capfd)
 
 
 # def test_invalid_platform_call(tmp_project, capfd):
