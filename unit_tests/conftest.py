@@ -68,9 +68,13 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
         return
 
     sd_root_dir = Path(__file__).parent.parent
-    cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p {platform} -s {sd_root_dir}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
+    # cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p {platform} -s {sd_root_dir}"
+    # cmd_parts = cmd.split()
+    # subprocess.run(cmd_parts)
+
+
+    cmd = f"python manage.py simple_deploy --platform {platform}"
+    msp.call_simple_deploy(tmp_project, cmd)
 
 
 @pytest.fixture()

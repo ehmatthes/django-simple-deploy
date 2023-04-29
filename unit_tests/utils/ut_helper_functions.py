@@ -25,7 +25,7 @@ def check_reference_file(tmp_proj_dir, filepath, platform,
     """
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[3]
+    sd_root_dir = Path(__file__).parents[2]
 
     # Path to the generated file is exactly as given, from tmp_proj_dir.
     fp_generated = tmp_proj_dir / filepath
@@ -37,7 +37,8 @@ def check_reference_file(tmp_proj_dir, filepath, platform,
         filename = Path(reference_filename)
     else:
         filename = Path(filepath).name
-    fp_reference = Path(f'platforms/{platform}/reference_files/{filename}')
+    # fp_reference = Path(f'platforms/{platform}/reference_files/{filename}')
+    fp_reference = sd_root_dir / f'unit_tests/platforms/{platform}/reference_files/{filename}'
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
