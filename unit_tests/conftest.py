@@ -73,8 +73,8 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     # subprocess.run(cmd_parts)
 
 
-    cmd = f"python manage.py simple_deploy --platform {platform}"
-    msp.call_simple_deploy(tmp_project, cmd)
+    cmd = f"python manage.py simple_deploy"
+    msp.call_simple_deploy(tmp_project, cmd, platform)
 
 
 @pytest.fixture()

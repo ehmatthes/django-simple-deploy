@@ -61,7 +61,7 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     settings_file_path.write_text(new_settings_content)
 
 
-def call_simple_deploy(tmp_dir, sd_command):
+def call_simple_deploy(tmp_dir, sd_command, platform=None):
     """Make a call to simple_deploy, using the arguments passed in sd_command.
 
     Returns:
@@ -72,6 +72,13 @@ def call_simple_deploy(tmp_dir, sd_command):
 
     # Change to the temp dir.
     os.chdir(tmp_dir)
+
+    # Add options that are present.
+    if platform:
+        sd_command = f"{sd_command} --platform {platform}"
+    if platform in ('fly_io', 'platform_sh'):
+        # These platforms need a project name to carry out configuration.
+        sd_command = f"{sd_command} --deployed-project-name my_blog_project"
 
     # Add --unit-testing argument to the call.
     sd_command = sd_command.replace("simple_deploy", "simple_deploy --unit-testing")
