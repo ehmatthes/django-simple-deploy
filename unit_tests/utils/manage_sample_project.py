@@ -137,6 +137,10 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     os.chdir(tmp_dir)
 
     # Add options that are present.
+    # - If we're testing for a platform, add that platform option.
+    # - Some platforms require a deployed project name, which isn't inferred from
+    #   the project being deployed. This is typically because the platform generates
+    #   a project name, ie misty-fjords-12345 during actual deployment.
     if platform:
         sd_command = f"{sd_command} --platform {platform}"
     if platform in ('fly_io', 'platform_sh'):
