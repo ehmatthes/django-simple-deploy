@@ -182,7 +182,11 @@ class PlatformDeployer:
         dockerignore_str += ".git/\n"
 
         # Ignore venv dir if a venv is active.
-        venv_dir = os.environ.get("VIRTUAL_ENV")
+        if self.sd.unit_testing:
+            venv_dir = 'b_env'
+        else:
+            venv_dir = os.environ.get("VIRTUAL_ENV")
+            
         if venv_dir:
             venv_path = Path(venv_dir)
             dockerignore_str += f"\n{venv_path.name}/\n"
@@ -339,10 +343,11 @@ class PlatformDeployer:
         The returncode for a successful command is 0, so anything truthy means
           a command errored out.
         """
-        self._validate_cli()
 
         # When running unit tests, will not be logged into CLI.
         if not self.sd.unit_testing:
+            self._validate_cli()
+            
             self.deployed_project_name = self._get_deployed_project_name()
 
             # If using automate_all, we need to create the app before creating

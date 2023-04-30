@@ -8,11 +8,13 @@ hide:
 
 This page focuses solely on running unit tests. If you want to understand the overall unit testing process, or write unit tests for a newly-supported platform, see the rest of the documentation in this section.
 
-You can run unit tests for a single platform, or for all platforms. Currently, it doesn't take much longer to test for all the platforms, because most of the testing time is spent creating the initial test project. Testing a single platform takes about 12 seconds, and running the entire test suite takes about 16 seconds. (This is based on my intel-based macOS system.)
+You can run unit tests for a single platform, or for all platforms. Currently, it doesn't take much longer to test for all the platforms, because most of the testing time is spent creating the initial test project. Testing a single platform takes about 15 seconds, and running the entire test suite takes about 22 seconds. (This is based on my intel-based macOS system.)
 
 ## Setting up a development environment
 
 If you haven't already set up a development environment for `django-simple-deploy`, see these [brief instructions](../contributing/development_environment.md).
+
+You will also need to have Poetry installed. If it's not currently installed, you'll see a message with a link to the instructions for installing Poetry.
 
 ## Running the entire test suite
 
@@ -29,17 +31,19 @@ To run the entire test suite, `cd` into the `unit_tests/` directory, and then ru
 
 You should see output similar to the following:
 
-```
-==================== test session starts ====================
+```sh
+==================== test session starts =================================
 platform darwin -- Python 3.10.0, pytest-7.1.2, pluggy-1.0.0
 rootdir: django-simple-deploy
-collected 22 items
+collected 93 items
 
-platform_agnostic_tests/test_invalid_cli_commands.py ..
-platforms/fly_io/test_flyio_config.py .......
-platforms/heroku/test_heroku_config.py .......
-platforms/platform_sh/test_platformsh_config.py ......
-==================== 22 passed in 18.07s ====================
+platform_agnostic_tests/test_invalid_cli_commands.py .........
+platform_agnostic_tests/test_project_inspection.py sss
+platform_agnostic_tests/test_valid_cli_commands.py ...
+platforms/fly_io/test_flyio_config.py ...........................
+platforms/heroku/test_heroku_config.py ...........................
+platforms/platform_sh/test_platformsh_config.py ........................
+==================== 90 passed, 3 skipped in 21.46s ======================
 ```
 
 ## Running tests for a single platform
@@ -66,29 +70,31 @@ Calling pytest with the `-x` flag, `pytest -x`, causes the test suite to stop ru
 
 For example, here's the output from a test failure:
 
-    ```sh
-    (dsd_env)$ pytest -x
-    ...
-    platforms/heroku/test_heroku_config.py ..........F
-    =========================================================== FAILURES ============
-    ________________________________________________ test_requirements_txt[poetry] __
+```sh
+(dsd_env)$ pytest -x
+...
+platforms/heroku/test_heroku_config.py ..........F
+=========================================================== FAILURES ============
+________________________________________________ test_requirements_txt[poetry] __
 
-    tmp_project = PosixPath(
-        '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
-    pkg_manager = 'poetry'
-    ...
-    >           hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
+tmp_project = PosixPath(
+    '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
+pkg_manager = 'poetry'
+...
+>           hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
 
-    platforms/heroku/test_heroku_config.py:25:
-    _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+platforms/heroku/test_heroku_config.py:25:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-    tmp_proj_dir = PosixPath(
-        '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
-    filepath = 'requirements.txt', platform = 'heroku', reference_filename = 'poetry.requirements.txt'
-    ...
-    ```
+tmp_proj_dir = PosixPath(
+    '/private/var/folders/md/4h9n_5l93qz76s_8sxkbnxpc0000gn/T/pytest-of-eric/pytest-7/blog_project0')
+filepath = 'requirements.txt', platform = 'heroku', reference_filename = 'poetry.requirements.txt'
+...
+```
 
 This output shows you where to find the test project, in this case `blog_project0`, on your system. It also shows you the reference file that the failing test was comparing against. You can then inspect the test project, open the corresponding reference file, and begin troubleshooting.
+
+One great place to look when troubleshooting unit test runs is the test project's *simple_deploy_logs/* directory. The log should show you exactly what simple_deploy did to the test project during that test run.
 
 ## Helpful pytest notes
 

@@ -22,6 +22,8 @@ For every test run listed here, `simple_deploy` needs to be called against a fre
 !!! note
     Some of what you see here may be a little out of date, ie exact directory and file listings. However, the ideas here are kept fully up to date. If you see something in the unit tests that you don't understand, please feel free to open an issue and ask about it.
 
+    I recently removed all shell scripts from the unit tests, but don't have time to update this document at the moment. Wherever you see a shell script below, that work has been moved to a function in *manage_sample_project.py*.
+
 ## Organization of the test suite
 
 Here's the file structure of the unit test suite:

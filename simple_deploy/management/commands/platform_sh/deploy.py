@@ -270,10 +270,11 @@ class PlatformDeployer:
         The returncode for a successful command is 0, so anything truthy means
           a command errored out.
         """
-        self._validate_cli()
 
         # When running unit tests, will not be logged into CLI.
         if not self.sd.unit_testing:
+            self._validate_cli()
+            
             self.deployed_project_name = self._get_platformsh_project_name()
             self.org_name = self._get_org_name()
         else:

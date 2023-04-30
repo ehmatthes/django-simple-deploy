@@ -4,6 +4,17 @@ from time import sleep
 
 import pytest
 
+from .utils import manage_sample_project as msp
+from .utils import ut_helper_functions as uhf
+
+
+# Check prerequisites before running unit tests.
+@pytest.fixture(scope='session', autouse=True)
+def check_prerequisites():
+    """Make sure dev environment supports unit tests."""
+    uhf.check_package_manager_available('poetry')
+    uhf.check_package_manager_available('pipenv')
+
 
 @pytest.fixture(scope='session')
 def tmp_project(tmp_path_factory):
@@ -25,9 +36,8 @@ def tmp_project(tmp_path_factory):
     #   to tmp_proj_dir.
     # assert not tmp_proj_dir
     
-    cmd = f'sh utils/setup_project.sh -d {tmp_proj_dir} -s {sd_root_dir}'
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
+    # Copy sample project to tmp dir, and set up the project for using simple_deploy.
+    msp.setup_project(tmp_proj_dir, sd_root_dir)
 
     # Return the location of the temp project.
     return tmp_proj_dir
@@ -38,9 +48,7 @@ def reset_test_project(request, tmp_project):
     """Reset the test project, so it can be used again by another test module,
     which may be another platform.
     """
-    cmd = f"sh utils/reset_test_project.sh {tmp_project} {request.param}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
+    msp.reset_test_project(tmp_project, request.param)
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -62,10 +70,8 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
         #   doesn't need to run simple_deploy.
         return
 
-    sd_root_dir = Path(__file__).parent.parent
-    cmd = f"sh utils/call_simple_deploy.sh -d {tmp_project} -p {platform} -s {sd_root_dir}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
+    cmd = f"python manage.py simple_deploy"
+    msp.call_simple_deploy(tmp_project, cmd, platform)
 
 
 @pytest.fixture()
