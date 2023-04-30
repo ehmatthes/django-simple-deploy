@@ -51,12 +51,21 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
 
 
 def check_package_manager_available(pkg_manager):
+    """Check that the user has required package managers installed before
+    running unit tests. For example, we need Poetry installed in order to 
+    test configuration when the end user uses Poetry for their Django projects.
+    """
+
+    # Check that the package manager is installed by calling `which`; I believe
+    #   shutil then calls `where` on Windows.
     pkg_manager_path = shutil.which(pkg_manager)
 
+    # If they have it installed, continue with testing. Otherwise, let them know
+    #   how to install the given package manager.
     if pkg_manager_path:
         return True
     else:
-        
+
         msg = dedent(f"""
         --- You must have {pkg_manager.title()} installed in order to run unit tests. ---
 

@@ -94,6 +94,8 @@ filepath = 'requirements.txt', platform = 'heroku', reference_filename = 'poetry
 
 This output shows you where to find the test project, in this case `blog_project0`, on your system. It also shows you the reference file that the failing test was comparing against. You can then inspect the test project, open the corresponding reference file, and begin troubleshooting.
 
+One great place to look when troubleshooting unit test runs is the test project's *simple_deploy_logs/* directory. The log should show you exactly what simple_deploy did to the test project during that test run.
+
 ## Helpful pytest notes
 
 If you're new to using pytest, here are some useful notes. (If you have any suggestions for what else to include here, please feel free to share them.)
