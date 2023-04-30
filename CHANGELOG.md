@@ -6,9 +6,29 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+#### External changes
+
+- Updates to documentation:
+    - Updated information in Choosing a Platform.
+    - Many smaller documentation improvements from multiple people looking closely at docs.
+
+#### Internal changes
+
+- Added `.venv` to `.gitignore`, so developers don't have to use `dsd_env`.
+- Unit tests:
+    - No longer use shell scripts;
+    - Check for Poetry and Pipenv before running;
+    - No longer require any platform's CLI to be installed;
+    - Fixed `rum` mispelling of `rm` in unit tests using Poetry, which should improve accuracy of unit testing when using Poetry.
+
+
 ### 0.5.15
 
 #### External changes
+
+- Heroku deployments work again.
 
 #### Internal changes
 
@@ -16,6 +36,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - This flag is often used immediately after making a new release, and this should ensure the new version is installed from PyPI.
 - Calling `pytest` from project root generates a clean, simple reminder to cd to `unit_tests/` first.
 - The version of `psycopg2` no longer needs to be pinned to `<2.9` on Heroku deployments using requirements.txt.
+
 
 ### 0.5.14
 
