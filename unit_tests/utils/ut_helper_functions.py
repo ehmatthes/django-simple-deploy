@@ -6,6 +6,13 @@ The functions in this module are not specific to any one platform. If a function
 
 from pathlib import Path
 import filecmp
+import re
+import shutil
+import subprocess
+from textwrap import dedent
+
+import pytest
+
 
 def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""):
     """Check that the test version of the file matches the reference version
@@ -41,3 +48,22 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
     assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
+
+def check_poetry_available():
+    poetry_path = shutil.which("poetry")
+
+    if poetry_path:
+        return True
+    else:
+        msg = dedent(f"""
+        --- You must have poetry installed in order to run unit tests. ---
+
+        If you have a strong reason not to install poetry, please open an issue
+        and share your reasoning. We can look at installing poetry to the test
+        environment each time a test is run.
+
+        Instructions for installing poetry can be found here:
+            https://python-poetry.org/docs/#installation
+        """)
+
+        pytest.exit(msg)

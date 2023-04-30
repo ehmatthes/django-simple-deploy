@@ -5,6 +5,14 @@ from time import sleep
 import pytest
 
 from .utils import manage_sample_project as msp
+from .utils import ut_helper_functions as uhf
+
+
+# Check prerequisites before running unit tests.
+@pytest.fixture(scope='session', autouse=True)
+def check_prerequisites():
+    """Make sure dev environment supports unit tests."""
+    uhf.check_poetry_available()
 
 
 @pytest.fixture(scope='session')
