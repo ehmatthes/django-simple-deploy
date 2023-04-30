@@ -62,37 +62,42 @@ def setup_project(tmp_proj_dir, sd_root_dir):
 
 
 def reset_test_project(tmp_dir, pkg_manager):
+    """Reset the test project, so it's ready to be used by another test module.
+    It may be used by a different platform than the previous run.
+    """
+
     os.chdir(tmp_dir)
 
-    # Reset to the initial state of the temp project instance
+    # Reset to the initial state of the temp project instance.
     subprocess.run(["git", "reset", "--hard", "INITIAL_STATE"])
 
-    # Remove any files that may remain
-    files_to_remove = [
+    # Remove any files that may remain from the last run of simple_deploy.
+    files_dirs_to_remove = [
+        # Fly.io
         "fly.toml",
         "Dockerfile",
         ".dockerignore",
+
+        # Platform.sh
         ".platform.app.yaml",
+        ".platform",
+
+        # Heroku
         "Procfile",
+        "static",
+
+        # All platforms.
+        "simple_deploy_logs",
+        "__pycache__",
         "poetry.lock",
     ]
 
-    dirs_to_remove = [
-        ".platform",
-        "static",
-        "simple_deploy_logs",
-        "__pycache__",
-    ]
-
-    for file in files_to_remove:
-        file_path = Path(tmp_dir) / file
-        if file_path.is_file():
-            file_path.unlink()
-
-    for directory in dirs_to_remove:
-        dir_path = Path(tmp_dir) / directory
-        if dir_path.is_dir():
-            rmtree(dir_path)
+    for entry in files_dirs_to_remove:
+        entry_path = Path(tmp_dir) / entry
+        if entry_path.is_file():
+            entry_path.unlink()
+        elif entry_path.is_dir():
+            rmtree(entry_path)
 
     # Remove dependency management files not needed for this package manager
     if pkg_manager == "req_txt":
@@ -105,16 +110,17 @@ def reset_test_project(tmp_dir, pkg_manager):
         (tmp_dir / "requirements.txt").unlink()
         (tmp_dir / "pyproject.toml").unlink()
 
-    # Commit changes
+    # Commit these changes; helpful in diagnosing failed runs, when you cd into the test
+    #   project directory and run git status.
     subprocess.run(["git", "commit", "-am", "Removed unneeded dependency management files."])
 
-    # Add simple_deploy to INSTALLED_APPS
+    # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_dir / "blog/settings.py"
     settings_content = settings_file_path.read_text()
     new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
     settings_file_path.write_text(new_settings_content)
 
-    # Make sure we have a clean status before calling simple_deploy
+    # Make sure we have a clean status before calling simple_deploy.
     subprocess.run(["git", "commit", "-am", "Added simple_deploy to INSTALLED_APPS."])
 
 
