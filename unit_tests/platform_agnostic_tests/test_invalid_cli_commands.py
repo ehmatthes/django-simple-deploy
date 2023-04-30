@@ -5,7 +5,7 @@ Each test function makes an invalid call, and then checks that:
 - The user's project is unchanged.
 
 Each test function includes the exact invalid call we expect users might make;
-  the --unit-testing flag is added in the call_simple_deploy_invalid.sh script.
+  the --unit-testing flag is added in the call_simple_deploy() function.
 """
 
 from pathlib import Path
