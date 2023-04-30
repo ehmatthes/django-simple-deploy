@@ -39,13 +39,14 @@ def reset_test_project(request, tmp_project):
     """Reset the test project, so it can be used again by another test module,
     which may be another platform.
     """
-    unit_test_dir = Path(__file__).parent
-    reset_script_path = unit_test_dir / "utils/reset_test_project.sh"
-    cmd = f"sh {reset_script_path} {tmp_project} {request.param}"
+    # unit_test_dir = Path(__file__).parent
+    # reset_script_path = unit_test_dir / "utils/reset_test_project.sh"
+    # cmd = f"sh {reset_script_path} {tmp_project} {request.param}"
 
     # cmd = f"sh utils/reset_test_project.sh {tmp_project} {request.param}"
-    cmd_parts = cmd.split()
-    subprocess.run(cmd_parts)
+    # cmd_parts = cmd.split()
+    # subprocess.run(cmd_parts)
+    msp.reset_test_project(tmp_project, request.param)
 
 
 @pytest.fixture(scope='module', autouse=True)

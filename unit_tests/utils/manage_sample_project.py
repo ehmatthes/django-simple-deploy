@@ -2,7 +2,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
-from shutil import copytree
+from shutil import copytree, rmtree
 from shlex import split
 
 def setup_project(tmp_proj_dir, sd_root_dir):
@@ -59,6 +59,63 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     settings_content = settings_file_path.read_text()
     new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
     settings_file_path.write_text(new_settings_content)
+
+
+def reset_test_project(tmp_dir, pkg_manager):
+    os.chdir(tmp_dir)
+
+    # Reset to the initial state of the temp project instance
+    subprocess.run(["git", "reset", "--hard", "INITIAL_STATE"])
+
+    # Remove any files that may remain
+    files_to_remove = [
+        "fly.toml",
+        "Dockerfile",
+        ".dockerignore",
+        ".platform.app.yaml",
+        "Procfile",
+        "poetry.lock",
+    ]
+
+    dirs_to_remove = [
+        ".platform",
+        "static",
+        "simple_deploy_logs",
+        "__pycache__",
+    ]
+
+    for file in files_to_remove:
+        file_path = Path(tmp_dir) / file
+        if file_path.is_file():
+            file_path.unlink()
+
+    for directory in dirs_to_remove:
+        dir_path = Path(tmp_dir) / directory
+        if dir_path.is_dir():
+            rmtree(dir_path)
+
+    # Remove dependency management files not needed for this package manager
+    if pkg_manager == "req_txt":
+        (tmp_dir / "pyproject.toml").unlink()
+        (tmp_dir / "Pipfile").unlink()
+    elif pkg_manager == "poetry":
+        (tmp_dir / "requirements.txt").unlink()
+        (tmp_dir / "Pipfile").unlink()
+    elif pkg_manager == "pipenv":
+        (tmp_dir / "requirements.txt").unlink()
+        (tmp_dir / "pyproject.toml").unlink()
+
+    # Commit changes
+    subprocess.run(["git", "commit", "-am", "Removed unneeded dependency management files."])
+
+    # Add simple_deploy to INSTALLED_APPS
+    settings_file_path = tmp_dir / "blog/settings.py"
+    settings_content = settings_file_path.read_text()
+    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    settings_file_path.write_text(new_settings_content)
+
+    # Make sure we have a clean status before calling simple_deploy
+    subprocess.run(["git", "commit", "-am", "Added simple_deploy to INSTALLED_APPS."])
 
 
 def call_simple_deploy(tmp_dir, sd_command, platform=None):
