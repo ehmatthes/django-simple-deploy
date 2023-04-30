@@ -12,7 +12,8 @@ from .utils import ut_helper_functions as uhf
 @pytest.fixture(scope='session', autouse=True)
 def check_prerequisites():
     """Make sure dev environment supports unit tests."""
-    uhf.check_poetry_available()
+    uhf.check_package_manager_available('poetry')
+    uhf.check_package_manager_available('pipenv')
 
 
 @pytest.fixture(scope='session')
