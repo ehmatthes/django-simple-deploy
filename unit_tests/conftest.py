@@ -1,4 +1,4 @@
-import subprocess, re, os
+import subprocess, re, sys
 from pathlib import Path
 from time import sleep
 
@@ -59,11 +59,13 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
 
     # Identify the platform that's being tested. We're looking for the element
     #   in the test module path immediately after /unit_tests/platforms/.
-    re_platform = r".*/unit_tests/platforms/(.*?)/.*"
-    re_platform = rf".*{re.escape(os.sep)}unit_tests{re.escape(os.sep)}platforms{re.escape(os.sep)}(.*?){re.escape(os.sep)}.*"
+    # Note that we can use `{re.escape(os.sep)}` and avoid the if block, but it's less readable.
+    if sys.platform == 'win32':
+        re_platform = r".*\\unit_tests\\platforms\\(.*?)\\.*"
+    else:
+        re_platform = r".*/unit_tests/platforms/(.*?)/.*"
     test_module_path = request.path
     m = re.match(re_platform, str(test_module_path))
-    print('--- HERE ---')
 
     if m:
         platform = m.group(1)
@@ -74,7 +76,6 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
 
     cmd = f"python manage.py simple_deploy"
     msp.call_simple_deploy(tmp_project, cmd, platform)
-    print("--- CALLED SIMPLE_DEPLOY ---")
 
 
 @pytest.fixture()
