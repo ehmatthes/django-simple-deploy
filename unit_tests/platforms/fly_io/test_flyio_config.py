@@ -1,5 +1,6 @@
 """Unit tests for django-simple-deploy, targeting Fly.io."""
 
+import sys
 from pathlib import Path
 import subprocess
 
@@ -69,7 +70,11 @@ def test_creates_dockerfile(tmp_project, pkg_manager):
 
 def test_creates_dockerignore_file(tmp_project):
     """Verify that dockerignore file is created correctly."""
-    hf.check_reference_file(tmp_project, '.dockerignore', 'fly_io')
+    if sys.platform == 'win32':
+        reference_file = '.dockerignore-windows'
+    else:
+        reference_file = '.dockerignore'
+    hf.check_reference_file(tmp_project, '.dockerignore', 'fly_io', reference_file)
 
 
 # --- Test logs ---

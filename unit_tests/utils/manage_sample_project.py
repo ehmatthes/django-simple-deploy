@@ -153,12 +153,18 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     # Get the path to the Python interpreter in the virtual environment.
     #   We'll use the full path to the interpreter, rather than trying to rely on
     #   an active venv.
-    python_exe = Path(tmp_dir) / "b_env" / "bin" / "python"
-    sd_command = sd_command.replace("python", str(python_exe))
+    if sys.platform == "win32":
+        python_exe = Path(tmp_dir) / "b_env" / "Scripts" / "python.exe"
+    else:
+        python_exe = Path(tmp_dir) / "b_env" / "bin" / "python"
+
+    sd_command = sd_command.replace("python", python_exe.as_posix())
 
     # Make the call to simple_deploy.
     #   The `text=True` argument causes this to return stdout and stderr as strings, not objects.
-    sd_call = subprocess.Popen(split(sd_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    #   Some of these commands, such as cwd, are required specifically for Windows.
+    sd_call = subprocess.Popen(split(sd_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, cwd=tmp_dir)
     stdout, stderr = sd_call.communicate()
 
     return stdout, stderr

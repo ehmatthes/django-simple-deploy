@@ -1,4 +1,4 @@
-import inspect, re
+import inspect, re, sys
 
 from django.template.engine import Engine
 from django.template.utils import get_app_template_dirs
@@ -17,7 +17,10 @@ def write_file_from_template(path, template, context=None):
     #   This may need to be moved to its own file if it ends up being imported
     #   from different places.
     caller = inspect.stack()[1].filename
-    platform_re = r'/simple_deploy/management/commands/(.*)/deploy.py'
+    if sys.platform == 'win32':
+        platform_re = r'\\simple_deploy\\management\\commands\\(.*)\\deploy.py'
+    else:
+        platform_re = r'/simple_deploy/management/commands/(.*)/deploy.py'
     m = re.search(platform_re, caller)
     platform = m.group(1)
 

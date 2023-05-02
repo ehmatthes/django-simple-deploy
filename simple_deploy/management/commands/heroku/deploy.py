@@ -434,7 +434,7 @@ class PlatformDeployer:
         path = self.sd.log_dir_path / 'deployment_summary.html'
 
         summary_str = "<h2>Understanding your deployment</h2>"
-        path.write_text(summary_str)
+        path.write_text(summary_str, encoding='utf-8')
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)

@@ -22,6 +22,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Check for Poetry and Pipenv before running;
     - No longer require any platform's CLI to be installed;
     - Fixed `rum` mispelling of `rm` in unit tests using Poetry, which should improve accuracy of unit testing when using Poetry.
+    - Pass on Windows as well as macOS and Linux.
 
 
 ### 0.5.15
