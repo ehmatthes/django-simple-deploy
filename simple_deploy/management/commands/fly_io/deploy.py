@@ -203,7 +203,7 @@ class PlatformDeployer:
             dockerignore_str += "\n.DS_Store\n"
 
         # Write file.
-        path.write_text(dockerignore_str)
+        path.write_text(dockerignore_str, encoding='utf-8')
         msg = "  Wrote .dockerignore file."
         self.sd.write_output(msg)
 
