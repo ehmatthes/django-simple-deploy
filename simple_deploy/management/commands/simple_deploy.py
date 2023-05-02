@@ -240,7 +240,7 @@ class Command(BaseCommand):
         gitignore_path = self.git_path / '.gitignore'
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
-            gitignore_path.write_text(ignore_msg)
+            gitignore_path.write_text(ignore_msg, encoding='utf-8')
             self.write_output("No .gitignore file found; created .gitignore.")
             self.write_output("Added simple_deploy_logs/ to .gitignore.")
         else:
@@ -826,7 +826,7 @@ class Command(BaseCommand):
         contents = self.pyprojecttoml_path.read_text()
         new_group_string = f"{self.poetry_group_string}{new_req_line}\n"
         contents = contents.replace(self.poetry_group_string, new_group_string)
-        self.pyprojecttoml_path.write_text(contents)
+        self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
 
         self.write_output(f"    Added {package_name} to pyproject.toml.")
 
@@ -851,7 +851,7 @@ class Command(BaseCommand):
         
         # Group not found, so create it now.
         contents += f"\n\n{self.poetry_group_string}"
-        self.pyprojecttoml_path.write_text(contents)
+        self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
 
         msg = '    Added optional "deploy" group to pyproject.toml.'
         self.write_output(msg)
