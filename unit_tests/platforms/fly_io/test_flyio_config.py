@@ -69,7 +69,7 @@ def test_creates_dockerfile(tmp_project, pkg_manager):
 
 def test_creates_dockerignore_file(tmp_project):
     """Verify that dockerignore file is created correctly."""
-    hf.check_reference_file(tmp_project, '.dockerignore', 'fly_io')
+    hf.check_reference_file(tmp_project, '.dockerignore', 'fly_io', '.dockerignore-windows')
 
 
 # --- Test logs ---
