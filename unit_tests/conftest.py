@@ -8,6 +8,29 @@ from .utils import manage_sample_project as msp
 from .utils import ut_helper_functions as uhf
 
 
+# --- Plugins ---
+
+import os
+
+def pytest_addoption(parser):
+    parser.addoption("--open-test-project", action="store_true",
+        help="Open the test project in an active terminal window at the end of the test run")
+
+def pytest_sessionfinish(session, exitstatus):
+    if session.config.getoption("--open-test-project"):
+        # DEV: How can we identify the terminal environment where
+        #   pytest is currently running?
+        if sys.platform == 'darwin':  # macOS
+            command = ['open', '-a', 'Terminal', '.']
+        else:
+            print("Unsupported platform")
+            return
+
+        subprocess.run(command)
+
+# --- /Plugins ---
+
+
 # Check prerequisites before running unit tests.
 @pytest.fixture(scope='session', autouse=True)
 def check_prerequisites():
