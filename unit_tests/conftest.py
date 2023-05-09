@@ -11,6 +11,11 @@ from .utils import ut_helper_functions as uhf
 # --- Plugins ---
 
 import os
+# I tried putting this in a unit_tests/plugins/ dir, but could not get it to load.
+#   The only thing that worked was:
+#   $ PYTHONPATH=../ pytest -x --open-test-project
+# I tried setting pythonpath in pytest.ini, and unit_tests/ was added to the path,
+#   but it still couldn't find the plugin.
 
 def pytest_addoption(parser):
     parser.addoption("--open-test-project", action="store_true",
