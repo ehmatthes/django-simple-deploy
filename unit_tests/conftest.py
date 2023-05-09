@@ -25,8 +25,10 @@ def pytest_sessionfinish(session, exitstatus):
     if session.config.getoption("--open-test-project"):
         # DEV: How can we identify the terminal environment where
         #   pytest is currently running?
+        tmp_proj_dir = session.config.cache.get("tmp_proj_dir", ".")
+
         if sys.platform == 'darwin':  # macOS
-            command = ['open', '-a', 'Terminal', '.']
+            command = ['open', '-a', 'Terminal', tmp_proj_dir]
         else:
             print("Unsupported platform")
             return
@@ -45,7 +47,7 @@ def check_prerequisites():
 
 
 @pytest.fixture(scope='session')
-def tmp_project(tmp_path_factory):
+def tmp_project(tmp_path_factory, pytestconfig):
     """Create a copy of the local sample project, so that platform-specific modules
     can call simple_deploy.
 
@@ -66,6 +68,10 @@ def tmp_project(tmp_path_factory):
     
     # Copy sample project to tmp dir, and set up the project for using simple_deploy.
     msp.setup_project(tmp_proj_dir, sd_root_dir)
+
+    # Store the tmp_proj_dir in the pytest cache, so we can access it in the
+    #   open_test_project() plugin.
+    pytestconfig.cache.set("tmp_proj_dir", str(tmp_proj_dir))
 
     # Return the location of the temp project.
     return tmp_proj_dir
