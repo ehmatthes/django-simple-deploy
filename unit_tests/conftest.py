@@ -38,14 +38,15 @@ def pytest_sessionfinish(session, exitstatus):
         # cmd = f'open -a Terminal {tmp_proj_dir}'
         # subprocess.run(cmd.split())
 
-
         # This is a list of all the commands we want to run in the temp directory.
         shell_script = f"""
         #!/bin/bash
         cd {tmp_proj_dir}
+        export PS1="\W$ "
         source b_env/bin/activate
         git status
         git log --pretty=oneline
+        echo "\n--- Feel free to poke around the temp test project! ---"
         bash
         """
 
