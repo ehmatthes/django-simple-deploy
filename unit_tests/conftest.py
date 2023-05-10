@@ -33,11 +33,13 @@ def pytest_sessionfinish(session, exitstatus):
 
         tmp_proj_dir = session.config.cache.get("tmp_proj_dir", ".")
 
+        # DEV: This might be good enough; it just drops you into a terminal
+        #   window at the temp project. You have to activate the venv.
         # cmd = f'open -a Terminal {tmp_proj_dir}'
         # subprocess.run(cmd.split())
 
 
-        # Create the shell script with the commands you want to run
+        # This is a list of all the commands we want to run in the temp directory.
         shell_script = f"""
         #!/bin/bash
         cd {tmp_proj_dir}
@@ -46,30 +48,18 @@ def pytest_sessionfinish(session, exitstatus):
         git log --pretty=oneline
         bash
         """
-        # Write the script to a temporary file
+
+        # Write the script to a temporary file.
+        # DEV: Not ideal, because it affects output of `git status`.
         with open(f"{tmp_proj_dir}/commands.sh", "w") as script_file:
             script_file.write(shell_script)
 
-        # Make the script executable
+        # Make the script executable.
         os.chmod(f"{tmp_proj_dir}/commands.sh", 0o755)
 
         # Open a new terminal and run the script
         cmd = f'open -a Terminal {tmp_proj_dir}/commands.sh'
         subprocess.run(cmd.split())
-
-
-
-        # os.chdir(tmp_proj_dir)
-        # venv_dir = tmp_proj_dir / "b_env"
-        # cmd = f"source {venv_dir}/bin/activate"
-
-
-
-        # cmd = 'source b_env/bin/activate'
-        # cmd = 'git status'
-        # subprocess.run(cmd.split())
-
-
 
 # --- /Plugins ---
 
