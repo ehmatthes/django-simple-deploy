@@ -25,15 +25,51 @@ def pytest_sessionfinish(session, exitstatus):
     if session.config.getoption("--open-test-project"):
         # DEV: How can we identify the terminal environment where
         #   pytest is currently running?
-        tmp_proj_dir = session.config.cache.get("tmp_proj_dir", ".")
 
-        if sys.platform == 'darwin':  # macOS
-            command = ['open', '-a', 'Terminal', tmp_proj_dir]
-        else:
-            print("Unsupported platform")
+        # Currently, this plugin only supports macOS.
+        if sys.platform != 'darwin':
+            print("The --open-test-project option is not yet supported on your platform.")
             return
 
-        subprocess.run(command)
+        tmp_proj_dir = session.config.cache.get("tmp_proj_dir", ".")
+
+        # cmd = f'open -a Terminal {tmp_proj_dir}'
+        # subprocess.run(cmd.split())
+
+
+        # Create the shell script with the commands you want to run
+        shell_script = f"""
+        #!/bin/bash
+        cd {tmp_proj_dir}
+        source b_env/bin/activate
+        git status
+        git log --pretty=oneline
+        bash
+        """
+        # Write the script to a temporary file
+        with open(f"{tmp_proj_dir}/commands.sh", "w") as script_file:
+            script_file.write(shell_script)
+
+        # Make the script executable
+        os.chmod(f"{tmp_proj_dir}/commands.sh", 0o755)
+
+        # Open a new terminal and run the script
+        cmd = f'open -a Terminal {tmp_proj_dir}/commands.sh'
+        subprocess.run(cmd.split())
+
+
+
+        # os.chdir(tmp_proj_dir)
+        # venv_dir = tmp_proj_dir / "b_env"
+        # cmd = f"source {venv_dir}/bin/activate"
+
+
+
+        # cmd = 'source b_env/bin/activate'
+        # cmd = 'git status'
+        # subprocess.run(cmd.split())
+
+
 
 # --- /Plugins ---
 
