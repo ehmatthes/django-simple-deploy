@@ -1,4 +1,4 @@
-import subprocess, re, sys
+import subprocess, re, sys, tempfile
 from pathlib import Path
 from time import sleep
 
@@ -50,15 +50,16 @@ def pytest_sessionfinish(session, exitstatus):
         """
 
         # Write the script to a temporary file.
-        # DEV: Not ideal, because it affects output of `git status`.
-        with open(f"{tmp_proj_dir}/commands.sh", "w") as script_file:
+        #   Don't write this in tmp_proj_dir, as that would affect git status.
+        script_dir = tempfile.gettempdir()
+        with open(f"{script_dir}/commands.sh", "w") as script_file:
             script_file.write(shell_script)
 
         # Make the script executable.
-        os.chmod(f"{tmp_proj_dir}/commands.sh", 0o755)
+        os.chmod(f"{script_dir}/commands.sh", 0o755)
 
         # Open a new terminal and run the script
-        cmd = f'open -a Terminal {tmp_proj_dir}/commands.sh'
+        cmd = f'open -a Terminal {script_dir}/commands.sh'
         subprocess.run(cmd.split())
 
 # --- /Plugins ---
