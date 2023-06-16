@@ -96,6 +96,8 @@ This output shows you where to find the test project, in this case `blog_project
 
 One great place to look when troubleshooting unit test runs is the test project's *simple_deploy_logs/* directory. The log should show you exactly what simple_deploy did to the test project during that test run.
 
+On macOS, you can tell pytest to automatically open a terminal window at the test project location after the test suite ends: `pytest -x --open-test-project` This flag opens a new terminal tab or window, activates the virtual environment, and shows the output of `git log --pretty=oneline`. You can explore the project, run simple_deploy commands, and look at the simple_deploy logs as well. This is an experimental feature.
+
 ## Helpful pytest notes
 
 If you're new to using pytest, here are some useful notes. (If you have any suggestions for what else to include here, please feel free to share them.)
@@ -103,6 +105,8 @@ If you're new to using pytest, here are some useful notes. (If you have any sugg
 - `pytest -x`
     - This is identical to `pytest --exitfirst`, which stops after the first failing test. This is especially helpful when diagnosing unit test failures.
     - A number of ways to run `pytest` are described in [How to invoke pytest](https://docs.pytest.org/en/latest/how-to/usage.html).
+- `pytest -s`
+    - Show output instead of capturing it.
 - `pytest -k`
     - Run a single test, or a test matching a pattern.
     - For example, if you want to run the test for the `pyproject.toml` file on Fly.io, you can use the following command: `$ pytest -k platforms/fly_io test_pyproject_toml`. This will actually run any test in the module that has that phrase in its name, but practically this is an effective way to isolate tests.

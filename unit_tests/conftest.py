@@ -1,4 +1,4 @@
-import subprocess, re, sys
+import subprocess, re, sys, os, tempfile
 from pathlib import Path
 from time import sleep
 
@@ -6,6 +6,64 @@ import pytest
 
 from .utils import manage_sample_project as msp
 from .utils import ut_helper_functions as uhf
+
+
+# --- Plugins ---
+
+# Trying to make a plugin to be able to run `pytest -x -p open-test-project`
+#   See: https://github.com/ehmatthes/django-simple-deploy/issues/240
+#   Currently works: `pytest -x --open-test-project`
+# 
+# I tried putting this in a unit_tests/plugins/ dir, but could not get it to load.
+#   The only thing that worked was:
+#   $ PYTHONPATH=../ pytest -x --open-test-project
+# I tried setting pythonpath in pytest.ini, and unit_tests/ was added to the path,
+#   but it still couldn't find the plugin.
+
+def pytest_addoption(parser):
+    parser.addoption("--open-test-project", action="store_true",
+        help="Open the test project in an active terminal window at the end of the test run")
+
+def pytest_sessionfinish(session, exitstatus):
+    if session.config.getoption("--open-test-project"):
+        # DEV: How can we identify the terminal environment where
+        #   pytest is currently running?
+
+        # Currently, this plugin only supports macOS.
+        if sys.platform != 'darwin':
+            print("The --open-test-project option is not yet supported on your platform.")
+            return
+
+        tmp_proj_dir = session.config.cache.get("tmp_proj_dir", ".")
+
+        # Write a script containing all the commands we need to set up
+        #   a terminal environment for exploring the test project in its
+        #   final state.
+        shell_script = f"""
+        #!/bin/bash
+        cd {tmp_proj_dir}
+        export PS1="\W$ "
+        source b_env/bin/activate
+        git status
+        git log --pretty=oneline
+        echo "\n--- Feel free to poke around the temp test project! ---"
+        bash
+        """
+
+        # Write the script to a temporary file.
+        #   Don't write this in tmp_proj_dir, as that would affect git status.
+        script_dir = tempfile.gettempdir()
+        path = Path(f"{script_dir}/commands.sh")
+        path.write_text(shell_script)
+
+        # Make the script executable.
+        os.chmod(f"{script_dir}/commands.sh", 0o755)
+
+        # Open a new terminal and run the script
+        cmd = f'open -a Terminal {script_dir}/commands.sh'
+        subprocess.run(cmd.split())
+
+# --- /Plugins ---
 
 
 # Check prerequisites before running unit tests.
@@ -17,7 +75,7 @@ def check_prerequisites():
 
 
 @pytest.fixture(scope='session')
-def tmp_project(tmp_path_factory):
+def tmp_project(tmp_path_factory, pytestconfig):
     """Create a copy of the local sample project, so that platform-specific modules
     can call simple_deploy.
 
@@ -38,6 +96,10 @@ def tmp_project(tmp_path_factory):
     
     # Copy sample project to tmp dir, and set up the project for using simple_deploy.
     msp.setup_project(tmp_proj_dir, sd_root_dir)
+
+    # Store the tmp_proj_dir in the pytest cache, so we can access it in the
+    #   open_test_project() plugin.
+    pytestconfig.cache.set("tmp_proj_dir", str(tmp_proj_dir))
 
     # Return the location of the temp project.
     return tmp_proj_dir
