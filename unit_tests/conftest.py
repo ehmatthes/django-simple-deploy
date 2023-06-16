@@ -35,12 +35,9 @@ def pytest_sessionfinish(session, exitstatus):
 
         tmp_proj_dir = session.config.cache.get("tmp_proj_dir", ".")
 
-        # DEV: This might be good enough; it just drops you into a terminal
-        #   window at the temp project. You have to activate the venv.
-        # cmd = f'open -a Terminal {tmp_proj_dir}'
-        # subprocess.run(cmd.split())
-
-        # This is a list of all the commands we want to run in the temp directory.
+        # Write a script containing all the commands we need to set up
+        #   a terminal environment for exploring the test project in its
+        #   final state.
         shell_script = f"""
         #!/bin/bash
         cd {tmp_proj_dir}
