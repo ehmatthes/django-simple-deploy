@@ -1,4 +1,4 @@
-import subprocess, re, sys, tempfile
+import subprocess, re, sys, os, tempfile
 from pathlib import Path
 from time import sleep
 
@@ -10,7 +10,9 @@ from .utils import ut_helper_functions as uhf
 
 # --- Plugins ---
 
-import os
+# Trying to make a plugin to be able to run `pytest -x -p --open-test-project`
+#   See: https://github.com/ehmatthes/django-simple-deploy/issues/240
+# 
 # I tried putting this in a unit_tests/plugins/ dir, but could not get it to load.
 #   The only thing that worked was:
 #   $ PYTHONPATH=../ pytest -x --open-test-project
@@ -53,8 +55,8 @@ def pytest_sessionfinish(session, exitstatus):
         # Write the script to a temporary file.
         #   Don't write this in tmp_proj_dir, as that would affect git status.
         script_dir = tempfile.gettempdir()
-        with open(f"{script_dir}/commands.sh", "w") as script_file:
-            script_file.write(shell_script)
+        path = Path(f"{script_dir}/commands.sh")
+        path.write_text(shell_script)
 
         # Make the script executable.
         os.chmod(f"{script_dir}/commands.sh", 0o755)
