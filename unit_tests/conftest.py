@@ -10,8 +10,9 @@ from .utils import ut_helper_functions as uhf
 
 # --- Plugins ---
 
-# Trying to make a plugin to be able to run `pytest -x -p --open-test-project`
+# Trying to make a plugin to be able to run `pytest -x -p open-test-project`
 #   See: https://github.com/ehmatthes/django-simple-deploy/issues/240
+#   Currently works: `pytest -x --open-test-project`
 # 
 # I tried putting this in a unit_tests/plugins/ dir, but could not get it to load.
 #   The only thing that worked was:
