@@ -29,6 +29,14 @@ def pytest_sessionfinish(session, exitstatus):
         # DEV: How can we identify the terminal environment where
         #   pytest is currently running?
 
+        # DEV: This should probably bail if the -x flag was not used.
+        #   If there's no failing test, this is not helpful.
+        #   If there is a failing test that was then reset, this is not helpful.
+
+        # DEV: The body of this function shouldn't be in an if-block.
+        #   Return early if the --open-test-project flag not set, then do work
+        #   in main body block.
+
         # Currently, this plugin only supports macOS.
         if sys.platform != 'darwin':
             print("The --open-test-project option is not yet supported on your platform.")
