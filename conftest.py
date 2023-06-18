@@ -14,11 +14,15 @@ def check_valid_test_call():
     Returns: True or False
     """
     # Running from either unit_tests/ or integration_tests/ is fine.
-    if Path.cwd().name in ('unit_tests'):
+    if Path.cwd().name in ('unit_tests', 'integration_tests'):
         return True
 
-    # If 'unit_tests' is anywhere in sys.argv, should be fine.
-    if any('unit_tests' in arg for arg in sys.argv):
+    # Find out what kind of tests are being requested.
+    unit_testing = any('unit_tests' in arg for arg in sys.argv)
+    integration_testing = any('integration_tests' in arg for arg in sys.argv)
+
+    # Allow one kind of testing.
+    if [unit_testing, integration_testing].count(True) == 1:
         return True
 
     # If we don't recognize the test command as valid or invalid, assume invalid.
