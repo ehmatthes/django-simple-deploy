@@ -404,20 +404,17 @@ class PlatformDeployer:
 
         # Only keep relevant output; get rid of blank lines, update messages,
         #   and line with labels like NAME and LATEST DEPLOY.
+        # DEV: If more than one line of output after this block, consider
+        #   prompting the user for which app to use.
         lines = output_str.split('\n')
         lines = [line for line in lines if line]
         lines = [line for line in lines if 'update' not in line.lower()]
         lines = [line for line in lines if 'NAME' not in line]
         lines = [line for line in lines if 'builder' not in line]
 
-        # An app that has not been deployed to will only have values set for NAME,
-        #   OWNER, and STATUS. PLATFORM and LATEST DEPLOY will be empty.
-        app_name = ''
-        for line in lines:
-            # The desired line has three elements.
-            parts = line.split()
-            if len(parts) == 3:
-                app_name = parts[0]
+        # For now, assume one line of output and use first part of output.
+        app_name = lines[0].split()[0]
+
 
         # Return deployed app name, or raise CommandError.
         if app_name:
@@ -506,7 +503,13 @@ class PlatformDeployer:
             return region
         else:
             # Can't continue without a Fly.io region to configure against.
-            raise CommandError(flyio_msgs.region_not_found(self.deployed_project_name))
+            # DEV: Try defaulting to 'sea'?
+            #   As of 6/19/23, `fly regions list -a <app-name>` is returning nothing
+            #   for a freshly-generated app.
+            msg = f"  No region found; defaulting to 'sea'."
+            self.sd.write_output(msg, skip_logging=True)
+            return 'sea'
+            # raise CommandError(flyio_msgs.region_not_found(self.deployed_project_name))
 
     def _create_db(self):
         """Create a db to deploy to, if none exists.

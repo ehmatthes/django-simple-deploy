@@ -111,6 +111,10 @@ git commit -am "Initial commit."
 # Now install django-simple-deploy, just as a user would.
 # - Install local dev version by default.
 # - If test targets pypi, install from there.
+
+# This should probably assume an editable install.
+# Currently hardcoded to do so for req_txt.
+# DEV: Do this for all dep man approaches, in Python.
 echo "  Installing django-simple-deploy..."
 
 # Define $dependency_string for based on whether we're testing the local 
@@ -129,7 +133,7 @@ else
 fi
 
 if [ "$dep_man_approach" = 'req_txt' ]; then
-    echo "install command: pip install $dependency_string"
+    echo "install command: pip install -e $dependency_string"
     pip install $dependency_string
 elif [ "$dep_man_approach" = 'pipenv' ]; then
     pipenv install $dependency_string --skip-lock
