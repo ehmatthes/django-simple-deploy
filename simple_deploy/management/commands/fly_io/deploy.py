@@ -370,7 +370,7 @@ class PlatformDeployer:
 
     def prep_automate_all(self):
         """Take any further actions needed if using automate_all."""
-        # All creation has been taken earlier, during validation.
+        # All creation has been taken care of earlier, during validation.
         pass
 
 
@@ -394,6 +394,11 @@ class PlatformDeployer:
         - Empty string if no deployed project name found, but using automate_all.
         - Raises CommandError if deployed project name can't be found.
         """
+        if self.sd.automate_all:
+            # Simply return an empty string to indicate no suitable app was found,
+            #   and we'll create one later.
+            return ""
+
         msg = "\nLooking for Fly.io app to deploy against..."
         self.sd.write_output(msg, skip_logging=True)
 
@@ -415,18 +420,11 @@ class PlatformDeployer:
         # For now, assume one line of output and use first part of output.
         app_name = lines[0].split()[0]
 
-
         # Return deployed app name, or raise CommandError.
         if app_name:
             msg = f"  Found Fly.io app: {app_name}"
             self.sd.write_output(msg, skip_logging=True)
             return app_name
-        elif self.sd.automate_all:
-            msg = "  No app found, but continuing with --automate-all..."
-            self.sd.write_output(msg, skip_logging=True)
-            # Simply return an empty string to indicate no suitable app was found,
-            #   and we'll create one later.
-            return ""
         else:
             # Can't continue without a Fly.io app to configure against.
             raise CommandError(flyio_msgs.no_project_name)
