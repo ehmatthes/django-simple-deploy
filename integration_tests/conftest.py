@@ -1,8 +1,11 @@
 """Configuration for integration tests."""
 
 import sys
+from pathlib import Path
 
 import pytest
+
+from .utils import manage_sample_project as msp
 
 
 # --- Validity check ---
@@ -38,7 +41,7 @@ if not check_valid_call():
 
 def pytest_addoption(parser):
     parser.addoption(
-        "--dep-man-approach",
+        "--pkg-manager",
         action="store",
         default="req_txt",
         help="Approach for dependency management: defaults to 'req_txt'"
@@ -64,17 +67,46 @@ def pytest_addoption(parser):
 
 # Bundle these options into a single object.
 class CLIOption:
-    def __init__(self, dep_man_approach, pypi, automate_all, skip_confirmations):
-        self.dep_man_approach = dep_man_approach
+    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations):
+        self.pkg_manager = pkg_manager
         self.pypi = pypi
         self.automate_all = automate_all
         self.skip_confirmations = skip_confirmations
 
 @pytest.fixture(scope='session')
-def cli_option(request):
+def cli_options(request):
     return CLIOption(
-        dep_man_approach=request.config.getoption("--dep-man-approach"),
+        pkg_manager=request.config.getoption("--pkg-manager"),
         pypi=request.config.getoption("--pypi"),
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations")
     )
+
+# --- Sample project ---
+
+@pytest.fixture(scope='session')
+def tmp_project(tmp_path_factory, pytestconfig, cli_options):
+    """Create a copy of the local sample project, which will be deployed.
+
+    Tests will be run against the deployed project, to make sure the deployment
+      is fully functional.
+    """
+
+    # Root directory of local simple_deploy project.
+    sd_root_dir = Path(__file__).parent.parent
+    tmp_proj_dir = tmp_path_factory.mktemp('blog_project')
+
+    print(f"\nTemp project directory: {tmp_proj_dir}")
+    
+    # Copy sample project to tmp dir, and set up the project for using simple_deploy.
+    msp.setup_project(tmp_proj_dir, sd_root_dir)
+
+    # Configure the project for the appropriate dependency management system.
+    msp.reset_test_project(tmp_proj_dir, cli_options)
+
+    # Store the tmp_proj_dir in the pytest cache, so we can access it in the
+    #   open_test_project() plugin.
+    pytestconfig.cache.set("tmp_proj_dir", str(tmp_proj_dir))
+
+    # Return the location of the temp project.
+    return tmp_proj_dir
