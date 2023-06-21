@@ -64,7 +64,7 @@ def test_deployment_process(tmp_project, cli_options):
         project_id = re.search(r'\| id             \| ([a-z0-9]{13})', project_info).group(1)
         print(f"  Found project id: {project_id}")
 
-        project_url = subprocess.check_output(['platform', 'url', '--yes']).decode()
+        project_url = subprocess.check_output(['platform', 'url', '--yes']).decode().strip()
         print(f" Project URL: {project_url}")
 
     # Try pausing before testing functionality.
