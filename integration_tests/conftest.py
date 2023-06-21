@@ -61,7 +61,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--skip-confirmations",
         action="store_true",
-        default=True,
+        default=False,
         help="Skip all confirmations"
     )
 
