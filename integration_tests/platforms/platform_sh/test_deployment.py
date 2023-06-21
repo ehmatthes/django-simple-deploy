@@ -52,7 +52,7 @@ def test_deployment_process(tmp_project, cli_options):
         subprocess.run(['platform', 'push', '--yes'])
         print('-- here2 --')
 
-        project_url = subprocess.check_output(['platform', 'url', '--yes']).decode()
+        project_url = subprocess.check_output(['platform', 'url', '--yes']).decode().strip()
         print(f" Project URL: {project_url}")
 
         project_info = subprocess.check_output(['platform', 'project:info']).decode()
