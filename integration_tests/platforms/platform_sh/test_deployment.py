@@ -1,6 +1,8 @@
 import subprocess, re, os, sys, time
 from pathlib import Path
 
+import pytest
+
 
 def test_platformsh_deployment(tmp_project, cli_options):
 

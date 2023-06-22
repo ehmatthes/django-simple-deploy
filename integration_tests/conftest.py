@@ -21,11 +21,11 @@ def check_valid_call():
         print(msg)
         return False
 
-    # Verify that a specific platform has been requested.
-    if any(platform in ' '.join(sys.argv) for platform in ['platform_sh', 'fly_io', 'heroku']):
+    # Verify that one specific platform has been requested.
+    if sum(platform in ' '.join(sys.argv) for platform in ['platform_sh', 'fly_io', 'heroku']) == 1:
         return True
     else:
-        msg = "For integration testing, you must target a specific platform."
+        msg = "For integration testing, you must target one specific platform."
         print(msg)
         return False
 
