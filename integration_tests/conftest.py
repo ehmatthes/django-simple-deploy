@@ -99,7 +99,7 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options):
     print(f"\nTemp project directory: {tmp_proj_dir}")
     
     # Copy sample project to tmp dir, and set up the project for using simple_deploy.
-    msp.setup_project(tmp_proj_dir, sd_root_dir)
+    msp.setup_project(tmp_proj_dir, sd_root_dir, cli_options)
 
     # Configure the project for the appropriate dependency management system.
     msp.reset_test_project(tmp_proj_dir, cli_options)

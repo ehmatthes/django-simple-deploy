@@ -5,7 +5,7 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
-def setup_project(tmp_proj_dir, sd_root_dir):
+def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     """Set up the test project.
     - Copy the sample project to a temp dir.
     - Set up a venv.
@@ -37,7 +37,12 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     # Install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
-    subprocess.run([pip_path, "install", "-e", sd_root_dir])
+    # If `--pypi` flag has been passed, install from PyPI.
+    if cli_options.pypi:
+        subprocess.run(["pip", "cache", "purge"])
+        subprocess.run([pip_path, "install", "django-simple-deploy"])
+    else:
+        subprocess.run([pip_path, "install", "-e", sd_root_dir])
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
