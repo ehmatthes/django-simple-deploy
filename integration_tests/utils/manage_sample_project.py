@@ -29,24 +29,25 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     #   activating it. It's easier to use the venv directly than to activate it,
     #   with all these separate subprocess.run() calls.
     venv_dir = tmp_proj_dir / "b_env"
-    cmd = f"{sys.executable} -m venv {venv_dir}"
-    make_sp_call(cmd)
+    make_sp_call(f"{sys.executable} -m venv {venv_dir}")
 
     # Install requirements for sample project, from vendor/.
     #   Don't upgrade pip, unless it starts to cause problems.
     pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
+    vendor_path = sd_root_dir / "vendor"
     requirements_path = tmp_proj_dir / "requirements.txt"
-    subprocess.run([pip_path, "install", "--no-index", "--find-links", sd_root_dir / "vendor", "-r", requirements_path])
+    cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
+    make_sp_call(cmd)
 
     # Install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
     # If `--pypi` flag has been passed, install from PyPI.
     if cli_options.pypi:
-        subprocess.run(["pip", "cache", "purge"])
-        subprocess.run([pip_path, "install", "django-simple-deploy"])
+        make_sp_call("pip cache purge")
+        make_sp_call(f"{pip_path} install django-simple-deploy")
     else:
-        subprocess.run([pip_path, "install", "-e", sd_root_dir])
+        make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
@@ -59,11 +60,11 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     #   dropping into this 
     git_exe = "git"
     os.chdir(tmp_proj_dir)
-    subprocess.run([git_exe, "init"])
-    subprocess.run([git_exe, "branch", "-m", "main"])
-    subprocess.run([git_exe, "add", "."])
-    subprocess.run([git_exe, "commit", "-am", "Initial commit."])
-    subprocess.run([git_exe, "tag", "-am", "", "INITIAL_STATE"])
+    make_sp_call("git init")
+    make_sp_call("git branch -m main")
+    make_sp_call("git add .")
+    make_sp_call("git commit -am 'Initial commit.'")
+    make_sp_call("git tag -am '' 'INITIAL_STATE'")
 
     # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_proj_dir / "blog/settings.py"
@@ -126,7 +127,7 @@ def reset_test_project(tmp_dir, cli_options):
 
     # Commit these changes; helpful in diagnosing failed runs, when you cd into the test
     #   project directory and run git status.
-    subprocess.run(["git", "commit", "-am", "Removed unneeded dependency management files."])
+    make_sp_call("git commit -am 'Removed unneeded dependency management files.'")
 
     # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_dir / "blog/settings.py"
@@ -135,7 +136,7 @@ def reset_test_project(tmp_dir, cli_options):
     settings_file_path.write_text(new_settings_content)
 
     # Make sure we have a clean status before calling simple_deploy.
-    subprocess.run(["git", "commit", "-am", "Added simple_deploy to INSTALLED_APPS."])
+    make_sp_call("git commit -am 'Added simple_deploy to INSTALLED_APPS.'")
 
 
 def call_simple_deploy(tmp_dir, sd_command, platform=None):
