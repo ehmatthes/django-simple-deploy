@@ -43,9 +43,7 @@ def test_platformsh_deployment(tmp_project, cli_options):
         time.sleep(10)
 
         print("Pushing to Platform.sh...")
-        print('-- here --')
         subprocess.run(['platform', 'push', '--yes'])
-        print('-- here2 --')
 
         project_url = subprocess.check_output(['platform', 'url', '--yes']).decode().strip()
         print(f" Project URL: {project_url}")
