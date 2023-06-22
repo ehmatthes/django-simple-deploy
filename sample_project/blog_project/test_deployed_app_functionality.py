@@ -59,8 +59,6 @@ if args.flush_db:
 
 print(f"\nTesting functionality of deployed app at {app_url}...\n")
 
-print(f"\napp url:**{app_url}**\n")
-
 # --- Anonymous home page ---
 print("  Checking anonymous home page...")
 r = requests.get(app_url)

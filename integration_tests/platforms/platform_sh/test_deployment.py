@@ -45,7 +45,7 @@ def test_deployment_process(tmp_project, cli_options):
         subprocess.run(['git', 'commit', '-am', "Configured for deployment."])
 
         # Try pausing before making push.
-        time.sleep(30)
+        time.sleep(10)
 
         print("Pushing to Platform.sh...")
         print('-- here --')
@@ -68,7 +68,7 @@ def test_deployment_process(tmp_project, cli_options):
         print(f" Project URL: {project_url}")
 
     # Try pausing before testing functionality.
-    time.sleep(30)
+    time.sleep(10)
     print("\n  Testing functionality of deployed app...")
     subprocess.run([python_cmd, 'test_deployed_app_functionality.py', '--url', project_url])
 
