@@ -66,7 +66,7 @@ def pytest_addoption(parser):
     )
 
 # Bundle these options into a single object.
-class CLIOption:
+class CLIOptions:
     def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations):
         self.pkg_manager = pkg_manager
         self.pypi = pypi
@@ -75,7 +75,7 @@ class CLIOption:
 
 @pytest.fixture(scope='session')
 def cli_options(request):
-    return CLIOption(
+    return CLIOptions(
         pkg_manager=request.config.getoption("--pkg-manager"),
         pypi=request.config.getoption("--pypi"),
         automate_all=request.config.getoption("--automate-all"),

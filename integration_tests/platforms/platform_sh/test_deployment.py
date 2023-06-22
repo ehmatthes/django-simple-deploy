@@ -2,15 +2,10 @@ import subprocess, re, os, sys, time
 from pathlib import Path
 
 
-def test_deployment(tmp_project, cli_options):
-    """Test deployment to platform_sh."""
-    pass
+def test_platformsh_deployment(tmp_project, cli_options):
 
-    print("cli_options:")
-    print(cli_options.__dict__)
-
-
-def test_deployment_process(tmp_project, cli_options):
+    print("\nTesting deployment to Platform.sh using the following options:")
+    print(cli_options)
 
     # Get the path to the Python interpreter in the virtual environment.
     #   We'll use the full path to the interpreter, rather than trying to rely on
