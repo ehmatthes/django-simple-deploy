@@ -5,6 +5,9 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
+from .it_helper_functions import make_sp_call
+
+
 def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     """Set up the test project.
     - Copy the sample project to a temp dir.
@@ -26,7 +29,8 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     #   activating it. It's easier to use the venv directly than to activate it,
     #   with all these separate subprocess.run() calls.
     venv_dir = tmp_proj_dir / "b_env"
-    subprocess.run([sys.executable, "-m", "venv", venv_dir])
+    cmd = f"{sys.executable} -m venv {venv_dir}"
+    make_sp_call(cmd)
 
     # Install requirements for sample project, from vendor/.
     #   Don't upgrade pip, unless it starts to cause problems.
