@@ -133,7 +133,7 @@ class PlatformDeployer:
 
     def _add_requirements(self):
         """Add requirements for serving on Platform.sh."""
-        requirements = ["platformshconfig", "gunicorn", "psycopg2"]
+        requirements = ["platformshconfig", "gunicorn", "psycopg2", "django-simple-deploy"]
         self.sd.add_packages(requirements)
 
 
@@ -209,7 +209,7 @@ class PlatformDeployer:
         # Pause to make sure project that was created can be used.
         self.sd.write_output("    Pausing 10s to make sure project is ready to use...")
         time.sleep(10)
-        
+
         cmd = "platform push --yes"
         self.sd.execute_command(cmd)
 

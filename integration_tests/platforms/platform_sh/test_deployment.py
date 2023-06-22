@@ -5,7 +5,7 @@ from pathlib import Path
 def test_platformsh_deployment(tmp_project, cli_options):
 
     print("\nTesting deployment to Platform.sh using the following options:")
-    print(cli_options)
+    print(cli_options.__dict__)
 
     # Get the path to the Python interpreter in the virtual environment.
     #   We'll use the full path to the interpreter, rather than trying to rely on
