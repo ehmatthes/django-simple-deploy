@@ -522,9 +522,13 @@ class Command(BaseCommand):
         #   required. If it's not, platforms will reject the push.
         # This step isn't needed for Pipenv users, because when they install
         #   django-simple-deploy it's automatically added to Pipfile.
-        if self.pkg_manager == "req_txt":
-            self.write_output("\n  Looking for django-simple-deploy in requirements.txt...")
-            self.add_package('django-simple-deploy')
+        # if self.pkg_manager != "pipenv":
+        #     self.write_output("\n  Looking for django-simple-deploy in requirements...")
+        #     self.add_package('django-simple-deploy')
+
+        # Do this for all package managers, until testing better sorted?
+        self.write_output("\n  Looking for django-simple-deploy in requirements...")
+        self.add_package('django-simple-deploy')
 
 
     def _get_req_txt_requirements(self):

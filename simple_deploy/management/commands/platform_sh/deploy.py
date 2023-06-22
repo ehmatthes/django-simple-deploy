@@ -133,7 +133,7 @@ class PlatformDeployer:
 
     def _add_requirements(self):
         """Add requirements for serving on Platform.sh."""
-        requirements = ["platformshconfig", "gunicorn", "psycopg2", "django-simple-deploy"]
+        requirements = ["platformshconfig", "gunicorn", "psycopg2"]
         self.sd.add_packages(requirements)
 
 

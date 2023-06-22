@@ -23,3 +23,4 @@ optional = true
 psycopg2 = "*"
 gunicorn = "*"
 platformshconfig = "*"
+django-simple-deploy = "*"
