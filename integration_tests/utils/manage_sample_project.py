@@ -1,6 +1,4 @@
-import os
-import subprocess
-import sys
+import os, sys
 from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
@@ -8,12 +6,20 @@ from shlex import split
 from .it_helper_functions import make_sp_call
 
 
+def add_simple_deploy(tmp_dir):
+    """Add simple_deploy to INSTALLED_APPS in the test project."""
+    settings_file_path = tmp_dir / "blog/settings.py"
+    settings_content = settings_file_path.read_text()
+    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    settings_file_path.write_text(new_settings_content)
+
+
 def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     """Set up the test project.
     - Copy the sample project to a temp dir.
     - Set up a venv.
-    - Install requiremenst for the sample project.
-    - Install the local, editable version of simple_deploy.
+    - Install requirements for the sample project.
+    - Install the appropriate version of simple_deploy.
     - Make an initial commit.
     - Add simple_deploy to INSTALLED_APPS.
 
@@ -39,7 +45,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
     make_sp_call(cmd)
 
-    # Install the local version of simple_deploy (the version we're testing).
+    # Usually, install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
     # If `--pypi` flag has been passed, install from PyPI.
@@ -67,10 +73,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     make_sp_call("git tag -am '' 'INITIAL_STATE'")
 
     # Add simple_deploy to INSTALLED_APPS.
-    settings_file_path = tmp_proj_dir / "blog/settings.py"
-    settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
-    settings_file_path.write_text(new_settings_content)
+    add_simple_deploy(tmp_proj_dir)
 
 
 def reset_test_project(tmp_dir, cli_options):
@@ -84,7 +87,7 @@ def reset_test_project(tmp_dir, cli_options):
     os.chdir(tmp_dir)
 
     # Reset to the initial state of the temp project instance.
-    subprocess.run(["git", "reset", "--hard", "INITIAL_STATE"])
+    make_sp_call("git reset --hard INITIAL_STATE")
 
     # Remove any files that may remain from the last run of simple_deploy.
     files_dirs_to_remove = [
@@ -130,10 +133,7 @@ def reset_test_project(tmp_dir, cli_options):
     make_sp_call("git commit -am 'Removed unneeded dependency management files.'")
 
     # Add simple_deploy to INSTALLED_APPS.
-    settings_file_path = tmp_dir / "blog/settings.py"
-    settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
-    settings_file_path.write_text(new_settings_content)
+    add_simple_deploy(tmp_dir)
 
     # Make sure we have a clean status before calling simple_deploy.
     make_sp_call("git commit -am 'Added simple_deploy to INSTALLED_APPS.'")
