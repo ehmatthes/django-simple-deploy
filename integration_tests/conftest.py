@@ -101,9 +101,6 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options):
     # Copy sample project to tmp dir, and set up the project for using simple_deploy.
     msp.setup_project(tmp_proj_dir, sd_root_dir, cli_options)
 
-    # Configure the project for the appropriate dependency management system.
-    msp.reset_test_project(tmp_proj_dir, cli_options)
-
     # Store the tmp_proj_dir in the pytest cache, so we can access it in the
     #   open_test_project() plugin.
     pytestconfig.cache.set("tmp_proj_dir", str(tmp_proj_dir))

@@ -1,9 +1,11 @@
-import os, sys
+import os, sys, subprocess
 from pathlib import Path
 from shutil import copytree, rmtree
 
 from .it_helper_functions import make_sp_call
 
+
+# --- Helper functions ---
 
 def add_simple_deploy(tmp_dir):
     """Add simple_deploy to INSTALLED_APPS in the test project."""
@@ -12,6 +14,23 @@ def add_simple_deploy(tmp_dir):
     new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
     settings_file_path.write_text(new_settings_content)
 
+
+def remove_unneeded_files(proj_dir, pkg_manager):
+    """Remove dependency management files not needed for the
+    selected package manager.
+    """
+    if pkg_manager == "req_txt":
+        (proj_dir / "pyproject.toml").unlink()
+        (proj_dir / "Pipfile").unlink()
+    elif pkg_manager == "poetry":
+        (proj_dir / "requirements.txt").unlink()
+        (proj_dir / "Pipfile").unlink()
+    elif pkg_manager == "pipenv":
+        (proj_dir / "requirements.txt").unlink()
+        (proj_dir / "pyproject.toml").unlink()
+
+
+# --- Main functions
 
 def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     """Set up the test project.
@@ -29,6 +48,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     # Copy sample project to temp dir.
     sample_project_dir = sd_root_dir / "sample_project/blog_project"
     copytree(sample_project_dir, tmp_proj_dir, dirs_exist_ok=True)
+    remove_unneeded_files(tmp_proj_dir, cli_options.pkg_manager)
 
     # Create a virtual envronment. Set the path to the environemnt, instead of
     #   activating it. It's easier to use the venv directly than to activate it,
@@ -37,12 +57,39 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     make_sp_call(f"{sys.executable} -m venv {venv_dir}")
 
     # Install requirements for sample project, from vendor/.
-    #   Don't upgrade pip, unless it starts to cause problems.
+    # Do this using the same package manager that the end user has selected.
+
     pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
     vendor_path = sd_root_dir / "vendor"
-    requirements_path = tmp_proj_dir / "requirements.txt"
-    cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
-    make_sp_call(cmd)
+    if cli_options.pkg_manager == 'req_txt':
+        #   Don't upgrade pip, unless it starts to cause problems.
+        requirements_path = tmp_proj_dir / "requirements.txt"
+        cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
+        make_sp_call(cmd)
+    elif cli_options.pkg_manager == 'poetry':
+        # make_sp_call("yes | poetry cache clear --all pypi")
+        # make_sp_call("poetry install")
+        # print("Poetry info:")
+        # make_sp_call("poetry env info")
+        activate_path = venv_dir / "bin" / "activate"
+        cmd = f"chdir {tmp_proj_dir} && source {activate_path} && poetry cache clear --all pypi -n"
+        subprocess.run(cmd, shell=True, check=True, executable='/bin/zsh')
+
+        cmd = f"chdir {tmp_proj_dir} && source {activate_path} && poetry install"
+        subprocess.run(cmd, shell=True, check=True, executable='/bin/zsh') # here
+
+        print("Poetry info:")
+        cmd = f"chdir {tmp_proj_dir} && source {activate_path} && poetry env info"
+        subprocess.run(cmd, shell=True, check=True, executable='/bin/zsh') # here 2
+    elif cli_options.pkg_manager == 'pipenv':
+        pass
+
+
+
+
+
+
+
 
     # Usually, install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
@@ -74,65 +121,62 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     # Add simple_deploy to INSTALLED_APPS.
     add_simple_deploy(tmp_proj_dir)
 
-
-def reset_test_project(tmp_dir, cli_options):
-    """Reset the test project, so it's ready to be used by another test module.
-    It may be used by a different platform than the previous run.
-
-    Note: Even though integration tests largely target one platform and pkg manager
-    per session, this is a useful, flexible function as is.
-    """
-
-    os.chdir(tmp_dir)
-
-    # Reset to the initial state of the temp project instance.
-    make_sp_call("git reset --hard INITIAL_STATE")
-
-    # Remove any files that may remain from the last run of simple_deploy.
-    files_dirs_to_remove = [
-        # Fly.io
-        "fly.toml",
-        "Dockerfile",
-        ".dockerignore",
-
-        # Platform.sh
-        ".platform.app.yaml",
-        ".platform",
-
-        # Heroku
-        "Procfile",
-        "static",
-
-        # All platforms.
-        "simple_deploy_logs",
-        "__pycache__",
-        "poetry.lock",
-    ]
-
-    for entry in files_dirs_to_remove:
-        entry_path = Path(tmp_dir) / entry
-        if entry_path.is_file():
-            entry_path.unlink()
-        elif entry_path.is_dir():
-            rmtree(entry_path)
-
-    # Remove dependency management files not needed for this package manager
-    if cli_options.pkg_manager == "req_txt":
-        (tmp_dir / "pyproject.toml").unlink()
-        (tmp_dir / "Pipfile").unlink()
-    elif cli_options.pkg_manager == "poetry":
-        (tmp_dir / "requirements.txt").unlink()
-        (tmp_dir / "Pipfile").unlink()
-    elif cli_options.pkg_manager == "pipenv":
-        (tmp_dir / "requirements.txt").unlink()
-        (tmp_dir / "pyproject.toml").unlink()
-
-    # Commit these changes; helpful in diagnosing failed runs, when you cd into the test
-    #   project directory and run git status.
-    make_sp_call("git commit -am 'Removed unneeded dependency management files.'")
-
-    # Add simple_deploy to INSTALLED_APPS.
-    add_simple_deploy(tmp_dir)
-
     # Make sure we have a clean status before calling simple_deploy.
     make_sp_call("git commit -am 'Added simple_deploy to INSTALLED_APPS.'")
+
+
+# def reset_test_project(tmp_dir, cli_options):
+#     """Reset the test project, so it's ready to be used by another test module.
+#     It may be used by a different platform than the previous run.
+
+#     Note: Even though integration tests largely target one platform and pkg manager
+#     per session, this is a useful, flexible function as is.
+#     """
+
+#     os.chdir(tmp_dir)
+
+#     # Reset to the initial state of the temp project instance.
+#     make_sp_call("git reset --hard INITIAL_STATE")
+
+#     # Remove any files that may remain from the last run of simple_deploy.
+#     files_dirs_to_remove = [
+#         # Fly.io
+#         "fly.toml",
+#         "Dockerfile",
+#         ".dockerignore",
+
+#         # Platform.sh
+#         ".platform.app.yaml",
+#         ".platform",
+
+#         # Heroku
+#         "Procfile",
+#         "static",
+
+#         # All platforms.
+#         "simple_deploy_logs",
+#         "__pycache__",
+#         "poetry.lock",
+#     ]
+
+#     for entry in files_dirs_to_remove:
+#         entry_path = Path(tmp_dir) / entry
+#         if entry_path.is_file():
+#             entry_path.unlink()
+#         elif entry_path.is_dir():
+#             rmtree(entry_path)
+
+#     # Remove dependency management files not needed for this package manager
+#     if cli_options.pkg_manager == "req_txt":
+#         (tmp_dir / "pyproject.toml").unlink()
+#         (tmp_dir / "Pipfile").unlink()
+#     elif cli_options.pkg_manager == "poetry":
+#         (tmp_dir / "requirements.txt").unlink()
+#         (tmp_dir / "Pipfile").unlink()
+#     elif cli_options.pkg_manager == "pipenv":
+#         (tmp_dir / "requirements.txt").unlink()
+#         (tmp_dir / "pyproject.toml").unlink()
+
+#     # Commit these changes; helpful in diagnosing failed runs, when you cd into the test
+#     #   project directory and run git status.
+#     make_sp_call("git commit -am 'Removed unneeded dependency management files.'")
