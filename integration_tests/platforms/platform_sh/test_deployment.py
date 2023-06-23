@@ -3,6 +3,8 @@ from pathlib import Path
 
 import pytest
 
+from ...utils.it_helper_functions import make_sp_call
+
 
 def test_dummy(tmp_project):
     """Helpful to have an empty test to run when testing setup steps."""
@@ -11,7 +13,7 @@ def test_dummy(tmp_project):
 # Skip this test to speed up testing of setup steps.
 # @pytest.mark.skip
 def test_platformsh_deployment(tmp_project, cli_options):
-
+    """Test the full, live deployment process to Platform.sh."""
     print("\nTesting deployment to Platform.sh using the following options:")
     print(cli_options.__dict__)
 
@@ -22,14 +24,12 @@ def test_platformsh_deployment(tmp_project, cli_options):
         python_exe = Path(tmp_project) / "b_env" / "Scripts" / "python.exe"
     else:
         python_exe = Path(tmp_project) / "b_env" / "bin" / "python"
-
-    # sd_command = sd_command.replace("python", python_exe.as_posix())
     python_cmd = python_exe.as_posix()
 
     if not cli_options.automate_all:
         print("\n\nCreating a project on Platform.sh...")
-        org_output = subprocess.check_output(['platform', 'org:info'])
-        org_id = re.search(r'([A-Z0-9]{26})', org_output.decode()).group(1)
+        org_output = make_sp_call("platform org:info", capture_output=True).stdout.decode()
+        org_id = re.search(r'([A-Z0-9]{26})', org_output).group(1)
         print(f"  Found Platform.sh organization id: {org_id}")
         subprocess.run(['platform', 'create', '--title', 'my_blog_project', '--org', org_id, '--region', 'us-3.platform.sh', '--yes'])
 

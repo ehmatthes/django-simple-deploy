@@ -7,7 +7,7 @@ The functions in this module are not specific to any one platform. If a function
 import subprocess, shlex
 
 
-def make_sp_call(cmd):
+def make_sp_call(cmd, capture_output=False):
     """Make a subprocess call.
 
     This wrapper function lets test code use full commands, rather than
@@ -17,4 +17,5 @@ def make_sp_call(cmd):
     Returns: None, or CompletedProcess instance.
     """
     cmd_parts = shlex.split(cmd)
-    subprocess.run(cmd_parts)
+
+    return subprocess.run(cmd_parts, capture_output=capture_output)
