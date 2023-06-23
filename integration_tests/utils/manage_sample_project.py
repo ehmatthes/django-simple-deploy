@@ -1,7 +1,6 @@
 import os, sys
 from pathlib import Path
 from shutil import copytree, rmtree
-from shlex import split
 
 from .it_helper_functions import make_sp_call
 
