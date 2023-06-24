@@ -58,7 +58,6 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
 
     # Install requirements for sample project, from vendor/.
     # Do this using the same package manager that the end user has selected.
-
     pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
     vendor_path = sd_root_dir / "vendor"
 
@@ -80,12 +79,6 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         pass
 
 
-
-
-
-
-
-
     # Usually, install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
@@ -98,39 +91,21 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
     elif cli_options.pkg_manager == 'poetry':
-        # print("Installing django-simple-deploy to project environment...")
-
-        # dsd_wheel_source = sd_root_dir / "dist" / "django_simple_deploy-0.5.15-py3-none-any.whl"
-        # dsd_wheel_dest = tmp_proj_dir / "django_simple_deploy-0.5.15-py3-none-any.whl"
-        # copy(dsd_wheel_source, dsd_wheel_dest)
-
-        # cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry add {dsd_wheel_dest}"
-        # print("command:", cmd)
-        # subprocess.run(cmd, shell=True, check=True)
-
-        # os.remove(dsd_wheel_dest)
-
+        # Use pip to install the local version.
+        # We could install the local wheel file using `poetry add`, but then 
+        #   the lock file won't work on the remote server. We're really testing
+        #   how simple_deploy handles a poetry environment, we're not testing
+        #   how poetry installs the local package. So this should reliably test
+        #   whether an end user who uses poetry is able to use simple_deploy
+        #   successfully.
         if cli_options.pypi:
             cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry add django-simple-deploy"
             subprocess.run(cmd, shell=True, check=True)
         else:
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
-            # cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry lock --no-update"
-            # subprocess.run(cmd, shell=True, check=True)
-
-
-
 
     elif cli_options.pkg_manager == 'pipenv':
         pass
-
-
-
-
-
-
-
-
 
 
 
