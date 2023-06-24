@@ -80,9 +80,8 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         cmd = f"cd {tmp_proj_dir} && {pip_path} install pipenv"
         subprocess.run(cmd, shell=True, check=True)
 
-        cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install --skip-lock"
+        cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install"# --skip-lock"
         subprocess.run(cmd, shell=True, check=True)
-
 
     # Usually, install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
@@ -115,7 +114,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             subprocess.run(cmd, shell=True, check=True)
         else:
             # Install local (editable) version of django-simple-deploy.
-            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {sd_root_dir} --skip-lock"
+            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {sd_root_dir}"# --skip-lock"
             subprocess.run(cmd, shell=True, check=True)
 
             # Rewrite the specification for dsd in Pipfile, so remote server
@@ -135,10 +134,6 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             # Generate lock file.
             cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv lock"
             subprocess.run(cmd, shell=True, check=True)
-            
-        
-
-
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
@@ -162,60 +157,3 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
 
     # Make sure we have a clean status before calling simple_deploy.
     make_sp_call("git commit -am 'Added simple_deploy to INSTALLED_APPS.'")
-
-
-# def reset_test_project(tmp_dir, cli_options):
-#     """Reset the test project, so it's ready to be used by another test module.
-#     It may be used by a different platform than the previous run.
-
-#     Note: Even though integration tests largely target one platform and pkg manager
-#     per session, this is a useful, flexible function as is.
-#     """
-
-#     os.chdir(tmp_dir)
-
-#     # Reset to the initial state of the temp project instance.
-#     make_sp_call("git reset --hard INITIAL_STATE")
-
-#     # Remove any files that may remain from the last run of simple_deploy.
-#     files_dirs_to_remove = [
-#         # Fly.io
-#         "fly.toml",
-#         "Dockerfile",
-#         ".dockerignore",
-
-#         # Platform.sh
-#         ".platform.app.yaml",
-#         ".platform",
-
-#         # Heroku
-#         "Procfile",
-#         "static",
-
-#         # All platforms.
-#         "simple_deploy_logs",
-#         "__pycache__",
-#         "poetry.lock",
-#     ]
-
-#     for entry in files_dirs_to_remove:
-#         entry_path = Path(tmp_dir) / entry
-#         if entry_path.is_file():
-#             entry_path.unlink()
-#         elif entry_path.is_dir():
-#             rmtree(entry_path)
-
-#     # Remove dependency management files not needed for this package manager
-#     if cli_options.pkg_manager == "req_txt":
-#         (tmp_dir / "pyproject.toml").unlink()
-#         (tmp_dir / "Pipfile").unlink()
-#     elif cli_options.pkg_manager == "poetry":
-#         (tmp_dir / "requirements.txt").unlink()
-#         (tmp_dir / "Pipfile").unlink()
-#     elif cli_options.pkg_manager == "pipenv":
-#         (tmp_dir / "requirements.txt").unlink()
-#         (tmp_dir / "pyproject.toml").unlink()
-
-#     # Commit these changes; helpful in diagnosing failed runs, when you cd into the test
-#     #   project directory and run git status.
-#     make_sp_call("git commit -am 'Removed unneeded dependency management files.'")
