@@ -60,6 +60,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     # Do this using the same package manager that the end user has selected.
     pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
     vendor_path = sd_root_dir / "vendor"
+    activate_path = venv_dir / "bin" / "activate"
 
     if cli_options.pkg_manager == 'req_txt':
         #   Don't upgrade pip, unless it starts to cause problems.
@@ -68,7 +69,6 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         make_sp_call(cmd)
 
     elif cli_options.pkg_manager == 'poetry':
-        activate_path = venv_dir / "bin" / "activate"
         cmd = f"cd {tmp_proj_dir} && . {activate_path} && poetry cache clear --all pypi -n"
         subprocess.run(cmd, shell=True, check=True)
 
@@ -76,7 +76,12 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         subprocess.run(cmd, shell=True, check=True)
 
     elif cli_options.pkg_manager == 'pipenv':
-        pass
+        # Install pipenv.
+        cmd = f"cd {tmp_proj_dir} && {pip_path} install pipenv"
+        subprocess.run(cmd, shell=True, check=True)
+
+        cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install --skip-lock"
+        subprocess.run(cmd, shell=True, check=True)
 
 
     # Usually, install the local version of simple_deploy (the version we're testing).
@@ -106,7 +111,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
 
     elif cli_options.pkg_manager == 'pipenv':
         pass
-
+        
 
 
 
