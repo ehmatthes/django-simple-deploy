@@ -110,7 +110,32 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
     elif cli_options.pkg_manager == 'pipenv':
-        pass
+        if cli_options.pypi:
+            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install django-simple-deploy"
+            subprocess.run(cmd, shell=True, check=True)
+        else:
+            # Install local (editable) version of django-simple-deploy.
+            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {sd_root_dir} --skip-lock"
+            subprocess.run(cmd, shell=True, check=True)
+
+            # Rewrite the specification for dsd in Pipfile, so remote server
+            #   won't try to install local version.
+            pipfile_path = tmp_proj_dir / "Pipfile"
+            pipfile_lines = pipfile_path.read_text().splitlines()
+            new_pipfile_lines = []
+            for line in pipfile_lines:
+                if "django-simple-deploy" in line:
+                    new_pipfile_lines.append('django-simple-deploy = "*"')
+                else:
+                    new_pipfile_lines.append(line)
+
+            new_pipfile_contents = "\n".join(new_pipfile_lines)
+            pipfile_path.write_text(new_pipfile_contents)
+
+            # Generate lock file.
+            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv lock"
+            subprocess.run(cmd, shell=True, check=True)
+            
         
 
 
