@@ -1,6 +1,6 @@
 import os, sys, subprocess
 from pathlib import Path
-from shutil import copytree, rmtree
+from shutil import copy, copytree, rmtree
 
 from .it_helper_functions import make_sp_call
 
@@ -61,26 +61,21 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
 
     pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
     vendor_path = sd_root_dir / "vendor"
+
     if cli_options.pkg_manager == 'req_txt':
         #   Don't upgrade pip, unless it starts to cause problems.
         requirements_path = tmp_proj_dir / "requirements.txt"
         cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
         make_sp_call(cmd)
+
     elif cli_options.pkg_manager == 'poetry':
-        # make_sp_call("yes | poetry cache clear --all pypi")
-        # make_sp_call("poetry install")
-        # print("Poetry info:")
-        # make_sp_call("poetry env info")
         activate_path = venv_dir / "bin" / "activate"
-        cmd = f"chdir {tmp_proj_dir} && source {activate_path} && poetry cache clear --all pypi -n"
-        subprocess.run(cmd, shell=True, check=True, executable='/bin/zsh')
+        cmd = f"cd {tmp_proj_dir} && . {activate_path} && poetry cache clear --all pypi -n"
+        subprocess.run(cmd, shell=True, check=True)
 
-        cmd = f"chdir {tmp_proj_dir} && source {activate_path} && poetry install"
-        subprocess.run(cmd, shell=True, check=True, executable='/bin/zsh') # here
+        cmd = f"cd {tmp_proj_dir} && . {activate_path} && poetry install"
+        subprocess.run(cmd, shell=True, check=True)
 
-        print("Poetry info:")
-        cmd = f"chdir {tmp_proj_dir} && source {activate_path} && poetry env info"
-        subprocess.run(cmd, shell=True, check=True, executable='/bin/zsh') # here 2
     elif cli_options.pkg_manager == 'pipenv':
         pass
 
@@ -95,11 +90,50 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
     # If `--pypi` flag has been passed, install from PyPI.
-    if cli_options.pypi:
-        make_sp_call("pip cache purge")
-        make_sp_call(f"{pip_path} install django-simple-deploy")
-    else:
-        make_sp_call(f"{pip_path} install -e {sd_root_dir}")
+    if cli_options.pkg_manager == 'req_txt':
+        if cli_options.pypi:
+            make_sp_call("pip cache purge")
+            make_sp_call(f"{pip_path} install django-simple-deploy")
+        else:
+            make_sp_call(f"{pip_path} install -e {sd_root_dir}")
+
+    elif cli_options.pkg_manager == 'poetry':
+        # print("Installing django-simple-deploy to project environment...")
+
+        # dsd_wheel_source = sd_root_dir / "dist" / "django_simple_deploy-0.5.15-py3-none-any.whl"
+        # dsd_wheel_dest = tmp_proj_dir / "django_simple_deploy-0.5.15-py3-none-any.whl"
+        # copy(dsd_wheel_source, dsd_wheel_dest)
+
+        # cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry add {dsd_wheel_dest}"
+        # print("command:", cmd)
+        # subprocess.run(cmd, shell=True, check=True)
+
+        # os.remove(dsd_wheel_dest)
+
+        if cli_options.pypi:
+            cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry add django-simple-deploy"
+            subprocess.run(cmd, shell=True, check=True)
+        else:
+            make_sp_call(f"{pip_path} install -e {sd_root_dir}")
+            # cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry lock --no-update"
+            # subprocess.run(cmd, shell=True, check=True)
+
+
+
+
+    elif cli_options.pkg_manager == 'pipenv':
+        pass
+
+
+
+
+
+
+
+
+
+
+
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
