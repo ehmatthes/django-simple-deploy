@@ -120,13 +120,16 @@ def test_platformsh_deployment(tmp_project, cli_options):
         msg_local = dedent("The deployment process has impacted local functionality.")
 
     msg = dedent(f"""
+        ************************************
         ***** Integration test summary *****
 
         {msg_remote}
 
         {msg_local}
-        *****     End test summary     *****
         
+        *****     End test summary     *****
+        ************************************
+
     """)
     print(msg)
 
