@@ -123,10 +123,15 @@ def test_platformsh_deployment(tmp_project, cli_options):
         ************************************
         ***** Integration test summary *****
 
+        Test options:
+        - Package manager: {cli_options.pkg_manager}
+        - Tested {'PyPI' if cli_options.pypi else 'local'} version of django-simple-deploy.
+        - {'Used' if cli_options.automate_all else 'Did not use'} `--automate-all` flag.
+
         {msg_remote}
 
         {msg_local}
-        
+
         *****     End test summary     *****
         ************************************
 
