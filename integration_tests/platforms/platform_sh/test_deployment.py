@@ -11,7 +11,7 @@ def test_dummy(tmp_project):
     pass
 
 # Skip this test to speed up testing of setup steps.
-@pytest.mark.skip
+# @pytest.mark.skip
 def test_platformsh_deployment(tmp_project, cli_options):
     """Test the full, live deployment process to Platform.sh."""
     print("\nTesting deployment to Platform.sh using the following options:")
@@ -48,7 +48,7 @@ def test_platformsh_deployment(tmp_project, cli_options):
         make_sp_call("git commit -am 'Configured for deployment.'")
 
         # Try pausing before making push.
-        time.sleep(10)
+        time.sleep(30)
 
         print("Pushing to Platform.sh...")
         make_sp_call("platform push --yes")
