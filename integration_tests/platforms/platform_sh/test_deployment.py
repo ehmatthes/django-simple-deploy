@@ -1,5 +1,6 @@
 import subprocess, re, os, sys, time
 from pathlib import Path
+from textwrap import dedent
 
 import pytest
 
@@ -71,15 +72,28 @@ def test_platformsh_deployment(tmp_project, cli_options):
     # Try pausing before testing functionality.
     time.sleep(10)
     print("\n  Testing functionality of deployed app...")
-    make_sp_call(f"{python_cmd} test_deployed_app_functionality.py --url {project_url}")
+
+    test_output = make_sp_call(f"{python_cmd} test_deployed_app_functionality.py --url {project_url}",
+            capture_output=True).stdout.decode()
+
+    if "--- All tested functionality works. ---" in test_output:
+        remote_functionality_passed = True
+    else:
+        remote_functionality_passed = False
 
     print("\n  Testing local functionality with runserver...")
     make_sp_call(f"{python_cmd} manage.py migrate")
     
     run_server = subprocess.Popen(f"{python_cmd} manage.py runserver 8008", shell=True)
     time.sleep(1)
-    make_sp_call(f"{python_cmd} test_deployed_app_functionality.py --url http://localhost:8008/")
+    test_output = make_sp_call(f"{python_cmd} test_deployed_app_functionality.py --url http://localhost:8008/",
+            capture_output=True).stdout.decode()
     run_server.terminate()
+
+    if "--- All tested functionality works. ---" in test_output:
+        local_functionality_passed = True
+    else:
+        local_functionality_passed = False
 
     print("    Finished testing local functionality.")
 
@@ -88,6 +102,35 @@ def test_platformsh_deployment(tmp_project, cli_options):
     else:
         print("\n--- Finished testing local development version. ---")
 
+    # Summarize test results.
+    #   pytest's summary is not particularly helpful here.
+    if remote_functionality_passed:
+        msg_remote = dedent("The deployment was successful.")
+    else:
+        msg_remote = dedent("""
+            Some or all of the remote functionality tests failed.
+            
+            You may want to refresh the browser page, and see if
+              the deployment just took longer than usual.
+        """)
+
+    if local_functionality_passed:
+        msg_local = dedent("The project still works locally.")
+    else:
+        msg_local = dedent("The deployment process has impacted local functionality.")
+
+    msg = dedent(f"""
+        ***** Integration test summary *****
+
+        {msg_remote}
+
+        {msg_local}
+        *****     End test summary     *****
+        
+    """)
+    print(msg)
+
+    # Offer to destroy project.
     if not cli_options.skip_confirmations:
         while True:
             yn = input("Destroy remote project? ")
