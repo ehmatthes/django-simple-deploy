@@ -7,6 +7,42 @@ import pytest
 from ...utils.it_helper_functions import make_sp_call
 
 
+# --- Platform-agnostic elper functions ---
+
+def get_python_exe(tmp_project):
+    """Get the path to the Python interpreter in the virtual environment.
+    
+    We'll use the full path to the interpreter, rather than trying to rely on
+    an active venv.
+    """
+    if sys.platform == "win32":
+        python_exe = Path(tmp_project) / "b_env" / "Scripts" / "python.exe"
+    else:
+        python_exe = Path(tmp_project) / "b_env" / "bin" / "python"
+
+    return python_exe.as_posix()
+
+def run_simple_deploy(python_cmd, platform, automate_all):
+    """Run simple_deploy against the test project."""
+    print("Running manage.py simple_deploy...")
+    if automate_all:
+        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --automate-all --integration-testing")
+    else:
+        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --integration-testing")
+
+
+# --- Platform-specific helper functions ---
+
+def create_platformsh_project():
+    """Create a project on Platform.sh."""
+    print("\n\nCreating a project on Platform.sh...")
+    org_output = make_sp_call("platform org:info", capture_output=True).stdout.decode()
+    org_id = re.search(r'([A-Z0-9]{26})', org_output).group(1)
+    print(f"  Found Platform.sh organization id: {org_id}")
+    make_sp_call(f"platform create --title my_blog_project --org {org_id} --region us-3.platform.sh --yes")
+
+# --- Test functions ---
+
 def test_dummy(tmp_project):
     """Helpful to have an empty test to run when testing setup steps."""
     pass
@@ -18,27 +54,12 @@ def test_platformsh_deployment(tmp_project, cli_options):
     print("\nTesting deployment to Platform.sh using the following options:")
     print(cli_options.__dict__)
 
-    # Get the path to the Python interpreter in the virtual environment.
-    #   We'll use the full path to the interpreter, rather than trying to rely on
-    #   an active venv.
-    if sys.platform == "win32":
-        python_exe = Path(tmp_project) / "b_env" / "Scripts" / "python.exe"
-    else:
-        python_exe = Path(tmp_project) / "b_env" / "bin" / "python"
-    python_cmd = python_exe.as_posix()
+    python_cmd = get_python_exe(tmp_project)
 
     if not cli_options.automate_all:
-        print("\n\nCreating a project on Platform.sh...")
-        org_output = make_sp_call("platform org:info", capture_output=True).stdout.decode()
-        org_id = re.search(r'([A-Z0-9]{26})', org_output).group(1)
-        print(f"  Found Platform.sh organization id: {org_id}")
-        make_sp_call(f"platform create --title my_blog_project --org {org_id} --region us-3.platform.sh --yes")
+        create_platformsh_project()
 
-    print("Running manage.py simple_deploy...")
-    if cli_options.automate_all:
-        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform platform_sh --automate-all --integration-testing")
-    else:
-        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform platform_sh --integration-testing")
+    run_simple_deploy(python_cmd, 'platform_sh', cli_options.automate_all)
 
     if cli_options.pkg_manager == 'pipenv':
         make_sp_call(f"{python_cmd} -m pipenv lock")
@@ -107,8 +128,7 @@ def test_platformsh_deployment(tmp_project, cli_options):
     if remote_functionality_passed:
         msg_remote = dedent("The deployment was successful.")
     else:
-        msg_remote = dedent("""
-            Some or all of the remote functionality tests failed.
+        msg_remote = dedent("""Some or all of the remote functionality tests failed.
             
             You may want to refresh the browser page, and see if
               the deployment just took longer than usual.
