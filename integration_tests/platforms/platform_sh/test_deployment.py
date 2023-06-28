@@ -41,6 +41,27 @@ def create_platformsh_project():
     print(f"  Found Platform.sh organization id: {org_id}")
     make_sp_call(f"platform create --title my_blog_project --org {org_id} --region us-3.platform.sh --yes")
 
+def commit_configuration_changes():
+    """Commit configuration changes made by simple_deploy."""
+    print("\n\nCommitting changes...")
+    make_sp_call("git add .")
+    make_sp_call("git commit -am 'Configured for deployment.'")
+
+    # Try pausing before making push.
+    time.sleep(30)
+
+    print("Pushing to Platform.sh...")
+    make_sp_call("platform push --yes")
+
+    project_url = make_sp_call("platform url --yes", capture_output=True).stdout.decode().strip()
+    print(f" Project URL: {project_url}")
+
+    project_info = make_sp_call("platform project:info", capture_output=True).stdout.decode()
+    project_id = re.search(r'\| id             \| ([a-z0-9]{13})', project_info).group(1)
+    print(f"  Found project id: {project_id}")
+
+    return project_url, project_id
+
 # --- Test functions ---
 
 def test_dummy(tmp_project):
@@ -65,22 +86,7 @@ def test_platformsh_deployment(tmp_project, cli_options):
         make_sp_call(f"{python_cmd} -m pipenv lock")
 
     if not cli_options.automate_all:
-        print("\n\nCommitting changes...")
-        make_sp_call("git add .")
-        make_sp_call("git commit -am 'Configured for deployment.'")
-
-        # Try pausing before making push.
-        time.sleep(30)
-
-        print("Pushing to Platform.sh...")
-        make_sp_call("platform push --yes")
-
-        project_url = make_sp_call("platform url --yes", capture_output=True).stdout.decode().strip()
-        print(f" Project URL: {project_url}")
-
-        project_info = make_sp_call("platform project:info", capture_output=True).stdout.decode()
-        project_id = re.search(r'\| id             \| ([a-z0-9]{13})', project_info).group(1)
-        print(f"  Found project id: {project_id}")
+        project_url, project_id = commit_configuration_changes()
 
     if cli_options.automate_all:
         project_info = make_sp_call("platform project:info", capture_output=True).stdout.decode()
