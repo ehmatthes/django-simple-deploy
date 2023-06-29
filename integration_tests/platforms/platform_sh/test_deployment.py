@@ -47,6 +47,8 @@ def commit_configuration_changes():
     make_sp_call("git add .")
     make_sp_call("git commit -am 'Configured for deployment.'")
 
+def push_project():
+    """Push a non-automated deployment."""
     # Try pausing before making push.
     time.sleep(30)
 
@@ -61,6 +63,18 @@ def commit_configuration_changes():
     print(f"  Found project id: {project_id}")
 
     return project_url, project_id
+
+def get_project_url_id():
+    """Get project URL and id of a deployed project."""
+    project_info = make_sp_call("platform project:info", capture_output=True).stdout.decode()
+    project_id = re.search(r'\| id             \| ([a-z0-9]{13})', project_info).group(1)
+    print(f"  Found project id: {project_id}")
+
+    project_url = make_sp_call("platform url --yes", capture_output=True).stdout.decode().strip()
+    print(f" Project URL: {project_url}")
+
+    return project_url, project_id
+
 
 # --- Test functions ---
 
@@ -85,16 +99,11 @@ def test_platformsh_deployment(tmp_project, cli_options):
     if cli_options.pkg_manager == 'pipenv':
         make_sp_call(f"{python_cmd} -m pipenv lock")
 
-    if not cli_options.automate_all:
-        project_url, project_id = commit_configuration_changes()
-
     if cli_options.automate_all:
-        project_info = make_sp_call("platform project:info", capture_output=True).stdout.decode()
-        project_id = re.search(r'\| id             \| ([a-z0-9]{13})', project_info).group(1)
-        print(f"  Found project id: {project_id}")
-
-        project_url = make_sp_call("platform url --yes", capture_output=True).stdout.decode().strip()
-        print(f" Project URL: {project_url}")
+        project_url, project_id = get_project_url_id()
+    else:
+        commit_configuration_changes()
+        project_url, project_id = push_project()
 
     # Try pausing before testing functionality.
     time.sleep(10)
