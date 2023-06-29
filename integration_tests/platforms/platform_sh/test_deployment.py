@@ -63,6 +63,44 @@ def check_local_app_functionality(python_cmd):
 
     return "--- All tested functionality works. ---" in test_output
 
+def summarize_results(remote_functionality_passed, local_functionality_passed,
+        cli_options):
+    """Summarize test results.
+    pytest's summary is not particularly helpful here.
+    """
+    
+    if remote_functionality_passed:
+        msg_remote = dedent("The deployment was successful.")
+    else:
+        msg_remote = dedent("""Some or all of the remote functionality tests failed.
+            
+            You may want to refresh the browser page, and see if
+              the deployment just took longer than usual.
+        """)
+
+    if local_functionality_passed:
+        msg_local = dedent("The project still works locally.")
+    else:
+        msg_local = dedent("The deployment process has impacted local functionality.")
+
+    msg = dedent(f"""
+        ************************************
+        ***** Integration test summary *****
+
+        Test options:
+        - Tested {'PyPI' if cli_options.pypi else 'local'} version of django-simple-deploy.
+        - Package manager: {cli_options.pkg_manager}
+        - {'Used' if cli_options.automate_all else 'Did not use'} `--automate-all` flag.
+
+        {msg_remote}
+        {msg_local}
+
+        *****     End test summary     *****
+        ************************************
+
+    """)
+    print(msg)
+
 
 # --- Platform-specific helper functions ---
 
@@ -151,39 +189,8 @@ def test_platformsh_deployment(tmp_project, cli_options):
     remote_functionality_passed = check_deployed_app_functionality(python_cmd, project_url)
     local_functionality_passed = check_local_app_functionality(python_cmd)
 
-    # Summarize test results.
-    #   pytest's summary is not particularly helpful here.
-    if remote_functionality_passed:
-        msg_remote = dedent("The deployment was successful.")
-    else:
-        msg_remote = dedent("""Some or all of the remote functionality tests failed.
-            
-            You may want to refresh the browser page, and see if
-              the deployment just took longer than usual.
-        """)
-
-    if local_functionality_passed:
-        msg_local = dedent("The project still works locally.")
-    else:
-        msg_local = dedent("The deployment process has impacted local functionality.")
-
-    msg = dedent(f"""
-        ************************************
-        ***** Integration test summary *****
-
-        Test options:
-        - Tested {'PyPI' if cli_options.pypi else 'local'} version of django-simple-deploy.
-        - Package manager: {cli_options.pkg_manager}
-        - {'Used' if cli_options.automate_all else 'Did not use'} `--automate-all` flag.
-
-        {msg_remote}
-        {msg_local}
-
-        *****     End test summary     *****
-        ************************************
-
-    """)
-    print(msg)
+    summarize_results(remote_functionality_passed, local_functionality_passed,
+            cli_options)
 
     # Offer to destroy project.
     if not cli_options.skip_confirmations:
