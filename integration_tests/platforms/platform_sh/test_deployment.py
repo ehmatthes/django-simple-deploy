@@ -1,105 +1,9 @@
-import subprocess, re, os, sys, time
-from pathlib import Path
-from textwrap import dedent
+import re, time
 
 import pytest
 
+from ...utils import it_helper_functions as it_utils
 from ...utils.it_helper_functions import make_sp_call
-
-
-# --- Platform-agnostic elper functions ---
-
-def get_python_exe(tmp_project):
-    """Get the path to the Python interpreter in the virtual environment.
-    
-    We'll use the full path to the interpreter, rather than trying to rely on
-    an active venv.
-    """
-    if sys.platform == "win32":
-        python_exe = Path(tmp_project) / "b_env" / "Scripts" / "python.exe"
-    else:
-        python_exe = Path(tmp_project) / "b_env" / "bin" / "python"
-
-    return python_exe.as_posix()
-
-def run_simple_deploy(python_cmd, platform, automate_all):
-    """Run simple_deploy against the test project."""
-    print("Running manage.py simple_deploy...")
-    if automate_all:
-        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --automate-all --integration-testing")
-    else:
-        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --integration-testing")
-
-def check_deployed_app_functionality(python_cmd, url):
-    """Test functionality of the deployed app.
-    Note: Can't call this function test_ because pytest will try to run it directly.
-    """
-    # Pause before testing functionality, otherwise app may not yet be available.
-    time.sleep(10)
-
-    print("\n  Testing functionality of deployed app...")
-
-    test_output = make_sp_call(f"{python_cmd} test_deployed_app_functionality.py --url {url}",
-            capture_output=True).stdout.decode()
-
-    print("    Finished testing functionality of deployed project.")
-
-    return "--- All tested functionality works. ---" in test_output
-
-def check_local_app_functionality(python_cmd):
-    """Verify that local project still functions.
-    Note: Can't call this function test_ because pytest will try to run it directly."""
-    print("\n  Testing local functionality with runserver...")
-    make_sp_call(f"{python_cmd} manage.py migrate")
-    
-    run_server = subprocess.Popen(f"{python_cmd} manage.py runserver 8008", shell=True)
-    time.sleep(1)
-
-    test_output = make_sp_call(f"{python_cmd} test_deployed_app_functionality.py --url http://localhost:8008/",
-            capture_output=True).stdout.decode()
-    run_server.terminate()
-
-    print("    Finished testing local functionality.")
-
-    return "--- All tested functionality works. ---" in test_output
-
-def summarize_results(remote_functionality_passed, local_functionality_passed,
-        cli_options):
-    """Summarize test results.
-    pytest's summary is not particularly helpful here.
-    """
-    
-    if remote_functionality_passed:
-        msg_remote = dedent("The deployment was successful.")
-    else:
-        msg_remote = dedent("""Some or all of the remote functionality tests failed.
-            
-            You may want to refresh the browser page, and see if
-              the deployment just took longer than usual.
-        """)
-
-    if local_functionality_passed:
-        msg_local = dedent("The project still works locally.")
-    else:
-        msg_local = dedent("The deployment process has impacted local functionality.")
-
-    msg = dedent(f"""
-        ************************************
-        ***** Integration test summary *****
-
-        Test options:
-        - Tested {'PyPI' if cli_options.pypi else 'local'} version of django-simple-deploy.
-        - Package manager: {cli_options.pkg_manager}
-        - {'Used' if cli_options.automate_all else 'Did not use'} `--automate-all` flag.
-
-        {msg_remote}
-        {msg_local}
-
-        *****     End test summary     *****
-        ************************************
-
-    """)
-    print(msg)
 
 
 # --- Platform-specific helper functions ---
@@ -161,14 +65,14 @@ def test_platformsh_deployment(tmp_project, cli_options):
     print("\nTesting deployment to Platform.sh using the following options:")
     print(cli_options.__dict__)
 
-    python_cmd = get_python_exe(tmp_project)
+    python_cmd = it_utils.get_python_exe(tmp_project)
 
     # Create a new project on the remote host, if not testing --automate-all.
     if not cli_options.automate_all:
         create_platformsh_project()
 
     # Run simple_deploy against the test project.
-    run_simple_deploy(python_cmd, 'platform_sh', cli_options.automate_all)
+    it_utils.run_simple_deploy(python_cmd, 'platform_sh', cli_options.automate_all)
 
     # If testing Pipenv, lock after adding new packages.
     if cli_options.pkg_manager == 'pipenv':
@@ -186,10 +90,10 @@ def test_platformsh_deployment(tmp_project, cli_options):
     # Test functionality of both deployed app, and local project.
     #   We want to make sure the deployment works, but also make sure we haven't
     #   affected functionality of the local project using the development server.
-    remote_functionality_passed = check_deployed_app_functionality(python_cmd, project_url)
-    local_functionality_passed = check_local_app_functionality(python_cmd)
+    remote_functionality_passed = it_utils.check_deployed_app_functionality(python_cmd, project_url)
+    local_functionality_passed = it_utils.check_local_app_functionality(python_cmd)
 
-    summarize_results(remote_functionality_passed, local_functionality_passed,
+    it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
             cli_options)
 
     # Offer to destroy project.
@@ -213,4 +117,3 @@ def test_platformsh_deployment(tmp_project, cli_options):
         print("\nCleaning up:")
         print("  Destroying Platform.sh project...")
         make_sp_call(f"platform project:delete --project {project_id} --yes")
-
