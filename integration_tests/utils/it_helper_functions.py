@@ -113,3 +113,19 @@ def summarize_results(remote_functionality_passed, local_functionality_passed,
 
     """)
     print(msg)
+
+def confirm_destroy_project(cli_options):
+    """Confirm that we should destroy the deployed project."""
+    if cli_options.skip_confirmations:
+        return True
+
+    while True:
+        yn = input("Destroy remote project? ")
+        if yn.lower() in ['y', 'yes']:
+            print("Okay, tearing down...")
+            return True
+        elif yn.lower() in ['n', 'no']:
+            print("Okay, leaving project deployed.")
+            return False
+        else:
+            print("Please answer yes or no.")

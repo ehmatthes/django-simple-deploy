@@ -8,11 +8,15 @@ from . import platformsh_helper_functions as platformsh_utils
 
 # --- Test functions ---
 
+# For normal test runs, skip this test.
+# When working on setup steps, skip other tests and run this one.
+#   This will force the tmp_project fixture to run, without doing a full deployment.
+@pytest.mark.skip
 def test_dummy(tmp_project):
     """Helpful to have an empty test to run when testing setup steps."""
     pass
 
-# Skip this test to speed up testing of setup steps.
+# Skip this test and enable test_dummy() to speed up testing of setup steps.
 # @pytest.mark.skip
 def test_platformsh_deployment(tmp_project, cli_options):
     """Test the full, live deployment process to Platform.sh."""
@@ -47,28 +51,15 @@ def test_platformsh_deployment(tmp_project, cli_options):
     #   affected functionality of the local project using the development server.
     remote_functionality_passed = it_utils.check_deployed_app_functionality(python_cmd, project_url)
     local_functionality_passed = it_utils.check_local_app_functionality(python_cmd)
-
     it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
             cli_options)
 
-    # Offer to destroy project.
-    if not cli_options.skip_confirmations:
-        while True:
-            yn = input("Destroy remote project? ")
-            if yn.lower() in ['y', 'yes']:
-                print("Okay, tearing down...")
-                tear_down = True
-                break
-            elif yn.lower() in ['n', 'no']:
-                print("Okay, leaving project deployed.")
-                tear_down = False
-                break
-            else:
-                print("Please answer yes or no.")
-    else:
-        tear_down = True
+    # Ask if the tester wants to destroy the remote project.
+    #   It is sometimes useful to keep the deployment active beyond the automated
+    #   test run.
+    if it_utils.confirm_destroy_project(cli_options):
+        platformsh_utils.destroy_project(project_id)
 
-    if tear_down:
-        print("\nCleaning up:")
-        print("  Destroying Platform.sh project...")
-        it_utils.make_sp_call(f"platform project:delete --project {project_id} --yes")
+    # Make final assertions, so pytest results are meaningful.
+    assert remote_functionality_passed
+    assert local_functionality_passed

@@ -46,3 +46,9 @@ def get_project_url_id():
     print(f" Project URL: {project_url}")
 
     return project_url, project_id
+
+def destroy_project(project_id):
+    """Destroy the deployed project, and all remote resources."""
+    print("\nCleaning up:")
+    print("  Destroying Platform.sh project...")
+    make_sp_call(f"platform project:delete --project {project_id} --yes")
