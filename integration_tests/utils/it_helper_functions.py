@@ -43,6 +43,12 @@ def run_simple_deploy(python_cmd, platform, automate_all):
     else:
         make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --integration-testing")
 
+def commit_configuration_changes():
+    """Commit configuration changes made by simple_deploy."""
+    print("\n\nCommitting changes...")
+    make_sp_call("git add .")
+    make_sp_call("git commit -am 'Configured for deployment.'")
+
 def check_deployed_app_functionality(python_cmd, url):
     """Test functionality of the deployed app.
     Note: Can't call this function test_ because pytest will try to run it directly.

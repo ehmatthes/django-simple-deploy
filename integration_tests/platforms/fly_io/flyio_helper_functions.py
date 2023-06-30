@@ -17,12 +17,6 @@ def create_project():
 
     return app_name
 
-def commit_configuration_changes():
-    """Commit configuration changes made by simple_deploy."""
-    print("\n\nCommitting changes...")
-    make_sp_call("git add .")
-    make_sp_call("git commit -am 'Configured for deployment.'")
-
 def deploy_project():
     """Make a non-automated deployment."""
     # # Pause before making push, otherwise project resources may not be available.

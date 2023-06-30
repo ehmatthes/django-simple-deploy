@@ -13,12 +13,6 @@ def create_project():
     print(f"  Found Platform.sh organization id: {org_id}")
     make_sp_call(f"platform create --title my_blog_project --org {org_id} --region us-3.platform.sh --yes")
 
-def commit_configuration_changes():
-    """Commit configuration changes made by simple_deploy."""
-    print("\n\nCommitting changes...")
-    make_sp_call("git add .")
-    make_sp_call("git commit -am 'Configured for deployment.'")
-
 def push_project():
     """Push a non-automated deployment."""
     # Pause before making push, otherwise project resources may not be available.

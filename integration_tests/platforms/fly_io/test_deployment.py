@@ -43,7 +43,7 @@ def test_flyio_deployment(tmp_project, cli_options):
     if cli_options.automate_all:
         project_url, app_name = flyio_utils.get_project_url_name()
     else:
-        flyio_utils.commit_configuration_changes()
+        it_utils.commit_configuration_changes()
         project_url = flyio_utils.deploy_project()
 
     # Test functionality of both deployed app, and local project.

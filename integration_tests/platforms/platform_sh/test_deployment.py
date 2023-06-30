@@ -43,7 +43,7 @@ def test_platformsh_deployment(tmp_project, cli_options):
     if cli_options.automate_all:
         project_url, project_id = platformsh_utils.get_project_url_id()
     else:
-        platformsh_utils.commit_configuration_changes()
+        it_utils.commit_configuration_changes()
         project_url, project_id = platformsh_utils.push_project()
 
     # Test functionality of both deployed app, and local project.
