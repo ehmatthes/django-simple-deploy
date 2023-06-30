@@ -11,7 +11,7 @@ def create_project():
     output = make_sp_call(f"fly apps create --generate-name", capture_output=True).stdout.decode().strip()
     print('create_project output:', output)
 
-    re_app_name = r'(New app created: )(.*)'
+    re_app_name = r'New app created: (.*)'
     app_name = re.search(re_app_name, output).group(1)
     print(f"  App name: {app_name}")
 
