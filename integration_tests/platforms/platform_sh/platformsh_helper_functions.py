@@ -5,7 +5,7 @@ import re, time
 from ...utils.it_helper_functions import make_sp_call
 
 
-def create_platformsh_project():
+def create_project():
     """Create a project on Platform.sh."""
     print("\n\nCreating a project on Platform.sh...")
     org_output = make_sp_call("platform org:info", capture_output=True).stdout.decode()

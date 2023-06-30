@@ -28,7 +28,7 @@ def test_platformsh_deployment(tmp_project, cli_options):
 
     # Create a new project on the remote host, if not testing --automate-all.
     if not cli_options.automate_all:
-        platformsh_utils.create_platformsh_project()
+        platformsh_utils.create_project()
 
     # Run simple_deploy against the test project.
     it_utils.run_simple_deploy(python_cmd, 'platform_sh', cli_options.automate_all)
