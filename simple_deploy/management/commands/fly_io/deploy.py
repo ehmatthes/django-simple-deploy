@@ -414,6 +414,7 @@ class PlatformDeployer:
         lines = output_str.split('\n')
         lines = [line for line in lines if line]
         lines = [line for line in lines if 'update' not in line.lower()]
+        lines = [line for line in lines if 'upgrade' not in line.lower()]
         lines = [line for line in lines if 'NAME' not in line]
         lines = [line for line in lines if 'builder' not in line]
 
