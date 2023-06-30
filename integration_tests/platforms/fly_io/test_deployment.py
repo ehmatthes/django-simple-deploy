@@ -3,7 +3,7 @@ import re, time
 import pytest
 
 from ...utils import it_helper_functions as it_utils
-from . import flyio_helper_functions as flyio_utils
+from . import utils as platform_utils
 
 
 # --- Test functions ---
@@ -28,7 +28,7 @@ def test_flyio_deployment(tmp_project, cli_options):
 
     # Create a new project on the remote host, if not testing --automate-all.
     if not cli_options.automate_all:
-        app_name = flyio_utils.create_project()
+        app_name = platform_utils.create_project()
 
     # Run simple_deploy against the test project.
     it_utils.run_simple_deploy(python_cmd, 'fly_io', cli_options.automate_all)
@@ -41,10 +41,10 @@ def test_flyio_deployment(tmp_project, cli_options):
     #   This also commits configuration changes and pushes the project
     #   when testing the configuration-only workflow.
     if cli_options.automate_all:
-        project_url, app_name = flyio_utils.get_project_url_name()
+        project_url, app_name = platform_utils.get_project_url_name()
     else:
         it_utils.commit_configuration_changes()
-        project_url = flyio_utils.deploy_project()
+        project_url = platform_utils.deploy_project()
 
     # Test functionality of both deployed app, and local project.
     #   We want to make sure the deployment works, but also make sure we haven't
@@ -58,7 +58,7 @@ def test_flyio_deployment(tmp_project, cli_options):
     #   It is sometimes useful to keep the deployment active beyond the automated
     #   test run.
     if it_utils.confirm_destroy_project(cli_options):
-        flyio_utils.destroy_project(app_name)
+        platform_utils.destroy_project(app_name)
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed
