@@ -62,7 +62,7 @@ class PlatformDeployer:
             return
 
         # First check if secret has already been set.
-        cmd = f"flyctl secrets list -a {self.deployed_project_name}"
+        cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         if 'ON_FLYIO' in output_str:
@@ -70,7 +70,7 @@ class PlatformDeployer:
             self.sd.write_output(msg)
             return
 
-        cmd = f"flyctl secrets set -a {self.deployed_project_name} ON_FLYIO=1"
+        cmd = f"fly secrets set -a {self.deployed_project_name} ON_FLYIO=1"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
@@ -95,7 +95,7 @@ class PlatformDeployer:
             return
 
         # First check if secret has already been set.
-        cmd = f"flyctl secrets list -a {self.deployed_project_name}"
+        cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         if 'DEBUG' in output_str:
@@ -103,7 +103,7 @@ class PlatformDeployer:
             self.sd.write_output(msg)
             return
 
-        cmd = f"flyctl secrets set -a {self.deployed_project_name} DEBUG=FALSE"
+        cmd = f"fly secrets set -a {self.deployed_project_name} DEBUG=FALSE"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
@@ -378,14 +378,14 @@ class PlatformDeployer:
 
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed."""
-        cmd = 'flyctl version'
+        cmd = 'fly version'
         output_obj = self.sd.execute_subp_run(cmd)
         if output_obj.returncode:
             raise CommandError(flyio_msgs.cli_not_installed)
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
-        Parse the output of `flyctl apps list`, and look for an app name
+        Parse the output of `fly apps list`, and look for an app name
           that doesn't have a value set for LATEST DEPLOY. This indicates
           an app that has just been created, and has not yet been deployed.
 
@@ -403,7 +403,7 @@ class PlatformDeployer:
         self.sd.write_output(msg, skip_logging=True)
 
         # Get apps info.
-        cmd = "flyctl apps list"
+        cmd = "fly apps list"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
@@ -441,7 +441,7 @@ class PlatformDeployer:
         msg = "  Creating a new app on Fly.io..."
         self.sd.write_output(msg, skip_logging=True)
 
-        cmd = "flyctl apps create --generate-name"
+        cmd = "fly apps create --generate-name"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str, skip_logging=True)
@@ -466,7 +466,7 @@ class PlatformDeployer:
         """Get the region that the Fly.io app is configured for. We'll need this
         to create a postgres database.
 
-        Parse the output of `flyctl regions list -a app_name`.
+        Parse the output of `fly regions list -a app_name`.
 
         Returns:
         - String representing region.
@@ -477,7 +477,7 @@ class PlatformDeployer:
         self.sd.write_output(msg, skip_logging=True)
 
         # Get region output.
-        cmd = f"flyctl regions list -a {self.deployed_project_name}"
+        cmd = f"fly regions list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
@@ -529,7 +529,7 @@ class PlatformDeployer:
         self.sd.write_output(msg, skip_logging=True)
 
         self.db_name = f"{self.deployed_project_name}-db"
-        cmd = f"flyctl postgres create --name {self.db_name} --region {self.region}"
+        cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
 
         # If not using automate_all, make sure it's okay to create a resource
@@ -547,7 +547,7 @@ class PlatformDeployer:
         # Run `attach` command (and confirm DATABASE_URL is set?)
         msg = "  Attaching database to Fly.io app..."
         self.sd.write_output(msg, skip_logging=True)
-        cmd = f"flyctl postgres attach --app {self.deployed_project_name} {self.db_name}"
+        cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
 
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
@@ -564,7 +564,7 @@ class PlatformDeployer:
         """
 
         # First, see if any Postgres clusters exist.
-        cmd = "flyctl postgres list"
+        cmd = "fly postgres list"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
