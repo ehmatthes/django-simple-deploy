@@ -44,6 +44,7 @@ def test_flyio_deployment(tmp_project, cli_options, request):
     # Get the deployed project's URL, and ID so we can destroy it later.
     #   This also commits configuration changes and pushes the project
     #   when testing the configuration-only workflow.
+    # When testing automate_all, cache app_name for teardown work.
     if cli_options.automate_all:
         project_url, app_name = platform_utils.get_project_url_name()
         request.config.cache.set("app_name", app_name)
@@ -58,12 +59,6 @@ def test_flyio_deployment(tmp_project, cli_options, request):
     local_functionality_passed = it_utils.check_local_app_functionality(python_cmd)
     it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
             cli_options)
-
-    # Ask if the tester wants to destroy the remote project.
-    #   It is sometimes useful to keep the deployment active beyond the automated
-    #   test run.
-    # if it_utils.confirm_destroy_project(cli_options):
-    #     platform_utils.destroy_project(app_name)
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed

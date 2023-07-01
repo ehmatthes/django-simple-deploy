@@ -1,6 +1,6 @@
 """Configuration for integration tests."""
 
-import sys
+import sys, importlib
 from pathlib import Path
 
 import pytest
@@ -93,6 +93,7 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
       is fully functional.
     """
     # Clear cached values that may have been set.
+    #   These are used in the teardown work.
     request.config.cache.set("app_name", None)
     request.config.cache.set("project_id", None)
 
@@ -112,42 +113,14 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     # Return the location of the temp project.
     yield tmp_proj_dir
 
-    # Cleanup.
-    print("--- IN CLEANUP ---")
+    # --- Cleanup ---
 
     # Ask if the tester wants to destroy the remote project.
-    #   It is sometimes useful to keep the deployment active beyond the automated
+    #   It's sometimes useful to keep the deployment active beyond the automated
     #   test run.
     if confirm_destroy_project(cli_options):
-        # platform_utils.destroy_project(app_name)
+        # Import the platform-specific utils module and call destroy_project().
         platform = request.config.cache.get("platform", None)
-        import importlib, os
-
-        # print("cwd:", os.getcwd())
-        # # import_path = f"platforms.{platform}.utils"
-        # import_path = Path(__file__).parent / "platforms" / platform / "utils"
-        # # import_path = f"{str(import_path)}.platforms.{platform}.utils"
-        # print("import_path:", import_path)
-        # import_path = import_path.as_posix().replace('/', '.').removeprefix('.')
-        # print("import_path", import_path)
-
         import_path = f"integration_tests.platforms.{platform}.utils"
         platform_utils = importlib.import_module(import_path)
-
-        # app_name = request.config.cache.get("app_name", None)
-        # print("app name:", app_name)
-
         platform_utils.destroy_project(request)
-
-# def pytest_sessionfinish(session, exitstatus):
-#     # Ask if the tester wants to destroy the remote project.
-#     #   It is sometimes useful to keep the deployment active beyond the automated
-#     #   test run.
-#     # if confirm_destroy_project(cli_options):
-#     #     # platform_utils.destroy_project(app_name)
-#     #     print("destroying project...")
-#     #     app_name = session.config.cache.get("app_name")
-#     #     print("app name:", app_name)
-#     # else:
-#     #     print("  Leaving project deployed.")
-#     print("--- in sessionfinish ---")

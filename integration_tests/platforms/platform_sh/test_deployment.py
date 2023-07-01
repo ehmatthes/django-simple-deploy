@@ -60,12 +60,6 @@ def test_platformsh_deployment(tmp_project, cli_options, request):
     it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
             cli_options)
 
-    # Ask if the tester wants to destroy the remote project.
-    #   It is sometimes useful to keep the deployment active beyond the automated
-    #   test run.
-    # if it_utils.confirm_destroy_project(cli_options):
-    #     platform_utils.destroy_project(project_id)
-
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed
     assert local_functionality_passed

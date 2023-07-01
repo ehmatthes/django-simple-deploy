@@ -19,7 +19,8 @@ def create_project():
 
 def deploy_project():
     """Make a non-automated deployment."""
-    # # Pause before making push, otherwise project resources may not be available.
+    # Consider pausing before the deployment. Some platforms need a moment
+    #   for the newly-created resources to become fully available.
     # time.sleep(30)
 
     print("Deploying to Fly.io...")
@@ -39,7 +40,9 @@ def deploy_project():
     return project_url
 
 def get_project_url_name():
-    """Get project URL and app name of a deployed project."""
+    """Get project URL and app name of a deployed project.
+    This is used when testing the automate_all workflow.
+    """
     output = make_sp_call("fly info", capture_output=True).stdout.decode().strip()
 
     re_app_name = r'.*Hostname = (.*)\.fly\.dev'
@@ -56,19 +59,14 @@ def get_project_url_name():
 def destroy_project(request):
     """Destroy the deployed project, and all remote resources."""
     print("\nCleaning up:")
-    print("  Destroying Fly.io project...")
-    # make_sp_call(f"fly apps destroy -y {app_name}")
+
     app_name = request.config.cache.get("app_name", None)
     if not app_name:
         print("  No app name found; can't destroy any remote resources.")
         return None
 
-    cmd = f"fly apps destroy -y {app_name}"
-    print("  destroy app command:", cmd)
-    make_sp_call(cmd)
+    print("  Destroying Fly.io project...")
+    make_sp_call(f"fly apps destroy -y {app_name}")
 
     print("  Destorying Fly.io database...")
-    # make_sp_call(f"fly apps destroy -y {app_name}-db")
-    cmd = f"fly apps destroy -y {app_name}-db"
-    print("  destroy db command:", cmd)
-    make_sp_call(cmd)
+    make_sp_call(f"fly apps destroy -y {app_name}-db")

@@ -126,12 +126,14 @@ def confirm_destroy_project(cli_options):
         return True
 
     while True:
-        yn = input("Destroy remote project? ")
-        if yn.lower() in ['y', 'yes']:
+        confirmation = input("Destroy remote project? ")
+
+        if confirmation.lower() in ['y', 'yes']:
             print("Okay, tearing down...")
             return True
-        elif yn.lower() in ['n', 'no']:
+
+        if confirmation.lower() in ['n', 'no']:
             print("Okay, leaving project deployed.")
             return False
-        else:
-            print("Please answer yes or no.")
+
+        print("Please answer yes or no.")
