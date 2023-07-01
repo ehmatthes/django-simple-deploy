@@ -93,8 +93,8 @@ def summarize_results(remote_functionality_passed, local_functionality_passed,
     else:
         msg_remote = dedent("""Some or all of the remote functionality tests failed.
             
-            You may want to refresh the browser page, and see if
-              the deployment just took longer than usual.
+        You may want to refresh the browser page, and see if
+          the deployment just took longer than usual.
         """)
 
     if local_functionality_passed:

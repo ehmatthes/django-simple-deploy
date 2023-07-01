@@ -18,8 +18,11 @@ def test_dummy(tmp_project):
 
 # Skip this test and enable test_dummy() to speed up testing of setup steps.
 # @pytest.mark.skip
-def test_platformsh_deployment(tmp_project, cli_options):
+def test_platformsh_deployment(tmp_project, cli_options, request):
     """Test the full, live deployment process to Platform.sh."""
+
+    # Cache the platform name for teardown work.
+    request.config.cache.set("platform", "platform_sh")
 
     print("\nTesting deployment to Platform.sh using the following options:")
     print(cli_options.__dict__)
@@ -46,6 +49,9 @@ def test_platformsh_deployment(tmp_project, cli_options):
         it_utils.commit_configuration_changes()
         project_url, project_id = platform_utils.push_project()
 
+    # Cache project_id for teardown work.
+    request.config.cache.set("project_id", project_id)
+
     # Test functionality of both deployed app, and local project.
     #   We want to make sure the deployment works, but also make sure we haven't
     #   affected functionality of the local project using the development server.
@@ -57,8 +63,8 @@ def test_platformsh_deployment(tmp_project, cli_options):
     # Ask if the tester wants to destroy the remote project.
     #   It is sometimes useful to keep the deployment active beyond the automated
     #   test run.
-    if it_utils.confirm_destroy_project(cli_options):
-        platform_utils.destroy_project(project_id)
+    # if it_utils.confirm_destroy_project(cli_options):
+    #     platform_utils.destroy_project(project_id)
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed

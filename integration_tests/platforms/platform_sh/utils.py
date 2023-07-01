@@ -41,8 +41,13 @@ def get_project_url_id():
 
     return project_url, project_id
 
-def destroy_project(project_id):
+def destroy_project(request):
     """Destroy the deployed project, and all remote resources."""
     print("\nCleaning up:")
     print("  Destroying Platform.sh project...")
+
+    project_id = request.config.cache.get("project_id", None)
+    if not project_id:
+        print("  No project id found; can't destroy any remote resources.")
+        
     make_sp_call(f"platform project:delete --project {project_id} --yes")
