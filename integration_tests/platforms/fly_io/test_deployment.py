@@ -12,14 +12,17 @@ from . import utils as platform_utils
 # When working on setup steps, skip other tests and run this one.
 #   This will force the tmp_project fixture to run, without doing a full deployment.
 @pytest.mark.skip
-def test_dummy(tmp_project):
+def test_dummy(tmp_project, request):
     """Helpful to have an empty test to run when testing setup steps."""
     pass
 
 # Skip this test and enable test_dummy() to speed up testing of setup steps.
 # @pytest.mark.skip
-def test_flyio_deployment(tmp_project, cli_options):
+def test_flyio_deployment(tmp_project, cli_options, request):
     """Test the full, live deployment process to Fly.io."""
+
+    # Cache the platform name for teardown work.
+    request.config.cache.set("platform", "fly_io")
 
     print("\nTesting deployment to Fly.io using the following options:")
     print(cli_options.__dict__)
@@ -29,6 +32,7 @@ def test_flyio_deployment(tmp_project, cli_options):
     # Create a new project on the remote host, if not testing --automate-all.
     if not cli_options.automate_all:
         app_name = platform_utils.create_project()
+        request.config.cache.set("app_name", app_name)
 
     # Run simple_deploy against the test project.
     it_utils.run_simple_deploy(python_cmd, 'fly_io', cli_options.automate_all)
@@ -42,6 +46,7 @@ def test_flyio_deployment(tmp_project, cli_options):
     #   when testing the configuration-only workflow.
     if cli_options.automate_all:
         project_url, app_name = platform_utils.get_project_url_name()
+        request.config.cache.set("app_name", app_name)
     else:
         it_utils.commit_configuration_changes()
         project_url = platform_utils.deploy_project()
@@ -57,8 +62,8 @@ def test_flyio_deployment(tmp_project, cli_options):
     # Ask if the tester wants to destroy the remote project.
     #   It is sometimes useful to keep the deployment active beyond the automated
     #   test run.
-    if it_utils.confirm_destroy_project(cli_options):
-        platform_utils.destroy_project(app_name)
+    # if it_utils.confirm_destroy_project(cli_options):
+    #     platform_utils.destroy_project(app_name)
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed

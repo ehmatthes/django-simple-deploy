@@ -53,11 +53,16 @@ def get_project_url_name():
 
     return project_url, app_name
 
-def destroy_project(app_name):
+def destroy_project(request):
     """Destroy the deployed project, and all remote resources."""
     print("\nCleaning up:")
     print("  Destroying Fly.io project...")
     # make_sp_call(f"fly apps destroy -y {app_name}")
+    app_name = request.config.cache.get("app_name", None)
+    if not app_name:
+        print("  No app name found; can't destroy any remote resources.")
+        return None
+
     cmd = f"fly apps destroy -y {app_name}"
     print("  destroy app command:", cmd)
     make_sp_call(cmd)

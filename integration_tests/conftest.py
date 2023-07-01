@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from .utils import manage_sample_project as msp
+from .utils.it_helper_functions import confirm_destroy_project
 
 
 # --- Validity check ---
@@ -85,12 +86,15 @@ def cli_options(request):
 # --- Sample project ---
 
 @pytest.fixture(scope='session')
-def tmp_project(tmp_path_factory, pytestconfig, cli_options):
+def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     """Create a copy of the local sample project, which will be deployed.
 
     Tests will be run against the deployed project, to make sure the deployment
       is fully functional.
     """
+    # Clear cached values that may have been set.
+    request.config.cache.set("app_name", None)
+    request.config.cache.set("project_id", None)
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parent.parent
@@ -106,4 +110,44 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options):
     pytestconfig.cache.set("tmp_proj_dir", str(tmp_proj_dir))
 
     # Return the location of the temp project.
-    return tmp_proj_dir
+    yield tmp_proj_dir
+
+    # Cleanup.
+    print("--- IN CLEANUP ---")
+
+    # Ask if the tester wants to destroy the remote project.
+    #   It is sometimes useful to keep the deployment active beyond the automated
+    #   test run.
+    if confirm_destroy_project(cli_options):
+        # platform_utils.destroy_project(app_name)
+        platform = request.config.cache.get("platform", None)
+        import importlib, os
+
+        # print("cwd:", os.getcwd())
+        # # import_path = f"platforms.{platform}.utils"
+        # import_path = Path(__file__).parent / "platforms" / platform / "utils"
+        # # import_path = f"{str(import_path)}.platforms.{platform}.utils"
+        # print("import_path:", import_path)
+        # import_path = import_path.as_posix().replace('/', '.').removeprefix('.')
+        # print("import_path", import_path)
+
+        import_path = f"integration_tests.platforms.{platform}.utils"
+        platform_utils = importlib.import_module(import_path)
+
+        # app_name = request.config.cache.get("app_name", None)
+        # print("app name:", app_name)
+
+        platform_utils.destroy_project(request)
+
+# def pytest_sessionfinish(session, exitstatus):
+#     # Ask if the tester wants to destroy the remote project.
+#     #   It is sometimes useful to keep the deployment active beyond the automated
+#     #   test run.
+#     # if confirm_destroy_project(cli_options):
+#     #     # platform_utils.destroy_project(app_name)
+#     #     print("destroying project...")
+#     #     app_name = session.config.cache.get("app_name")
+#     #     print("app name:", app_name)
+#     # else:
+#     #     print("  Leaving project deployed.")
+#     print("--- in sessionfinish ---")
