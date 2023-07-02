@@ -61,6 +61,7 @@ def check_deployed_app_functionality(python_cmd, url):
     test_output = make_sp_call(f"{python_cmd} test_deployed_app_functionality.py --url {url}",
             capture_output=True).stdout.decode()
 
+    print(test_output)
     print("    Finished testing functionality of deployed project.")
 
     return "--- All tested functionality works. ---" in test_output
@@ -78,6 +79,7 @@ def check_local_app_functionality(python_cmd):
             capture_output=True).stdout.decode()
     run_server.terminate()
 
+    print(test_output)
     print("    Finished testing local functionality.")
 
     return "--- All tested functionality works. ---" in test_output
