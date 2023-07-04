@@ -9,7 +9,7 @@ from shutil import copy, copytree, rmtree
 
 # target can also be pypi.
 target = "development_version"
-pkg_manager = "pipenv"
+pkg_manager = "req_txt"
 
 # --- Helper functions
 
@@ -118,19 +118,16 @@ elif pkg_manager == 'poetry':
     #   whether an end user who uses poetry is able to use simple_deploy
     #   successfully.
     if target == "pypi":
-        cmd = f". {activate_path} && cd {project_dir} && poetry add django-simple-deploy"
-        subprocess.run(cmd, shell=True, check=True)
+        activate_and_run("poetry add django-simple-deploy", project_dir)
     else:
         make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
 elif pkg_manager == 'pipenv':
     if target == "pypi":
-        cmd = f"cd {project_dir} && . {activate_path} && pipenv install django-simple-deploy"
-        subprocess.run(cmd, shell=True, check=True)
+        activate_and_run("pipenv install django-simple-deploy", project_dir)
     else:
         # Install local (editable) version of django-simple-deploy.
-        cmd = f"cd {project_dir} && . {activate_path} && pipenv install -e {sd_root_dir}"# --skip-lock"
-        subprocess.run(cmd, shell=True, check=True)
+        activate_and_run(f"pipenv install -e {sd_root_dir}", project_dir)
 
         # Rewrite the specification for dsd in Pipfile, so remote server
         #   won't try to install local version.
@@ -147,8 +144,7 @@ elif pkg_manager == 'pipenv':
         pipfile_path.write_text(new_pipfile_contents)
 
         # Generate lock file.
-        cmd = f"cd {project_dir} && . {activate_path} && pipenv lock"
-        subprocess.run(cmd, shell=True, check=True)
+        activate_and_run("pipenv lock", project_dir)
 
 # Make an initial git commit, so we can reset the project every time we want
 #   to run a different simple_deploy command. This is much more efficient than
