@@ -9,7 +9,7 @@ from shutil import copy, copytree, rmtree
 
 # target can also be pypi.
 target = "development_version"
-pkg_manager = "req_txt"
+pkg_manager = "pipenv"
 
 # --- Helper functions
 
@@ -20,11 +20,19 @@ def make_sp_call(cmd, capture_output=False):
       lists of command parts. This makes it much easier to follow what testing
       code is doing.
 
+    Note: This can not be used for calls that require shell=True. Those calls
+      need to be passed as a single string, not as cmd_parts.
+
     Returns: None, or CompletedProcess instance.
     """
     cmd_parts = shlex.split(cmd)
-
     return subprocess.run(cmd_parts, capture_output=capture_output)
+
+def activate_and_run(command, project_dir):
+    """Run a command that needs to be run using a venv."""
+    activate_path = project_dir / "b_env" / "bin" / "activate"
+    full_command = f". {activate_path} && {command}"
+    subprocess.run(full_command, shell=True, check=True, cwd=project_dir)
 
 def remove_unneeded_files(proj_dir, pkg_manager):
     """Remove dependency management files not needed for the
@@ -79,19 +87,16 @@ if pkg_manager == 'req_txt':
     make_sp_call(cmd)
 
 elif pkg_manager == 'poetry':
-    cmd = f"cd {project_dir} && . {activate_path} && poetry cache clear --all pypi -n"
-    subprocess.run(cmd, shell=True, check=True)
-
-    cmd = f"cd {project_dir} && . {activate_path} && poetry install"
-    subprocess.run(cmd, shell=True, check=True)
+    activate_and_run("poetry cache clear --all pypi -n", project_dir)
+    activate_and_run("poetry install", project_dir)
 
 elif pkg_manager == 'pipenv':
     # Install pipenv.
-    cmd = f"cd {project_dir} && {pip_path} install pipenv"
-    subprocess.run(cmd, shell=True, check=True)
+    cmd = f"{pip_path} install pipenv"
+    make_sp_call(cmd)
 
-    cmd = f"cd {project_dir} && . {activate_path} && pipenv install"# --skip-lock"
-    subprocess.run(cmd, shell=True, check=True)
+    # Activate virtual environment and install dependencies with pipenv
+    activate_and_run("pipenv install", project_dir)
 
 # Usually, install the local version of simple_deploy (the version we're developing).
 # Note: We don't need an editable install, but a non-editable install is *much* slower.
@@ -119,7 +124,7 @@ elif pkg_manager == 'poetry':
         make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
 elif pkg_manager == 'pipenv':
-    if cli_options.pypi:
+    if target == "pypi":
         cmd = f"cd {project_dir} && . {activate_path} && pipenv install django-simple-deploy"
         subprocess.run(cmd, shell=True, check=True)
     else:
