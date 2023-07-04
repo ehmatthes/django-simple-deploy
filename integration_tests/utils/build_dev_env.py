@@ -43,7 +43,7 @@ def make_sp_call(cmd, capture_output=False):
 
 def activate_and_run(command, project_dir):
     """Run a command that needs to be run using a venv."""
-    activate_path = project_dir / "b_env" / "bin" / "activate"
+    activate_path = project_dir / ".venv" / "bin" / "activate"
     full_command = f". {activate_path} && {command}"
     subprocess.run(full_command, shell=True, check=True, cwd=project_dir)
 
@@ -84,7 +84,7 @@ remove_unneeded_files(project_dir, pkg_manager)
 # Create a virtual envronment. Set the path to the environemnt, instead of
 #   activating it. It's easier to use the venv directly than to activate it,
 #   with all these separate subprocess.run() calls.
-venv_dir = project_dir / "b_env"
+venv_dir = project_dir / ".venv"
 make_sp_call(f"{sys.executable} -m venv {venv_dir}")
 
 # Install requirements for sample project, from vendor/.
