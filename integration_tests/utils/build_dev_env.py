@@ -1,15 +1,28 @@
-import os, sys, subprocess, random, string, shlex
+import os, sys, subprocess, random, string, shlex, argparse
 from pathlib import Path
 from shutil import copy, copytree, rmtree
 
-# from .it_helper_functions import make_sp_call
 
+# --- CLI args ---
 
-# Config.
+# Usage: python build_dev_env.py --pkg-manager [req_txt | poetry | pipenv] --target [development_version | pypi]
 
-# target can also be pypi.
-target = "development_version"
-pkg_manager = "req_txt"
+parser = argparse.ArgumentParser(description="Build development environment")
+
+parser.add_argument('--pkg-manager', 
+                    type=str, 
+                    default='req_txt',
+                    help='The package manager to use (e.g., "req_txt", "poetry", "pipenv")')
+
+parser.add_argument('--target', 
+                    type=str, 
+                    default='development_version',
+                    help='The target environment (e.g., "development_version", "pypi")')
+
+args = parser.parse_args()
+
+pkg_manager = args.pkg_manager
+target = args.target
 
 # --- Helper functions
 
