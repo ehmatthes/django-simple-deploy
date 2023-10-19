@@ -4,7 +4,7 @@
 #  underscore, ie platform_sh.
 #  Internally, we won't use a space, ie platformsh or plsh.
 
-import sys, os, re, subprocess
+import sys, os, re, subprocess, time
 from pathlib import Path
 
 from django.conf import settings
@@ -205,6 +205,11 @@ class PlatformDeployer:
         # Push project.
         # Use execute_command(), to stream the output as it runs.
         self.sd.write_output("  Pushing to Platform.sh...")
+
+        # Pause to make sure project that was created can be used.
+        self.sd.write_output("    Pausing 10s to make sure project is ready to use...")
+        time.sleep(10)
+
         cmd = "platform push --yes"
         self.sd.execute_command(cmd)
 

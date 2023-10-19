@@ -51,7 +51,7 @@ to push to.
 
 If you haven't done so, run the following command to create a new Fly.io app:
 
-    $ flyctl apps create --generate-name
+    $ fly apps create --generate-name
 
 Then run simple_deploy again.
 """
@@ -89,7 +89,7 @@ def region_not_found(app_name):
         We need to know what region the app is going to be deployed to.
         We could not find a region in the output of:
 
-        $ flyctl regions list -a {app_name}
+        $ fly regions list -a {app_name}
     """)
 
     return msg

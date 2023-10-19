@@ -46,6 +46,9 @@ nav:
     - 'unit_tests/index.md'
     - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'
     - 'Understanding the Unit Tests': 'unit_tests/understanding_unit_tests.md'
+  - 'Integration Tests':
+    - 'integration_tests/index.md'
+    - 'Running Integration Tests': 'integration_tests/running_integration_tests.md'
   - 'Maintaining':
     - 'maintaining/index.md'
     - 'Merging PRs': 'maintaining/merging_prs.md'

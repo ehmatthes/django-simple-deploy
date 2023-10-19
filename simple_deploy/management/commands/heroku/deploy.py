@@ -152,7 +152,10 @@ class PlatformDeployer:
             # This is a generic entry that allows serving from any heroku URL.
             self.sd.write_output("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
         else:
-            new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
+            # DEV: This is not currently working; Heroku is adding a hash after the heroku_host.
+            #   See: https://github.com/ehmatthes/django-simple-deploy/issues/242
+            # new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
+            new_setting = "ALLOWED_HOSTS.append('*')"
             msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
             msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
             self._add_heroku_setting(new_setting, msg_added, msg_already_set)
