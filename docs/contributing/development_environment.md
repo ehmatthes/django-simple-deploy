@@ -95,9 +95,9 @@ The [standalone test project](https://github.com/ehmatthes/dsd_sample_blog_reqtx
 
 Clone the test repo to a directory outside of the `django-simple-deploy/` directory:
 
-    ```sh
+```sh
     $ git clone https://github.com/ehmatthes/dsd_sample_blog_reqtxt.git
-    ```
+```
 
 ## Make sure the test project works
 
