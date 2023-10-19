@@ -80,15 +80,15 @@ At this point you may want to visit the site and make an account, and maybe make
 
 The functionality tests use `requests`; these are not typical tests for a Django project. They're written this way to facilitate testing deployed versions of the project, as a user would interact with them. You can run these tests against the local project if you want. Open a new terminal tab, activate the virtual environment, and run the following command:
 
-    ```sh
-    (b_env)$ python test_deployed_app_functionality.py --url http://localhost:8000
-    ```
+```sh
+(b_env)$ python test_deployed_app_functionality.py --url http://localhost:8000
+```
 
 The tests are meant to be run against a freshly-deployed version of the project, with no user data. If you get errors, you may need to rerun the tests using the `--flush-db` flag, which only works when testing the local version of the project:
 
-    ```sh
-    (b_env)$ python test_deployed_app_functionality.py --flush-db --url http://localhost:8000
-    ```
+```sh
+(b_env)$ python test_deployed_app_functionality.py --flush-db --url http://localhost:8000
+```
 
 ### Run `simple_deploy` against the sample project
 
@@ -102,9 +102,9 @@ If the deployment was not successful, please provide as much information as you 
 
 If the deployment was successful, you can run the automated tests against the deployed project. Remember that `--flush-db` won't work on the deployed project, so consider running these tests before entering any data on the deployed site. To run the tests:
 
-    ```sh
-    (b_env)$ python test_deployed_app_functionality.py --url https://deployed-project-url
-    ```
+```sh
+(b_env)$ python test_deployed_app_functionality.py --url https://deployed-project-url
+```
 
 After running the tests, poke around the site on your own as well. Make sure you can make an account, make a blog and a post, and visit the admin site. (You'll need to make a superuser account on your own; `django-simple-deploy` does not do this for you.)
 
