@@ -35,6 +35,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 - Other changes
     - Validates pytest call, to run either unit tests or integration tests, not both. Also require `-s` for integration tests.
     - New tool for standing up a dev environment: `build_dev_env.py`
+    - Started less formal notes about each platform, in *developer_resources/*.
 
 
 ### 0.5.15
