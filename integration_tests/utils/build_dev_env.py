@@ -1,3 +1,18 @@
+"""
+Builds a copy of the sample project in a way that can be used for manual
+  (and automated?) testing of django-simple-deploy.
+
+Notes:
+- This should probably be moved to developer_resources/.
+- Let people specify a location where the dev project should live.
+- Currently writes the project to:
+  project_dir = Path.home() / f"projects/dsd-dev-project_{random_id}"
+- Final output:
+    --- Finished setup ---
+      Your project is ready to use at: /Users/eric/projects/dsd-dev-project_zepbz
+- Currently, does not run migrate.      
+"""
+
 import os, sys, subprocess, random, string, shlex, argparse
 from pathlib import Path
 from shutil import copy, copytree, rmtree
