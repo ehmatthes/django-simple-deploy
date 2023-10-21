@@ -17,7 +17,7 @@ def create_project():
 
     return app_name
 
-def deploy_project():
+def deploy_project(app_name):
     """Make a non-automated deployment."""
     # Consider pausing before the deployment. Some platforms need a moment
     #   for the newly-created resources to become fully available.
@@ -27,7 +27,7 @@ def deploy_project():
     make_sp_call("fly deploy")
 
     # Open project and get URL.
-    output = make_sp_call("fly open", capture_output=True).stdout.decode().strip()
+    output = make_sp_call(f"fly apps open -a {app_name}", capture_output=True).stdout.decode().strip()
     print('fly open output:', output)
 
     re_url = r'opening (http.*) \.\.\.'
@@ -68,5 +68,5 @@ def destroy_project(request):
     print("  Destroying Fly.io project...")
     make_sp_call(f"fly apps destroy -y {app_name}")
 
-    print("  Destorying Fly.io database...")
+    print("  Destroying Fly.io database...")
     make_sp_call(f"fly apps destroy -y {app_name}-db")
