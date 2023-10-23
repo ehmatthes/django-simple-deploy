@@ -6,6 +6,19 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+summary
+
+#### External changes
+
+- note
+
+#### Internal changes
+
+- note
+
+
 ### 0.5.16
 
 Deployment to Platform.sh should be stable. Resumes preliminary support for Fly.io. Heroku deployment is probably broken for new users.
