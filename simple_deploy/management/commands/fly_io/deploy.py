@@ -270,7 +270,7 @@ class PlatformDeployer:
         """Finish automating the push to Fly.io.
         - Commit all changes.
         - Call `fly deploy`.
-        - Call `fly open`, and grab URL.
+        - Call `fly apps open`, and grab URL.
         """
         # Making this check here lets deploy() be cleaner.
         if not self.sd.automate_all:
@@ -286,7 +286,7 @@ class PlatformDeployer:
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
-        cmd = "fly open"
+        cmd = f"fly apps open -a {self.app_name}"
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 
@@ -391,6 +391,8 @@ class PlatformDeployer:
           that doesn't have a value set for LATEST DEPLOY. This indicates
           an app that has just been created, and has not yet been deployed.
 
+        Also, sets self.app_name, so the name can be used here as well.
+
         Returns:
         - String representing deployed project name.
         - Empty string if no deployed project name found, but using automate_all.
@@ -405,6 +407,7 @@ class PlatformDeployer:
         self.sd.write_output(msg, skip_logging=True)
 
         # Get apps info.
+        # DEV: I believe this would be simpler with `fly apps list --json`.
         cmd = "fly apps list"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
@@ -421,13 +424,13 @@ class PlatformDeployer:
         lines = [line for line in lines if 'builder' not in line]
 
         # For now, assume one line of output and use first part of output.
-        app_name = lines[0].split()[0]
+        self.app_name = lines[0].split()[0]
 
         # Return deployed app name, or raise CommandError.
-        if app_name:
-            msg = f"  Found Fly.io app: {app_name}"
+        if self.app_name:
+            msg = f"  Found Fly.io app: {self.app_name}"
             self.sd.write_output(msg, skip_logging=True)
-            return app_name
+            return self.app_name
         else:
             # Can't continue without a Fly.io app to configure against.
             raise CommandError(flyio_msgs.no_project_name)
@@ -450,15 +453,15 @@ class PlatformDeployer:
 
         # Get app name.
         app_name_re = r'(New app created: )(\w+\-\w+\-\d+)'
-        flyio_app_name = ''
+        self.app_name = ''
         m = re.search(app_name_re, output_str)
         if m:
-            flyio_app_name = m.group(2).strip()
+            self.app_name = m.group(2).strip()
 
-        if flyio_app_name:
-            msg = f"  Created new app: {flyio_app_name}"
+        if self.app_name:
+            msg = f"  Created new app: {self.app_name}"
             self.sd.write_output(msg, skip_logging=True)
-            return flyio_app_name
+            return self.app_name
         else:
             # Can't continue without a Fly.io app to deploy to.
             raise CommandError(flyio_msgs.create_app_failed)
