@@ -12,6 +12,8 @@ from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
+import requests
+
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
@@ -268,7 +270,7 @@ class PlatformDeployer:
         """Finish automating the push to Fly.io.
         - Commit all changes.
         - Call `fly deploy`.
-        - Call `fly open`, and grab URL.
+        - Call `fly apps open`, and grab URL.
         """
         # Making this check here lets deploy() be cleaner.
         if not self.sd.automate_all:
@@ -284,7 +286,7 @@ class PlatformDeployer:
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
-        cmd = "fly open"
+        cmd = f"fly apps open -a {self.app_name}"
         output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 
@@ -389,6 +391,8 @@ class PlatformDeployer:
           that doesn't have a value set for LATEST DEPLOY. This indicates
           an app that has just been created, and has not yet been deployed.
 
+        Also, sets self.app_name, so the name can be used here as well.
+
         Returns:
         - String representing deployed project name.
         - Empty string if no deployed project name found, but using automate_all.
@@ -403,6 +407,7 @@ class PlatformDeployer:
         self.sd.write_output(msg, skip_logging=True)
 
         # Get apps info.
+        # DEV: I believe this would be simpler with `fly apps list --json`.
         cmd = "fly apps list"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
@@ -419,13 +424,13 @@ class PlatformDeployer:
         lines = [line for line in lines if 'builder' not in line]
 
         # For now, assume one line of output and use first part of output.
-        app_name = lines[0].split()[0]
+        self.app_name = lines[0].split()[0]
 
         # Return deployed app name, or raise CommandError.
-        if app_name:
-            msg = f"  Found Fly.io app: {app_name}"
+        if self.app_name:
+            msg = f"  Found Fly.io app: {self.app_name}"
             self.sd.write_output(msg, skip_logging=True)
-            return app_name
+            return self.app_name
         else:
             # Can't continue without a Fly.io app to configure against.
             raise CommandError(flyio_msgs.no_project_name)
@@ -448,15 +453,15 @@ class PlatformDeployer:
 
         # Get app name.
         app_name_re = r'(New app created: )(\w+\-\w+\-\d+)'
-        flyio_app_name = ''
+        self.app_name = ''
         m = re.search(app_name_re, output_str)
         if m:
-            flyio_app_name = m.group(2).strip()
+            self.app_name = m.group(2).strip()
 
-        if flyio_app_name:
-            msg = f"  Created new app: {flyio_app_name}"
+        if self.app_name:
+            msg = f"  Created new app: {self.app_name}"
             self.sd.write_output(msg, skip_logging=True)
-            return flyio_app_name
+            return self.app_name
         else:
             # Can't continue without a Fly.io app to deploy to.
             raise CommandError(flyio_msgs.create_app_failed)
@@ -466,49 +471,52 @@ class PlatformDeployer:
         """Get the region that the Fly.io app is configured for. We'll need this
         to create a postgres database.
 
-        Parse the output of `fly regions list -a app_name`.
+        Notes:
+        - V1 `fly apps create` automatically configured a region for the app.
+        - In V2, an app doesn't seem to have a region until it's deployed.
+        - We need a region to create a db.
+        - `fly postgres create` only prompts for a region, there's no -q or -y.
+        - `fly postgres create` does highlight nearest region.
+        - `fly platform regions` lists available regions, but doesn't identify nearest.
+        - So, for now:
+          - Default to sea just so deployments work for now. They'll be slow for people
+            far from sea.
+          - Full fix: Parse `fly platform regions`, present list, ask user to select
+            nearest region.
+
+        Current approach:
+        - This forum post: https://community.fly.io/t/feature-requests-region-latency-tests/968/6
+        - Leads to this tool: https://liveview-counter.fly.dev/
+        - It identifies the region with lowest latency, ie "Connected to iad".
+        - Solution: request this page, parse for that phrase, select region.
+        - Return 'sea' if this doesn't work.
 
         Returns:
         - String representing region.
-        - Raises CommandError if can't find region.
         """
 
         msg = "Looking for Fly.io region..."
         self.sd.write_output(msg, skip_logging=True)
 
         # Get region output.
-        cmd = f"fly regions list -a {self.deployed_project_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
+        url = "https://liveview-counter.fly.dev/"
+        r = requests.get(url)
 
-        # Look for first three-letter line after Region Pool.
-        region = ''
-        pool_found = False
-        lines = output_str.split('\n')
-        for line in lines:
-            if not pool_found and "Region Pool" in line:
-                pool_found = True
-                continue
+        re_region = r'Connected to ([a-z]{3})'
+        m = re.search(re_region, r.text)
+        if m:
+            region = m.group(1)
 
-            # This is the first line after Region Pool.
-            if pool_found:
-                region = line.strip()
-                break
-
-        # Return region name, or raise CommandError.
-        if region:
-            msg = f"  Found region: {region}"
+            msg = f"  Found lowest latency region: {region}"
             self.sd.write_output(msg, skip_logging=True)
-            return region
         else:
-            # Can't continue without a Fly.io region to configure against.
-            # DEV: Try defaulting to 'sea'?
-            #   As of 6/19/23, `fly regions list -a <app-name>` is returning nothing
-            #   for a freshly-generated app.
-            msg = f"  No region found; defaulting to 'sea'."
+            region = 'sea'
+
+            msg = f"  Couldn't find lowest latency region, using 'sea'."
             self.sd.write_output(msg, skip_logging=True)
-            return 'sea'
-            # raise CommandError(flyio_msgs.region_not_found(self.deployed_project_name))
+
+        return region
+
 
     def _create_db(self):
         """Create a db to deploy to, if none exists.

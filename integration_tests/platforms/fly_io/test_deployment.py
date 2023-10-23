@@ -50,7 +50,7 @@ def test_flyio_deployment(tmp_project, cli_options, request):
         request.config.cache.set("app_name", app_name)
     else:
         it_utils.commit_configuration_changes()
-        project_url = platform_utils.deploy_project()
+        project_url = platform_utils.deploy_project(app_name)
 
     # Test functionality of both deployed app, and local project.
     #   We want to make sure the deployment works, but also make sure we haven't

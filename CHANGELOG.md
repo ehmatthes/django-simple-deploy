@@ -15,7 +15,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Many smaller documentation improvements from multiple people looking closely at docs.
     - Started official documenation for integration tests.
 - Fly.io:
-    - Assumes one fly app exists; default to region 'sea'.
+    - Assumes you have no existing Fly apps.
+    - Identifies lowest-latency region to deploy to; defaults to 'sea' if that information is unattainable.
     - Deprecate use of `flyctl`; use `fly` consistently throughout.
 - Heroku:
     - Uses `'*'` for `ALLOWED_HOSTS` on Heroku, as a temp fix.
@@ -29,6 +30,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - No longer require any platform's CLI to be installed;
     - Fixed `rum` mispelling of `rm` in unit tests using Poetry, which should improve accuracy of unit testing when using Poetry.
     - Pass on Windows as well as macOS and Linux.
+    - Add `simple_deploy` to Poetry and Pipenv requirements for fly configurations.
 - Integration tests
     - Converts most existing functionality in integration tests from shell scripts that only work on macOS/ Linux, to cross-platform functionality.
     - Prints summary of functionality tests.
@@ -36,6 +38,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - Validates pytest call, to run either unit tests or integration tests, not both. Also require `-s` for integration tests.
     - New tool for standing up a dev environment: `build_dev_env.py`
     - Started less formal notes about each platform, in *developer_resources/*.
+    - On Fly deployments, updates `fly open` calls to `fly apps open -a <app-name>`. Also updates deprecated `fly regions list -a` to get region with lowest latency.
 
 
 ### 0.5.15

@@ -20,3 +20,10 @@ Other resources
 ---
 
 - Fly CLI [source](https://github.com/superfly/flyctl)
+- Fly [Community](https://community.fly.io) (forum)
+
+Destroying Fly resources
+---
+
+- Destroy an app: `$ fly apps destroy -y <app-name>`
+- Destroy corresponding db: `$ fly apps destroy -y <app-name-db>`

@@ -235,6 +235,37 @@ If you're interested in running the unit tests, please refer to [Unit tests](../
 
 The integration tests have been critical in developing the project to this point. That said, they are in need of restructuring as well. If you want to understand the current state of the integration tests, see the [old documentation](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/integration_tests.md) as well.
 
+## Ongoing work
+
+It's a lot of work to do these steps repeatedly. You can automate most of this setup work with the following commands. For the moment, this assumes you have a directory called *projects/* in your home directory:
+
+```sh
+$ python integration_tests/utils/build_dev_env.py
+--- Finished setup ---
+  Your project is ready to use at: /Users/eric/projects/dsd-dev-project_zepbz
+```
+
+Now, in a separate terminal tab or window:
+
+```sh
+$ cd /Users/eric/projects/dsd-dev-project_zepbz
+$ source .venv/bin/activate
+(.venv)$ python manage.py migrate
+(.venv)$ git log --pretty=oneline
+a0ebc9 (HEAD -> main) Added simple_deploy to INSTALLED_APPS.
+7209f0 (tag: INITIAL_STATE) Initial commit.
+```
+
+This gives you a project where simple_deploy has already been installed and added to `INSTALLED_APPS`. Basically, you should be able to just run simple_deploy at this point. If you want to run simple_deploy more than once, you can git reset back to `INITIAL_STATE`.
+
+New contributors should probably go through the longer process once, unless they've used simple_deploy previously.
+
+You can also run variations of the build command to develop against the package manager of your choice, and you can run manual tests against the PyPI version if you wish as well:
+
+```sh
+$ python build_dev_env.py --pkg-manager [req_txt | poetry | pipenv] --target [development_version | pypi]
+```
+
 ## Closing thoughts
 
 This is a rapidly evolving project. Please feel free to open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues/new/choose) or a [discussion](https://github.com/ehmatthes/django-simple-deploy/discussions/new) about any aspect of this project.
