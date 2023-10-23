@@ -30,6 +30,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
     - No longer require any platform's CLI to be installed;
     - Fixed `rum` mispelling of `rm` in unit tests using Poetry, which should improve accuracy of unit testing when using Poetry.
     - Pass on Windows as well as macOS and Linux.
+    - Add `simple_deploy` to Poetry and Pipenv requirements for fly configurations.
 - Integration tests
     - Converts most existing functionality in integration tests from shell scripts that only work on macOS/ Linux, to cross-platform functionality.
     - Prints summary of functionality tests.
