@@ -25,3 +25,19 @@ You do need the `-s` flag when running integration tests, as there is a lot of o
 Don't try to run the full suite of tests; these are currently designed to be run one at a time.
 
 There are forms of the test command that tests against the current PyPI release, and tests the `--automate-all` flag as well. A full matrix would take a very long time, and create many live deployments. That is not feasible, or really necessary, at this stage.
+
+### Testing specific package managers
+
+You can run integration tests against a specific package manager. For example, here's how to test deployments on Fly.io for projects that use Poetry:
+
+```sh
+$ pytest integration_tests/platforms/fly_io/test_deployment.py --pkg-manager poetry -s
+```
+
+General form:
+
+```sh
+$ pytest integration_tests/platforms/<platform-name>test_deployment.py --pkg-manager <req_txt|poetry|pipenv> -s
+```
+
+When this argument is omitted, the default package manager for testing is requirements.txt.

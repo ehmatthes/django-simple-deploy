@@ -823,6 +823,7 @@ class Command(BaseCommand):
         #   Define new requirement entry, read contents, replace group definition
         #   with group definition plus new requirement line. This has the effect
         #   of adding each new requirement to the beginning of the deploy group.
+        # DEV: `version` should just be a default arg, instead of having an if block here.
         if not version:
             version = "*"
         new_req_line = f'{package_name} = "{version}"'
