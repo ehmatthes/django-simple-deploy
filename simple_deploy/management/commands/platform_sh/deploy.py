@@ -255,8 +255,8 @@ class PlatformDeployer:
         if self.sd.unit_testing:
             return
 
-        self.stdout.write(plsh_msgs.confirm_preliminary)
-        confirmed = self.sd.get_confirmation(skip_logging=True)
+        self.sd.write_output(plsh_msgs.confirm_preliminary)
+        confirmed = self.sd.get_confirmation()
 
         if confirmed:
             self.stdout.write("  Continuing with platform.sh deployment...")

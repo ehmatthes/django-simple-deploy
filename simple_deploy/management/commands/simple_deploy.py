@@ -166,7 +166,7 @@ class Command(BaseCommand):
         try:
             self.platform_deployer.confirm_preliminary()
         except AttributeError:
-            # The targeted platform does not have a preliminary warning.
+            # The targeted platform does not have a preliminary status warning.
             pass
 
 
@@ -674,7 +674,8 @@ class Command(BaseCommand):
         """Write output to the appropriate places.
         Output may be a string, or an instance of subprocess.CompletedProcess.
 
-        Need to skip logging before log file is configured.
+        Skip logging if --no-logging, or if skip_logging has been passed.
+          This is useful for writing sensitive information to console.
         """
 
         # Extract the subprocess output as a string.
@@ -907,12 +908,18 @@ class Command(BaseCommand):
         while True:
             self.write_output(prompt, skip_logging=skip_logging)
             confirmed = input()
+
+            # Log user's response before processing it.
+            self.write_output(confirmed, skip_logging=skip_logging,
+                    write_to_console=False)
+
             if confirmed.lower() in ('y', 'yes'):
                 return True
             elif confirmed.lower() in ('n', 'no'):
                 return False
             else:
-                self.write_output("  Please answer yes or no.", skip_logging=skip_logging)
+                self.write_output("  Please answer yes or no.",
+                        skip_logging=skip_logging)
 
 
     def commit_changes(self):
