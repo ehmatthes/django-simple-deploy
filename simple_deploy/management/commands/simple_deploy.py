@@ -68,15 +68,16 @@ class Command(BaseCommand):
             # Log the options used for this run.
             self.write_output(f"CLI args: {options}", write_to_console=False)
 
+        # Validate the set of arguments we've been given.
+        #   _validate_command() instantiates a PlatformDeployer object.
+        self._validate_command()
+
         sys.exit()
 
 
 
 
 
-        # Validate the set of arguments we've been given.
-        #   _validate_command() instantiates a PlatformDeployer object.
-        self._validate_command()
 
         # Inspect system; we'll run some system commands differently on Windows.
         self._inspect_system()
@@ -148,11 +149,13 @@ class Command(BaseCommand):
         get confirmation about using a platform with preliminary support.
         """
         if not self.platform:
+            self.write_output(d_msgs.requires_platform_flag, write_to_console=False)
             raise CommandError(d_msgs.requires_platform_flag)
         elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
-            self.write_output(f"  Deployment target: {self.platform}", skip_logging=True)
+            self.write_output(f"  Deployment target: {self.platform}")
         else:
             error_msg = d_msgs.invalid_platform_msg(self.platform)
+            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
         self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
