@@ -259,12 +259,12 @@ class PlatformDeployer:
         confirmed = self.sd.get_confirmation()
 
         if confirmed:
-            self.stdout.write("  Continuing with platform.sh deployment...")
+            self.sd.write_output("  Continuing with platform.sh deployment...")
         else:
             # Quit and invite the user to try another platform.
             # We are happily exiting the script; there's no need to raise a
             #   CommandError.
-            self.stdout.write(plsh_msgs.cancel_plsh)
+            self.sd.write_output(plsh_msgs.cancel_plsh)
             sys.exit()
 
 

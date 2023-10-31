@@ -325,16 +325,16 @@ class PlatformDeployer:
         if self.sd.unit_testing:
             return
 
-        self.stdout.write(flyio_msgs.confirm_preliminary)
-        confirmed = self.sd.get_confirmation(skip_logging=True)
+        self.sd.write_output(flyio_msgs.confirm_preliminary)
+        confirmed = self.sd.get_confirmation()
 
         if confirmed:
-            self.stdout.write("  Continuing with Fly.io deployment...")
+            self.sd.write_output("  Continuing with Fly.io deployment...")
         else:
             # Quit and invite the user to try another platform.
             # We are happily exiting the script; there's no need to raise a
             #   CommandError.
-            self.stdout.write(flyio_msgs.cancel_flyio)
+            self.sd.write_output(flyio_msgs.cancel_flyio)
             sys.exit()
 
 
