@@ -59,9 +59,23 @@ class Command(BaseCommand):
         """Parse options, and dispatch to platform-specific helpers."""
         self.stdout.write("Configuring project for deployment...")
 
-        # Parse CLI options, and validate the set of arguments we've been given.
-        #   _validate_command() instantiates a PlatformDeployer object.
+        # Parse CLI options. This needs to be done before logging starts.
         self._parse_cli_options(options)
+
+        # Start logging.
+        if self.log_output:
+            self._start_logging()
+            # Log the options used for this run.
+            self.write_output(f"CLI args: {options}", write_to_console=False)
+
+        sys.exit()
+
+
+
+
+
+        # Validate the set of arguments we've been given.
+        #   _validate_command() instantiates a PlatformDeployer object.
         self._validate_command()
 
         # Inspect system; we'll run some system commands differently on Windows.
@@ -80,13 +94,6 @@ class Command(BaseCommand):
         #   so we'll let them handle unit testing differences.
         self._confirm_automate_all()
         self.platform_deployer.validate_platform()
-
-        # All validation has been completed. Make platform-agnostic modifications.
-        # Start with logging.
-        if self.log_output:
-            self._start_logging()
-            # Log the options used for this run.
-            self.write_output(f"CLI args: {options}", write_to_console=False)
 
         # First action that could fail, but should happen after logging, is
         #   calling platform-specific prep_automate_all(). This usually creates
@@ -210,8 +217,8 @@ class Command(BaseCommand):
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
 
-        # Make sure we're ignoring sd logs.
-        self._ignore_sd_logs()
+        # We'll make sure the log path is in .gitignore when we inspect the project
+        #   and find the .git dir.
 
 
     def _create_log_dir(self):
@@ -323,6 +330,10 @@ class Command(BaseCommand):
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
         self._check_git_status()
+
+        # Now that we know where .git is, we can ignore simple_deploy logs.
+        if self.log_output:
+            self._ignore_sd_logs()
 
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
