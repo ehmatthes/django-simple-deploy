@@ -72,15 +72,15 @@ class Command(BaseCommand):
         #   _validate_command() instantiates a PlatformDeployer object.
         self._validate_command()
 
+        # Inspect system; we'll run some system commands differently on Windows.
+        self._inspect_system()
+
         sys.exit()
 
 
 
 
 
-
-        # Inspect system; we'll run some system commands differently on Windows.
-        self._inspect_system()
 
         # Inspect project here. If there's anything we can't work with locally,
         #   we want to recognize that now and exit before making any changes
@@ -294,8 +294,13 @@ class Command(BaseCommand):
             #   at the moment, so can't test it properly.
             self.on_windows = True
             self.use_shell = True
+
+            msg = "  Local platform identified: Windows"
+            self.write_output(msg, write_to_console=False)
         elif platform.system() == 'Darwin':
             self.on_macos = True
+            msg = "  Local platform identified: macOS"
+            self.write_output(msg, write_to_console=False)
 
 
     def _inspect_project(self):
