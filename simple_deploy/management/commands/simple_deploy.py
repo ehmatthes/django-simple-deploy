@@ -80,10 +80,6 @@ class Command(BaseCommand):
         #   to the project, and before making any remote calls.
         self._inspect_project()
 
-        sys.exit()
-
-
-
         # Confirm --automate-all, if needed. Currently, this needs to happen before
         #   validate_platform(), because fly_io takes action based on automate_all
         #   in _validate_platform().
@@ -91,7 +87,14 @@ class Command(BaseCommand):
         # Note: Some platforms have validation steps to do even when unit testing,
         #   so we'll let them handle unit testing differences.
         self._confirm_automate_all()
+        sys.exit()
         self.platform_deployer.validate_platform()
+
+
+
+
+
+
 
         # First action that could fail, but should happen after logging, is
         #   calling platform-specific prep_automate_all(). This usually creates
@@ -172,20 +175,20 @@ class Command(BaseCommand):
         really wants us to take these actions for them.
         """
 
-        # Placing this test here makes handle() much cleaner.
+        # Placing this check here makes handle() much cleaner.
         if not self.automate_all:
             return
 
         # Confirm the user knows exactly what will be automated.
-        self.write_output(self.platform_msgs.confirm_automate_all, skip_logging=True)
-        confirmed = self.get_confirmation(skip_logging=True)
+        self.write_output(self.platform_msgs.confirm_automate_all)
+        confirmed = self.get_confirmation()
 
         if confirmed:
-            self.write_output("Automating all steps...", skip_logging=True)
+            self.write_output("Automating all steps...")
         else:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
-            self.write_output(d_msgs.cancel_automate_all, skip_logging=True)
+            self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
 
