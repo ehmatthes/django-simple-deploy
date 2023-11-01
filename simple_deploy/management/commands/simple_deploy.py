@@ -75,17 +75,14 @@ class Command(BaseCommand):
         # Inspect system; we'll run some system commands differently on Windows.
         self._inspect_system()
 
-        sys.exit()
-
-
-
-
-
-
         # Inspect project here. If there's anything we can't work with locally,
         #   we want to recognize that now and exit before making any changes
         #   to the project, and before making any remote calls.
         self._inspect_project()
+
+        sys.exit()
+
+
 
         # Confirm --automate-all, if needed. Currently, this needs to happen before
         #   validate_platform(), because fly_io takes action based on automate_all
@@ -326,6 +323,8 @@ class Command(BaseCommand):
         # DEV: Use this code when we can require Python >=3.9.
         # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
         self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
+        msg = f"  Project name: {self.project_name}"
+        self.write_output(msg, write_to_console=False)
 
         # Get project root, from settings.
         #   We wrap this in Path(), because settings files generated before 3.1
@@ -334,6 +333,8 @@ class Command(BaseCommand):
         # This handles string values for settings.BASE_DIR, and has no impact
         #   when settings.BASE_DIR is already a Path object.
         self.project_root = Path(settings.BASE_DIR)
+        msg = f"  Project root: {self.project_root}"
+        self.write_output(msg, write_to_console=False)
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
@@ -368,15 +369,16 @@ class Command(BaseCommand):
         """
         if Path(self.project_root / '.git').exists():
             self.git_path = Path(self.project_root)
-            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
+            self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = False
         elif (Path(self.project_root).parent / Path('.git')).exists():
             self.git_path = Path(self.project_root).parent
-            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
+            self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
+            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
 
@@ -403,6 +405,10 @@ class Command(BaseCommand):
         output_obj = self.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
+        # Log the output here, before any processing.
+        self.write_output("git status:", write_to_console=False)
+        self.write_output(output_str, write_to_console=False)
+
         if "working tree clean" in output_str:
             return
 
@@ -413,17 +419,22 @@ class Command(BaseCommand):
         output_obj = self.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
-        if not self._diff_output_clean(output_str):
+        if not self._diff_output_clean(output_str, ):
             # There are uncommitted changes beyond just adding simple_deploy to
             #   INSTALLED_APPS, so we need to bail.
             error_msg = d_msgs.unclean_git_status
             if self.automate_all:
                 error_msg += d_msgs.unclean_git_automate_all
+
+            self.write_output(error_msg, write_to_console=False)
             raise CommandError(error_msg)
 
 
     def _diff_output_clean(self, output_str):
         """Check output of `git diff`.
+        If `git diff` is empty, check `git status` again. If simple_deploy_logs/
+          is all that's listed, we can proceed.
+
         If there are any lines that start with '- ', that indicates a deletion,
         and we'll bail.
 
@@ -437,6 +448,23 @@ class Command(BaseCommand):
             - True if output of `git diff` is okay to continue.
             - False if output of `git diff` indicates we should bail.
         """
+
+        # First check if the only change is simple_deploy_logs/ being present.
+        #   This will result in an empty `git diff`, but `git status --porcelain`
+        #   will just show one line:
+        # % git status --porcelain
+        # ?? simple_deploy_logs/
+        # Note: --porcelain shows abbreviated output, meant to be read by scripts.
+        if not output_str:
+            cmd = "git status --porcelain"
+            output_obj = self.execute_subp_run(cmd)
+            gs_output_str = output_obj.stdout.decode()
+            if gs_output_str.strip() == '?? simple_deploy_logs/':
+                return True
+            else:
+                # There are other changes not added.
+                return False
+
         num_deletions = output_str.count('\n- ')
         num_additions = output_str.count('\n+ ')
 

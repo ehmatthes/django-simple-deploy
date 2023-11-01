@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 
 db.sqlite3
+
+reset_project.py

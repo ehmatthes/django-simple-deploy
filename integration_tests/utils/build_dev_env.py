@@ -191,6 +191,7 @@ add_simple_deploy(project_dir)
 
 # Make sure we have a clean status before calling simple_deploy.
 make_sp_call("git commit -am 'Added simple_deploy to INSTALLED_APPS.'")
+make_sp_call("git tag -am '' 'ADDED_SD'")
 
 # Repeat the project directory, so user can go there easily.
 print("\n\n --- Finished setup ---")
