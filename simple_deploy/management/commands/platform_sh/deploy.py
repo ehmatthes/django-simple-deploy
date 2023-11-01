@@ -317,9 +317,19 @@ class PlatformDeployer:
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed."""
         cmd = 'platform --version'
-        output_obj = self.sd.execute_subp_run(cmd)
-        if output_obj.returncode:
+
+        # Log the command we're running.
+        self.sd.write_output(cmd, write_to_console=False)
+
+        try:
+            output_obj = self.sd.execute_subp_run(cmd)
+        except FileNotFoundError:
+            self.sd.write_output("\nCommandError", write_to_console=False)
+            self.sd.write_output(plsh_msgs.cli_not_installed, write_to_console=False)
             raise CommandError(plsh_msgs.cli_not_installed)
+        else:
+            # Log the version output.
+            self.sd.write_output(output_obj, write_to_console=False)
 
 
     def _get_platformsh_project_name(self):

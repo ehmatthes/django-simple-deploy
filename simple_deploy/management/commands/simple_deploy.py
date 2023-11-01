@@ -87,8 +87,8 @@ class Command(BaseCommand):
         # Note: Some platforms have validation steps to do even when unit testing,
         #   so we'll let them handle unit testing differences.
         self._confirm_automate_all()
-        sys.exit()
         self.platform_deployer.validate_platform()
+        sys.exit()
 
 
 
