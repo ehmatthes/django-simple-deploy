@@ -346,10 +346,10 @@ class Command(BaseCommand):
 
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
-        # Find out which package manger is being used: req_txt, poetry, or pipenv
+        # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
         msg = f"  Dependency management system: {self.pkg_manager}"
-        self.write_output(msg, skip_logging=True)
+        self.write_output(msg)
 
         self.requirements = self._get_current_requirements()
 
@@ -510,7 +510,7 @@ class Command(BaseCommand):
 
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        self.write_output(error_msg, write_to_console=False, skip_logging=True)
+        self.write_output(error_msg, write_to_console=False)
         raise CommandError(error_msg)
 
 
@@ -544,7 +544,7 @@ class Command(BaseCommand):
         - List of requirements, with no version information.
         """
         msg = "  Checking current project requirements..."
-        self.write_output(msg, skip_logging=True)
+        self.write_output(msg)
 
         if self.pkg_manager == "req_txt":
             requirements = self._get_req_txt_requirements()
@@ -555,10 +555,10 @@ class Command(BaseCommand):
 
         # Report findings. 
         msg = "    Found existing dependencies:"
-        self.write_output(msg, skip_logging=True)
+        self.write_output(msg)
         for requirement in requirements:
             msg = f"      {requirement}"
-            self.write_output(msg, skip_logging=True)
+            self.write_output(msg)
 
         return requirements
 
