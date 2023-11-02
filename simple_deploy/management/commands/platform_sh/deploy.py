@@ -282,8 +282,16 @@ class PlatformDeployer:
             
             self.deployed_project_name = self._get_platformsh_project_name()
             self.org_name = self._get_org_name()
+
+            # Log org name here, because it doesn't apply to unit testing.
+            msg = f"Org name: {self.org_name}"
+            self.sd.write_output(msg, write_to_console=False)
         else:
             self.deployed_project_name = self.sd.deployed_project_name
+
+        # Log project name.
+        msg = f"Deployed project name: {self.deployed_project_name}"
+        self.sd.write_output(msg, write_to_console=False)
 
 
     def prep_automate_all(self):
@@ -340,7 +348,7 @@ class PlatformDeployer:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
         """
-        # If we're creating the project, we'll just use the startprojet name.
+        # If we're creating the project, we'll just use the startproject name.
         if self.sd.automate_all:
             return self.sd.project_name
 
@@ -353,6 +361,11 @@ class PlatformDeployer:
         cmd = "platform project:info --yes"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+
+
+# HERE.
+
+
 
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
