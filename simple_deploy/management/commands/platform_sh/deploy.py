@@ -8,7 +8,6 @@ import sys, os, re, subprocess, time
 from pathlib import Path
 
 from django.conf import settings
-from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
@@ -16,7 +15,7 @@ from django.utils.safestring import mark_safe
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template
+from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
 
 
 class PlatformDeployer:
@@ -317,7 +316,7 @@ class PlatformDeployer:
             self.sd.execute_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = plsh_msgs.unknown_create_error(e)
-            raise CommandError(error_msg)
+            raise SimpleDeployCommandError(self.sd, error_msg)
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -332,9 +331,7 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.execute_subp_run(cmd)
         except FileNotFoundError:
-            self.sd.write_output("\nCommandError", write_to_console=False)
-            self.sd.write_output(plsh_msgs.cli_not_installed, write_to_console=False)
-            raise CommandError(plsh_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
         else:
             # Log the version output.
             self.sd.write_output(output_obj, write_to_console=False)
@@ -371,26 +368,17 @@ class PlatformDeployer:
         # Also, I've seen both ProjectNotFoundException and RootNotFoundException
         #   raised when no project has been created.
         if not output_str:
-            self.sd.write_output("CommandError", write_to_console=False)
             output_str = output_obj.stderr.decode()
             if 'LoginRequiredException' in output_str:
-                self.sd.write_output(plsh_msgs.login_required,
-                        write_to_console=False)
-                raise CommandError(plsh_msgs.login_required)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
             elif 'ProjectNotFoundException' in output_str:
-                self.sd.write_output(plsh_msgs.no_project_name,
-                        write_to_console=False)
-                raise CommandError(plsh_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
             elif 'RootNotFoundException' in output_str:
-                self.sd.write_output(plsh_msgs.no_project_name,
-                        write_to_console=False)
-                raise CommandError(plsh_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
             else:
                 error_msg = plsh_msgs.unknown_error
                 error_msg += plsh_msgs.cli_not_installed
-                self.sd.write_output(error_msg,
-                        write_to_console=False)
-                raise CommandError(error_msg)
+                raise SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
         deployed_project_name_re = r'(\| title\s+?\|\s*?)(.*?)(\s*?\|)'
@@ -400,10 +388,7 @@ class PlatformDeployer:
         
         # Couldn't find a project name. Warn user, and let them know
         #   about override flag.
-        self.sd.write_output("CommandError", write_to_console=False)
-        self.sd.write_output(plsh_msgs.no_project_name,
-                write_to_console=False)
-        raise CommandError(plsh_msgs.no_project_name)
+        raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
 
 
     def _get_org_name(self):
@@ -430,11 +415,11 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if 'LoginRequiredException' in output_str:
-                raise CommandError(plsh_msgs.login_required)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
             else:
                 error_msg = plsh_msgs.unknown_error
                 error_msg += plsh_msgs.cli_not_installed
-                raise CommandError(error_msg)
+                raise SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull org name from output. Start by removing line containing lables.
         output_str_lines = [line for line in output_str.split("\n") if "Owner email" not in line]
@@ -447,7 +432,7 @@ class PlatformDeployer:
                 return org_name
         else:
             # Got stdout, but can't find org id. Unknown error.
-            raise CommandError(plsh_msgs.org_not_found)
+            raise SimpleDeployCommandError(self.sd, plsh_msgs.org_not_found)
 
 
     def _confirm_use_org_name(self, org_name):
@@ -467,4 +452,4 @@ class PlatformDeployer:
             # Exit, with a message that configuration is still an option.
             msg = plsh_msgs.cancel_plsh
             msg += plsh_msgs.may_configure
-            raise CommandError(msg)
+            raise SimpleDeployCommandError(self.sd, msg)
