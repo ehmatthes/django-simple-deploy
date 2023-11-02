@@ -362,26 +362,34 @@ class PlatformDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
-
-# HERE.
-
-
+        # Log output.
+        self.sd.write_output(cmd, write_to_console=False)
+        self.sd.write_output(output_obj, write_to_console=False)
 
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
         # Also, I've seen both ProjectNotFoundException and RootNotFoundException
         #   raised when no project has been created.
         if not output_str:
+            self.sd.write_output("CommandError", write_to_console=False)
             output_str = output_obj.stderr.decode()
             if 'LoginRequiredException' in output_str:
+                self.sd.write_output(plsh_msgs.login_required,
+                        write_to_console=False)
                 raise CommandError(plsh_msgs.login_required)
             elif 'ProjectNotFoundException' in output_str:
+                self.sd.write_output(plsh_msgs.no_project_name,
+                        write_to_console=False)
                 raise CommandError(plsh_msgs.no_project_name)
             elif 'RootNotFoundException' in output_str:
+                self.sd.write_output(plsh_msgs.no_project_name,
+                        write_to_console=False)
                 raise CommandError(plsh_msgs.no_project_name)
             else:
                 error_msg = plsh_msgs.unknown_error
                 error_msg += plsh_msgs.cli_not_installed
+                self.sd.write_output(error_msg,
+                        write_to_console=False)
                 raise CommandError(error_msg)
 
         # Pull deployed project name from output.
@@ -392,6 +400,9 @@ class PlatformDeployer:
         
         # Couldn't find a project name. Warn user, and let them know
         #   about override flag.
+        self.sd.write_output("CommandError", write_to_console=False)
+        self.sd.write_output(plsh_msgs.no_project_name,
+                write_to_console=False)
         raise CommandError(plsh_msgs.no_project_name)
 
 
