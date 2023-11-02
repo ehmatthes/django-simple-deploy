@@ -10,12 +10,12 @@ from datetime import datetime
 from pathlib import Path
 from importlib import import_module
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.conf import settings
 import toml
 
 from . import deploy_messages as d_msgs
-from .utils import write_file_from_template
+from .utils import write_file_from_template, SimpleDeployCommandError
 from . import cli
 
 
@@ -149,14 +149,12 @@ class Command(BaseCommand):
         get confirmation about using a platform with preliminary support.
         """
         if not self.platform:
-            self.write_output(d_msgs.requires_platform_flag, write_to_console=False)
-            raise CommandError(d_msgs.requires_platform_flag)
+            raise SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
         elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
             self.write_output(f"  Deployment target: {self.platform}")
         else:
             error_msg = d_msgs.invalid_platform_msg(self.platform)
-            self.write_output(error_msg, write_to_console=False)
-            raise CommandError(error_msg)
+            raise SimpleDeployCommandError(self, error_msg)
 
         self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
 
@@ -381,8 +379,7 @@ class Command(BaseCommand):
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
-            self.write_output(error_msg, write_to_console=False)
-            raise CommandError(error_msg)
+            raise SimpleDeployCommandError(self, error_msg)
 
 
     def _check_git_status(self):
@@ -429,8 +426,7 @@ class Command(BaseCommand):
             if self.automate_all:
                 error_msg += d_msgs.unclean_git_automate_all
 
-            self.write_output(error_msg, write_to_console=False)
-            raise CommandError(error_msg)
+            raise SimpleDeployCommandError(self, error_msg)
 
 
     def _diff_output_clean(self, output_str):
@@ -513,8 +509,7 @@ class Command(BaseCommand):
 
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        self.write_output(error_msg, write_to_console=False)
-        raise CommandError(error_msg)
+        raise SimpleDeployCommandError(self, error_msg)
 
 
     def _check_using_poetry(self):
