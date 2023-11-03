@@ -305,6 +305,7 @@ class PlatformDeployer:
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
         cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
+        self.sd.log_info(cmd)
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.

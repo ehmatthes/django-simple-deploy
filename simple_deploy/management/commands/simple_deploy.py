@@ -88,13 +88,6 @@ class Command(BaseCommand):
         #   so we'll let them handle unit testing differences.
         self._confirm_automate_all()
         self.platform_deployer.validate_platform()
-        sys.exit()
-
-
-
-
-
-
 
         # First action that could fail, but should happen after logging, is
         #   calling platform-specific prep_automate_all(). This usually creates
@@ -102,6 +95,12 @@ class Command(BaseCommand):
         #   most likely to fail, so it should be called before other modifications.
         if self.automate_all:
             self.platform_deployer.prep_automate_all()
+
+        sys.exit()
+
+
+
+
 
         self._add_simple_deploy_req()
 
