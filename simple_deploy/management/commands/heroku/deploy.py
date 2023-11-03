@@ -10,6 +10,8 @@ from django.utils.crypto import get_random_string
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.heroku import deploy_messages as dh_msgs
 
+from simple_deploy.management.commands.utils import SimpleDeployCommandError
+
 
 class PlatformDeployer:
     """Perform the initial deployment of a simple project.
@@ -469,8 +471,11 @@ class PlatformDeployer:
         if not self.sd.unit_testing:
             cmd = 'heroku --version'
             output_obj = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
+            self.sd.log_info(output_obj)
+
             if output_obj.returncode:
-                raise CommandError(dh_msgs.cli_not_installed)
+                raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
 
         # Respond appropriately if the local project uses Poetry.
         if self.sd.pkg_manager == "poetry":
@@ -496,17 +501,20 @@ class PlatformDeployer:
         - None
         """
         msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
         output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output, skip_logging=True)
+        self.sd.log_info(cmd)
+        self.sd.write_output(output)
 
         msg = "    Wrote requirements.txt file."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         # From this point forward, we'll treat this user the same as anyone
         #   who's using a bare requirements.txt file.
         self.sd.pkg_manager = "req_txt"
         self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
+        self.sd.log_info("    Package manager set to req_txt.")
+        self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
     
