@@ -66,7 +66,7 @@ class Command(BaseCommand):
         if self.log_output:
             self._start_logging()
             # Log the options used for this run.
-            self.write_output(f"CLI args: {options}", write_to_console=False)
+            self.log_info(f"\nCLI args: {options}")
 
         # Validate the set of arguments we've been given.
         #   _validate_command() instantiates a PlatformDeployer object.
@@ -212,8 +212,7 @@ class Command(BaseCommand):
                 filename=verbose_log_path,
                 format='%(asctime)s %(levelname)s: %(message)s')
 
-        self.write_output("Logging run of `manage.py simple_deploy`...",
-                write_to_console=False)
+        self.log_info("\nLogging run of `manage.py simple_deploy`...")
 
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
@@ -293,12 +292,10 @@ class Command(BaseCommand):
             self.on_windows = True
             self.use_shell = True
 
-            msg = "  Local platform identified: Windows"
-            self.write_output(msg, write_to_console=False)
+            self.log_info("  Local platform identified: Windows")
         elif platform.system() == 'Darwin':
             self.on_macos = True
-            msg = "  Local platform identified: macOS"
-            self.write_output(msg, write_to_console=False)
+            self.log_info("  Local platform identified: macOS")
 
 
     def _inspect_project(self):
@@ -324,8 +321,7 @@ class Command(BaseCommand):
         # DEV: Use this code when we can require Python >=3.9.
         # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
         self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
-        msg = f"  Project name: {self.project_name}"
-        self.write_output(msg, write_to_console=False)
+        self.log_info(f"  Project name: {self.project_name}")
 
         # Get project root, from settings.
         #   We wrap this in Path(), because settings files generated before 3.1
@@ -334,8 +330,7 @@ class Command(BaseCommand):
         # This handles string values for settings.BASE_DIR, and has no impact
         #   when settings.BASE_DIR is already a Path object.
         self.project_root = Path(settings.BASE_DIR)
-        msg = f"  Project root: {self.project_root}"
-        self.write_output(msg, write_to_console=False)
+        self.log_info(f"  Project root: {self.project_root}")
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
@@ -406,8 +401,7 @@ class Command(BaseCommand):
         output_str = output_obj.stdout.decode()
 
         # Log the output here, before any processing.
-        self.write_output("git status:", write_to_console=False)
-        self.write_output(output_str, write_to_console=False)
+        self.log_info(f"\ngit status:\n{output_str}")
 
         if "working tree clean" in output_str:
             return
@@ -730,6 +724,13 @@ class Command(BaseCommand):
                 # Strip secret key from any line that holds it.
                 line = self._strip_secret_key(line)
                 logging.info(line)
+
+
+    def log_info(self, output_obj):
+        """Simple wrapper on write_output(), that just logs information
+        that doesn't need to be written to the console.
+        """
+        self.write_output(output_obj, write_to_console=False)
 
 
     def execute_subp_run(self, cmd, check=False):
