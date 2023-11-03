@@ -67,6 +67,8 @@ class PlatformDeployer:
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
         if 'ON_FLYIO' in output_str:
             msg = "  Found ON_FLYIO in existing secrets."
             self.sd.write_output(msg)
@@ -75,6 +77,7 @@ class PlatformDeployer:
         cmd = f"fly secrets set -a {self.deployed_project_name} ON_FLYIO=1"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         msg = "  Set ON_FLYIO secret."
@@ -100,6 +103,9 @@ class PlatformDeployer:
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.log_info(cmd)
+        self.log_info(output_str)
+
         if 'DEBUG' in output_str:
             msg = "  Found DEBUG in existing secrets."
             self.sd.write_output(msg)
@@ -108,6 +114,7 @@ class PlatformDeployer:
         cmd = f"fly secrets set -a {self.deployed_project_name} DEBUG=FALSE"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.log_info(cmd)
         self.sd.write_output(output_str)
 
         msg = "  Set DEBUG=FALSE secret."
@@ -282,12 +289,14 @@ class PlatformDeployer:
         # Use execute_command() to stream output of this long-running command.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
+        self.sd.log_info(cmd)
         self.sd.execute_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         # Get url of deployed project.

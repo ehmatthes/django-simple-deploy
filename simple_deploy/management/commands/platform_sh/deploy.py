@@ -210,12 +210,14 @@ class PlatformDeployer:
         time.sleep(10)
 
         cmd = "platform push --yes"
+        self.sd.log_info(cmd)
         self.sd.execute_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = "platform url --yes"
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         # Get url of deployed project.
@@ -406,6 +408,8 @@ class PlatformDeployer:
         cmd = "platform organization:list --yes"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
 
         if not output_str:
             output_str = output_obj.stderr.decode()

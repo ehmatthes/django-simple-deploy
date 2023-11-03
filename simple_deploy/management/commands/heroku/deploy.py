@@ -59,6 +59,7 @@ class PlatformDeployer:
             self.sd.write_output("  Inspecting Heroku app...")
             cmd = 'heroku apps:info'
             apps_info = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
             self.sd.write_output(apps_info)
 
             # Turn stdout info into a list of strings that we can then parse.
@@ -72,9 +73,7 @@ class PlatformDeployer:
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
         else:
             # Let user know they need to run `heroku create`.
-            self.sd.write_output(dh_msgs.no_heroku_app_detected,
-                write_to_console=False)
-            raise CommandError(dh_msgs.no_heroku_app_detected)
+            raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
 
 
     def _set_heroku_env_var(self):
@@ -89,6 +88,7 @@ class PlatformDeployer:
         self.sd.write_output("  Setting Heroku environment variable...")
         cmd = 'heroku config:set ON_HEROKU=1'
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
@@ -111,6 +111,9 @@ class PlatformDeployer:
                 self.found_heroku_settings = True
             if self.found_heroku_settings:
                 self.current_heroku_settings_lines.append(line)
+
+        self.sd.log_info("\nExisting Heroku settings found:")
+        self.sd.log_info('\n'.join(self.current_heroku_settings_lines))
 
 
     def _generate_procfile(self):
@@ -278,6 +281,7 @@ class PlatformDeployer:
             self.sd.write_output("  Setting DEBUG env var...")
             cmd = 'heroku config:set DEBUG=FALSE'
             output = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
@@ -328,6 +332,7 @@ class PlatformDeployer:
         #   and keep everything after "On branch ".
         cmd = 'git status'
         git_status = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(git_status)
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
@@ -343,6 +348,7 @@ class PlatformDeployer:
         else:
             cmd = f"git push heroku {self.current_branch}:main"
         self.sd.execute_command(cmd)
+        self.sd.log_info(cmd)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
@@ -351,6 +357,7 @@ class PlatformDeployer:
         else:
             cmd = 'heroku run python manage.py migrate'
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
 
         self.sd.write_output(output)
 
@@ -358,6 +365,7 @@ class PlatformDeployer:
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = 'heroku open'
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
 

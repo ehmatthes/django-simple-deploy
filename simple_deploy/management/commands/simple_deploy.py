@@ -96,12 +96,6 @@ class Command(BaseCommand):
         if self.automate_all:
             self.platform_deployer.prep_automate_all()
 
-        sys.exit()
-
-
-
-
-
         self._add_simple_deploy_req()
 
         # All platform-agnostic work has been completed. Call platform-specific
