@@ -283,14 +283,11 @@ class PlatformDeployer:
             self.org_name = self._get_org_name()
 
             # Log org name here, because it doesn't apply to unit testing.
-            msg = f"Org name: {self.org_name}"
-            self.sd.write_output(msg, write_to_console=False)
+            self.sd.log_info(f"\nOrg name: {self.org_name}")
         else:
             self.deployed_project_name = self.sd.deployed_project_name
 
-        # Log project name.
-        msg = f"Deployed project name: {self.deployed_project_name}"
-        self.sd.write_output(msg, write_to_console=False)
+        self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
 
 
     def prep_automate_all(self):
@@ -324,9 +321,7 @@ class PlatformDeployer:
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed."""
         cmd = 'platform --version'
-
-        # Log the command we're running.
-        self.sd.write_output(cmd, write_to_console=False)
+        self.sd.log_info(cmd)
 
         try:
             output_obj = self.sd.execute_subp_run(cmd)
@@ -334,7 +329,7 @@ class PlatformDeployer:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
         else:
             # Log the version output.
-            self.sd.write_output(output_obj, write_to_console=False)
+            self.sd.log_info(output_obj)
 
 
     def _get_platformsh_project_name(self):
@@ -359,9 +354,8 @@ class PlatformDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
-        # Log output.
-        self.sd.write_output(cmd, write_to_console=False)
-        self.sd.write_output(output_obj, write_to_console=False)
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_obj)
 
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
