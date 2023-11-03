@@ -27,6 +27,8 @@ def test_platformsh_deployment(tmp_project, cli_options, request):
     print("\nTesting deployment to Platform.sh using the following options:")
     print(cli_options.__dict__)
 
+    platform_utils.check_logged_in()
+
     python_cmd = it_utils.get_python_exe(tmp_project)
 
     # Create a new project on the remote host, if not testing --automate-all.
