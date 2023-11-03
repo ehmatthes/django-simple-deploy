@@ -103,8 +103,8 @@ class PlatformDeployer:
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
-        self.log_info(cmd)
-        self.log_info(output_str)
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
 
         if 'DEBUG' in output_str:
             msg = "  Found DEBUG in existing secrets."
@@ -114,7 +114,7 @@ class PlatformDeployer:
         cmd = f"fly secrets set -a {self.deployed_project_name} DEBUG=FALSE"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
-        self.log_info(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         msg = "  Set DEBUG=FALSE secret."
