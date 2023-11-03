@@ -38,13 +38,13 @@ class SimpleDeployCommandError(CommandError):
     """Simple wrapper around CommandError, to facilitate consistent
     logging of command errors.
 
-    Writes "SDCommandError:" and error message to log, then raises actual
+    Writes "SimpleDeployCommandError:" and error message to log, then raises actual
       CommandError.
 
-    Note: This changes the exception type from CommandError to SDCommandError.
+    Note: This changes the exception type from CommandError to SimpleDeployCommandError.
     """
 
     def __init__(self, sd_command, message):
-        sd_command.write_output("\nSimpleDeployCommandError:", write_to_console=False)
-        sd_command.write_output(message, write_to_console=False)
+        sd_command.log_info("\nSimpleDeployCommandError:")
+        sd_command.log_info(message)
         super().__init__(message)
