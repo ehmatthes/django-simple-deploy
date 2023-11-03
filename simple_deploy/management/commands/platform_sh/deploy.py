@@ -358,7 +358,8 @@ class PlatformDeployer:
         output_str = output_obj.stdout.decode()
 
         self.sd.log_info(cmd)
-        self.sd.log_info(output_obj)
+        # Don't log the output of `project:info`. It contains identifying information
+        #   about the user and project, including client_ssh_key.
 
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
