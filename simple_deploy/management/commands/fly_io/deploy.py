@@ -64,11 +64,12 @@ class PlatformDeployer:
             return
 
         # First check if secret has already been set.
+        #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
-        self.sd.log_info(output_str)
+
         if 'ON_FLYIO' in output_str:
             msg = "  Found ON_FLYIO in existing secrets."
             self.sd.write_output(msg)
@@ -100,11 +101,11 @@ class PlatformDeployer:
             return
 
         # First check if secret has already been set.
+        #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
-        self.sd.log_info(output_str)
 
         if 'DEBUG' in output_str:
             msg = "  Found DEBUG in existing secrets."
