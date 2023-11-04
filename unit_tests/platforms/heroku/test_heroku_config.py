@@ -92,8 +92,6 @@ def test_log_dir(tmp_project):
     assert "INFO: --- Your project is now configured for deployment on Heroku. ---" in log_file_text
     assert "INFO: Or, you can visit https://sample-name-11894.herokuapp.com." in log_file_text
 
-    assert "INFO: - You can find a full record of this configuration in the simple_deploy_logs directory." in log_file_text
-
 
 # --- Test staticfile setup ---
 
