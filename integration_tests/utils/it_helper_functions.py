@@ -4,7 +4,7 @@ The functions in this module are not specific to any one platform. If a function
   starts to be used by tests for more than one platform, it should be moved here.
 """
 
-import subprocess, shlex, sys, time
+import subprocess, shlex, sys, time, os
 from pathlib import Path
 from textwrap import dedent
 
@@ -20,7 +20,17 @@ def make_sp_call(cmd, capture_output=False):
     """
     cmd_parts = shlex.split(cmd)
 
-    return subprocess.run(cmd_parts, capture_output=capture_output)
+    if os.name == 'nt':
+        # On Windows, only git commands need to be split?
+        if ('git' in cmd):
+            return subprocess.run(cmd_parts, capture_output=capture_output)
+        elif 'heroku' in cmd:
+            # Doesn't find the heroku command without shell=True.
+            return subprocess.run(cmd, capture_output=capture_output, shell=True)
+        else:
+            return subprocess.run(cmd, capture_output=capture_output)
+    else:
+        return subprocess.run(cmd_parts, capture_output=capture_output)
 
 def get_python_exe(tmp_project):
     """Get the path to the Python interpreter in the virtual environment.
