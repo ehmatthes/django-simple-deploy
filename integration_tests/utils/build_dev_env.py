@@ -53,8 +53,16 @@ def make_sp_call(cmd, capture_output=False):
 
     Returns: None, or CompletedProcess instance.
     """
+    print("cmd:", cmd)
     cmd_parts = shlex.split(cmd)
-    return subprocess.run(cmd_parts, capture_output=capture_output)
+    if os.name == 'nt':
+        # On Windows, only git commands need to be split?
+        if 'git' in cmd:
+            return subprocess.run(cmd_parts, capture_output=capture_output)
+        else:
+            return subprocess.run(cmd, capture_output=capture_output)
+    else:
+        return subprocess.run(cmd_parts, capture_output=capture_output)
 
 def activate_and_run(command, project_dir):
     """Run a command that needs to be run using a venv."""
