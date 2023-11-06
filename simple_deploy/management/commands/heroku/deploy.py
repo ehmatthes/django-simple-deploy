@@ -10,6 +10,8 @@ from django.utils.crypto import get_random_string
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.heroku import deploy_messages as dh_msgs
 
+from simple_deploy.management.commands.utils import SimpleDeployCommandError
+
 
 class PlatformDeployer:
     """Perform the initial deployment of a simple project.
@@ -57,6 +59,7 @@ class PlatformDeployer:
             self.sd.write_output("  Inspecting Heroku app...")
             cmd = 'heroku apps:info'
             apps_info = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
             self.sd.write_output(apps_info)
 
             # Turn stdout info into a list of strings that we can then parse.
@@ -70,9 +73,7 @@ class PlatformDeployer:
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
         else:
             # Let user know they need to run `heroku create`.
-            self.sd.write_output(dh_msgs.no_heroku_app_detected,
-                write_to_console=False)
-            raise CommandError(dh_msgs.no_heroku_app_detected)
+            raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
 
 
     def _set_heroku_env_var(self):
@@ -87,6 +88,7 @@ class PlatformDeployer:
         self.sd.write_output("  Setting Heroku environment variable...")
         cmd = 'heroku config:set ON_HEROKU=1'
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
@@ -109,6 +111,9 @@ class PlatformDeployer:
                 self.found_heroku_settings = True
             if self.found_heroku_settings:
                 self.current_heroku_settings_lines.append(line)
+
+        self.sd.log_info("\nExisting Heroku settings found:")
+        self.sd.log_info('\n'.join(self.current_heroku_settings_lines))
 
 
     def _generate_procfile(self):
@@ -276,6 +281,7 @@ class PlatformDeployer:
             self.sd.write_output("  Setting DEBUG env var...")
             cmd = 'heroku config:set DEBUG=FALSE'
             output = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
@@ -326,6 +332,7 @@ class PlatformDeployer:
         #   and keep everything after "On branch ".
         cmd = 'git status'
         git_status = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(git_status)
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
@@ -341,6 +348,7 @@ class PlatformDeployer:
         else:
             cmd = f"git push heroku {self.current_branch}:main"
         self.sd.execute_command(cmd)
+        self.sd.log_info(cmd)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
@@ -349,6 +357,7 @@ class PlatformDeployer:
         else:
             cmd = 'heroku run python manage.py migrate'
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
 
         self.sd.write_output(output)
 
@@ -356,6 +365,7 @@ class PlatformDeployer:
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = 'heroku open'
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
 
@@ -455,6 +465,7 @@ class PlatformDeployer:
         self.sd.write_output("  Running `heroku create`...")
         cmd = 'heroku create'
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
 
@@ -469,8 +480,11 @@ class PlatformDeployer:
         if not self.sd.unit_testing:
             cmd = 'heroku --version'
             output_obj = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
+            self.sd.log_info(output_obj)
+
             if output_obj.returncode:
-                raise CommandError(dh_msgs.cli_not_installed)
+                raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
 
         # Respond appropriately if the local project uses Poetry.
         if self.sd.pkg_manager == "poetry":
@@ -496,17 +510,20 @@ class PlatformDeployer:
         - None
         """
         msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
         output = self.sd.execute_subp_run(cmd)
-        self.sd.write_output(output, skip_logging=True)
+        self.sd.log_info(cmd)
+        self.sd.write_output(output)
 
         msg = "    Wrote requirements.txt file."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         # From this point forward, we'll treat this user the same as anyone
         #   who's using a bare requirements.txt file.
         self.sd.pkg_manager = "req_txt"
         self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
+        self.sd.log_info("    Package manager set to req_txt.")
+        self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
     

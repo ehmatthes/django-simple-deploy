@@ -8,15 +8,17 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 ### Unreleased
 
-summary
+Improve logging to include all project inspection steps. This should help with development and troubleshooting.
 
 #### External changes
 
-- note
+- Logs all system and project inspection steps.
 
 #### Internal changes
 
-- note
+- Creates log file immediately, unless `--skip-logging` is used. Previously, a log file wasn't written until we were writing other changes to the project.
+- Implements `SimpleDeployCommandError`, which logs the error before raising `CommandError`. `CommandError` should not be used, unless the error output contains sensitive information.
+- Implements `log_info()` method, which only logs information without writing it to the console.
 
 
 ### 0.5.16

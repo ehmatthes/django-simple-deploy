@@ -80,6 +80,14 @@ def test_log_dir(tmp_project):
     assert "INFO: Logging run of `manage.py simple_deploy`..." in log_file_text
     assert "INFO: Configuring project for deployment to Heroku..." in log_file_text
 
+    assert "INFO: CLI args: {" in log_file_text
+    assert "INFO:   Deployment target: heroku" in log_file_text
+    assert "INFO:   Project name: blog" in log_file_text
+    assert "INFO: git status:" in log_file_text
+    assert "INFO: Untracked files:" in log_file_text
+    assert 'INFO:   (use "git add <file>..." to include in what will be committed)' in log_file_text
+    assert "INFO: \tsimple_deploy_logs/" in log_file_text
+
     # Spot check for success messages.
     assert "INFO: --- Your project is now configured for deployment on Heroku. ---" in log_file_text
     assert "INFO: Or, you can visit https://sample-name-11894.herokuapp.com." in log_file_text

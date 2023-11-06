@@ -10,12 +10,12 @@ from datetime import datetime
 from pathlib import Path
 from importlib import import_module
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.conf import settings
 import toml
 
 from . import deploy_messages as d_msgs
-from .utils import write_file_from_template
+from .utils import write_file_from_template, SimpleDeployCommandError
 from . import cli
 
 
@@ -59,9 +59,17 @@ class Command(BaseCommand):
         """Parse options, and dispatch to platform-specific helpers."""
         self.stdout.write("Configuring project for deployment...")
 
-        # Parse CLI options, and validate the set of arguments we've been given.
-        #   _validate_command() instantiates a PlatformDeployer object.
+        # Parse CLI options. This needs to be done before logging starts.
         self._parse_cli_options(options)
+
+        # Start logging.
+        if self.log_output:
+            self._start_logging()
+            # Log the options used for this run.
+            self.log_info(f"\nCLI args: {options}")
+
+        # Validate the set of arguments we've been given.
+        #   _validate_command() instantiates a PlatformDeployer object.
         self._validate_command()
 
         # Inspect system; we'll run some system commands differently on Windows.
@@ -80,13 +88,6 @@ class Command(BaseCommand):
         #   so we'll let them handle unit testing differences.
         self._confirm_automate_all()
         self.platform_deployer.validate_platform()
-
-        # All validation has been completed. Make platform-agnostic modifications.
-        # Start with logging.
-        if self.log_output:
-            self._start_logging()
-            # Log the options used for this run.
-            self.write_output(f"CLI args: {options}", write_to_console=False)
 
         # First action that could fail, but should happen after logging, is
         #   calling platform-specific prep_automate_all(). This usually creates
@@ -141,12 +142,12 @@ class Command(BaseCommand):
         get confirmation about using a platform with preliminary support.
         """
         if not self.platform:
-            raise CommandError(d_msgs.requires_platform_flag)
+            raise SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
         elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
-            self.write_output(f"  Deployment target: {self.platform}", skip_logging=True)
+            self.write_output(f"  Deployment target: {self.platform}")
         else:
             error_msg = d_msgs.invalid_platform_msg(self.platform)
-            raise CommandError(error_msg)
+            raise SimpleDeployCommandError(self, error_msg)
 
         self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
 
@@ -156,7 +157,7 @@ class Command(BaseCommand):
         try:
             self.platform_deployer.confirm_preliminary()
         except AttributeError:
-            # The targeted platform does not have a preliminary warning.
+            # The targeted platform does not have a preliminary status warning.
             pass
 
 
@@ -165,20 +166,20 @@ class Command(BaseCommand):
         really wants us to take these actions for them.
         """
 
-        # Placing this test here makes handle() much cleaner.
+        # Placing this check here makes handle() much cleaner.
         if not self.automate_all:
             return
 
         # Confirm the user knows exactly what will be automated.
-        self.write_output(self.platform_msgs.confirm_automate_all, skip_logging=True)
-        confirmed = self.get_confirmation(skip_logging=True)
+        self.write_output(self.platform_msgs.confirm_automate_all)
+        confirmed = self.get_confirmation()
 
         if confirmed:
-            self.write_output("Automating all steps...", skip_logging=True)
+            self.write_output("Automating all steps...")
         else:
             # Quit and have the user run the command again; don't assume not
             #   wanting to automate means they want to configure.
-            self.write_output(d_msgs.cancel_automate_all, skip_logging=True)
+            self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
 
@@ -204,14 +205,13 @@ class Command(BaseCommand):
                 filename=verbose_log_path,
                 format='%(asctime)s %(levelname)s: %(message)s')
 
-        self.write_output("Logging run of `manage.py simple_deploy`...",
-                write_to_console=False)
+        self.log_info("\nLogging run of `manage.py simple_deploy`...")
 
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
 
-        # Make sure we're ignoring sd logs.
-        self._ignore_sd_logs()
+        # We'll make sure the log path is in .gitignore when we inspect the project
+        #   and find the .git dir.
 
 
     def _create_log_dir(self):
@@ -284,8 +284,11 @@ class Command(BaseCommand):
             #   at the moment, so can't test it properly.
             self.on_windows = True
             self.use_shell = True
+
+            self.log_info("  Local platform identified: Windows")
         elif platform.system() == 'Darwin':
             self.on_macos = True
+            self.log_info("  Local platform identified: macOS")
 
 
     def _inspect_project(self):
@@ -311,6 +314,7 @@ class Command(BaseCommand):
         # DEV: Use this code when we can require Python >=3.9.
         # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
         self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
+        self.log_info(f"  Project name: {self.project_name}")
 
         # Get project root, from settings.
         #   We wrap this in Path(), because settings files generated before 3.1
@@ -319,17 +323,22 @@ class Command(BaseCommand):
         # This handles string values for settings.BASE_DIR, and has no impact
         #   when settings.BASE_DIR is already a Path object.
         self.project_root = Path(settings.BASE_DIR)
+        self.log_info(f"  Project root: {self.project_root}")
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
         self._check_git_status()
 
+        # Now that we know where .git is, we can ignore simple_deploy logs.
+        if self.log_output:
+            self._ignore_sd_logs()
+
         self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
 
-        # Find out which package manger is being used: req_txt, poetry, or pipenv
+        # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
         msg = f"  Dependency management system: {self.pkg_manager}"
-        self.write_output(msg, skip_logging=True)
+        self.write_output(msg)
 
         self.requirements = self._get_current_requirements()
 
@@ -349,16 +358,16 @@ class Command(BaseCommand):
         """
         if Path(self.project_root / '.git').exists():
             self.git_path = Path(self.project_root)
-            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
+            self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = False
         elif (Path(self.project_root).parent / Path('.git')).exists():
             self.git_path = Path(self.project_root).parent
-            self.write_output(f"  Found .git dir at {self.git_path}.", skip_logging=True)
+            self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
-            raise CommandError(error_msg)
+            raise SimpleDeployCommandError(self, error_msg)
 
 
     def _check_git_status(self):
@@ -384,6 +393,9 @@ class Command(BaseCommand):
         output_obj = self.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
+        # Log the output here, before any processing.
+        self.log_info(f"\ngit status:\n{output_str}")
+
         if "working tree clean" in output_str:
             return
 
@@ -394,17 +406,21 @@ class Command(BaseCommand):
         output_obj = self.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
-        if not self._diff_output_clean(output_str):
+        if not self._diff_output_clean(output_str, ):
             # There are uncommitted changes beyond just adding simple_deploy to
             #   INSTALLED_APPS, so we need to bail.
             error_msg = d_msgs.unclean_git_status
             if self.automate_all:
                 error_msg += d_msgs.unclean_git_automate_all
-            raise CommandError(error_msg)
+
+            raise SimpleDeployCommandError(self, error_msg)
 
 
     def _diff_output_clean(self, output_str):
         """Check output of `git diff`.
+        If `git diff` is empty, check `git status` again. If simple_deploy_logs/
+          is all that's listed, we can proceed.
+
         If there are any lines that start with '- ', that indicates a deletion,
         and we'll bail.
 
@@ -418,6 +434,23 @@ class Command(BaseCommand):
             - True if output of `git diff` is okay to continue.
             - False if output of `git diff` indicates we should bail.
         """
+
+        # First check if the only change is simple_deploy_logs/ being present.
+        #   This will result in an empty `git diff`, but `git status --porcelain`
+        #   will just show one line:
+        # % git status --porcelain
+        # ?? simple_deploy_logs/
+        # Note: --porcelain shows abbreviated output, meant to be read by scripts.
+        if not output_str:
+            cmd = "git status --porcelain"
+            output_obj = self.execute_subp_run(cmd)
+            gs_output_str = output_obj.stdout.decode()
+            if gs_output_str.strip() == '?? simple_deploy_logs/':
+                return True
+            else:
+                # There are other changes not added.
+                return False
+
         num_deletions = output_str.count('\n- ')
         num_additions = output_str.count('\n+ ')
 
@@ -463,8 +496,7 @@ class Command(BaseCommand):
 
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        self.write_output(error_msg, write_to_console=False, skip_logging=True)
-        raise CommandError(error_msg)
+        raise SimpleDeployCommandError(self, error_msg)
 
 
     def _check_using_poetry(self):
@@ -497,7 +529,7 @@ class Command(BaseCommand):
         - List of requirements, with no version information.
         """
         msg = "  Checking current project requirements..."
-        self.write_output(msg, skip_logging=True)
+        self.write_output(msg)
 
         if self.pkg_manager == "req_txt":
             requirements = self._get_req_txt_requirements()
@@ -508,10 +540,10 @@ class Command(BaseCommand):
 
         # Report findings. 
         msg = "    Found existing dependencies:"
-        self.write_output(msg, skip_logging=True)
+        self.write_output(msg)
         for requirement in requirements:
             msg = f"      {requirement}"
-            self.write_output(msg, skip_logging=True)
+            self.write_output(msg)
 
         return requirements
 
@@ -660,7 +692,8 @@ class Command(BaseCommand):
         """Write output to the appropriate places.
         Output may be a string, or an instance of subprocess.CompletedProcess.
 
-        Need to skip logging before log file is configured.
+        Skip logging if --no-logging, or if skip_logging has been passed.
+          This is useful for writing sensitive information to console.
         """
 
         # Extract the subprocess output as a string.
@@ -684,6 +717,13 @@ class Command(BaseCommand):
                 # Strip secret key from any line that holds it.
                 line = self._strip_secret_key(line)
                 logging.info(line)
+
+
+    def log_info(self, output_obj):
+        """Simple wrapper on write_output(), that just logs information
+        that doesn't need to be written to the console.
+        """
+        self.write_output(output_obj, write_to_console=False)
 
 
     def execute_subp_run(self, cmd, check=False):
@@ -893,12 +933,18 @@ class Command(BaseCommand):
         while True:
             self.write_output(prompt, skip_logging=skip_logging)
             confirmed = input()
+
+            # Log user's response before processing it.
+            self.write_output(confirmed, skip_logging=skip_logging,
+                    write_to_console=False)
+
             if confirmed.lower() in ('y', 'yes'):
                 return True
             elif confirmed.lower() in ('n', 'no'):
                 return False
             else:
-                self.write_output("  Please answer yes or no.", skip_logging=skip_logging)
+                self.write_output("  Please answer yes or no.",
+                        skip_logging=skip_logging)
 
 
     def commit_changes(self):

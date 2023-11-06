@@ -53,8 +53,16 @@ def make_sp_call(cmd, capture_output=False):
 
     Returns: None, or CompletedProcess instance.
     """
+    print("cmd:", cmd)
     cmd_parts = shlex.split(cmd)
-    return subprocess.run(cmd_parts, capture_output=capture_output)
+    if os.name == 'nt':
+        # On Windows, only git commands need to be split?
+        if 'git' in cmd:
+            return subprocess.run(cmd_parts, capture_output=capture_output)
+        else:
+            return subprocess.run(cmd, capture_output=capture_output)
+    else:
+        return subprocess.run(cmd_parts, capture_output=capture_output)
 
 def activate_and_run(command, project_dir):
     """Run a command that needs to be run using a venv."""
@@ -191,6 +199,7 @@ add_simple_deploy(project_dir)
 
 # Make sure we have a clean status before calling simple_deploy.
 make_sp_call("git commit -am 'Added simple_deploy to INSTALLED_APPS.'")
+make_sp_call("git tag -am '' 'ADDED_SD'")
 
 # Repeat the project directory, so user can go there easily.
 print("\n\n --- Finished setup ---")

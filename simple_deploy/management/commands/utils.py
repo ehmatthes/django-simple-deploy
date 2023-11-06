@@ -2,6 +2,7 @@ import inspect, re, sys
 
 from django.template.engine import Engine
 from django.template.utils import get_app_template_dirs
+from django.core.management.base import CommandError
 
 
 def write_file_from_template(path, template, context=None):
@@ -31,3 +32,19 @@ def write_file_from_template(path, template, context=None):
     # Generate the template string, and write it to the given path.
     template_string = my_engine.render_to_string(template, context)
     path.write_text(template_string)
+
+
+class SimpleDeployCommandError(CommandError):
+    """Simple wrapper around CommandError, to facilitate consistent
+    logging of command errors.
+
+    Writes "SimpleDeployCommandError:" and error message to log, then raises actual
+      CommandError.
+
+    Note: This changes the exception type from CommandError to SimpleDeployCommandError.
+    """
+
+    def __init__(self, sd_command, message):
+        sd_command.log_info("\nSimpleDeployCommandError:")
+        sd_command.log_info(message)
+        super().__init__(message)

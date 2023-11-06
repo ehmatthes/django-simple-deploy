@@ -26,8 +26,8 @@ def check_project_unchanged(tmp_proj_dir):
     Checks git status and git log.
     """
 
-    stdout, stderr = msp.make_git_call(tmp_proj_dir, "git status")
-    assert "On branch main\nnothing to commit, working tree clean" in stdout
+    stdout, stderr = msp.make_git_call(tmp_proj_dir, "git status --porcelain")
+    assert "?? simple_deploy_logs/" in stdout
 
     stdout, stderr = msp.make_git_call(tmp_proj_dir, "git log")
     assert "Removed unneeded dependency management files." in stdout

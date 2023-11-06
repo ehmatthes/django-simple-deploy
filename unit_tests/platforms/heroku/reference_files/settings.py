@@ -135,7 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'users:login'
 import os
 if 'ON_HEROKU' in os.environ:
-    ALLOWED_HOSTS.append('sample-name-11894.herokuapp.com')
+    ALLOWED_HOSTS.append('*')
     import dj_database_url
     DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
     STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')

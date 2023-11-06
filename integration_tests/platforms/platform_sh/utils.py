@@ -2,8 +2,23 @@
 
 import re, time
 
+import pytest
+
 from ...utils.it_helper_functions import make_sp_call
 
+def check_logged_in():
+    """Check that user is currently logged in to Platform.sh through CLI."""
+    print("\nVerifying logged in to Platform.sh CLI...")
+    auth_info_output = make_sp_call("platform auth:info --quiet", capture_output=True)
+    if "LoginRequiredException" in auth_info_output.stderr.decode():
+        msg = "\n----- Error: Not logged in through CLI -----"
+        msg += "\nPlease log in to the Platform.sh CLI and then run the integration test."
+        msg += "\n  You can log in with the command: platform login"
+        msg += "\n-----\n"
+        print(msg)
+
+        exit_msg = "Please run `platform login` and then run integration tests."
+        pytest.exit(exit_msg)
 
 def create_project():
     """Create a project on Platform.sh."""

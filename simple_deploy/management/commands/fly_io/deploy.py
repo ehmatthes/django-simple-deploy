@@ -17,7 +17,7 @@ import requests
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template
+from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
 
 
 class PlatformDeployer:
@@ -64,9 +64,12 @@ class PlatformDeployer:
             return
 
         # First check if secret has already been set.
+        #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+
         if 'ON_FLYIO' in output_str:
             msg = "  Found ON_FLYIO in existing secrets."
             self.sd.write_output(msg)
@@ -75,6 +78,7 @@ class PlatformDeployer:
         cmd = f"fly secrets set -a {self.deployed_project_name} ON_FLYIO=1"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         msg = "  Set ON_FLYIO secret."
@@ -97,9 +101,12 @@ class PlatformDeployer:
             return
 
         # First check if secret has already been set.
+        #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+
         if 'DEBUG' in output_str:
             msg = "  Found DEBUG in existing secrets."
             self.sd.write_output(msg)
@@ -108,6 +115,7 @@ class PlatformDeployer:
         cmd = f"fly secrets set -a {self.deployed_project_name} DEBUG=FALSE"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         msg = "  Set DEBUG=FALSE secret."
@@ -282,12 +290,14 @@ class PlatformDeployer:
         # Use execute_command() to stream output of this long-running command.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
+        self.sd.log_info(cmd)
         self.sd.execute_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         # Get url of deployed project.
@@ -325,16 +335,16 @@ class PlatformDeployer:
         if self.sd.unit_testing:
             return
 
-        self.stdout.write(flyio_msgs.confirm_preliminary)
-        confirmed = self.sd.get_confirmation(skip_logging=True)
+        self.sd.write_output(flyio_msgs.confirm_preliminary)
+        confirmed = self.sd.get_confirmation()
 
         if confirmed:
-            self.stdout.write("  Continuing with Fly.io deployment...")
+            self.sd.write_output("  Continuing with Fly.io deployment...")
         else:
             # Quit and invite the user to try another platform.
             # We are happily exiting the script; there's no need to raise a
             #   CommandError.
-            self.stdout.write(flyio_msgs.cancel_flyio)
+            self.sd.write_output(flyio_msgs.cancel_flyio)
             sys.exit()
 
 
@@ -382,8 +392,11 @@ class PlatformDeployer:
         """Make sure the Platform.sh CLI is installed."""
         cmd = 'fly version'
         output_obj = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_obj)
+
         if output_obj.returncode:
-            raise CommandError(flyio_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
@@ -404,18 +417,21 @@ class PlatformDeployer:
             return ""
 
         msg = "\nLooking for Fly.io app to deploy against..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         # Get apps info.
         # DEV: I believe this would be simpler with `fly apps list --json`.
         cmd = "fly apps list"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
 
         # Only keep relevant output; get rid of blank lines, update messages,
         #   and line with labels like NAME and LATEST DEPLOY.
         # DEV: If more than one line of output after this block, consider
         #   prompting the user for which app to use.
+        # DEV: Should be parsing output of `fly apps list --json`.
         lines = output_str.split('\n')
         lines = [line for line in lines if line]
         lines = [line for line in lines if 'update' not in line.lower()]
@@ -424,16 +440,19 @@ class PlatformDeployer:
         lines = [line for line in lines if 'builder' not in line]
 
         # For now, assume one line of output and use first part of output.
-        self.app_name = lines[0].split()[0]
+        try:
+            self.app_name = lines[0].split()[0]
+        except IndexError:
+            self.app_name = ""
 
         # Return deployed app name, or raise CommandError.
         if self.app_name:
             msg = f"  Found Fly.io app: {self.app_name}"
-            self.sd.write_output(msg, skip_logging=True)
+            self.sd.write_output(msg)
             return self.app_name
         else:
             # Can't continue without a Fly.io app to configure against.
-            raise CommandError(flyio_msgs.no_project_name)
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
 
     def _create_flyio_app(self):
         """Create a new Fly.io app.
@@ -444,12 +463,13 @@ class PlatformDeployer:
         - Raises CommandError if an app can't be created.
         """
         msg = "  Creating a new app on Fly.io..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         cmd = "fly apps create --generate-name"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.write_output(output_str, skip_logging=True)
+        self.sd.log_info(cmd)
+        self.sd.write_output(output_str)
 
         # Get app name.
         app_name_re = r'(New app created: )(\w+\-\w+\-\d+)'
@@ -460,11 +480,11 @@ class PlatformDeployer:
 
         if self.app_name:
             msg = f"  Created new app: {self.app_name}"
-            self.sd.write_output(msg, skip_logging=True)
+            self.sd.write_output(msg)
             return self.app_name
         else:
             # Can't continue without a Fly.io app to deploy to.
-            raise CommandError(flyio_msgs.create_app_failed)
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.create_app_failed)
 
 
     def _get_region(self):
@@ -496,7 +516,7 @@ class PlatformDeployer:
         """
 
         msg = "Looking for Fly.io region..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         # Get region output.
         url = "https://liveview-counter.fly.dev/"
@@ -508,12 +528,12 @@ class PlatformDeployer:
             region = m.group(1)
 
             msg = f"  Found lowest latency region: {region}"
-            self.sd.write_output(msg, skip_logging=True)
+            self.sd.write_output(msg)
         else:
             region = 'sea'
 
             msg = f"  Couldn't find lowest latency region, using 'sea'."
-            self.sd.write_output(msg, skip_logging=True)
+            self.sd.write_output(msg)
 
         return region
 
@@ -525,7 +545,7 @@ class PlatformDeployer:
         - Raises CommandError if...
         """
         msg = "Looking for a Postgres database..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         db_exists = self._check_if_db_exists()
 
@@ -534,11 +554,12 @@ class PlatformDeployer:
 
         # No db found, create a new db.
         msg = f"  Create a new Postgres database..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         self.db_name = f"{self.deployed_project_name}-db"
         cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
+        self.sd.log_info(cmd)
 
         # If not using automate_all, make sure it's okay to create a resource
         #   on user's account.
@@ -547,22 +568,25 @@ class PlatformDeployer:
 
         # Create database.
         # Use execute_command(), to stream output of long-running process.
+        # Also, we're not logging this because I believe it contains
+        #   db credentials. May want to scrub and then log output.
         self.sd.execute_command(cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
         # Run `attach` command (and confirm DATABASE_URL is set?)
         msg = "  Attaching database to Fly.io app..."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
         cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
+        self.sd.log_info(cmd)
 
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.write_output(output_str, skip_logging=True)
+        self.sd.write_output(output_str)
 
         msg = "  Attached database to app."
-        self.sd.write_output(msg, skip_logging=True)
+        self.sd.write_output(msg)
 
     def _check_if_db_exists(self):
         """Check if a postgres db already exists that should be used with this app.
@@ -575,14 +599,16 @@ class PlatformDeployer:
         cmd = "fly postgres list"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
 
         if "No postgres clusters found" in output_str:
             msg = "  No Postgres database found."
-            self.sd.write_output(msg, skip_logging=True)
+            self.sd.write_output(msg)
             return False
         else:
             msg = "  A Postgres database was found."
-            self.sd.write_output(msg, skip_logging=True)
+            self.sd.write_output(msg)
             return True
 
     def _confirm_create_db(self, db_cmd):
@@ -596,10 +622,10 @@ class PlatformDeployer:
             return
 
         self.stdout.write(flyio_msgs.confirm_create_db(db_cmd))
-        confirmed = self.sd.get_confirmation(skip_logging=True)
+        confirmed = self.sd.get_confirmation()
 
         if confirmed:
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
-            raise CommandError(flyio_msgs.cancel_no_db)
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)

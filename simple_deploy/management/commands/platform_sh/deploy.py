@@ -8,7 +8,6 @@ import sys, os, re, subprocess, time
 from pathlib import Path
 
 from django.conf import settings
-from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
@@ -16,7 +15,7 @@ from django.utils.safestring import mark_safe
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template
+from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
 
 
 class PlatformDeployer:
@@ -211,12 +210,14 @@ class PlatformDeployer:
         time.sleep(10)
 
         cmd = "platform push --yes"
+        self.sd.log_info(cmd)
         self.sd.execute_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = "platform url --yes"
         output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         # Get url of deployed project.
@@ -255,16 +256,16 @@ class PlatformDeployer:
         if self.sd.unit_testing:
             return
 
-        self.stdout.write(plsh_msgs.confirm_preliminary)
-        confirmed = self.sd.get_confirmation(skip_logging=True)
+        self.sd.write_output(plsh_msgs.confirm_preliminary)
+        confirmed = self.sd.get_confirmation()
 
         if confirmed:
-            self.stdout.write("  Continuing with platform.sh deployment...")
+            self.sd.write_output("  Continuing with platform.sh deployment...")
         else:
             # Quit and invite the user to try another platform.
             # We are happily exiting the script; there's no need to raise a
             #   CommandError.
-            self.stdout.write(plsh_msgs.cancel_plsh)
+            self.sd.write_output(plsh_msgs.cancel_plsh)
             sys.exit()
 
 
@@ -282,8 +283,13 @@ class PlatformDeployer:
             
             self.deployed_project_name = self._get_platformsh_project_name()
             self.org_name = self._get_org_name()
+
+            # Log org name here, because it doesn't apply to unit testing.
+            self.sd.log_info(f"\nOrg name: {self.org_name}")
         else:
             self.deployed_project_name = self.sd.deployed_project_name
+
+        self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
 
 
     def prep_automate_all(self):
@@ -301,6 +307,7 @@ class PlatformDeployer:
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
         cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
+        self.sd.log_info(cmd)
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.
@@ -309,7 +316,7 @@ class PlatformDeployer:
             self.sd.execute_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = plsh_msgs.unknown_create_error(e)
-            raise CommandError(error_msg)
+            raise SimpleDeployCommandError(self.sd, error_msg)
 
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -317,9 +324,15 @@ class PlatformDeployer:
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed."""
         cmd = 'platform --version'
-        output_obj = self.sd.execute_subp_run(cmd)
-        if output_obj.returncode:
-            raise CommandError(plsh_msgs.cli_not_installed)
+        self.sd.log_info(cmd)
+
+        try:
+            output_obj = self.sd.execute_subp_run(cmd)
+        except FileNotFoundError:
+            raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
+        else:
+            # Log the version output.
+            self.sd.log_info(output_obj)
 
 
     def _get_platformsh_project_name(self):
@@ -330,7 +343,7 @@ class PlatformDeployer:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
         """
-        # If we're creating the project, we'll just use the startprojet name.
+        # If we're creating the project, we'll just use the startproject name.
         if self.sd.automate_all:
             return self.sd.project_name
 
@@ -344,6 +357,10 @@ class PlatformDeployer:
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
 
+        self.sd.log_info(cmd)
+        # Don't log the output of `project:info`. It contains identifying information
+        #   about the user and project, including client_ssh_key.
+
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
         # Also, I've seen both ProjectNotFoundException and RootNotFoundException
@@ -351,15 +368,15 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if 'LoginRequiredException' in output_str:
-                raise CommandError(plsh_msgs.login_required)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
             elif 'ProjectNotFoundException' in output_str:
-                raise CommandError(plsh_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
             elif 'RootNotFoundException' in output_str:
-                raise CommandError(plsh_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
             else:
                 error_msg = plsh_msgs.unknown_error
                 error_msg += plsh_msgs.cli_not_installed
-                raise CommandError(error_msg)
+                raise SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
         deployed_project_name_re = r'(\| title\s+?\|\s*?)(.*?)(\s*?\|)'
@@ -369,7 +386,7 @@ class PlatformDeployer:
         
         # Couldn't find a project name. Warn user, and let them know
         #   about override flag.
-        raise CommandError(plsh_msgs.no_project_name)
+        raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
 
 
     def _get_org_name(self):
@@ -392,15 +409,17 @@ class PlatformDeployer:
         cmd = "platform organization:list --yes"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
 
         if not output_str:
             output_str = output_obj.stderr.decode()
             if 'LoginRequiredException' in output_str:
-                raise CommandError(plsh_msgs.login_required)
+                raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
             else:
                 error_msg = plsh_msgs.unknown_error
                 error_msg += plsh_msgs.cli_not_installed
-                raise CommandError(error_msg)
+                raise SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull org name from output. Start by removing line containing lables.
         output_str_lines = [line for line in output_str.split("\n") if "Owner email" not in line]
@@ -413,7 +432,7 @@ class PlatformDeployer:
                 return org_name
         else:
             # Got stdout, but can't find org id. Unknown error.
-            raise CommandError(plsh_msgs.org_not_found)
+            raise SimpleDeployCommandError(self.sd, plsh_msgs.org_not_found)
 
 
     def _confirm_use_org_name(self, org_name):
@@ -433,4 +452,4 @@ class PlatformDeployer:
             # Exit, with a message that configuration is still an option.
             msg = plsh_msgs.cancel_plsh
             msg += plsh_msgs.may_configure
-            raise CommandError(msg)
+            raise SimpleDeployCommandError(self.sd, msg)
