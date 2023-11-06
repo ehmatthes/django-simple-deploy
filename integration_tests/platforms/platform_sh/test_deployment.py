@@ -30,6 +30,7 @@ def test_platformsh_deployment(tmp_project, cli_options, request):
       Confirming the RSA key in the popup generates a `.ssh/known_hosts` file, which then allows
         you to use non-bash shells. That behavior is *really* confusing, though. I don't think the
         platform.sh CLI was designed to be used on native Windows at all. :/
+      Also, sometimes helps to run `platform auth:logout` followed by `platform auth:browser-login`.
     """
 
     # Cache the platform name for teardown work.
