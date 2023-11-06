@@ -16,7 +16,7 @@ Note
 
 #### Internal changes
 
-- Note
+- Updated readthedocs config file.
 
 
 ### 0.5.17
