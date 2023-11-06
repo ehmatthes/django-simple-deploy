@@ -1,10 +1,15 @@
 version: 2
 
 # Require Python 3.8, to match overall project requirements.
+build:
+  os: ubuntu-22.04
+  tools:
+    python: "3.8"
+
+# Python requirements.
 python:
-  version: 3.8
   install:
-    - requirements: docs/requirements.txt
+  - requirements: docs/requirements.txt
 
 mkdocs:
  configuration: mkdocs.yml

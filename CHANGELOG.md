@@ -6,6 +6,19 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
+### Unreleased
+
+Note
+
+#### External changes
+
+- Note
+
+#### Internal changes
+
+- Note
+
+
 ### 0.5.17
 
 Improve logging to include all project inspection steps. This should help with development and troubleshooting.
