@@ -44,7 +44,7 @@ After installing the CLI, you can run simple_deploy again.
 """
 
 no_project_name = """
-A Fly.io app to deploy to could not be found.
+A suitable Fly.io app to deploy against could not be found.
 
 The simple_deploy command expects that you've already created an app on Fly.io
 to push to.
@@ -54,6 +54,9 @@ If you haven't done so, run the following command to create a new Fly.io app:
     $ fly apps create --generate-name
 
 Then run simple_deploy again.
+
+Note: Apps that have already been deployed to are ignored, because we don't want
+  to affect existing projects.
 """
 
 create_app_failed = """

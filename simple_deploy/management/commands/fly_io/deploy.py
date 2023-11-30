@@ -361,7 +361,7 @@ class PlatformDeployer:
             self._validate_cli()
             
             self.deployed_project_name = self._get_deployed_project_name()
-            # sys.exit("***** Stopping for diagnostic work. *****")
+            sys.exit("***** Stopping for diagnostic work. *****")
 
             # If using automate_all, we need to create the app before creating
             #   the db. But if there's already an app with no deployment, we can 
@@ -427,14 +427,24 @@ class PlatformDeployer:
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
         output_json = json.loads(output_str)
+
+        # Only consider projects that have not been deployed yet.
+        candidate_apps = [
+            app_dict
+            for app_dict in output_json
+            if app_dict["Deployed"] == "false"
+        ]
+
+        # Get all names that might be the app we want to deploy to.
         project_names = [apps_dict["Name"] for apps_dict in output_json]
+        project_names = [name for name in project_names if 'builder' not in name]
 
-        # If no app name found, raise error.
+        # We need to respond according to how many possible names were found.
         if len(project_names) == 0:
+            # If no app name found, raise error.
             raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
-
-        # If only one project name, confirm that it's the correct project.
-        if len(project_names) == 1:
+        elif len(project_names) == 1:
+            # If only one project name, confirm that it's the correct project.
             project_name = project_names[0]
             msg = f"\n*** Found one app on Fly.io: {project_name} ***"
             print(msg)
@@ -443,6 +453,11 @@ class PlatformDeployer:
                 self.app_name = project_name
             else:
                 raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+        else:
+            print("Found more than one app name:")
+            print(project_names)
+            self.app_name = ""
+
 
 
 
