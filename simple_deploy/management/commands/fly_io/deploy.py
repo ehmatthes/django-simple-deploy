@@ -361,7 +361,7 @@ class PlatformDeployer:
             self._validate_cli()
             
             self.deployed_project_name = self._get_deployed_project_name()
-            sys.exit("***** Stopping for diagnostic work. *****")
+            # sys.exit("***** Stopping for diagnostic work. *****")
 
             # If using automate_all, we need to create the app before creating
             #   the db. But if there's already an app with no deployment, we can 
@@ -454,12 +454,29 @@ class PlatformDeployer:
             else:
                 raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
         else:
-            print("Found more than one app name:")
-            print(project_names)
-            self.app_name = ""
+            # `apps list` does not show much specific inforamtion for undeployed apps.
+            #   ie, no creation date, so can't identify most recently created app.
+            # Show all undeployed apps, ask user to make selection.
+            while True:
+                msg = "\n*** Found multiple undeployed apps on Fly.io. ***"
+                for index, name in enumerate(project_names):
+                    msg += f"\n  {index}: {name}"
+                msg += "\n\nYou can cancel this configuration work by entering q."
+                msg += "\nWhich app would you like to use? "
+                selection = input(msg)
 
+                if selection.lower() in ['q', 'quit']:
+                    raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
 
+                selected_name = project_names[int(selection)]
 
+                # Confirm selection, because we do *not* want to deploy against
+                #   the wrong app.
+                msg = f"You have selected {selected_name}. Is that correct?"
+                confirmed = self.sd.get_confirmation(msg)
+                if confirmed:
+                    self.app_name = selected_name
+                    break
 
         # Return deployed app name, or raise CommandError.
         if self.app_name:

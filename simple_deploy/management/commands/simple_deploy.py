@@ -468,10 +468,7 @@ class Command(BaseCommand):
             # The only addition was 'simple_deploy', we can move on.
             return True
 
-
         # There was a change, but it wasn't just 'simple_deploy'.
-        print('here')
-        print(output_str)
         # We can proceed if simple_deploy_logs/ was added to .gitignore.
         if all([
                 "diff --git a/.gitignore b/.gitignore" in output_str,
