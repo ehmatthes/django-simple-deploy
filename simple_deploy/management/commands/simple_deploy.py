@@ -926,13 +926,18 @@ class Command(BaseCommand):
             self._write_pipfile_pkg(package_name, version)
 
 
-    def get_confirmation(self, skip_logging=False):
+    def get_confirmation(self, msg="", skip_logging=False):
         """Get confirmation for an action.
         This method assumes an appropriate message has already been displayed
           about what is to be done.
+        You can pass a different message for the prompt; it should be phrased
+          to elicit a yes/no response. Don't include the yes/no part.
         This method shows a yes|no prompt, and returns True or False.
         """
-        prompt = "\nAre you sure you want to do this? (yes|no) "
+        if not msg:
+            prompt = "\nAre you sure you want to do this? (yes|no) "
+        else:
+            prompt = f"\n{msg} (yes|no) "
         confirmed = ''
 
         # If doing integration testing, always return True.

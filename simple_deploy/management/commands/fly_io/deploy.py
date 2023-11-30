@@ -3,7 +3,7 @@
 # Note: Internal references to Fly.io will almost always be flyio.
 #   Public references, such as the --platform argument, will be fly_io.
 
-import sys, os, re, subprocess
+import sys, os, re, subprocess, json
 from pathlib import Path
 
 from django.conf import settings
@@ -361,6 +361,7 @@ class PlatformDeployer:
             self._validate_cli()
             
             self.deployed_project_name = self._get_deployed_project_name()
+            # sys.exit("***** Stopping for diagnostic work. *****")
 
             # If using automate_all, we need to create the app before creating
             #   the db. But if there's already an app with no deployment, we can 
@@ -420,34 +421,34 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         # Get apps info.
-        # DEV: I believe this would be simpler with `fly apps list --json`.
-        cmd = "fly apps list"
+        cmd = "fly apps list --json"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
+        output_json = json.loads(output_str)
+        project_names = [apps_dict["Name"] for apps_dict in output_json]
 
-        # Only keep relevant output; get rid of blank lines, update messages,
-        #   and line with labels like NAME and LATEST DEPLOY.
-        # DEV: If more than one line of output after this block, consider
-        #   prompting the user for which app to use.
-        # DEV: Should be parsing output of `fly apps list --json`.
-        lines = output_str.split('\n')
-        lines = [line for line in lines if line]
-        lines = [line for line in lines if 'update' not in line.lower()]
-        lines = [line for line in lines if 'upgrade' not in line.lower()]
-        lines = [line for line in lines if 'NAME' not in line]
-        lines = [line for line in lines if 'builder' not in line]
+        # If no app name found, raise error.
+        if len(project_names) == 0:
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
 
-        # For now, assume one line of output and use first part of output.
-        try:
-            self.app_name = lines[0].split()[0]
-        except IndexError:
-            self.app_name = ""
+        # If only one project name, confirm that it's the correct project.
+        if len(project_names) == 1:
+            project_name = project_names[0]
+            msg = f"\n*** Found one app on Fly.io: {project_name} ***"
+            print(msg)
+            msg = "Is this the app you want to deploy to?"
+            if self.sd.get_confirmation(msg):
+                self.app_name = project_name
+            else:
+                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+
+
 
         # Return deployed app name, or raise CommandError.
         if self.app_name:
-            msg = f"  Found Fly.io app: {self.app_name}"
+            msg = f"  Using Fly.io app: {self.app_name}"
             self.sd.write_output(msg)
             return self.app_name
         else:
