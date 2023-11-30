@@ -467,10 +467,22 @@ class Command(BaseCommand):
         if m:
             # The only addition was 'simple_deploy', we can move on.
             return True
-        else:
-            # There was a change, but it wasn't just 'simple_deploy'.
-            # We should bail and have user look at their status.
-            return False
+
+
+        # There was a change, but it wasn't just 'simple_deploy'.
+        print('here')
+        print(output_str)
+        # We can proceed if simple_deploy_logs/ was added to .gitignore.
+        if all([
+                "diff --git a/.gitignore b/.gitignore" in output_str,
+                "+# Ignore logs from simple_deploy." in output_str,
+                "+simple_deploy_logs/" in output_str
+                ]):
+            return True
+
+        # Couldn't identify an acceptable reason for an unclean status.
+        # We should bail and have user look at their status.
+        return False
 
 
     def _get_dep_man_approach(self):
