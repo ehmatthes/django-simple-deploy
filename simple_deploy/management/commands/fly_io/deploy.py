@@ -434,23 +434,9 @@ class PlatformDeployer:
             if not app_dict["Deployed"]
         ]
 
-
-        deployeds = [
-            app_dict["Deployed"]
-            for app_dict in output_json
-        ]
-        print("Deployeds:", deployeds)
-
-
-
-        print("Candidate apps:", candidate_apps)
-
-
         # Get all names that might be the app we want to deploy to.
         project_names = [apps_dict["Name"] for apps_dict in candidate_apps]
         project_names = [name for name in project_names if 'builder' not in name]
-        print("project names:", project_names)
-        sys.exit()
 
         # We need to respond according to how many possible names were found.
         if len(project_names) == 0:
