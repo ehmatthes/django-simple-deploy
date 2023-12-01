@@ -431,12 +431,26 @@ class PlatformDeployer:
         candidate_apps = [
             app_dict
             for app_dict in output_json
-            if app_dict["Deployed"] == "false"
+            if not app_dict["Deployed"]
         ]
 
+
+        deployeds = [
+            app_dict["Deployed"]
+            for app_dict in output_json
+        ]
+        print("Deployeds:", deployeds)
+
+
+
+        print("Candidate apps:", candidate_apps)
+
+
         # Get all names that might be the app we want to deploy to.
-        project_names = [apps_dict["Name"] for apps_dict in output_json]
+        project_names = [apps_dict["Name"] for apps_dict in candidate_apps]
         project_names = [name for name in project_names if 'builder' not in name]
+        print("project names:", project_names)
+        sys.exit()
 
         # We need to respond according to how many possible names were found.
         if len(project_names) == 0:
@@ -573,15 +587,24 @@ class PlatformDeployer:
 
 
     def _create_db(self):
-        """Create a db to deploy to, if none exists.
+        """Create a db to deploy to.
+
+        An appropriate db should not already exist. We tell people to create
+          an app, and then we take care of everything else. We create a db with
+          the name app_name-db.
+        We will look for a db with that name. If one exists, we'll ask if we
+          should use it.
+        Otherwise, we'll just create a new db for the app.
+
         Returns: 
-        - 
+        - None.
         - Raises CommandError if...
         """
         msg = "Looking for a Postgres database..."
         self.sd.write_output(msg)
 
         db_exists = self._check_if_db_exists()
+        sys.exit()
 
         if db_exists:
             return
@@ -630,20 +653,26 @@ class PlatformDeployer:
         """
 
         # First, see if any Postgres clusters exist.
-        cmd = "fly postgres list"
+        cmd = "fly postgres list --json"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
-        if "No postgres clusters found" in output_str:
-            msg = "  No Postgres database found."
-            self.sd.write_output(msg)
-            return False
-        else:
-            msg = "  A Postgres database was found."
+        pg_names = [
+            pg_dict["Name"]
+            for pg_dict in json.loads(output_str)
+        ]
+
+        usable_pg_name = self.app_name + "-db"
+        if usable_pg_name in pg_names:
+            msg = f"  Postgres db found: {usable_pg_name}"
             self.sd.write_output(msg)
             return True
+        else:
+            msg = "  No matching Postgres database found."
+            self.sd.write_output(msg)
+            return False
 
     def _confirm_create_db(self, db_cmd):
         """We really need to confirm that the user wants a db created on their behalf.
