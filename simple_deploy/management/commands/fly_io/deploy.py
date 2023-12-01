@@ -361,7 +361,6 @@ class PlatformDeployer:
             self._validate_cli()
             
             self.deployed_project_name = self._get_deployed_project_name()
-            # sys.exit("***** Stopping for diagnostic work. *****")
 
             # If using automate_all, we need to create the app before creating
             #   the db. But if there's already an app with no deployment, we can 
@@ -447,7 +446,7 @@ class PlatformDeployer:
             # If only one project name, confirm that it's the correct project.
             project_name = project_names[0]
             msg = f"\n*** Found one app on Fly.io: {project_name} ***"
-            print(msg)
+            self.sd.write_output(msg)
             msg = "Is this the app you want to deploy to?"
             if self.sd.get_confirmation(msg):
                 self.app_name = project_name
@@ -463,7 +462,9 @@ class PlatformDeployer:
                     msg += f"\n  {index}: {name}"
                 msg += "\n\nYou can cancel this configuration work by entering q."
                 msg += "\nWhich app would you like to use? "
+                self.sd.log_info(msg)
                 selection = input(msg)
+                self.sd.log_info(selection)
 
                 if selection.lower() in ['q', 'quit']:
                     raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
