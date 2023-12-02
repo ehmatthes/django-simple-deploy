@@ -125,17 +125,47 @@ def confirm_create_db(db_cmd):
     return msg
 
 
+def use_attached_db(db_name, users):
+    """Found the db attached, with only default users and app_name-db user.
+    """
+    msg = dedent(f"""
+        Found a database whose name matches the app name: {db_name}
+           This is the naming convention used by simple_deploy, so this is
+          probably a database that was created for you by a previous
+          simple_deploy run.
+        This database has the following users:
+          {users}
+        Three of these are the default users, and the fourth is the name of the 
+          app plus -db. This database appears to have been configured to work
+          with this app.
+    """)
+
+
+def use_unattached_db(db_name, users):
+    """Found the db unattached, with only default users.
+    """
+    msg = dedent(f"""
+        Found a database whose name matches the app name: {db_name}
+          This is the naming convention used by simple_deploy, so this is
+          probably a database that was created for you by a previous
+          simple_deploy run.
+        This database has the following users:
+          {users}
+        These are the default users for a Fly.io Postgres database. This database
+          does not appear to have been used yet.
+    """)
+
+
 def cant_use_db(db_name, users):
     """Can't use the db that was found, because it has multiple users."""
     msg = dedent(f"""
-        We found a database whose name matches the app name: {db_name}
-          This database has the following users:
+        Found a database whose name matches the app name: {db_name}
+        This database has the following users:
           {users}
         This is more than the default set of users that a freshly-created db
           will have. It also has a user that doesn't match the name of the app.
-        This situation is unexpected; if you think we should handle this situation, 
-          please open an issue.
-          - https://github.com/ehmatthes/django-simple-deploy/issues
+        This situation is unexpected; if you think this situation should be handled, 
+          please open an issue: https://github.com/ehmatthes/django-simple-deploy/issues
     """)
 
     return msg

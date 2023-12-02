@@ -596,11 +596,64 @@ class PlatformDeployer:
             # - Is it attached to this app?
             # - Can we use it?
             attached = self._check_db_attached()
+
+            db_name = self.app_name + "-db"
+            if attached:
+                # Database is attached to this app; get permission to use it.
+                msg = flyio_msgs.use_attached_db(db_name, self.db_users)
+                self.sd.write_output(msg)
+
+                msg = f"Okay to use {db_name} and proceed?"
+                use_db = self.sd.get_confirmation(msg)
+
+                if use_db:
+                    # We're going to use this db, and it's already been
+                    #   attached. We don't need to do anything further.
+                    return
+                else:
+                    # Permission to use this db denied.
+                    # Should we create a new db, or exit?
+                    msg = "Would you like to have a new database provisioned?"
+                    create_new_db = self.sd.get_confirmation(msg)
+                    if create_new_db:
+                        # Continue with creating a db.
+                        # This block does nothing, but I want to make this branch explicit.
+                        #   This block can be removed with some refactoring.
+                        pass
+                    else:
+                        raise SimpleDeployCommandError(flyio_msgs.cancel_no_db)
+            else:
+                # Existing db is not attached; get permission to attach this db.
+                msg = flyio_msgs.use_unattached_db(db_name, self.db_users)
+                self.sd.write_output(msg)
+
+                msg = f"Okay to use {db_name} and proceed?"
+                use_db = self.sd.get_confirmation(msg)
+
+                # Attach db if confirmed.
+                if use_db:
+                    self._attach_db(db_name)
+                    self.db_name = db_name
+                    # We're all done.
+                    return
+                else:
+                    # Permission to use this db denied.
+                    # Should we create a new db, or exit?
+                    msg = "Would you like to have a new database provisioned?"
+                    create_new_db = self.sd.get_confirmation(msg)
+                    if create_new_db:
+                        # Continue with creating a db.
+                        # This block does nothing, but I want to make this branch explicit.
+                        #   This block can be removed with some refactoring.
+                        pass
+                    else:
+                        raise SimpleDeployCommandError(flyio_msgs.cancel_no_db)
+
             sys.exit()
 
             return
 
-        # No db found, create a new db.
+        # No usable db found, create a new db.
         msg = f"  Create a new Postgres database..."
         self.sd.write_output(msg)
 
@@ -623,10 +676,14 @@ class PlatformDeployer:
         msg = "  Created Postgres database."
         self.sd.write_output(msg)
 
+        self._attach_db(self.db_name)
+
+    def _attach_db(self, db_name):
+        """Attach the database to the app."""
         # Run `attach` command (and confirm DATABASE_URL is set?)
         msg = "  Attaching database to Fly.io app..."
         self.sd.write_output(msg)
-        cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
+        cmd = f"fly postgres attach --app {self.deployed_project_name} {db_name}"
         self.sd.log_info(cmd)
 
         output_obj = self.sd.execute_subp_run(cmd)
@@ -675,6 +732,9 @@ class PlatformDeployer:
         Returns:
         - True if db attached to this app.
         - False if db not attached to this app.
+        - Raises SimpleDeployCommandError if we can't find a reason to use the db.
+
+        Also, defines self.db_users, which can be used in subsequent messages.
         """
         # Get users of this db.
         #   `fly postgres users list` does not accept `--json` flag. :/
@@ -690,26 +750,23 @@ class PlatformDeployer:
         # Get rid of blank lines.
         lines = [line for line in lines if line]
         # Pull user from each line.
-        users = []
+        self.db_users = []
         for line in lines:
             # user is everything before first tab.
             tab_index = line.find("\t")
             user = line[:tab_index].strip()
-            users.append(user)
-
-        users.append('dummy-user')
-        self.sd.log_info(f"Users: {users}")
+            self.db_users.append(user)
+        self.db_users.append("dummy-user")
+        self.sd.log_info(f"DB users: {self.db_users}")
 
         default_users = {'flypgadmin', 'postgres', 'repmgr'}
-        if set(users) == default_users:
+        if set(self.db_users) == default_users:
             # This db only has default users set when a fresh db is made.
             #   Assume it's unattached.
-            print("unattached")
             return False
-        elif self.app_name in users:
+        elif (self.app_name in self.db_users) and (len(self.db_users) == 4):
             # The current remote app has been attached to this db.
             #   Will still need confirmation we can use this db.
-            print("attached")
             return True
         else:
             # This db has more than the default users, and not just the
@@ -718,7 +775,7 @@ class PlatformDeployer:
             #   revisit this block.
             # Note: This path has only been tested once, by manually adding
             #   "dummy-user" to the list of db users."
-            msg = flyio_msgs.cant_use_db(db_name, users)
+            msg = flyio_msgs.cant_use_db(db_name, self.db_users)
             raise SimpleDeployCommandError(self.sd, msg)
 
     def _confirm_create_db(self, db_cmd):
