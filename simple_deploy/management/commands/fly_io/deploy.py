@@ -689,11 +689,16 @@ class PlatformDeployer:
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
+        if "No postgres clusters found" in output_str:
+            return False
+
+        # There are some Postgres dbs. Get their names.
         pg_names = [
             pg_dict["Name"]
             for pg_dict in json.loads(output_str)
         ]
 
+        # See if any of these names match this app.
         usable_pg_name = self.app_name + "-db"
         if usable_pg_name in pg_names:
             msg = f"  Postgres db found: {usable_pg_name}"
