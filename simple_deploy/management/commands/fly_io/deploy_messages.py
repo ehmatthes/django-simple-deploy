@@ -76,6 +76,8 @@ rest of the process may work.
 cancel_no_db = """
 A database is required for deployment. You may be able to create a database
   manually, and configure it to work with this app.
+If you think there's a database that simple_deploy should be able to use,
+  please open an issue: https://github.com/ehmatthes/django-simple-deploy/issues
 """
 
 

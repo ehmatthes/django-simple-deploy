@@ -612,16 +612,9 @@ class PlatformDeployer:
                     return
                 else:
                     # Permission to use this db denied.
-                    # Should we create a new db, or exit?
-                    msg = "Would you like to have a new database provisioned?"
-                    create_new_db = self.sd.get_confirmation(msg)
-                    if create_new_db:
-                        # Continue with creating a db.
-                        # This block does nothing, but I want to make this branch explicit.
-                        #   This block can be removed with some refactoring.
-                        pass
-                    else:
-                        raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+                    # Can't simply create a new db, because the name we'd use
+                    #   is already taken.
+                    raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
             else:
                 # Existing db is not attached; get permission to attach this db.
                 msg = flyio_msgs.use_unattached_db(db_name, self.db_users)
@@ -638,16 +631,9 @@ class PlatformDeployer:
                     return
                 else:
                     # Permission to use this db denied.
-                    # Should we create a new db, or exit?
-                    msg = "Would you like to have a new database provisioned?"
-                    create_new_db = self.sd.get_confirmation(msg)
-                    if create_new_db:
-                        # Continue with creating a db.
-                        # This block does nothing, but I want to make this branch explicit.
-                        #   This block can be removed with some refactoring.
-                        pass
-                    else:
-                        raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+                    # Can't simply create a new db, because the name we'd use
+                    #   is already taken.
+                    raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
 
         # No usable db found, create a new db.
         msg = f"  Create a new Postgres database..."
