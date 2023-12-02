@@ -590,9 +590,14 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         db_exists = self._check_if_db_exists()
-        sys.exit()
 
         if db_exists:
+            # A database with the name app_name-db exists.
+            # - Is it attached to this app?
+            # - Can we use it?
+            attached = self._check_db_attached()
+            sys.exit()
+
             return
 
         # No db found, create a new db.
@@ -659,6 +664,62 @@ class PlatformDeployer:
             msg = "  No matching Postgres database found."
             self.sd.write_output(msg)
             return False
+
+    def _check_db_attached(self):
+        """Check if the db that was found is attached to this app.
+
+        Database is considered attached to this app it has a user with the same
+          name as the app. This is the default behavior if you create a new app,
+          then a new db, then attach the db to that app.
+
+        Returns:
+        - True if db attached to this app.
+        - False if db not attached to this app.
+        """
+        # Get users of this db.
+        #   `fly postgres users list` does not accept `--json` flag. :/
+        db_name = self.app_name + "-db"
+        cmd = f"fly postgres users list -a {db_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
+
+        # Break output into lines, get rid of header line.
+        lines = output_str.split("\n")[1:]
+        # Get rid of blank lines.
+        lines = [line for line in lines if line]
+        # Pull user from each line.
+        users = []
+        for line in lines:
+            # user is everything before first tab.
+            tab_index = line.find("\t")
+            user = line[:tab_index].strip()
+            users.append(user)
+
+        users.append('dummy-user')
+        self.sd.log_info(f"Users: {users}")
+
+        default_users = {'flypgadmin', 'postgres', 'repmgr'}
+        if set(users) == default_users:
+            # This db only has default users set when a fresh db is made.
+            #   Assume it's unattached.
+            print("unattached")
+            return False
+        elif self.app_name in users:
+            # The current remote app has been attached to this db.
+            #   Will still need confirmation we can use this db.
+            print("attached")
+            return True
+        else:
+            # This db has more than the default users, and not just the
+            #   current app. Let's not touch it.
+            # If anyone hits this situation and we should proceed, we'll
+            #   revisit this block.
+            # Note: This path has only been tested once, by manually adding
+            #   "dummy-user" to the list of db users."
+            msg = flyio_msgs.cant_use_db(db_name, users)
+            raise SimpleDeployCommandError(self.sd, msg)
 
     def _confirm_create_db(self, db_cmd):
         """We really need to confirm that the user wants a db created on their behalf.

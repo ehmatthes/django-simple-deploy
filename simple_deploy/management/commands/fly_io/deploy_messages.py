@@ -125,6 +125,22 @@ def confirm_create_db(db_cmd):
     return msg
 
 
+def cant_use_db(db_name, users):
+    """Can't use the db that was found, because it has multiple users."""
+    msg = dedent(f"""
+        We found a database whose name matches the app name: {db_name}
+          This database has the following users:
+          {users}
+        This is more than the default set of users that a freshly-created db
+          will have. It also has a user that doesn't match the name of the app.
+        This situation is unexpected; if you think we should handle this situation, 
+          please open an issue.
+          - https://github.com/ehmatthes/django-simple-deploy/issues
+    """)
+
+    return msg
+
+
 def success_msg(log_output=''):
     """Success message, for configuration-only run."""
 
