@@ -621,11 +621,10 @@ class PlatformDeployer:
                         #   This block can be removed with some refactoring.
                         pass
                     else:
-                        raise SimpleDeployCommandError(flyio_msgs.cancel_no_db)
+                        raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
             else:
                 # Existing db is not attached; get permission to attach this db.
                 msg = flyio_msgs.use_unattached_db(db_name, self.db_users)
-                print("msg:", msg)
                 self.sd.write_output(msg)
 
                 msg = f"Okay to use {db_name} and proceed?"
@@ -648,11 +647,7 @@ class PlatformDeployer:
                         #   This block can be removed with some refactoring.
                         pass
                     else:
-                        raise SimpleDeployCommandError(flyio_msgs.cancel_no_db)
-
-            sys.exit()
-
-            return
+                        raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
 
         # No usable db found, create a new db.
         msg = f"  Create a new Postgres database..."

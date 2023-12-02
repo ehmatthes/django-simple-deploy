@@ -75,7 +75,7 @@ rest of the process may work.
 
 cancel_no_db = """
 A database is required for deployment. You may be able to create a database
-manually, and configure it to work with this app.
+  manually, and configure it to work with this app.
 """
 
 
@@ -129,7 +129,7 @@ def use_attached_db(db_name, users):
     """Found the db attached, with only default users and app_name-db user.
     """
     msg = dedent(f"""
-        Found a database whose name matches the app name: {db_name}
+        *** Found a database whose name matches the app name: {db_name} ***
            This is the naming convention used by simple_deploy, so this is
           probably a database that was created for you by a previous
           simple_deploy run.
@@ -147,7 +147,7 @@ def use_unattached_db(db_name, users):
     """Found the db unattached, with only default users.
     """
     msg = dedent(f"""
-        Found a database whose name matches the app name: {db_name}
+        *** Found a database whose name matches the app name: {db_name} ***
           This is the naming convention used by simple_deploy, so this is
           probably a database that was created for you by a previous
           simple_deploy run.
