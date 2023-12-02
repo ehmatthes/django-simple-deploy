@@ -389,7 +389,7 @@ class PlatformDeployer:
     # --- Helper methods for methods called from simple_deploy.py ---
 
     def _validate_cli(self):
-        """Make sure the Platform.sh CLI is installed."""
+        """Make sure the Fly.io CLI is installed."""
         cmd = 'fly version'
         output_obj = self.sd.execute_subp_run(cmd)
         self.sd.log_info(cmd)
