@@ -8,15 +8,13 @@ from django.conf import settings
 
 
 confirm_preliminary = """
-***** Deployments to Fly.io are experimental at this point ***
+***** Support for Fly.io is in the preliminary phase ***
 
-- Support for deploying to Fly.io is in an exploratory phase at this point.
+- Support for deploying to Fly.io is in the preliminary phase at this point.
 - You should only be using this project to deploy to Fly.io at this point if
   you are interested in helping to develop or test the simple_deploy project.
 - You should look at the deploy_flyio.py script before running this command,
   so you know what kinds of changes will be made to your project.
-- This command will likely fail if you run it more than once.
-- This command may not work if you already have a project deployed to Fly.io.
 - You should understand the Fly.io console, and be comfortable deleting resources
   that are created during this deployment.
 - You may want to cancel this run and deploy to a different platform.
@@ -25,6 +23,7 @@ confirm_preliminary = """
 confirm_automate_all = """
 The --automate-all flag means simple_deploy will:
 - Run `fly apps create` for you, to create an empty Fly.io project.
+- Run `fly postgres create`, to create a new database for your project.
 - Configure your project for deployment on Fly.io.
 - Commit all changes to your project that are necessary for deployment.
 - Push these changes to Fly.io.
@@ -32,14 +31,13 @@ The --automate-all flag means simple_deploy will:
 """
 
 cancel_flyio = """
-Okay, cancelling Fly.io deployment.
+Okay, cancelling Fly.io configuration and deployment.
 """
 
-# DEV: Update URL
 # DEV: This could be moved to deploy_messages, with an arg for platform and URL.
 cli_not_installed = """
 In order to deploy to Fly.io, you need to install the Fly.io CLI.
-  See here: fly_io_url
+  See here: https://fly.io/docs/flyctl/
 After installing the CLI, you can run simple_deploy again.
 """
 
@@ -55,8 +53,8 @@ If you haven't done so, run the following command to create a new Fly.io app:
 
 Then run simple_deploy again.
 
-Note: Apps that have already been deployed to are ignored, because we don't want
-  to affect existing projects.
+Note: Apps that have already been deployed to are ignored, to ensure that existing
+  projects are not impacted by this deployment.
 """
 
 create_app_failed = """
@@ -69,8 +67,8 @@ error messages to troubleshoot app creation:
 
     $ fly apps create --generate-name
 
-If you can get this command to work, you can run simple_deploy again and the 
-rest of the process may work.
+If you can get this command to work, you can run simple_deploy again (without the
+  --automate-all flag), and the rest of the process may work.
 """
 
 cancel_no_db = """
@@ -178,7 +176,11 @@ def cant_use_db(db_name, users):
 
 
 def success_msg(log_output=''):
-    """Success message, for configuration-only run."""
+    """Success message, for configuration-only run.
+
+    Note: This is immensely helpful; I use it just about every time I do a
+      manual test run.
+    """
 
     msg = dedent(f"""
         --- Your project is now configured for deployment on Fly.io ---
@@ -195,7 +197,7 @@ def success_msg(log_output=''):
         - As you develop your project further:
             - Make local changes
             - Commit your local changes
-            - Run `fly deploy`
+            - Run `fly deploy` again to push your changes.
     """)
 
     if log_output:
@@ -213,7 +215,10 @@ def success_msg_automate_all(deployed_url):
 
         --- Your project should now be deployed on Fly.io ---
 
-        It should have opened up in a new browser tab.
+        It should have opened up in a new browser tab. If you see a
+          "server not available" message, wait a minute or two and
+          refresh the tab. It sometimes takes a few minutes for the
+          server to be ready.
         - You can also visit your project at {deployed_url}
 
         If you make further changes and want to push them to Fly.io,

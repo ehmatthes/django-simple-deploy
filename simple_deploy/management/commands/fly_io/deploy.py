@@ -400,9 +400,8 @@ class PlatformDeployer:
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
-        Parse the output of `fly apps list`, and look for an app name
-          that doesn't have a value set for LATEST DEPLOY. This indicates
-          an app that has just been created, and has not yet been deployed.
+        Parse the output of `fly apps list`, and look for apps that have not
+          been deployed yet.
 
         Also, sets self.app_name, so the name can be used here as well.
 
