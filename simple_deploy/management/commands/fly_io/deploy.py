@@ -625,6 +625,7 @@ class PlatformDeployer:
             else:
                 # Existing db is not attached; get permission to attach this db.
                 msg = flyio_msgs.use_unattached_db(db_name, self.db_users)
+                print("msg:", msg)
                 self.sd.write_output(msg)
 
                 msg = f"Okay to use {db_name} and proceed?"
@@ -756,7 +757,7 @@ class PlatformDeployer:
             tab_index = line.find("\t")
             user = line[:tab_index].strip()
             self.db_users.append(user)
-        self.db_users.append("dummy-user")
+
         self.sd.log_info(f"DB users: {self.db_users}")
 
         default_users = {'flypgadmin', 'postgres', 'repmgr'}

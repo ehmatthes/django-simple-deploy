@@ -140,6 +140,8 @@ def use_attached_db(db_name, users):
           with this app.
     """)
 
+    return msg
+
 
 def use_unattached_db(db_name, users):
     """Found the db unattached, with only default users.
@@ -154,6 +156,8 @@ def use_unattached_db(db_name, users):
         These are the default users for a Fly.io Postgres database. This database
           does not appear to have been used yet.
     """)
+
+    return msg
 
 
 def cant_use_db(db_name, users):
