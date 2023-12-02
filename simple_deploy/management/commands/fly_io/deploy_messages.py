@@ -104,7 +104,7 @@ def confirm_use_org_name(org_name):
     """Confirm use of this org name to create a new project."""
 
     msg = dedent(f"""
-        --- The Platform.sh CLI requires an organization name when creating a new project. ---
+        --- The Fly.io CLI requires an organization name when creating a new project. ---
         When using --automate-all, a project will be created on your behalf. The following
         organization name was found: {org_name}
 
