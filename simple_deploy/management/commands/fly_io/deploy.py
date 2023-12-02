@@ -708,8 +708,9 @@ class PlatformDeployer:
         """Check if the db that was found is attached to this app.
 
         Database is considered attached to this app it has a user with the same
-          name as the app. This is the default behavior if you create a new app,
-          then a new db, then attach the db to that app.
+          name as the app, using underscores instead of hyphens.
+        This is the default behavior if you create a new app, then a new db,
+          then attach the db to that app.
 
         Returns:
         - True if db attached to this app.
@@ -742,11 +743,12 @@ class PlatformDeployer:
         self.sd.log_info(f"DB users: {self.db_users}")
 
         default_users = {'flypgadmin', 'postgres', 'repmgr'}
+        app_user = self.app_name.replace('-', '_')
         if set(self.db_users) == default_users:
             # This db only has default users set when a fresh db is made.
             #   Assume it's unattached.
             return False
-        elif (self.app_name in self.db_users) and (len(self.db_users) == 4):
+        elif (app_user in self.db_users) and (len(self.db_users) == 4):
             # The current remote app has been attached to this db.
             #   Will still need confirmation we can use this db.
             return True

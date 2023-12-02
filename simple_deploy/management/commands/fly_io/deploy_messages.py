@@ -132,14 +132,14 @@ def use_attached_db(db_name, users):
     """
     msg = dedent(f"""
         *** Found a database whose name matches the app name: {db_name} ***
-           This is the naming convention used by simple_deploy, so this is
+        This is the naming convention used by simple_deploy, so this is
           probably a database that was created for you by a previous
           simple_deploy run.
         This database has the following users:
           {users}
         Three of these are the default users, and the fourth is the name of the 
-          app plus -db. This database appears to have been configured to work
-          with this app.
+          app (with underscores). This database appears to have been configured
+          to work with this app.
     """)
 
     return msg
@@ -150,7 +150,7 @@ def use_unattached_db(db_name, users):
     """
     msg = dedent(f"""
         *** Found a database whose name matches the app name: {db_name} ***
-          This is the naming convention used by simple_deploy, so this is
+        This is the naming convention used by simple_deploy, so this is
           probably a database that was created for you by a previous
           simple_deploy run.
         This database has the following users:
