@@ -3,7 +3,7 @@
 # Note: Internal references to Fly.io will almost always be flyio.
 #   Public references, such as the --platform argument, will be fly_io.
 
-import sys, os, re, subprocess
+import sys, os, re, subprocess, json
 from pathlib import Path
 
 from django.conf import settings
@@ -389,7 +389,7 @@ class PlatformDeployer:
     # --- Helper methods for methods called from simple_deploy.py ---
 
     def _validate_cli(self):
-        """Make sure the Platform.sh CLI is installed."""
+        """Make sure the Fly.io CLI is installed."""
         cmd = 'fly version'
         output_obj = self.sd.execute_subp_run(cmd)
         self.sd.log_info(cmd)
@@ -400,9 +400,8 @@ class PlatformDeployer:
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
-        Parse the output of `fly apps list`, and look for an app name
-          that doesn't have a value set for LATEST DEPLOY. This indicates
-          an app that has just been created, and has not yet been deployed.
+        Parse the output of `fly apps list`, and look for apps that have not
+          been deployed yet.
 
         Also, sets self.app_name, so the name can be used here as well.
 
@@ -420,34 +419,68 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         # Get apps info.
-        # DEV: I believe this would be simpler with `fly apps list --json`.
-        cmd = "fly apps list"
+        cmd = "fly apps list --json"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
+        output_json = json.loads(output_str)
 
-        # Only keep relevant output; get rid of blank lines, update messages,
-        #   and line with labels like NAME and LATEST DEPLOY.
-        # DEV: If more than one line of output after this block, consider
-        #   prompting the user for which app to use.
-        # DEV: Should be parsing output of `fly apps list --json`.
-        lines = output_str.split('\n')
-        lines = [line for line in lines if line]
-        lines = [line for line in lines if 'update' not in line.lower()]
-        lines = [line for line in lines if 'upgrade' not in line.lower()]
-        lines = [line for line in lines if 'NAME' not in line]
-        lines = [line for line in lines if 'builder' not in line]
+        # Only consider projects that have not been deployed yet.
+        candidate_apps = [
+            app_dict
+            for app_dict in output_json
+            if not app_dict["Deployed"]
+        ]
 
-        # For now, assume one line of output and use first part of output.
-        try:
-            self.app_name = lines[0].split()[0]
-        except IndexError:
-            self.app_name = ""
+        # Get all names that might be the app we want to deploy to.
+        project_names = [apps_dict["Name"] for apps_dict in candidate_apps]
+        project_names = [name for name in project_names if 'builder' not in name]
+
+        # We need to respond according to how many possible names were found.
+        if len(project_names) == 0:
+            # If no app name found, raise error.
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+        elif len(project_names) == 1:
+            # If only one project name, confirm that it's the correct project.
+            project_name = project_names[0]
+            msg = f"\n*** Found one app on Fly.io: {project_name} ***"
+            self.sd.write_output(msg)
+            msg = "Is this the app you want to deploy to?"
+            if self.sd.get_confirmation(msg):
+                self.app_name = project_name
+            else:
+                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+        else:
+            # `apps list` does not show much specific inforamtion for undeployed apps.
+            #   ie, no creation date, so can't identify most recently created app.
+            # Show all undeployed apps, ask user to make selection.
+            while True:
+                msg = "\n*** Found multiple undeployed apps on Fly.io. ***"
+                for index, name in enumerate(project_names):
+                    msg += f"\n  {index}: {name}"
+                msg += "\n\nYou can cancel this configuration work by entering q."
+                msg += "\nWhich app would you like to use? "
+                self.sd.log_info(msg)
+                selection = input(msg)
+                self.sd.log_info(selection)
+
+                if selection.lower() in ['q', 'quit']:
+                    raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+
+                selected_name = project_names[int(selection)]
+
+                # Confirm selection, because we do *not* want to deploy against
+                #   the wrong app.
+                msg = f"You have selected {selected_name}. Is that correct?"
+                confirmed = self.sd.get_confirmation(msg)
+                if confirmed:
+                    self.app_name = selected_name
+                    break
 
         # Return deployed app name, or raise CommandError.
         if self.app_name:
-            msg = f"  Found Fly.io app: {self.app_name}"
+            msg = f"  Using Fly.io app: {self.app_name}"
             self.sd.write_output(msg)
             return self.app_name
         else:
@@ -539,9 +572,17 @@ class PlatformDeployer:
 
 
     def _create_db(self):
-        """Create a db to deploy to, if none exists.
+        """Create a db to deploy to.
+
+        An appropriate db should not already exist. We tell people to create
+          an app, and then we take care of everything else. We create a db with
+          the name app_name-db.
+        We will look for a db with that name. If one exists, we'll ask if we
+          should use it.
+        Otherwise, we'll just create a new db for the app.
+
         Returns: 
-        - 
+        - None.
         - Raises CommandError if...
         """
         msg = "Looking for a Postgres database..."
@@ -550,9 +591,50 @@ class PlatformDeployer:
         db_exists = self._check_if_db_exists()
 
         if db_exists:
-            return
+            # A database with the name app_name-db exists.
+            # - Is it attached to this app?
+            # - Can we use it?
+            attached = self._check_db_attached()
 
-        # No db found, create a new db.
+            db_name = self.app_name + "-db"
+            if attached:
+                # Database is attached to this app; get permission to use it.
+                msg = flyio_msgs.use_attached_db(db_name, self.db_users)
+                self.sd.write_output(msg)
+
+                msg = f"Okay to use {db_name} and proceed?"
+                use_db = self.sd.get_confirmation(msg)
+
+                if use_db:
+                    # We're going to use this db, and it's already been
+                    #   attached. We don't need to do anything further.
+                    return
+                else:
+                    # Permission to use this db denied.
+                    # Can't simply create a new db, because the name we'd use
+                    #   is already taken.
+                    raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+            else:
+                # Existing db is not attached; get permission to attach this db.
+                msg = flyio_msgs.use_unattached_db(db_name, self.db_users)
+                self.sd.write_output(msg)
+
+                msg = f"Okay to use {db_name} and proceed?"
+                use_db = self.sd.get_confirmation(msg)
+
+                # Attach db if confirmed.
+                if use_db:
+                    self._attach_db(db_name)
+                    self.db_name = db_name
+                    # We're all done.
+                    return
+                else:
+                    # Permission to use this db denied.
+                    # Can't simply create a new db, because the name we'd use
+                    #   is already taken.
+                    raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+
+        # No usable db found, create a new db.
         msg = f"  Create a new Postgres database..."
         self.sd.write_output(msg)
 
@@ -575,10 +657,14 @@ class PlatformDeployer:
         msg = "  Created Postgres database."
         self.sd.write_output(msg)
 
+        self._attach_db(self.db_name)
+
+    def _attach_db(self, db_name):
+        """Attach the database to the app."""
         # Run `attach` command (and confirm DATABASE_URL is set?)
         msg = "  Attaching database to Fly.io app..."
         self.sd.write_output(msg)
-        cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
+        cmd = f"fly postgres attach --app {self.deployed_project_name} {db_name}"
         self.sd.log_info(cmd)
 
         output_obj = self.sd.execute_subp_run(cmd)
@@ -596,20 +682,89 @@ class PlatformDeployer:
         """
 
         # First, see if any Postgres clusters exist.
-        cmd = "fly postgres list"
+        cmd = "fly postgres list --json"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
         if "No postgres clusters found" in output_str:
-            msg = "  No Postgres database found."
-            self.sd.write_output(msg)
             return False
-        else:
-            msg = "  A Postgres database was found."
+
+        # There are some Postgres dbs. Get their names.
+        pg_names = [
+            pg_dict["Name"]
+            for pg_dict in json.loads(output_str)
+        ]
+
+        # See if any of these names match this app.
+        usable_pg_name = self.app_name + "-db"
+        if usable_pg_name in pg_names:
+            msg = f"  Postgres db found: {usable_pg_name}"
             self.sd.write_output(msg)
             return True
+        else:
+            msg = "  No matching Postgres database found."
+            self.sd.write_output(msg)
+            return False
+
+    def _check_db_attached(self):
+        """Check if the db that was found is attached to this app.
+
+        Database is considered attached to this app it has a user with the same
+          name as the app, using underscores instead of hyphens.
+        This is the default behavior if you create a new app, then a new db,
+          then attach the db to that app.
+
+        Returns:
+        - True if db attached to this app.
+        - False if db not attached to this app.
+        - Raises SimpleDeployCommandError if we can't find a reason to use the db.
+
+        Also, defines self.db_users, which can be used in subsequent messages.
+        """
+        # Get users of this db.
+        #   `fly postgres users list` does not accept `--json` flag. :/
+        db_name = self.app_name + "-db"
+        cmd = f"fly postgres users list -a {db_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
+
+        # Break output into lines, get rid of header line.
+        lines = output_str.split("\n")[1:]
+        # Get rid of blank lines.
+        lines = [line for line in lines if line]
+        # Pull user from each line.
+        self.db_users = []
+        for line in lines:
+            # user is everything before first tab.
+            tab_index = line.find("\t")
+            user = line[:tab_index].strip()
+            self.db_users.append(user)
+
+        self.sd.log_info(f"DB users: {self.db_users}")
+
+        default_users = {'flypgadmin', 'postgres', 'repmgr'}
+        app_user = self.app_name.replace('-', '_')
+        if set(self.db_users) == default_users:
+            # This db only has default users set when a fresh db is made.
+            #   Assume it's unattached.
+            return False
+        elif (app_user in self.db_users) and (len(self.db_users) == 4):
+            # The current remote app has been attached to this db.
+            #   Will still need confirmation we can use this db.
+            return True
+        else:
+            # This db has more than the default users, and not just the
+            #   current app. Let's not touch it.
+            # If anyone hits this situation and we should proceed, we'll
+            #   revisit this block.
+            # Note: This path has only been tested once, by manually adding
+            #   "dummy-user" to the list of db users."
+            msg = flyio_msgs.cant_use_db(db_name, self.db_users)
+            raise SimpleDeployCommandError(self.sd, msg)
 
     def _confirm_create_db(self, db_cmd):
         """We really need to confirm that the user wants a db created on their behalf.

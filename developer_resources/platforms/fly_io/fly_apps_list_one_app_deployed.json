@@ -1,0 +1,422 @@
+[
+    {
+        "ID": "dry-sunset-9033",
+        "Name": "dry-sunset-9033",
+        "State": "",
+        "Status": "deployed",
+        "Deployed": true,
+        "Hostname": "dry-sunset-9033.fly.dev",
+        "AppURL": "",
+        "Version": 0,
+        "NetworkID": 0,
+        "Release": null,
+        "Organization": {
+            "ID": "",
+            "InternalNumericID": "",
+            "Name": "Eric Matthes",
+            "RemoteBuilderImage": "",
+            "RemoteBuilderApp": null,
+            "Slug": "personal",
+            "RawSlug": "",
+            "Type": "",
+            "PaidPlan": false,
+            "Settings": null,
+            "Domains": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "WireGuardPeer": null,
+            "WireGuardPeers": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "DelegatedWireGuardTokens": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "HealthCheckHandlers": null,
+            "HealthChecks": null,
+            "LoggedCertificates": null,
+            "LimitedAccessTokens": null
+        },
+        "Secrets": null,
+        "CurrentRelease": {
+            "ID": "",
+            "Version": 0,
+            "Stable": false,
+            "InProgress": false,
+            "Reason": "",
+            "Description": "",
+            "Status": "complete",
+            "DeploymentStrategy": "",
+            "User": {
+                "ID": "",
+                "Name": "",
+                "Email": "",
+                "EnablePaidHobby": false
+            },
+            "EvaluationID": "",
+            "CreatedAt": "2023-11-30T21:01:20Z",
+            "ImageRef": ""
+        },
+        "Releases": {
+            "Nodes": null
+        },
+        "IPAddresses": {
+            "Nodes": null
+        },
+        "SharedIPAddress": "",
+        "IPAddress": null,
+        "Builds": {
+            "Nodes": null
+        },
+        "SourceBuilds": {
+            "Nodes": null
+        },
+        "Changes": {
+            "Nodes": null
+        },
+        "Certificates": {
+            "Nodes": null
+        },
+        "Certificate": {
+            "ID": "",
+            "AcmeDNSConfigured": false,
+            "AcmeALPNConfigured": false,
+            "Configured": false,
+            "CertificateAuthority": "",
+            "CreatedAt": "0001-01-01T00:00:00Z",
+            "DNSProvider": "",
+            "DNSValidationInstructions": "",
+            "DNSValidationHostname": "",
+            "DNSValidationTarget": "",
+            "Hostname": "",
+            "Source": "",
+            "ClientStatus": "",
+            "IsApex": false,
+            "IsWildcard": false,
+            "Issued": {
+                "Nodes": null
+            }
+        },
+        "Config": {
+            "Definition": null,
+            "Services": null,
+            "Valid": false,
+            "Errors": null
+        },
+        "ParseConfig": {
+            "Definition": null,
+            "Services": null,
+            "Valid": false,
+            "Errors": null
+        },
+        "Allocations": null,
+        "Allocation": null,
+        "DeploymentStatus": null,
+        "Autoscaling": null,
+        "VMSize": {
+            "Name": "",
+            "CPUCores": 0,
+            "CPUClass": "",
+            "MemoryGB": 0,
+            "MemoryMB": 0,
+            "PriceMonth": 0,
+            "PriceSecond": 0
+        },
+        "Regions": null,
+        "BackupRegions": null,
+        "TaskGroupCounts": null,
+        "ProcessGroups": null,
+        "HealthChecks": null,
+        "PostgresAppRole": null,
+        "Image": null,
+        "ImageUpgradeAvailable": false,
+        "ImageVersionTrackingEnabled": false,
+        "ImageDetails": {
+            "Registry": "",
+            "Repository": "",
+            "Tag": "",
+            "Version": "",
+            "Digest": ""
+        },
+        "LatestImageDetails": {
+            "Registry": "",
+            "Repository": "",
+            "Tag": "",
+            "Version": "",
+            "Digest": ""
+        },
+        "PlatformVersion": "machines",
+        "LimitedAccessTokens": null,
+        "CurrentLock": null
+    },
+    {
+        "ID": "dry-sunset-9033-db",
+        "Name": "dry-sunset-9033-db",
+        "State": "",
+        "Status": "deployed",
+        "Deployed": true,
+        "Hostname": "dry-sunset-9033-db.fly.dev",
+        "AppURL": "",
+        "Version": 0,
+        "NetworkID": 0,
+        "Release": null,
+        "Organization": {
+            "ID": "",
+            "InternalNumericID": "",
+            "Name": "Eric Matthes",
+            "RemoteBuilderImage": "",
+            "RemoteBuilderApp": null,
+            "Slug": "personal",
+            "RawSlug": "",
+            "Type": "",
+            "PaidPlan": false,
+            "Settings": null,
+            "Domains": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "WireGuardPeer": null,
+            "WireGuardPeers": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "DelegatedWireGuardTokens": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "HealthCheckHandlers": null,
+            "HealthChecks": null,
+            "LoggedCertificates": null,
+            "LimitedAccessTokens": null
+        },
+        "Secrets": null,
+        "CurrentRelease": null,
+        "Releases": {
+            "Nodes": null
+        },
+        "IPAddresses": {
+            "Nodes": null
+        },
+        "SharedIPAddress": "",
+        "IPAddress": null,
+        "Builds": {
+            "Nodes": null
+        },
+        "SourceBuilds": {
+            "Nodes": null
+        },
+        "Changes": {
+            "Nodes": null
+        },
+        "Certificates": {
+            "Nodes": null
+        },
+        "Certificate": {
+            "ID": "",
+            "AcmeDNSConfigured": false,
+            "AcmeALPNConfigured": false,
+            "Configured": false,
+            "CertificateAuthority": "",
+            "CreatedAt": "0001-01-01T00:00:00Z",
+            "DNSProvider": "",
+            "DNSValidationInstructions": "",
+            "DNSValidationHostname": "",
+            "DNSValidationTarget": "",
+            "Hostname": "",
+            "Source": "",
+            "ClientStatus": "",
+            "IsApex": false,
+            "IsWildcard": false,
+            "Issued": {
+                "Nodes": null
+            }
+        },
+        "Config": {
+            "Definition": null,
+            "Services": null,
+            "Valid": false,
+            "Errors": null
+        },
+        "ParseConfig": {
+            "Definition": null,
+            "Services": null,
+            "Valid": false,
+            "Errors": null
+        },
+        "Allocations": null,
+        "Allocation": null,
+        "DeploymentStatus": null,
+        "Autoscaling": null,
+        "VMSize": {
+            "Name": "",
+            "CPUCores": 0,
+            "CPUClass": "",
+            "MemoryGB": 0,
+            "MemoryMB": 0,
+            "PriceMonth": 0,
+            "PriceSecond": 0
+        },
+        "Regions": null,
+        "BackupRegions": null,
+        "TaskGroupCounts": null,
+        "ProcessGroups": null,
+        "HealthChecks": null,
+        "PostgresAppRole": null,
+        "Image": null,
+        "ImageUpgradeAvailable": false,
+        "ImageVersionTrackingEnabled": false,
+        "ImageDetails": {
+            "Registry": "",
+            "Repository": "",
+            "Tag": "",
+            "Version": "",
+            "Digest": ""
+        },
+        "LatestImageDetails": {
+            "Registry": "",
+            "Repository": "",
+            "Tag": "",
+            "Version": "",
+            "Digest": ""
+        },
+        "PlatformVersion": "machines",
+        "LimitedAccessTokens": null,
+        "CurrentLock": null
+    },
+    {
+        "ID": "fly-builder-restless-mountain-4682",
+        "Name": "fly-builder-restless-mountain-4682",
+        "State": "",
+        "Status": "deployed",
+        "Deployed": true,
+        "Hostname": "fly-builder-restless-mountain-4682.fly.dev",
+        "AppURL": "",
+        "Version": 0,
+        "NetworkID": 0,
+        "Release": null,
+        "Organization": {
+            "ID": "",
+            "InternalNumericID": "",
+            "Name": "Eric Matthes",
+            "RemoteBuilderImage": "",
+            "RemoteBuilderApp": null,
+            "Slug": "personal",
+            "RawSlug": "",
+            "Type": "",
+            "PaidPlan": false,
+            "Settings": null,
+            "Domains": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "WireGuardPeer": null,
+            "WireGuardPeers": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "DelegatedWireGuardTokens": {
+                "Nodes": null,
+                "Edges": null
+            },
+            "HealthCheckHandlers": null,
+            "HealthChecks": null,
+            "LoggedCertificates": null,
+            "LimitedAccessTokens": null
+        },
+        "Secrets": null,
+        "CurrentRelease": null,
+        "Releases": {
+            "Nodes": null
+        },
+        "IPAddresses": {
+            "Nodes": null
+        },
+        "SharedIPAddress": "",
+        "IPAddress": null,
+        "Builds": {
+            "Nodes": null
+        },
+        "SourceBuilds": {
+            "Nodes": null
+        },
+        "Changes": {
+            "Nodes": null
+        },
+        "Certificates": {
+            "Nodes": null
+        },
+        "Certificate": {
+            "ID": "",
+            "AcmeDNSConfigured": false,
+            "AcmeALPNConfigured": false,
+            "Configured": false,
+            "CertificateAuthority": "",
+            "CreatedAt": "0001-01-01T00:00:00Z",
+            "DNSProvider": "",
+            "DNSValidationInstructions": "",
+            "DNSValidationHostname": "",
+            "DNSValidationTarget": "",
+            "Hostname": "",
+            "Source": "",
+            "ClientStatus": "",
+            "IsApex": false,
+            "IsWildcard": false,
+            "Issued": {
+                "Nodes": null
+            }
+        },
+        "Config": {
+            "Definition": null,
+            "Services": null,
+            "Valid": false,
+            "Errors": null
+        },
+        "ParseConfig": {
+            "Definition": null,
+            "Services": null,
+            "Valid": false,
+            "Errors": null
+        },
+        "Allocations": null,
+        "Allocation": null,
+        "DeploymentStatus": null,
+        "Autoscaling": null,
+        "VMSize": {
+            "Name": "",
+            "CPUCores": 0,
+            "CPUClass": "",
+            "MemoryGB": 0,
+            "MemoryMB": 0,
+            "PriceMonth": 0,
+            "PriceSecond": 0
+        },
+        "Regions": null,
+        "BackupRegions": null,
+        "TaskGroupCounts": null,
+        "ProcessGroups": null,
+        "HealthChecks": null,
+        "PostgresAppRole": null,
+        "Image": null,
+        "ImageUpgradeAvailable": false,
+        "ImageVersionTrackingEnabled": false,
+        "ImageDetails": {
+            "Registry": "",
+            "Repository": "",
+            "Tag": "",
+            "Version": "",
+            "Digest": ""
+        },
+        "LatestImageDetails": {
+            "Registry": "",
+            "Repository": "",
+            "Tag": "",
+            "Version": "",
+            "Digest": ""
+        },
+        "PlatformVersion": "machines",
+        "LimitedAccessTokens": null,
+        "CurrentLock": null
+    }
+]
