@@ -6,17 +6,20 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
-### Unreleased
+### 0.5.18
 
-Note
+Stabilize deployments to Fly.io. Previously, deployment to Fly.io would fail if you already had an app deployed on Fly. This release addresses that issue, and significantly improves the process for deploying to Fly.
 
 #### External changes
 
-- Note
+- Shows all the user's undeployed apps on Fly.io, and gets confirmation that the correct app to deploy to has been chosen.
+- If a database is found with a name matching the selected app, gets confirmation that it's okay to use that database.
+- Updates all messages related to Fly.io deployments.
 
 #### Internal changes
 
 - Updated readthedocs config file.
+- Fly `deploy.py` file is longer, and needs some refactoring.
 
 
 ### 0.5.17
