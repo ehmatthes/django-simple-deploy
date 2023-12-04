@@ -42,7 +42,7 @@ $ python manage.py simple_deploy --platform fly_io
 
 `simple_deploy` will ask you if it's found the correct app to deploy to. It will then create a database and link it to the app you just created. After that, it will configure your project for deployment. At this point, you should review the changes that were made to your project. Running `git status` will show you which files were modified, and which files were created for a successful deployment.
 
-If you want to continue with the deployment process, commit these changes and run the `deploy` command. When deployment is complete, use the `open` command to see the deployed version of your project:
+If you want to continue with the deployment process, commit these changes and run the `deploy` command; the initial migration is done automatically. When deployment is complete, use the `open` command to see the deployed version of your project:
 
 ```sh
 $ git add .
