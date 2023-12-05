@@ -1,6 +1,6 @@
 """Manages all Heroku-specific aspects of the deployment process."""
 
-import sys, os, re, subprocess
+import sys, os, re, json, subprocess
 
 from django.conf import settings
 from django.core.management.base import CommandError
@@ -101,7 +101,7 @@ class PlatformDeployer:
             #   New method should be called from here and prep_automate_all().
             msg = f"  Could not find an existing database. Creating one now..."
             self.sd.write_output(msg)
-            cmd = 'heroku addons:create heroku-postgresql-mini'
+            cmd = 'heroku addons:create heroku-postgresql:mini'
             output_obj = self.sd.execute_subp_run(cmd)
             self.sd.log_info(cmd)
             self.sd.write_output(output_obj)
