@@ -69,19 +69,17 @@ class PlatformDeployer:
             # If output_str is emtpy, there is no heroku app.
             if not output_str:
                 raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
-                
-            print("output_str:", output_str)
-            sys.exit()
 
-            # Parse output. If successful call, output is in stdout.
-            #   If no app exists, it will be in stderr.
+            # Parse output for app_name.
             apps_list = json.loads(output_str)
 
+            # Find app name.
             app_dict = apps_list["app"]
+            self.heroku_app_name = app_dict["name"]
+            self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+
+            # Look for a Postgres database.
             addons_list = apps_list["addons"]
-
-            app_name = app_dict["name"]
-
             db_exists = False
             for addon_dict in addons_list:
                 # Look for a plan name indicating a postgres db.
@@ -94,24 +92,19 @@ class PlatformDeployer:
                         db_exists = True
                         break
 
+            if db_exists:
+                msg = f"  Found a {plan_name} database."
+                self.sd.write_output(msg)
+                return
 
-
-
-
-
-
-            # Turn stdout info into a list of strings that we can then parse.
-            #   If no app exists, stdout is empty and the output went to stderr.
-            apps_info = apps_info.stdout.decode().split('\n')
-            # DEV: Use this code when we can require Python >=3.9.
-            # self.heroku_app_name = apps_info[0].removeprefix('=== ')
-            self.heroku_app_name = apps_info[0].replace('=== ', '')
-
-        if self.heroku_app_name:
-            self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
-        # else:
-        #     # Let user know they need to run `heroku create`.
-        #     raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
+            # DEV: This should be moved to a separate method.
+            #   New method should be called from here and prep_automate_all().
+            msg = f"  Could not find an existing database. Creating one now..."
+            self.sd.write_output(msg)
+            cmd = 'heroku addons:create heroku-postgresql-mini'
+            output_obj = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
+            self.sd.write_output(output_obj)
 
 
     def _set_heroku_env_var(self):
