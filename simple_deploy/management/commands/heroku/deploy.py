@@ -49,6 +49,8 @@ class PlatformDeployer:
         # We assume the user has already run 'heroku create', or --automate-all
         #   has run it. If it hasn't been run, we'll quit and tell them to do so.
 
+        # We'll also look for a Postgres db. If we don't find one, we'll create one.
+
         # DEV: The testing approach here should be improved. We should be able
         #   to easily test for a failed apps:info call. Also, probably want
         #   to mock the output of apps:info rather than directly setting
@@ -57,10 +59,46 @@ class PlatformDeployer:
             self.heroku_app_name = 'sample-name-11894'
         else:
             self.sd.write_output("  Inspecting Heroku app...")
-            cmd = 'heroku apps:info'
-            apps_info = self.sd.execute_subp_run(cmd)
+            cmd = 'heroku apps:info --json'
+            output_obj = self.sd.execute_subp_run(cmd)
             self.sd.log_info(cmd)
-            self.sd.write_output(apps_info)
+            self.sd.write_output(output_obj)
+
+            output_str = output_obj.stdout.decode()
+
+            # If output_str is emtpy, there is no heroku app.
+            if not output_str:
+                raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
+                
+            print("output_str:", output_str)
+            sys.exit()
+
+            # Parse output. If successful call, output is in stdout.
+            #   If no app exists, it will be in stderr.
+            apps_list = json.loads(output_str)
+
+            app_dict = apps_list["app"]
+            addons_list = apps_list["addons"]
+
+            app_name = app_dict["name"]
+
+            db_exists = False
+            for addon_dict in addons_list:
+                # Look for a plan name indicating a postgres db.
+                try:
+                    plan_name = addon_dict["plan"]["name"]
+                except KeyError:
+                    pass
+                else:
+                    if "heroku-postgresql" in plan_name:
+                        db_exists = True
+                        break
+
+
+
+
+
+
 
             # Turn stdout info into a list of strings that we can then parse.
             #   If no app exists, stdout is empty and the output went to stderr.
@@ -71,9 +109,9 @@ class PlatformDeployer:
 
         if self.heroku_app_name:
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
-        else:
-            # Let user know they need to run `heroku create`.
-            raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
+        # else:
+        #     # Let user know they need to run `heroku create`.
+        #     raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
 
 
     def _set_heroku_env_var(self):
