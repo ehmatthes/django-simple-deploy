@@ -10,6 +10,7 @@ from django.conf import settings
 confirm_automate_all = """
 The --automate-all flag means simple_deploy will:
 - Run `heroku create` for you, to create a new Heroku project.
+- Create a Postgres database (mini) for your project.
 - Commit all changes to your project that are necessary for deployment.
   - These changes will be committed to the current branch, so you may want
     to make a new branch for this work.
