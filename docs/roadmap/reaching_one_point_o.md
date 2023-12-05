@@ -29,14 +29,12 @@ This page lays out the items that need to be completed before we can release a 1
 
 | Platform | Windows | macOS | Linux (Debian flavors) |
 | :------: | :--------------------------: | :----: | :----: |
-| Fly.io   | :fontawesome-regular-square: | :fontawesome-solid-square-check: | :fontawesome-regular-square: |
-| Platform.sh | :fontawesome-regular-square: | :fontawesome-solid-square-check: | :fontawesome-regular-square: |
-| Heroku | :fontawesome-regular-square-check: | :fontawesome-solid-square-check: | :fontawesome-regular-square-check: |
+| Fly.io   | :fontawesome-solid-square-check: | :fontawesome-solid-square-check: | :fontawesome-regular-square-check: |
+| Platform.sh | :fontawesome-solid-square-check: | :fontawesome-solid-square-check: | :fontawesome-regular-square-check: |
+| Heroku | :fontawesome-solid-square-check: | :fontawesome-solid-square-check: | :fontawesome-regular-square-check: |
 
 !!! note
     - I've done almost all of my development work on macOS, so initially that's the best-supported platform.
-    - I first built the project around Heroku, so I initially tested it on all three OSes. I haven't tried it for a long time, so I'm not sure where the support is on Windows and Linux at the moment.
-    - This is the next focus for my work, so this table should be filled in before long.
 
 ## Friendly summary of deployment process
 
@@ -72,11 +70,6 @@ Support for a new platform starts out as a proof-of-concept, showing that deploy
 | Fly.io | Platform.sh | Heroku |
 | :--------------------------: | :----: | :----: |
 | :fontawesome-regular-square-check: | :fontawesome-regular-square-check: | :fontawesome-regular-square-check: |
-
-!!! note
-    - On Fly.io, we create a database and connect it to the app that the user created, or that we created in a fully automated run. But if they were to run `simple_deploy` multiple times, they'd create a new database each time. That could get costly quickly, so we bail if we detect a database on the user's account. This means people can only use `simple_deploy` on Fly.io if they'd don't already have a project deployed there. This process needs to be refined.
-    - Platform.sh is probably closest to having a stable process. The process needs a little more review, and needs some refinements such as setting a more specific value for `ALLOWED_HOSTS`. We also need to look at how well `simple_deploy` supports someone who's pushing multiple projects to Platform.sh.
-    - Heroku recently dropped their free tier. This doesn't affect `simple_deploy` a whole lot, but the process needs some review around which resources are configured automatically for Heroku deployments, and how clearly we are communicating this to users.
 
 ## Other notes
 
