@@ -8,7 +8,7 @@ hide:
 
 ## Overview
 
-Heroku is in the process of eliminating its free tier, but it will still be around as a hosting platform. As long as Heroku maintains a deployment process that can be scripted, `simple_deploy` will maintain support for Heroku.
+Heroku no longer has a free tier, but it's still a functioning hosting platform. As long as Heroku maintains a deployment process that can be scripted, `simple_deploy` will likely maintain support for Heroku.
 
 Deployment to Heroku can be fully automated, but the configuration-only approach is recommended. This allows you to review the changes that are made to your project before committing them and making the initial push. The fully automated approach configures your project, commits these changes, and pushes the project to Heroku's servers.
 
@@ -30,12 +30,15 @@ $ pip install django-simple-deploy
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
-Now create a new Heroku app using the CLI, and run `simple_deploy` to configure your app:
+Now create a new Heroku app and database using the CLI, and run `simple_deploy` to configure your app:
 
 ```sh
 $ heroku create
+$ heroku addons:create heroku-postgresql:mini
 $ python manage.py simple_deploy --platform heroku
 ```
+
+The `heroku create` command is required. If you skip the step to create a database, `simple_deploy` will make that call for you.
 
 At this point, you should review the changes that were made to your project. Running `git status` will show you which files were modified, and which new files were created.
 
