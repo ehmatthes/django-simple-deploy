@@ -457,6 +457,8 @@ class PlatformDeployer:
 
     def prep_automate_all(self):
         """Do intial work for automating entire process.
+        - Create a heroku app to deploy to.
+        - Create a Heroku Postgres database.
 
         Returns:
         - None if successful.
@@ -464,6 +466,12 @@ class PlatformDeployer:
 
         self.sd.write_output("  Running `heroku create`...")
         cmd = 'heroku create'
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
+        self.sd.write_output(output)
+
+        self.sd.write_output("  Creating Postgres database...")
+        cmd = 'heroku addons:create heroku-postgresql-mini'
         output = self.sd.execute_subp_run(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
