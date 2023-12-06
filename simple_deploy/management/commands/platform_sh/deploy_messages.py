@@ -41,6 +41,13 @@ In order to deploy to Platform.sh, you need to install the Platform.sh CLI.
 After installing the CLI, you can run simple_deploy again.
 """
 
+cli_logged_out = """
+You are currently logged out of the Platform.sh CLI. Please log in,
+  and then run simple_deploy again.
+You can log in from  the command line:
+  $ platform login
+"""
+
 no_project_name = """
 A Platform.sh project name could not be found.
 
