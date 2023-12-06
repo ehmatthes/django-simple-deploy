@@ -518,10 +518,15 @@ class PlatformDeployer:
         # Make sure Heroku CLI is installed, if we're not unit testing.
         if not self.sd.unit_testing:
             cmd = 'heroku --version'
-            output_obj = self.sd.execute_subp_run(cmd)
             self.sd.log_info(cmd)
+            
+            # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
+            try:
+            	output_obj = self.sd.execute_subp_run(cmd)
+            except FileNotFoundError:
+                raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
+            
             self.sd.log_info(output_obj)
-
             if output_obj.returncode:
                 raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
 
