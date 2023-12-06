@@ -391,10 +391,15 @@ class PlatformDeployer:
     def _validate_cli(self):
         """Make sure the Fly.io CLI is installed."""
         cmd = 'fly version'
-        output_obj = self.sd.execute_subp_run(cmd)
         self.sd.log_info(cmd)
+        
+        # This generates a FileNotFoundError on Ubuntu.
+        try:
+            output_obj = self.sd.execute_subp_run(cmd)
+        except FileNotFoundError:
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
+        
         self.sd.log_info(output_obj)
-
         if output_obj.returncode:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
 
