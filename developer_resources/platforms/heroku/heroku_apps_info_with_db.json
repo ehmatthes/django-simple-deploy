@@ -1,0 +1,108 @@
+{
+  "addons": [
+    {
+      "actions": [
+        {
+          "id": "23ab3cb3-b67b-4779-b078-4191c2f0c012",
+          "label": "Create Dataclip",
+          "action": null,
+          "url": "http://dataclips.heroku.com/clips/new?heroku_resource_id=:resource_id&heroku_id=:resource_uuid",
+          "requires_owner": null
+        },
+        {
+          "id": "8a743776-666a-423f-b849-ec4f67cfe8c0",
+          "label": "Upgrade instructions",
+          "action": null,
+          "url": "https://devcenter.heroku.com/articles/upgrading-heroku-postgres-databases",
+          "requires_owner": null
+        }
+      ],
+      "app": {
+        "id": "20d31e83-b72a-4d41-89e6-0f54dcb9c447",
+        "name": "serene-bayou-62124"
+      },
+      "config_vars": [
+        "DATABASE_URL"
+      ],
+      "created_at": "2023-12-05T20:21:45Z",
+      "id": "97221e36-e365-45eb-bd9a-0ea565ab8fbe",
+      "name": "postgresql-curly-16284",
+      "addon_service": {
+        "id": "6c67493d-8fc2-4cd4-9161-4f1ec11cbe69",
+        "name": "heroku-postgresql"
+      },
+      "plan": {
+        "id": "629911da-9c07-4d5e-9b1f-3cf042a3a7d5",
+        "name": "heroku-postgresql:mini"
+      },
+      "billing_entity": {
+        "id": "20d31e83-b72a-4d41-89e6-0f54dcb9c447",
+        "name": "serene-bayou-62124",
+        "type": "app"
+      },
+      "provider_id": "33001499",
+      "state": "provisioned",
+      "updated_at": "2023-12-05T20:21:45Z",
+      "web_url": "https://addons-sso.heroku.com/apps/20d31e83-b72a-4d41-89e6-0f54dcb9c447/addons/97221e36-e365-45eb-bd9a-0ea565ab8fbe",
+      "billed_price": {
+        "cents": 500,
+        "contract": false,
+        "unit": "month"
+      }
+    }
+  ],
+  "app": {
+    "acm": false,
+    "archived_at": null,
+    "buildpack_provided_description": null,
+    "build_stack": {
+      "id": "5fc4e202-3efa-40a9-9789-3e104b74cf89",
+      "name": "heroku-22"
+    },
+    "created_at": "2023-12-05T20:18:16Z",
+    "id": "20d31e83-b72a-4d41-89e6-0f54dcb9c447",
+    "git_url": "https://git.heroku.com/serene-bayou-62124.git",
+    "maintenance": false,
+    "name": "serene-bayou-62124",
+    "owner": {
+      "email": "ehmatthes@gmail.com",
+      "id": "15a0f166-f274-4ff9-998f-08d4090ab1bd"
+    },
+    "region": {
+      "id": "59accabd-516d-4f0e-83e6-6e3757701145",
+      "name": "us"
+    },
+    "organization": null,
+    "team": null,
+    "space": null,
+    "internal_routing": null,
+    "released_at": "2023-12-05T20:21:45Z",
+    "repo_size": null,
+    "slug_size": null,
+    "stack": {
+      "id": "5fc4e202-3efa-40a9-9789-3e104b74cf89",
+      "name": "heroku-22"
+    },
+    "updated_at": "2023-12-05T20:21:45Z",
+    "web_url": "https://serene-bayou-62124-c8b5bfc161f8.herokuapp.com/"
+  },
+  "dynos": [],
+  "collaborators": [
+    {
+      "created_at": "2023-12-05T20:18:16Z",
+      "id": "15a0f166-f274-4ff9-998f-08d4090ab1bd",
+      "updated_at": "2023-12-05T20:18:16Z",
+      "user": {
+        "email": "ehmatthes@gmail.com",
+        "federated": false,
+        "id": "15a0f166-f274-4ff9-998f-08d4090ab1bd"
+      },
+      "app": {
+        "id": "20d31e83-b72a-4d41-89e6-0f54dcb9c447",
+        "name": "serene-bayou-62124"
+      },
+      "role": "owner"
+    }
+  ],
+  "pipeline_coupling": null
+}

@@ -1,6 +1,6 @@
 """Manages all Heroku-specific aspects of the deployment process."""
 
-import sys, os, re, subprocess
+import sys, os, re, json, subprocess
 
 from django.conf import settings
 from django.core.management.base import CommandError
@@ -49,6 +49,8 @@ class PlatformDeployer:
         # We assume the user has already run 'heroku create', or --automate-all
         #   has run it. If it hasn't been run, we'll quit and tell them to do so.
 
+        # We'll also look for a Postgres db. If we don't find one, we'll create one.
+
         # DEV: The testing approach here should be improved. We should be able
         #   to easily test for a failed apps:info call. Also, probably want
         #   to mock the output of apps:info rather than directly setting
@@ -57,23 +59,52 @@ class PlatformDeployer:
             self.heroku_app_name = 'sample-name-11894'
         else:
             self.sd.write_output("  Inspecting Heroku app...")
-            cmd = 'heroku apps:info'
-            apps_info = self.sd.execute_subp_run(cmd)
+            cmd = 'heroku apps:info --json'
+            output_obj = self.sd.execute_subp_run(cmd)
             self.sd.log_info(cmd)
-            self.sd.write_output(apps_info)
+            self.sd.write_output(output_obj)
 
-            # Turn stdout info into a list of strings that we can then parse.
-            #   If no app exists, stdout is empty and the output went to stderr.
-            apps_info = apps_info.stdout.decode().split('\n')
-            # DEV: Use this code when we can require Python >=3.9.
-            # self.heroku_app_name = apps_info[0].removeprefix('=== ')
-            self.heroku_app_name = apps_info[0].replace('=== ', '')
+            output_str = output_obj.stdout.decode()
 
-        if self.heroku_app_name:
+            # If output_str is emtpy, there is no heroku app.
+            if not output_str:
+                raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
+
+            # Parse output for app_name.
+            apps_list = json.loads(output_str)
+
+            # Find app name.
+            app_dict = apps_list["app"]
+            self.heroku_app_name = app_dict["name"]
             self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
-        else:
-            # Let user know they need to run `heroku create`.
-            raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
+
+            # Look for a Postgres database.
+            addons_list = apps_list["addons"]
+            db_exists = False
+            for addon_dict in addons_list:
+                # Look for a plan name indicating a postgres db.
+                try:
+                    plan_name = addon_dict["plan"]["name"]
+                except KeyError:
+                    pass
+                else:
+                    if "heroku-postgresql" in plan_name:
+                        db_exists = True
+                        break
+
+            if db_exists:
+                msg = f"  Found a {plan_name} database."
+                self.sd.write_output(msg)
+                return
+
+            # DEV: This should be moved to a separate method.
+            #   New method should be called from here and prep_automate_all().
+            msg = f"  Could not find an existing database. Creating one now..."
+            self.sd.write_output(msg)
+            cmd = 'heroku addons:create heroku-postgresql:mini'
+            output_obj = self.sd.execute_subp_run(cmd)
+            self.sd.log_info(cmd)
+            self.sd.write_output(output_obj)
 
 
     def _set_heroku_env_var(self):
@@ -457,6 +488,8 @@ class PlatformDeployer:
 
     def prep_automate_all(self):
         """Do intial work for automating entire process.
+        - Create a heroku app to deploy to.
+        - Create a Heroku Postgres database.
 
         Returns:
         - None if successful.
@@ -464,6 +497,12 @@ class PlatformDeployer:
 
         self.sd.write_output("  Running `heroku create`...")
         cmd = 'heroku create'
+        output = self.sd.execute_subp_run(cmd)
+        self.sd.log_info(cmd)
+        self.sd.write_output(output)
+
+        self.sd.write_output("  Creating Postgres database...")
+        cmd = 'heroku addons:create heroku-postgresql-mini'
         output = self.sd.execute_subp_run(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
@@ -479,10 +518,15 @@ class PlatformDeployer:
         # Make sure Heroku CLI is installed, if we're not unit testing.
         if not self.sd.unit_testing:
             cmd = 'heroku --version'
-            output_obj = self.sd.execute_subp_run(cmd)
             self.sd.log_info(cmd)
+            
+            # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
+            try:
+            	output_obj = self.sd.execute_subp_run(cmd)
+            except FileNotFoundError:
+                raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
+            
             self.sd.log_info(output_obj)
-
             if output_obj.returncode:
                 raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
 
