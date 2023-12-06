@@ -322,7 +322,7 @@ class PlatformDeployer:
     # --- Helper methods for methods called from simple_deploy.py ---
 
     def _validate_cli(self):
-        """Make sure the Platform.sh CLI is installed."""
+        """Make sure the Platform.sh CLI is installed, and user is authenticated."""
         cmd = 'platform --version'
         self.sd.log_info(cmd)
 
@@ -333,6 +333,16 @@ class PlatformDeployer:
         else:
             # Log the version output.
             self.sd.log_info(output_obj)
+            
+        # Check that the user is authenticated.
+        cmd = "platform auth:info --no-interaction"
+        self.sd.log_info(cmd)
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        output_err = output_obj.stderr.decode()
+        
+        if "Authentication is required." in output_err:
+            raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_logged_out)
 
 
     def _get_platformsh_project_name(self):
