@@ -3,6 +3,24 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
+0.6 - Stable deployments on all three platforms
+---
+
+### 0.6.0
+
+Deployments should work on all three platforms, for all major OSes. Any fixes from this point should be much more minor bugfixes, rather than rethinking the overall approach. This should be a transition to 1.0.
+
+#### External changes
+
+- Detects missing Heroku CLI on Ubuntu.
+- Creates a Postgres databse on Heroku as needed.
+- Updates roadmap.
+
+#### Internal changes
+
+- Starts to use `--json` on some Heroku CLI calls.
+
+
 0.5 - Supporting Fly.io, Platform.sh, and Heroku
 ---
 
