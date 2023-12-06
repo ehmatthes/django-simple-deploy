@@ -6,6 +6,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.6 - Stable deployments on all three platforms
 ---
 
+### 0.6.1
+
+### External changes
+
+- Fixes some issues managing Fly and Platform.sh CLI usage on Ubuntu and macOS.
+
 ### 0.6.0
 
 Deployments should work on all three platforms, for all major OSes. Any fixes from this point should be much more minor bugfixes, rather than rethinking the overall approach. This should be a transition to 1.0.
