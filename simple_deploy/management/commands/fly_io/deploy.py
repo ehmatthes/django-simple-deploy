@@ -17,8 +17,8 @@ import requests
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError, validate_choice, get_numbered_choice
-
+from simple_deploy.management.commands.utils import SimpleDeployCommandError
+import simple_deploy.management.commands.utils as sd_utils
 
 class PlatformDeployer:
     """Perform the initial deployment of a simple project.
@@ -218,7 +218,7 @@ class PlatformDeployer:
                 dockerfile_template = 'dockerfile_pipenv'
             else:
                 dockerfile_template = 'dockerfile'
-            write_file_from_template(path, dockerfile_template, context)
+            sd_utils.write_file_from_template(path, dockerfile_template, context)
 
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
@@ -293,7 +293,7 @@ class PlatformDeployer:
                 'using_pipenv': (self.sd.pkg_manager == "pipenv"),
                 }
             path = self.sd.project_root / 'fly.toml'
-            write_file_from_template(path, 'fly.toml', context)
+            sd_utils.write_file_from_template(path, 'fly.toml', context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
@@ -322,7 +322,7 @@ class PlatformDeployer:
             'deployed_project_name': self.deployed_project_name,
         }
         path = Path(self.sd.settings_path)
-        write_file_from_template(path, 'settings.py', context)
+        sd_utils.write_file_from_template(path, 'settings.py', context)
 
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
@@ -517,7 +517,7 @@ class PlatformDeployer:
             # against the wrong app.
             confirmed = False
             while not confirmed:
-                selection = get_numbered_choice(
+                selection = sd_utils.get_numbered_choice(
                     self.sd,
                     prompt,
                     valid_choices,
