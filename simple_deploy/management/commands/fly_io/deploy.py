@@ -420,10 +420,16 @@ class PlatformDeployer:
         """Get the Fly.io project name.
 
         Parse the output of `fly apps list`, and look for apps that have not
-        been deployed yet. Set self.app_name.
+        been deployed yet. Note there's some ambiguity between the use of
+        "project name" and "app name". This comes from usage in both Django
+        and target platforms.
 
-        Note: There's some ambiguity between the use of "project name" and
-        "app name". This comes from usage in both Django and target platforms.
+        User interactions:
+        - If one app found, prompts user to confirm correct app.
+        - If multiple apps found, prompts user to select correct one.
+
+        Sets:
+            str: self.app_name
 
         Returns:
             str: The deployed project name (self.app_name). Empty string if
@@ -449,23 +455,34 @@ class PlatformDeployer:
         self.sd.log_info(output_str)
         output_json = json.loads(output_str)
 
-        # Only consider projects that have not been deployed yet.
+        project_names = self._get_undeployed_projects(output_json)
+        self._select_project_name(project_names)
+
+        # Display and return deployed app name.
+        msg = f"  Using Fly.io app: {self.app_name}"
+        self.sd.write_output(msg)
+        return self.app_name
+
+    def _get_undeployed_projects(self, output_json):
+        """Identify fly apps that have not yet been deployed to."""
         candidate_apps = [
             app_dict
             for app_dict in output_json
             if not app_dict["Deployed"]
         ]
 
-        # Get all names that might be the app we want to deploy to.
-        # This is all undeployed apps, except the builder app.
+        # Remove all apps with 'builder' in name.
         project_names = [
             apps_dict["Name"]
             for apps_dict in candidate_apps
             if 'builder' not in apps_dict["Name"]
         ]
 
-        # Respond according to how many possible names were found.
-        # We need to know which app to deploy to.
+        return project_names
+
+    def _select_project_name(self, project_names):
+        """Select the correct project to deploy to."""
+        
         if len(project_names) == 0:
             # No app name found; raise error.
             raise SimpleDeployCommandError(
@@ -521,15 +538,6 @@ class PlatformDeployer:
                 if confirmed:
                     self.app_name = selected_name
                     break
-
-        # Display and return deployed app name.
-        if self.app_name:
-            msg = f"  Using Fly.io app: {self.app_name}"
-            self.sd.write_output(msg)
-            return self.app_name
-
-        # No app name identified; raise error.
-        raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
 
     def _create_flyio_app(self):
         """Create a new Fly.io app.
