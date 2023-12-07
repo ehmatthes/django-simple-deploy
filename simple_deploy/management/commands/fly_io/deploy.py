@@ -533,36 +533,38 @@ class PlatformDeployer:
 
     def _create_flyio_app(self):
         """Create a new Fly.io app.
-        Assumes caller already checked for automate_all, and that a suitable
-          app is not already available.
+
+        Assumes caller already checked for automate_all, and that a suitable app to
+        deploy to is not already available.
+
+        Sets:
+            str: self.app_name
+
         Returns:
-        - String representing new app name.
-        - Raises CommandError if an app can't be created.
+            str: self.app_name
+
+        Raises:
+            SimpleDeployCommandError: if an app can't be created.
         """
         msg = "  Creating a new app on Fly.io..."
         self.sd.write_output(msg)
 
-        cmd = "fly apps create --generate-name"
+        cmd = "fly apps create --generate-name --json"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         # Get app name.
-        app_name_re = r'(New app created: )(\w+\-\w+\-\d+)'
-        self.app_name = ''
-        m = re.search(app_name_re, output_str)
-        if m:
-            self.app_name = m.group(2).strip()
-
-        if self.app_name:
+        app_dict = json.loads(output_str)
+        try:
+            self.app_name = app_dict["Name"]
+        except KeyError:
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.create_app_failed)
+        else:
             msg = f"  Created new app: {self.app_name}"
             self.sd.write_output(msg)
             return self.app_name
-        else:
-            # Can't continue without a Fly.io app to deploy to.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.create_app_failed)
-
 
     def _get_region(self):
         """Get the region that the Fly.io app is configured for. We'll need this

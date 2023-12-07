@@ -1,0 +1,178 @@
+{
+    "ID": "nameless-firefly-9764",
+    "Name": "nameless-firefly-9764",
+    "State": "",
+    "Status": "",
+    "Deployed": false,
+    "Hostname": "",
+    "AppURL": "",
+    "Version": 0,
+    "NetworkID": 0,
+    "Release": null,
+    "Organization": {
+        "ID": "",
+        "InternalNumericID": "",
+        "Name": "",
+        "RemoteBuilderImage": "",
+        "RemoteBuilderApp": null,
+        "Slug": "personal",
+        "RawSlug": "",
+        "Type": "",
+        "PaidPlan": false,
+        "Settings": null,
+        "Domains": {
+            "Nodes": null,
+            "Edges": null
+        },
+        "WireGuardPeer": null,
+        "WireGuardPeers": {
+            "Nodes": null,
+            "Edges": null
+        },
+        "DelegatedWireGuardTokens": {
+            "Nodes": null,
+            "Edges": null
+        },
+        "HealthCheckHandlers": null,
+        "HealthChecks": null,
+        "LoggedCertificates": null,
+        "LimitedAccessTokens": null
+    },
+    "Secrets": null,
+    "CurrentRelease": null,
+    "Releases": {
+        "Nodes": null
+    },
+    "IPAddresses": {
+        "Nodes": null
+    },
+    "SharedIPAddress": "",
+    "IPAddress": null,
+    "Builds": {
+        "Nodes": null
+    },
+    "SourceBuilds": {
+        "Nodes": null
+    },
+    "Changes": {
+        "Nodes": null
+    },
+    "Certificates": {
+        "Nodes": null
+    },
+    "Certificate": {
+        "ID": "",
+        "AcmeDNSConfigured": false,
+        "AcmeALPNConfigured": false,
+        "Configured": false,
+        "CertificateAuthority": "",
+        "CreatedAt": "0001-01-01T00:00:00Z",
+        "DNSProvider": "",
+        "DNSValidationInstructions": "",
+        "DNSValidationHostname": "",
+        "DNSValidationTarget": "",
+        "Hostname": "",
+        "Source": "",
+        "ClientStatus": "",
+        "IsApex": false,
+        "IsWildcard": false,
+        "Issued": {
+            "Nodes": null
+        }
+    },
+    "Config": {
+        "Definition": {
+            "kill_signal": "SIGINT",
+            "kill_timeout": 5,
+            "mounts": [],
+            "processes": [],
+            "services": [
+                {
+                    "concurrency": {
+                        "hard_limit": 25,
+                        "soft_limit": 20,
+                        "type": "connections"
+                    },
+                    "internal_port": 8080,
+                    "ports": [
+                        {
+                            "force_https": true,
+                            "handlers": [
+                                "http"
+                            ],
+                            "port": 80
+                        },
+                        {
+                            "handlers": [
+                                "tls",
+                                "http"
+                            ],
+                            "port": 443
+                        }
+                    ],
+                    "processes": [
+                        "app"
+                    ],
+                    "protocol": "tcp"
+                }
+            ]
+        },
+        "Services": null,
+        "Valid": false,
+        "Errors": null
+    },
+    "ParseConfig": {
+        "Definition": null,
+        "Services": null,
+        "Valid": false,
+        "Errors": null
+    },
+    "Allocations": null,
+    "Allocation": null,
+    "DeploymentStatus": null,
+    "Autoscaling": null,
+    "VMSize": {
+        "Name": "",
+        "CPUCores": 0,
+        "CPUClass": "",
+        "MemoryGB": 0,
+        "MemoryMB": 0,
+        "PriceMonth": 0,
+        "PriceSecond": 0
+    },
+    "Regions": [
+        {
+            "Code": "sea",
+            "Name": "Seattle, Washington (US)",
+            "Latitude": 0,
+            "Longitude": 0,
+            "GatewayAvailable": false,
+            "RequiresPaidPlan": false
+        }
+    ],
+    "BackupRegions": null,
+    "TaskGroupCounts": null,
+    "ProcessGroups": null,
+    "HealthChecks": null,
+    "PostgresAppRole": null,
+    "Image": null,
+    "ImageUpgradeAvailable": false,
+    "ImageVersionTrackingEnabled": false,
+    "ImageDetails": {
+        "Registry": "",
+        "Repository": "",
+        "Tag": "",
+        "Version": "",
+        "Digest": ""
+    },
+    "LatestImageDetails": {
+        "Registry": "",
+        "Repository": "",
+        "Tag": "",
+        "Version": "",
+        "Digest": ""
+    },
+    "PlatformVersion": "",
+    "LimitedAccessTokens": null,
+    "CurrentLock": null
+}
