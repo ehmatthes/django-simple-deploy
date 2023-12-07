@@ -17,7 +17,7 @@ import requests
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
+from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError, validate_choice
 
 
 class PlatformDeployer:
@@ -465,55 +465,72 @@ class PlatformDeployer:
             if 'builder' not in apps_dict["Name"]
         ]
 
-        # We need to respond according to how many possible names were found.
+        # Respond according to how many possible names were found.
+        # We need to know which app to deploy to.
         if len(project_names) == 0:
-            # If no app name found, raise error.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+            # No app name found; raise error.
+            raise SimpleDeployCommandError(
+                    self.sd, flyio_msgs.no_project_name)
         elif len(project_names) == 1:
-            # If only one project name, confirm that it's the correct project.
+            # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
             msg = f"\n*** Found one app on Fly.io: {project_name} ***"
             self.sd.write_output(msg)
-            msg = "Is this the app you want to deploy to?"
-            if self.sd.get_confirmation(msg):
+
+            prompt = "Is this the app you want to deploy to?"
+            if self.sd.get_confirmation(prompt):
                 self.app_name = project_name
             else:
-                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+                raise SimpleDeployCommandError(
+                        self.sd, flyio_msgs.no_project_name)
         else:
-            # `apps list` does not show much specific inforamtion for undeployed apps.
-            #   ie, no creation date, so can't identify most recently created app.
-            # Show all undeployed apps, ask user to make selection.
+            # More than one undeployed app found. `apps list` doesn't show
+            # much specific inforamtion for undeployed apps. For exmaple we
+            # don't know the creation date, so we can't identify the most
+            # recently created app.
+
             while True:
-                msg = "\n*** Found multiple undeployed apps on Fly.io. ***"
+                # Show all undeployed apps, ask user to make selection.
+
+                prompt = "\n*** Found multiple undeployed apps on Fly.io. ***"
                 for index, name in enumerate(project_names):
-                    msg += f"\n  {index}: {name}"
-                msg += "\n\nYou can cancel this configuration work by entering q."
-                msg += "\nWhich app would you like to use? "
-                self.sd.log_info(msg)
-                selection = input(msg)
+                    prompt += f"\n  {index}: {name}"
+                prompt += "\n\nYou can cancel this configuration work by entering q."
+                prompt += "\nWhich app would you like to use? "
+
+                self.sd.log_info(prompt)
+
+                selection = input(prompt)
                 self.sd.log_info(selection)
 
                 if selection.lower() in ['q', 'quit']:
-                    raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+                    raise SimpleDeployCommandError(
+                            self.sd, flyio_msgs.no_project_name)
 
-                selected_name = project_names[int(selection)]
+                # Ensure a valid selection.
+                try:
+                    selected_name = project_names[int(selection)]
+                except (ValueError, IndexError):
+                    msg = "  Invalid selection. Please try again."
+                    self.sd.write_output(msg)
+                    continue
 
-                # Confirm selection, because we do *not* want to deploy against
-                #   the wrong app.
-                msg = f"You have selected {selected_name}. Is that correct?"
-                confirmed = self.sd.get_confirmation(msg)
+                # Confirm selection, because we do *not* want to deploy
+                # against the wrong app.
+                prompt = f"You have selected {selected_name}. Is that correct?"
+                confirmed = self.sd.get_confirmation(prompt)
                 if confirmed:
                     self.app_name = selected_name
                     break
 
-        # Return deployed app name, or raise CommandError.
+        # Display and return deployed app name.
         if self.app_name:
             msg = f"  Using Fly.io app: {self.app_name}"
             self.sd.write_output(msg)
             return self.app_name
-        else:
-            # Can't continue without a Fly.io app to configure against.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+
+        # No app name identified; raise error.
+        raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
 
     def _create_flyio_app(self):
         """Create a new Fly.io app.

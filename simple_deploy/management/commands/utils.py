@@ -34,6 +34,13 @@ def write_file_from_template(path, template, context=None):
     path.write_text(template_string)
 
 
+def validate_choice(choice, valid_choices):
+    """Validate a choice made by the user."""
+    if choice in valid_choices:
+        return True
+    return False
+
+
 class SimpleDeployCommandError(CommandError):
     """Simple wrapper around CommandError, to facilitate consistent
     logging of command errors.
