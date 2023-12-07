@@ -52,6 +52,10 @@ def test_flyio_deployment(tmp_project, cli_options, request):
         it_utils.commit_configuration_changes()
         project_url = platform_utils.deploy_project(app_name)
 
+    # Remote functionality test fails if run too quickly after deployment.
+    print("\nPausing 10s to let deployment finish...")
+    time.sleep(10)
+
     # Test functionality of both deployed app, and local project.
     #   We want to make sure the deployment works, but also make sure we haven't
     #   affected functionality of the local project using the development server.
