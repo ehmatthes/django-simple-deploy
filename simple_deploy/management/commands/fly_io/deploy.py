@@ -17,7 +17,7 @@ import requests
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError, validate_choice
+from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError, validate_choice, get_numbered_choice
 
 
 class PlatformDeployer:
@@ -482,7 +482,7 @@ class PlatformDeployer:
 
     def _select_project_name(self, project_names):
         """Select the correct project to deploy to."""
-        
+
         if len(project_names) == 0:
             # No app name found; raise error.
             raise SimpleDeployCommandError(
@@ -505,39 +505,31 @@ class PlatformDeployer:
             # don't know the creation date, so we can't identify the most
             # recently created app.
 
-            while True:
-                # Show all undeployed apps, ask user to make selection.
+            # Show all undeployed apps, ask user to make selection.
+            prompt = "\n*** Found multiple undeployed apps on Fly.io. ***"
+            for index, name in enumerate(project_names):
+                prompt += f"\n  {index}: {name}"
+            prompt += "\nWhich app would you like to use? "
 
-                prompt = "\n*** Found multiple undeployed apps on Fly.io. ***"
-                for index, name in enumerate(project_names):
-                    prompt += f"\n  {index}: {name}"
-                prompt += "\n\nYou can cancel this configuration work by entering q."
-                prompt += "\nWhich app would you like to use? "
+            valid_choices = [i for i in range(len(project_names))]
 
-                self.sd.log_info(prompt)
+            # Confirm selection, because we do *not* want to deploy
+            # against the wrong app.
+            confirmed = False
+            while not confirmed:
+                selection = get_numbered_choice(
+                    self.sd,
+                    prompt,
+                    valid_choices,
+                    flyio_msgs.no_project_name
+                )
+                selected_name = project_names[selection]
 
-                selection = input(prompt)
-                self.sd.log_info(selection)
+                confirm_prompt = f"You have selected {selected_name}."
+                confirm_prompt += " Is that correct?"
+                confirmed = self.sd.get_confirmation(confirm_prompt)
 
-                if selection.lower() in ['q', 'quit']:
-                    raise SimpleDeployCommandError(
-                            self.sd, flyio_msgs.no_project_name)
-
-                # Ensure a valid selection.
-                try:
-                    selected_name = project_names[int(selection)]
-                except (ValueError, IndexError):
-                    msg = "  Invalid selection. Please try again."
-                    self.sd.write_output(msg)
-                    continue
-
-                # Confirm selection, because we do *not* want to deploy
-                # against the wrong app.
-                prompt = f"You have selected {selected_name}. Is that correct?"
-                confirmed = self.sd.get_confirmation(prompt)
-                if confirmed:
-                    self.app_name = selected_name
-                    break
+            self.app_name = selected_name
 
     def _create_flyio_app(self):
         """Create a new Fly.io app.
