@@ -24,27 +24,27 @@ def write_file_from_template(path, template, context=None):
     #   This may need to be moved to its own file if it ends up being imported
     #   from different places.
     caller = inspect.stack()[1].filename
-    if sys.platform == 'win32':
-        platform_re = r'\\simple_deploy\\management\\commands\\(.*)\\deploy.py'
+    if sys.platform == "win32":
+        platform_re = r"\\simple_deploy\\management\\commands\\(.*)\\deploy.py"
     else:
-        platform_re = r'/simple_deploy/management/commands/(.*)/deploy.py'
+        platform_re = r"/simple_deploy/management/commands/(.*)/deploy.py"
     m = re.search(platform_re, caller)
     platform = m.group(1)
 
     # Make a template engine that can access the platform's templates.
-    my_dirs = get_app_template_dirs(
-            f"management/commands/{platform}/templates")
+    my_dirs = get_app_template_dirs(f"management/commands/{platform}/templates")
     my_engine = Engine(dirs=my_dirs)
 
     # Generate the template string, and write it to the given path.
     template_string = my_engine.render_to_string(template, context)
     path.write_text(template_string)
 
+
 def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
     """Select from a numbered list of choices.
 
     This is used, for example, to select from a number of apps that the user
-    has created on a platform. 
+    has created on a platform.
     """
     prompt += "\n\nYou can quit by entering q.\n"
 
@@ -55,7 +55,7 @@ def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
         selection = input(prompt)
         sd_command.log_info(selection)
 
-        if selection.lower() in ['q', 'quit']:
+        if selection.lower() in ["q", "quit"]:
             raise SimpleDeployCommandError(sd_command, quit_message)
 
         # Make sure they entered a number
@@ -75,12 +75,12 @@ def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
         return selection
 
 
-
 def validate_choice(choice, valid_choices):
     """Validate a choice made by the user."""
     if choice in valid_choices:
         return True
     return False
+
 
 class SimpleDeployCommandError(CommandError):
     """Simple wrapper around CommandError, to facilitate consistent
@@ -89,7 +89,7 @@ class SimpleDeployCommandError(CommandError):
     Writes "SimpleDeployCommandError:" and error message to log, then raises
     actual CommandError.
 
-    Note: This changes the exception type from CommandError to 
+    Note: This changes the exception type from CommandError to
     SimpleDeployCommandError.
     """
 
