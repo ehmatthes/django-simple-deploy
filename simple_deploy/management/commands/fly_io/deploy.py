@@ -419,29 +419,34 @@ class PlatformDeployer:
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
-        Parse the output of `fly apps list`, and look for apps that have not
-          been deployed yet.
 
-        Also, sets self.app_name, so the name can be used here as well.
+        Parse the output of `fly apps list`, and look for apps that have not
+        been deployed yet. Set self.app_name.
+
+        Note: There's some ambiguity between the use of "project name" and
+        "app name". This comes from usage in both Django and target platforms.
 
         Returns:
-        - String representing deployed project name.
-        - Empty string if no deployed project name found, but using automate_all.
-        - Raises CommandError if deployed project name can't be found.
+            str: The deployed project name (self.app_name). Empty string if
+            using --automate-all.
+
+        Raises:
+            SimpleDeployCommandError: If deployed project name can't be found.
         """
         if self.sd.automate_all:
-            # Simply return an empty string to indicate no suitable app was found,
-            #   and we'll create one later.
+            # Return an empty string. We'll create an app name later.
             return ""
 
         msg = "\nLooking for Fly.io app to deploy against..."
         self.sd.write_output(msg)
 
-        # Get apps info.
+        # Get info about user's apps on Fly.io.
         cmd = "fly apps list --json"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
+
+        # Run command, and get json output.
+        # CLI has been validated; should not have to deal with stderr.
+        output_str = self.sd.execute_subp_run(cmd).stdout.decode()
         self.sd.log_info(output_str)
         output_json = json.loads(output_str)
 
@@ -453,8 +458,12 @@ class PlatformDeployer:
         ]
 
         # Get all names that might be the app we want to deploy to.
-        project_names = [apps_dict["Name"] for apps_dict in candidate_apps]
-        project_names = [name for name in project_names if 'builder' not in name]
+        # This is all undeployed apps, except the builder app.
+        project_names = [
+            apps_dict["Name"]
+            for apps_dict in candidate_apps
+            if 'builder' not in apps_dict["Name"]
+        ]
 
         # We need to respond according to how many possible names were found.
         if len(project_names) == 0:
