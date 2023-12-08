@@ -422,7 +422,8 @@ class PlatformDeployer:
         Parse the output of `fly apps list`, and look for apps that have not
         been deployed yet. Note there's some ambiguity between the use of
         "project name" and "app name". This comes from usage in both Django
-        and target platforms.
+        and target platforms. Also note that database apps can't be easily
+        distinguished from other apps.
 
         User interactions:
         - If one app found, prompts user to confirm correct app.
@@ -618,28 +619,33 @@ class PlatformDeployer:
 
 
     def _create_db(self):
-        """Create a db to deploy to.
+        """Create a remote database.
 
         An appropriate db should not already exist. We tell people to create
-          an app, and then we take care of everything else. We create a db with
-          the name app_name-db.
-        We will look for a db with that name. If one exists, we'll ask if we
-          should use it.
-        Otherwise, we'll just create a new db for the app.
+        an app, and then we take care of everything else. We create a db with
+        the name app_name-db.
+
+        We'll look for a db with that name, for example in the situation where
+        someone has already run simple_deploy, but only gotten partway through the
+        deployment process. If one exists, we'll ask if we should use it. Otherwise,
+        we'll just create a new db for the app.
+
+        Sets:
+            str: self.db_name
 
         Returns: 
-        - None.
-        - Raises CommandError if...
+            None
+
+        Raises:
+            SimpleDeployCommandError: If can't create a new db, or don't get
+            permission to use existing db with matching name.
         """
         msg = "Looking for a Postgres database..."
         self.sd.write_output(msg)
 
-        db_exists = self._check_if_db_exists()
-
-        if db_exists:
-            # A database with the name app_name-db exists.
-            # - Is it attached to this app?
-            # - Can we use it?
+        if self._check_db_exists():
+            # A database named app_name-db exists.
+            # - Is it attached to this app? Can we use it?
             attached = self._check_db_attached()
 
             db_name = self.app_name + "-db"
@@ -705,33 +711,18 @@ class PlatformDeployer:
 
         self._attach_db(self.db_name)
 
-    def _attach_db(self, db_name):
-        """Attach the database to the app."""
-        # Run `attach` command (and confirm DATABASE_URL is set?)
-        msg = "  Attaching database to Fly.io app..."
-        self.sd.write_output(msg)
-        cmd = f"fly postgres attach --app {self.deployed_project_name} {db_name}"
-        self.sd.log_info(cmd)
-
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.write_output(output_str)
-
-        msg = "  Attached database to app."
-        self.sd.write_output(msg)
-
-    def _check_if_db_exists(self):
+    def _check_db_exists(self):
         """Check if a postgres db already exists that should be used with this app.
+
         Returns:
-        - True if db found.
-        - False if not found.
+            bool: True if appropriate db found; False if not found.
         """
 
         # First, see if any Postgres clusters exist.
         cmd = "fly postgres list --json"
+        self.sd.log_info(cmd)
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
         if "No postgres clusters found" in output_str:
@@ -758,16 +749,18 @@ class PlatformDeployer:
         """Check if the db that was found is attached to this app.
 
         Database is considered attached to this app it has a user with the same
-          name as the app, using underscores instead of hyphens.
-        This is the default behavior if you create a new app, then a new db,
-          then attach the db to that app.
+        name as the app, using underscores instead of hyphens. This is the default
+        behavior if you create a new app, then a new db, then attach the db to that app.
+
+        Sets:
+            list: self.db_users, which can be used in messages to the user.
 
         Returns:
-        - True if db attached to this app.
-        - False if db not attached to this app.
-        - Raises SimpleDeployCommandError if we can't find a reason to use the db.
+            bool: True if attached to this app, False if not attached.
 
-        Also, defines self.db_users, which can be used in subsequent messages.
+        Raises:
+            SimpleDeployCommandError: If this db has users in addtion to the default db
+            users and a user corresponding to this app, we raise an error. 
         """
         # Get users of this db.
         #   `fly postgres users list` does not accept `--json` flag. :/
@@ -778,39 +771,46 @@ class PlatformDeployer:
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
-        # Break output into lines, get rid of header line.
-        lines = output_str.split("\n")[1:]
-        # Get rid of blank lines.
-        lines = [line for line in lines if line]
-        # Pull user from each line.
-        self.db_users = []
-        for line in lines:
-            # user is everything before first tab.
-            tab_index = line.find("\t")
-            user = line[:tab_index].strip()
-            self.db_users.append(user)
+        # Strip extra whitespace, split into lines, remove header. Split each line on
+        # tabs, and strip the first element.
+        lines = output_str.strip().split("\n")[1:]
+        self.db_users = [line.split('\t')[0].strip() for line in lines]
 
         self.sd.log_info(f"DB users: {self.db_users}")
 
         default_users = {'flypgadmin', 'postgres', 'repmgr'}
         app_user = self.app_name.replace('-', '_')
         if set(self.db_users) == default_users:
-            # This db only has default users set when a fresh db is made.
+            # This db only has the default users set when a fresh db is made.
             #   Assume it's unattached.
             return False
         elif (app_user in self.db_users) and (len(self.db_users) == 4):
-            # The current remote app has been attached to this db.
-            #   Will still need confirmation we can use this db.
+            # This db appears to have been attached to the remote app. Will still need
+            # confirmation we can use this db.
             return True
         else:
-            # This db has more than the default users, and not just the
-            #   current app. Let's not touch it.
-            # If anyone hits this situation and we should proceed, we'll
-            #   revisit this block.
+            # This db has more than the default users, and not just the current app.
+            # Let's not touch it. If anyone hits this situation and we should proceed,
+            # we'll revisit this block.
             # Note: This path has only been tested once, by manually adding
-            #   "dummy-user" to the list of db users."
+            # "dummy-user" to the list of db users."
             msg = flyio_msgs.cant_use_db(db_name, self.db_users)
             raise SimpleDeployCommandError(self.sd, msg)
+
+    def _attach_db(self, db_name):
+        """Attach the database to the app."""
+        # Run `attach` command (and confirm DATABASE_URL is set?)
+        msg = "  Attaching database to Fly.io app..."
+        self.sd.write_output(msg)
+        cmd = f"fly postgres attach --app {self.deployed_project_name} {db_name}"
+        self.sd.log_info(cmd)
+
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.write_output(output_str)
+
+        msg = "  Attached database to app."
+        self.sd.write_output(msg)
 
     def _confirm_create_db(self, db_cmd):
         """We really need to confirm that the user wants a db created on their behalf.
