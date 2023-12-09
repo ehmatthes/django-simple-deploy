@@ -37,11 +37,11 @@ class PlatformDeployer:
     # --- Public methods ---
 
     def deploy(self, *args, **options):
+        """Coordinate the overall configuration and deployment."""
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
         self._set_on_flyio()
         self._set_debug()
-
         self._add_dockerfile()
         self._add_dockerignore()
         self._add_flytoml_file()
@@ -53,54 +53,54 @@ class PlatformDeployer:
         self._show_success_message()
 
     def confirm_preliminary(self):
-        """Deployment to Fly.io is in a preliminary state, and we need to be
-        explicit about that.
-        """
-        # Skip this confirmation when unit testing.
+        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
+
         if self.sd.unit_testing:
             return
 
         self.sd.write_output(flyio_msgs.confirm_preliminary)
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
+        if self.sd.get_confirmation():
             self.sd.write_output("  Continuing with Fly.io deployment...")
         else:
-            # Quit and invite the user to try another platform.
-            # We are happily exiting the script; there's no need to raise an error.
+            # Quit and invite the user to try another platform. We are happily exiting
+            # the script; there's no need to raise an error.
             self.sd.write_output(flyio_msgs.cancel_flyio)
             sys.exit()
 
     def validate_platform(self):
-        """Make sure the local environment and project supports deployment to
-        Fly.io.
+        """Make sure the local environment and project supports deployment to Fly.io.
         
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
+        The returncode for a successful command is 0, so anything truthy means a command
+        errored out.
         """
-
-        # When running unit tests, will not be logged into CLI.
-        if not self.sd.unit_testing:
-            self._validate_cli()
-            
-            self.deployed_project_name = self._get_deployed_project_name()
-
-            # If using automate_all, we need to create the app before creating
-            #   the db. But if there's already an app with no deployment, we can 
-            #   use that one (maybe created from a previous automate_all run).
-            # DEV: Update _get_deployed_project_name() to not throw error if
-            #   using automate_all. _create_flyio_app() can exit if not using
-            #   automate_all(). If self.deployed_project_name is set, just return
-            #   because we'll use that project. If it's not set, call create.
-            if not self.deployed_project_name and self.sd.automate_all:
-                self.deployed_project_name = self._create_flyio_app()
-
-            # Create the db now, before any additional configuration. Get region
-            #   so we know where to create the db.
-            self.region = self._get_region()
-            self._create_db()
-        else:
+        if self.sd.unit_testing:
+            # Unit tests don't use the platform's CLI. Use the deployed project name
+            # that was passed to the simple_deploy CLI.
             self.deployed_project_name = self.sd.deployed_project_name
+            return
+
+        self._validate_cli()
+        self.deployed_project_name = self._get_deployed_project_name()
+
+
+
+
+
+
+        # If using automate_all, we need to create the app before creating
+        #   the db. But if there's already an app with no deployment, we can 
+        #   use that one (maybe created from a previous automate_all run).
+        # DEV: Update _get_deployed_project_name() to not throw error if
+        #   using automate_all. _create_flyio_app() can exit if not using
+        #   automate_all(). If self.deployed_project_name is set, just return
+        #   because we'll use that project. If it's not set, call create.
+        if not self.deployed_project_name and self.sd.automate_all:
+            self.deployed_project_name = self._create_flyio_app()
+
+        # Create the db now, before any additional configuration. Get region
+        #   so we know where to create the db.
+        self.region = self._get_region()
+        self._create_db()
 
     def prep_automate_all(self):
         """Take any further actions needed if using automate_all."""
