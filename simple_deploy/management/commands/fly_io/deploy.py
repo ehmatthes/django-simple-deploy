@@ -69,9 +69,17 @@ class PlatformDeployer:
 
     def validate_platform(self):
         """Make sure the local environment and project supports deployment to Fly.io.
-        
-        The returncode for a successful command is 0, so anything truthy means a command
-        errored out.
+
+        Make sure CLI is installed, and user is authenticated. Make sure necessary
+        resources have been created and identified, and that we have the user's
+        permission to use those resources.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If we find any reason deployment to this platform
+            won't succeed.
         """
         if self.sd.unit_testing:
             # Unit tests don't use the platform's CLI. Use the deployed project name
