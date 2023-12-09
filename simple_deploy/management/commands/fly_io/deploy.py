@@ -650,50 +650,22 @@ class PlatformDeployer:
         msg = "Looking for a Postgres database..."
         self.sd.write_output(msg)
 
-        db_name = self.app_name + "-db"
-        
+        self.db_name = self.app_name + "-db"
         if self._check_db_exists():
-            # A database named app_name-db exists. Is it attached to this app? Can we
-            # use it?
-            attached = self._check_db_attached()
-
-            if attached:
-                # Database is attached to this app; get permission to use it.
-                return self._confirm_use_attached_db():
-            else:
-                # Existing db is not attached; get permission to attach this db.
-                msg = flyio_msgs.use_unattached_db(db_name, self.db_users)
-                self.sd.write_output(msg)
-
-                msg = f"Okay to use {db_name} and proceed?"
-                use_db = self.sd.get_confirmation(msg)
-
-                # Attach db if confirmed.
-                if use_db:
-                    self._attach_db(db_name)
-                    self.db_name = db_name
-                    # We're all done.
-                    return
-                else:
-                    # Permission to use this db denied.
-                    # Can't simply create a new db, because the name we'd use is
-                    # already taken.
-                    raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+            return self._manage_existing_db()
 
         # No usable db found, create a new db.
-        msg = f"  Create a new Postgres database..."
+        msg = f"  Creating a new Postgres database..."
         self.sd.write_output(msg)
 
-        self.db_name = f"{self.deployed_project_name}-db"
         cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
         self.sd.log_info(cmd)
         self._confirm_create_db(db_cmd=cmd)
 
-        # Create database.
-        # Use execute_command(), to stream output of long-running process.
-        # Also, we're not logging this because I believe it contains db credentials.
-        # May want to scrub and then log output.
+        # Create database. Use execute_command(), to stream output of long-running
+        # process. Also, we're not logging this because I believe it contains db
+        # credentials. May want to scrub and then log output.
         self.sd.execute_command(cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
@@ -725,15 +697,29 @@ class PlatformDeployer:
         ]
 
         # See if any of these names match this app.
-        usable_pg_name = self.app_name + "-db"
-        if usable_pg_name in pg_names:
-            msg = f"  Postgres db found: {usable_pg_name}"
+        if self.db_name in pg_names:
+            msg = f"  Postgres db found: {self.db_name}"
             self.sd.write_output(msg)
             return True
         else:
             msg = "  No matching Postgres database found."
             self.sd.write_output(msg)
             return False
+
+    def _manage_existing_db(self):
+        """Figure out what to do with an existing db whose name matches app.
+
+        Returns:
+            None: If we can use and configure existing db.
+
+        Raises:
+            SimpleDeployCommandError: If we can't use existing db, or fail to configure
+            it correctly.
+        """
+        if self._check_db_attached():
+            return self._confirm_use_attached_db(self.db_name):
+        else:
+            return self._confirm_use_unattached_db(self.db_name)
 
     def _check_db_attached(self):
         """Check if the db that was found is attached to this app.
@@ -754,8 +740,7 @@ class PlatformDeployer:
         """
         # Get users of this db.
         #   `fly postgres users list` does not accept `--json` flag. :/
-        db_name = self.app_name + "-db"
-        cmd = f"fly postgres users list -a {db_name}"
+        cmd = f"fly postgres users list -a {self.db_name}"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
@@ -784,25 +769,53 @@ class PlatformDeployer:
             # we'll revisit this block.
             # Note: This path has only been tested once, by manually adding
             # "dummy-user" to the list of db users."
-            msg = flyio_msgs.cant_use_db(db_name, self.db_users)
+            msg = flyio_msgs.cant_use_db(self.db_name, self.db_users)
             raise SimpleDeployCommandError(self.sd, msg)
 
     def _confirm_use_attached_db(self):
         """Confirm it's okay to use db that's already attached to this app.
 
         Returns:
-            None
+            None: If confirmation granted.
 
         Raises:
             SimpleDeployCommandError: If confirmation denied.
         """
-        msg = flyio_msgs.use_attached_db(db_name, self.db_users)
+        msg = flyio_msgs.use_attached_db(self.db_name, self.db_users)
         self.sd.write_output(msg)
 
-        msg = f"Okay to use {db_name} and proceed?"
+        msg = f"Okay to use {self.db_name} and proceed?"
         if not self.sd.get_confirmation(msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+
+    def _confirm_use_unattached_db(self):
+        """Confirm it's okay to use db whose name matches this app, but hasn't
+        been attached to this app.
+
+        If confirmation given, calls _attach_db().
+
+        Sets:
+            str: self.db_name
+
+        Returns:
+            None: If confirmation given.
+
+        Raises:
+            SimpleDeployCommandError: If confirmation denied.
+        """
+        msg = flyio_msgs.use_unattached_db(self.db_name, self.db_users)
+        self.sd.write_output(msg)
+
+        msg = f"Okay to use {self.db_name} and proceed?"
+        if self.sd.get_confirmation(msg):
+            self._attach_db(self.db_name)
+            return
+        else:
+            # Permission to use this db denied.
+            # Can't simply create a new db, because the name we'd use is
+            # already taken.
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
 
     def _confirm_create_db(self, db_cmd):
