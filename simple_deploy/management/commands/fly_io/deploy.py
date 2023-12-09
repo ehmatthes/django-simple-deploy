@@ -6,30 +6,26 @@ Notes:
 - self.deployed_project_name and self.app_name are identical. The first is used in the
   simple_deploy CLI, but Fly refers to "apps" in their docs. This redundancy makes it
   easier to code Fly CLI commands.
-
-
 """
 
-import sys, os, re, subprocess, json
+import sys, os, re, json
 from pathlib import Path
 
-from django.conf import settings
-from django.core.management.base import CommandError
-from django.core.management.utils import get_random_secret_key
-from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 import requests
 
-from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
-
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
 import simple_deploy.management.commands.utils as sd_utils
 
+
 class PlatformDeployer:
-    """Perform the initial deployment of a simple project.
-    Configure as much as possible automatically.
+    """Perform the initial deployment to Fly.io
+
+    If --automate-all is used, carry out an actual deployment.
+    If not, do all configuration work so the user only has to commit changes, and call
+    `fly deploy`.
     """
 
     def __init__(self, command):
@@ -71,8 +67,7 @@ class PlatformDeployer:
             self.sd.write_output("  Continuing with Fly.io deployment...")
         else:
             # Quit and invite the user to try another platform.
-            # We are happily exiting the script; there's no need to raise a
-            #   CommandError.
+            # We are happily exiting the script; there's no need to raise an error.
             self.sd.write_output(flyio_msgs.cancel_flyio)
             sys.exit()
 
