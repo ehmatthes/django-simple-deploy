@@ -1,7 +1,14 @@
-"""Manages all Fly.io-specific aspects of the deployment process."""
+"""Manages all Fly.io-specific aspects of the deployment process.
 
-# Note: Internal references to Fly.io will almost always be flyio.
-#   Public references, such as the --platform argument, will be fly_io.
+Notes:
+- Internal references to Fly.io will almost always be flyio. Public references, such as
+  the --platform argument, will be fly_io.
+- self.deployed_project_name and self.app_name are identical. The first is used in the
+  simple_deploy CLI, but Fly refers to "apps" in their docs. This redundancy makes it
+  easier to code Fly CLI commands.
+
+
+"""
 
 import sys, os, re, subprocess, json
 from pathlib import Path
@@ -682,8 +689,8 @@ class PlatformDeployer:
                     return
                 else:
                     # Permission to use this db denied.
-                    # Can't simply create a new db, because the name we'd use
-                    #   is already taken.
+                    # Can't simply create a new db, because the name we'd use is
+                    # already taken.
                     raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
 
         # No usable db found, create a new db.
@@ -694,22 +701,18 @@ class PlatformDeployer:
         cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
         self.sd.log_info(cmd)
-
-        # If not using automate_all, make sure it's okay to create a resource
-        #   on user's account.
-        if not self.sd.automate_all:
-            self._confirm_create_db(db_cmd=cmd)
+        self._confirm_create_db(db_cmd=cmd)
 
         # Create database.
         # Use execute_command(), to stream output of long-running process.
-        # Also, we're not logging this because I believe it contains
-        #   db credentials. May want to scrub and then log output.
+        # Also, we're not logging this because I believe it contains db credentials.
+        # May want to scrub and then log output.
         self.sd.execute_command(cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
         self.sd.write_output(msg)
 
-        self._attach_db(self.db_name)
+        self._attach_db()
 
     def _check_db_exists(self):
         """Check if a postgres db already exists that should be used with this app.
@@ -797,12 +800,32 @@ class PlatformDeployer:
             msg = flyio_msgs.cant_use_db(db_name, self.db_users)
             raise SimpleDeployCommandError(self.sd, msg)
 
-    def _attach_db(self, db_name):
+    def _confirm_create_db(self, db_cmd):
+        """Confirm the user wants a database created on their behalf.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If not confirmed.
+        """
+        # Ignore this check during testing, and when using --automate-all.
+        if self.sd.unit_testing or not self.sd.automate_all:
+            return
+
+        # Show the command that will be run on the user's behalf.
+        self.stdout.write(flyio_msgs.confirm_create_db(db_cmd))
+        if self.sd.get_confirmation():
+            self.stdout.write("  Creating database...")
+        else:
+            # Quit and invite the user to create a database manually.
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+
+    def _attach_db(self):
         """Attach the database to the app."""
-        # Run `attach` command (and confirm DATABASE_URL is set?)
         msg = "  Attaching database to Fly.io app..."
         self.sd.write_output(msg)
-        cmd = f"fly postgres attach --app {self.deployed_project_name} {db_name}"
+        cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
         self.sd.log_info(cmd)
 
         output_obj = self.sd.execute_subp_run(cmd)
@@ -811,22 +834,3 @@ class PlatformDeployer:
 
         msg = "  Attached database to app."
         self.sd.write_output(msg)
-
-    def _confirm_create_db(self, db_cmd):
-        """We really need to confirm that the user wants a db created on their behalf.
-        Show the command that will be run on the user's behalf.
-        Returns:
-        - True if confirmed.
-        - Raises CommandError if not confirmed.
-        """
-        if self.sd.unit_testing:
-            return
-
-        self.stdout.write(flyio_msgs.confirm_create_db(db_cmd))
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.stdout.write("  Creating database...")
-        else:
-            # Quit and invite the user to create a database manually.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
