@@ -717,7 +717,7 @@ class PlatformDeployer:
             it correctly.
         """
         if self._check_db_attached():
-            return self._confirm_use_attached_db(self.db_name):
+            return self._confirm_use_attached_db(self.db_name)
         else:
             return self._confirm_use_unattached_db(self.db_name)
 
