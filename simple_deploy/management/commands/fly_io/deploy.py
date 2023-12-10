@@ -88,26 +88,13 @@ class PlatformDeployer:
             return
 
         self._validate_cli()
+
+        # Make sure a Fly.io app has been created, or create one if  using
+        # --automate-all. Get the name of that app, which will be the  same as
+        # self.app_name.
         self.deployed_project_name = self._get_deployed_project_name()
 
-
-
-
-
-
-        # If using automate_all, we need to create the app before creating
-        #   the db. But if there's already an app with no deployment, we can 
-        #   use that one (maybe created from a previous automate_all run).
-        # DEV: Update _get_deployed_project_name() to not throw error if
-        #   using automate_all. _create_flyio_app() can exit if not using
-        #   automate_all(). If self.deployed_project_name is set, just return
-        #   because we'll use that project. If it's not set, call create.
-        if not self.deployed_project_name and self.sd.automate_all:
-            self.deployed_project_name = self._create_flyio_app()
-
-        # Create the db now, before any additional configuration. Get region
-        #   so we know where to create the db.
-        self.region = self._get_region()
+        # Create the db now, before any additional configuration.
         self._create_db()
 
     def prep_automate_all(self):
@@ -497,10 +484,12 @@ class PlatformDeployer:
     def _select_project_name(self, project_names):
         """Select the correct project to deploy to."""
 
-        if len(project_names) == 0:
-            # No app name found; raise error.
-            raise SimpleDeployCommandError(
-                    self.sd, flyio_msgs.no_project_name)
+        if not project_names:
+            # No app name found.
+            if self.sd.automate_all:
+                self.app_name = self._create_flyio_app()
+            else:
+                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
         elif len(project_names) == 1:
             # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
@@ -510,14 +499,20 @@ class PlatformDeployer:
             prompt = "Is this the app you want to deploy to?"
             if self.sd.get_confirmation(prompt):
                 self.app_name = project_name
+            elif self.sd.automate_all:
+                self.app_name = self._create_flyio_app()
             else:
-                raise SimpleDeployCommandError(
-                        self.sd, flyio_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
         else:
             # More than one undeployed app found. `apps list` doesn't show
-            # much specific inforamtion for undeployed apps. For exmaple we
+            # much specific information for undeployed apps. For exmaple we
             # don't know the creation date, so we can't identify the most
             # recently created app.
+
+            # Rather than a bunch of conditional logic about automate-all runs, just add
+            # "Create a new app" for automated runs. If that's chosen, create a new app.
+            if self.sd.automate_all:
+                project_names.append("Create a new app.")
 
             # Show all undeployed apps, ask user to make selection.
             prompt = "\n*** Found multiple undeployed apps on Fly.io. ***"
@@ -543,7 +538,11 @@ class PlatformDeployer:
                 confirm_prompt += " Is that correct?"
                 confirmed = self.sd.get_confirmation(confirm_prompt)
 
-            self.app_name = selected_name
+            # Create a new app for automated runs, if needed.
+            if selected_name == "Create a new app.":
+                self.app_name = self._create_flyio_app()
+            else:
+                self.app_name = selected_name
 
     def _create_flyio_app(self):
         """Create a new Fly.io app.
@@ -579,6 +578,57 @@ class PlatformDeployer:
             msg = f"  Created new app: {self.app_name}"
             self.sd.write_output(msg)
             return self.app_name
+
+    def _create_db(self):
+        """Create a remote database.
+
+        An appropriate db should not already exist. We tell people to create
+        an app, and then we take care of everything else. We create a db with
+        the name app_name-db.
+
+        We'll look for a db with that name, for example in case someone has already run
+        simple_deploy, but only gotten partway through the deployment process. If one
+        exists, we'll ask if we should use it. Otherwise, we'll just create a new db for
+        the app.
+
+        Sets:
+            str: self.db_name
+
+        Returns: 
+            None
+
+        Raises:
+            SimpleDeployCommandError: If can't create a new db, or don't get
+            permission to use existing db with matching name.
+        """
+        msg = "Looking for a Postgres database..."
+        self.sd.write_output(msg)
+
+        self.db_name = self.app_name + "-db"
+        if self._check_db_exists():
+            return self._manage_existing_db()
+
+        # No usable db found. Get region before creating the db.
+        self.region = self._get_region()
+
+        # Create a new db.
+        msg = f"  Creating a new Postgres database..."
+        self.sd.write_output(msg)
+
+        cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
+        cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
+        self.sd.log_info(cmd)
+        self._confirm_create_db(db_cmd=cmd)
+
+        # Create database. Use execute_command(), to stream output of long-running
+        # process. Also, we're not logging this because I believe it contains db
+        # credentials. May want to scrub and then log output.
+        self.sd.execute_command(cmd, skip_logging=True)
+
+        msg = "  Created Postgres database."
+        self.sd.write_output(msg)
+
+        self._attach_db()
 
     def _get_region(self):
         """Get the region that the Fly.io app is configured for. We'll need this
@@ -629,55 +679,6 @@ class PlatformDeployer:
             self.sd.write_output(msg)
 
         return region
-
-
-    def _create_db(self):
-        """Create a remote database.
-
-        An appropriate db should not already exist. We tell people to create
-        an app, and then we take care of everything else. We create a db with
-        the name app_name-db.
-
-        We'll look for a db with that name, for example in case someone has already run
-        simple_deploy, but only gotten partway through the deployment process. If one
-        exists, we'll ask if we should use it. Otherwise, we'll just create a new db for
-        the app.
-
-        Sets:
-            str: self.db_name
-
-        Returns: 
-            None
-
-        Raises:
-            SimpleDeployCommandError: If can't create a new db, or don't get
-            permission to use existing db with matching name.
-        """
-        msg = "Looking for a Postgres database..."
-        self.sd.write_output(msg)
-
-        self.db_name = self.app_name + "-db"
-        if self._check_db_exists():
-            return self._manage_existing_db()
-
-        # No usable db found, create a new db.
-        msg = f"  Creating a new Postgres database..."
-        self.sd.write_output(msg)
-
-        cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
-        cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
-        self.sd.log_info(cmd)
-        self._confirm_create_db(db_cmd=cmd)
-
-        # Create database. Use execute_command(), to stream output of long-running
-        # process. Also, we're not logging this because I believe it contains db
-        # credentials. May want to scrub and then log output.
-        self.sd.execute_command(cmd, skip_logging=True)
-
-        msg = "  Created Postgres database."
-        self.sd.write_output(msg)
-
-        self._attach_db()
 
     def _check_db_exists(self):
         """Check if a postgres db already exists that should be used with this app.
