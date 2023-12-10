@@ -128,23 +128,22 @@ class PlatformDeployer:
     def _add_dockerfile(self):
         """Add a minimal dockerfile.
 
-        Different dependency management systems need different Dockerfiles.
-        We could send an argument to the template to dynamically generate the
-          appropriate dockerfile, but that makes the template *much* harder to
-          read and reason about. It's much nicer to keep that logic in here, and
-          have a couple clean templates that read almost as easily as the final
-          dockerfiles that are generated for each dependency management system.
+        Different dependency management systems need different Dockerfiles. We could
+        send an argument to the template to dynamically generate the appropriate
+        dockerfile, but that makes the template *much* harder to read and reason about.
+        It's much nicer to keep that logic in here, and have a couple clean templates
+        that read almost as easily as the final dockerfiles that are generated for each
+        dependency management system.
 
         Returns:
-        - path to Dockerfile that was gnerated.
-        - None, if an existing Dockerfile was found.
+            None
         """
 
-        # File should be in project root, if present.
+        # Existing dockerfile should be in project root, if present.
         self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Dockerfile...")
-        dockerfile_present = 'Dockerfile' in os.listdir(self.sd.git_path)
 
-        if dockerfile_present:
+        path = self.sd.project_root / "Dockerfile"
+        if path.exists():
             self.sd.write_output("    Found existing Dockerfile.")
         else:
             # Generate file from template.
@@ -154,7 +153,6 @@ class PlatformDeployer:
                 'django_project_name': self.sd.project_name,
                 }
 
-            path = self.sd.project_root / 'Dockerfile'
             if self.sd.pkg_manager == "poetry":
                 dockerfile_template = "dockerfile_poetry"
             elif self.sd.pkg_manager == "pipenv":
@@ -165,8 +163,6 @@ class PlatformDeployer:
 
             msg = f"\n    Generated Dockerfile: {path}"
             self.sd.write_output(msg)
-            return path
-
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
