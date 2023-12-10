@@ -425,6 +425,8 @@ class PlatformDeployer:
         and target platforms. Also note that database apps can't be easily
         distinguished from other apps.
 
+        During automated runs, creates a new Fly app if there isn't one we can use.
+
         User interactions:
         - If one app found, prompts user to confirm correct app.
         - If multiple apps found, prompts user to select correct one.
@@ -439,10 +441,6 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If deployed project name can't be found.
         """
-        if self.sd.automate_all:
-            # Return an empty string. We'll create an app name later.
-            return ""
-
         msg = "\nLooking for Fly.io app to deploy against..."
         self.sd.write_output(msg)
 
@@ -631,17 +629,17 @@ class PlatformDeployer:
         self._attach_db()
 
     def _get_region(self):
-        """Get the region that the Fly.io app is configured for. We'll need this
-        to create a postgres database.
+        """Get the region nearest to the user.
 
         Notes:
         - V1 `fly apps create` automatically configured a region for the app.
-        - In V2, an app doesn't seem to have a region until it's deployed.
+        - In V2, an app doesn't have a region; it's really a container for machines,
+          which do have regions.
         - We need a region to create a db.
         - `fly postgres create` only prompts for a region, there's no -q or -y.
         - `fly postgres create` does highlight nearest region.
         - `fly platform regions` lists available regions, but doesn't identify nearest.
-        - So, for now:
+        - Possible approach:
           - Default to sea just so deployments work for now. They'll be slow for people
             far from sea.
           - Full fix: Parse `fly platform regions`, present list, ask user to select
@@ -655,7 +653,7 @@ class PlatformDeployer:
         - Return 'sea' if this doesn't work.
 
         Returns:
-        - String representing region.
+            str: Region with lowest latency for user.
         """
 
         msg = "Looking for Fly.io region..."
