@@ -113,34 +113,7 @@ class PlatformDeployer:
         """
         msg = "Setting ON_FLYIO secret..."
         self.sd.write_output(msg)
-
-        # Skip when unit testing.
-        if self.sd.unit_testing:
-            msg = "  Skipping for unit testing."
-            self.sd.write_output(msg)
-            return
-
-        # First check if secret has already been set.
-        #   Don't log output of `fly secrets list`!
-        cmd = f"fly secrets list -a {self.deployed_project_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-
-        if 'ON_FLYIO' in output_str:
-            msg = "  Found ON_FLYIO in existing secrets."
-            self.sd.write_output(msg)
-            return
-
-        cmd = f"fly secrets set -a {self.deployed_project_name} ON_FLYIO=1"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-        self.sd.write_output(output_str)
-
-        msg = "  Set ON_FLYIO secret."
-        self.sd.write_output(msg)
-
+        self._set_secret("ON_FLYIO", "ON_FLYIO=1")
 
     def _set_debug(self):
         """Set a secret, DEBUG=FALSE. This is used in settings.py to apply
@@ -150,34 +123,7 @@ class PlatformDeployer:
         """
         msg = "Setting DEBUG secret..."
         self.sd.write_output(msg)
-
-        # Skip when unit testing.
-        if self.sd.unit_testing:
-            msg = "  Skipping for unit testing."
-            self.sd.write_output(msg)
-            return
-
-        # First check if secret has already been set.
-        #   Don't log output of `fly secrets list`!
-        cmd = f"fly secrets list -a {self.deployed_project_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-
-        if 'DEBUG' in output_str:
-            msg = "  Found DEBUG in existing secrets."
-            self.sd.write_output(msg)
-            return
-
-        cmd = f"fly secrets set -a {self.deployed_project_name} DEBUG=FALSE"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-        self.sd.write_output(output_str)
-
-        msg = "  Set DEBUG=FALSE secret."
-        self.sd.write_output(msg)
-
+        self._set_secret("DEBUG", "DEBUG=FALSE")
 
     def _add_dockerfile(self):
         """Add a minimal dockerfile.
@@ -380,6 +326,34 @@ class PlatformDeployer:
         else:
             msg = flyio_msgs.success_msg(log_output=self.sd.log_output)
             self.sd.write_output(msg)
+
+    def _set_secret(self, needle, secret):
+        """Set a secret on Fly, if it's not already set."""
+        if self.sd.unit_testing:
+            msg = "  Skipping for unit testing."
+            self.sd.write_output(msg)
+            return
+
+        # First check if secret has already been set.
+        #   Don't log output of `fly secrets list`!
+        cmd = f"fly secrets list -a {self.deployed_project_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+
+        if needle in output_str:
+            msg = f"  Found {needle} in existing secrets."
+            self.sd.write_output(msg)
+            return
+
+        cmd = f"fly secrets set -a {self.deployed_project_name} {secret}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.write_output(output_str)
+
+        msg = f"  Set secret: {secret}"
+        self.sd.write_output(msg)
 
 
     # --- Helper methods for validate_platform() ---
