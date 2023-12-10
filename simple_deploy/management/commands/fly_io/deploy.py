@@ -398,25 +398,29 @@ class PlatformDeployer:
     # --- Helper methods for validate_platform() ---
 
     def _validate_cli(self):
-        """Make sure the Fly.io CLI is installed, and user is logged in."""
+        """Make sure the Fly.io CLI is installed, and user is authenticated."""
         cmd = 'fly version'
         self.sd.log_info(cmd)
         
-        # This generates a FileNotFoundError on Ubuntu.
+        # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
             output_obj = self.sd.execute_subp_run(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
         
         self.sd.log_info(output_obj)
+
+        # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
             
-        # Check that user is logged in.
+        # Check that user is authenticated.
         cmd = "fly auth whoami --json"
         self.sd.log_info(cmd)
         output_obj = self.sd.execute_subp_run(cmd)
-        if "Error: No access token available. Please login with 'flyctl auth login'" in output_obj.stderr.decode():
+
+        error_msg = "Error: No access token available."
+        if error_msg in output_obj.stderr.decode():
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_logged_out)
         
         # Show current authenticated fly user.
@@ -424,7 +428,6 @@ class PlatformDeployer:
         user_email = whoami_json["email"]
         msg = f"  Logged in to Fly.io CLI as: {user_email}"
         self.sd.write_output(msg)
-        
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
