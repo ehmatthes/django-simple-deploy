@@ -145,24 +145,25 @@ class PlatformDeployer:
         path = self.sd.project_root / "Dockerfile"
         if path.exists():
             self.sd.write_output("    Found existing Dockerfile.")
+            return
+
+        # No Dockerfile exists. Generate new file from template.
+        self.sd.write_output("    No Dockerfile found. Generating file...")
+
+        context = {
+            'django_project_name': self.sd.project_name,
+            }
+
+        if self.sd.pkg_manager == "poetry":
+            dockerfile_template = "dockerfile_poetry"
+        elif self.sd.pkg_manager == "pipenv":
+            dockerfile_template = 'dockerfile_pipenv'
         else:
-            # Generate file from template.
-            self.sd.write_output("    No Dockerfile found. Generating file...")
+            dockerfile_template = 'dockerfile'
+        sd_utils.write_file_from_template(path, dockerfile_template, context)
 
-            context = {
-                'django_project_name': self.sd.project_name,
-                }
-
-            if self.sd.pkg_manager == "poetry":
-                dockerfile_template = "dockerfile_poetry"
-            elif self.sd.pkg_manager == "pipenv":
-                dockerfile_template = 'dockerfile_pipenv'
-            else:
-                dockerfile_template = 'dockerfile'
-            sd_utils.write_file_from_template(path, dockerfile_template, context)
-
-            msg = f"\n    Generated Dockerfile: {path}"
-            self.sd.write_output(msg)
+        msg = f"\n    Generated Dockerfile: {path}"
+        self.sd.write_output(msg)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
