@@ -99,7 +99,7 @@ class PlatformDeployer:
 
     def prep_automate_all(self):
         """Take any further actions needed if using automate_all."""
-        # All creation has been taken care of earlier, during validation.
+        # All necessary resources have been created earlier, during validation.
         pass
 
 
@@ -510,7 +510,7 @@ class PlatformDeployer:
             # Rather than a bunch of conditional logic about automate-all runs, just add
             # "Create a new app" for automated runs. If that's chosen, create a new app.
             if self.sd.automate_all:
-                project_names.append("Create a new app.")
+                project_names.append("Create a new app")
 
             # Show all undeployed apps, ask user to make selection.
             prompt = "\n*** Found multiple undeployed apps on Fly.io. ***"
@@ -537,7 +537,7 @@ class PlatformDeployer:
                 confirmed = self.sd.get_confirmation(confirm_prompt)
 
             # Create a new app for automated runs, if needed.
-            if selected_name == "Create a new app.":
+            if selected_name == "Create a new app":
                 self.app_name = self._create_flyio_app()
             else:
                 self.app_name = selected_name
@@ -833,7 +833,7 @@ class PlatformDeployer:
             SimpleDeployCommandError: If not confirmed.
         """
         # Ignore this check during testing, and when using --automate-all.
-        if self.sd.unit_testing or not self.sd.automate_all:
+        if self.sd.unit_testing or self.sd.automate_all:
             return
 
         # Show the command that will be run on the user's behalf.
