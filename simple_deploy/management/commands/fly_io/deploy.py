@@ -491,7 +491,7 @@ class PlatformDeployer:
         elif len(project_names) == 1:
             # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
-            msg = f"\n*** Found one app on Fly.io: {project_name} ***"
+            msg = f"\n*** Found one undeployed app on Fly.io: {project_name} ***"
             self.sd.write_output(msg)
 
             prompt = "Is this the app you want to deploy to?"
