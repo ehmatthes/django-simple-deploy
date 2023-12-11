@@ -196,32 +196,26 @@ class PlatformDeployer:
             self.sd.write_output(msg)
 
     def _modify_settings(self):
-        """Add settings specific to Fly.io."""
-        #   Check if a fly.io section is present. If not, add settings. If already present,
-        #   do nothing.
-        self.sd.write_output("\n  Checking if settings block for Fly.io present in settings.py...")
+        """Add settings specific to Fly.io, if not already present."""
+        self.sd.write_output("\n  Checking for Fly.io-specific settings...")
 
-        with open(self.sd.settings_path) as f:
-            settings_string = f.read()
-
+        settings_string = self.sd.settings_path.read_text()
         if 'if os.environ.get("ON_FLYIO"):' in settings_string:
             self.sd.write_output("\n    Found Fly.io settings block in settings.py.")
             return
 
-        # Add Fly.io settings block.
-        self.sd.write_output("    No Fly.io settings found in settings.py; adding settings...")
+        # No Fly-specific settings found; add Fly.io settings block.
+        self.sd.write_output("    No Fly.io settings found; adding settings...")
 
         safe_settings_string = mark_safe(settings_string)
         context = {
             'current_settings': safe_settings_string,
             'deployed_project_name': self.deployed_project_name,
         }
-        path = Path(self.sd.settings_path)
-        sd_utils.write_file_from_template(path, 'settings.py', context)
+        sd_utils.write_file_from_template(self.sd.settings_path, 'settings.py', context)
 
-        msg = f"    Modified settings.py file: {path}"
+        msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
-
 
     def _add_requirements(self):
         """Add requirements for serving on Fly.io."""

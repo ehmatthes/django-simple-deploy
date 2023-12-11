@@ -333,7 +333,7 @@ class Command(BaseCommand):
         if self.log_output:
             self._ignore_sd_logs()
 
-        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
+        self.settings_path = self.project_root/ self.project_name / "settings.py"
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
