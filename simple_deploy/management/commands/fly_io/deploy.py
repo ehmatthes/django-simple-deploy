@@ -44,7 +44,7 @@ class PlatformDeployer:
         self._set_debug()
         self._add_dockerfile()
         self._add_dockerignore()
-        self._add_flytoml_file()
+        self._add_flytoml()
         self._modify_settings()
         self._add_requirements()
 
@@ -108,8 +108,6 @@ class PlatformDeployer:
     def _set_on_flyio(self):
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
         deployment-specific settings.
-        Returns:
-        - None
         """
         msg = "Setting ON_FLYIO secret..."
         self.sd.write_output(msg)
@@ -118,8 +116,6 @@ class PlatformDeployer:
     def _set_debug(self):
         """Set a secret, DEBUG=FALSE. This is used in settings.py to apply
         deployment-specific settings.
-        Returns:
-        - None
         """
         msg = "Setting DEBUG secret..."
         self.sd.write_output(msg)
@@ -134,9 +130,6 @@ class PlatformDeployer:
         It's much nicer to keep that logic in here, and have a couple clean templates
         that read almost as easily as the final dockerfiles that are generated for each
         dependency management system.
-
-        Returns:
-            None
         """
 
         # Existing dockerfile should be in project root, if present.
@@ -170,9 +163,6 @@ class PlatformDeployer:
         Ignore virtual environment dir, system-specific cruft, and IDE cruft.
 
         If an existing dockerignore is found, make note of that but don't overwrite.
-
-        Returns:
-            None
         """
         # Check for existing dockerignore file; we're only looking in project root.
         #   If we find one, don't make any changes.
@@ -186,13 +176,13 @@ class PlatformDeployer:
             msg = "  Wrote .dockerignore file."
             self.sd.write_output(msg)
 
-    def _add_flytoml_file(self):
+    def _add_flytoml(self):
         """Add a minimal fly.toml file."""
         # File should be in project root, if present.
         self.sd.write_output(f"\n  Looking in {self.sd.git_path} for fly.toml file...")
-        flytoml_present = 'fly.toml' in os.listdir(self.sd.git_path)
 
-        if flytoml_present:
+        path = self.sd.project_root / 'fly.toml'
+        if path.exists():
             self.sd.write_output("    Found existing fly.toml file.")
         else:
             # Generate file from template.
@@ -200,13 +190,10 @@ class PlatformDeployer:
                 'deployed_project_name': self.deployed_project_name,
                 'using_pipenv': (self.sd.pkg_manager == "pipenv"),
                 }
-            path = self.sd.project_root / 'fly.toml'
             sd_utils.write_file_from_template(path, 'fly.toml', context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
-            return path
-
 
     def _modify_settings(self):
         """Add settings specific to Fly.io."""
