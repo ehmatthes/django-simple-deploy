@@ -172,51 +172,19 @@ class PlatformDeployer:
         If an existing dockerignore is found, make note of that but don't overwrite.
 
         Returns:
-        - True if added dockerignore.
-        - False if dockerignore found unnecessary, or if an existing dockerfile
-          was found.
+            None
         """
-
         # Check for existing dockerignore file; we're only looking in project root.
         #   If we find one, don't make any changes.
         path = Path('.dockerignore')
         if path.exists():
             msg = "  Found existing .dockerignore file. Not overwriting this file."
             self.sd.write_output(msg)
-            return
-
-        # Build dockerignore string.
-        dockerignore_str = ""
-
-        # Ignore git repository.
-        dockerignore_str += ".git/\n"
-
-        # Ignore venv dir if a venv is active.
-        if self.sd.unit_testing:
-            venv_dir = 'b_env'
         else:
-            venv_dir = os.environ.get("VIRTUAL_ENV")
-            
-        if venv_dir:
-            venv_path = Path(venv_dir)
-            dockerignore_str += f"\n{venv_path.name}/\n"
-
-
-        # Add python cruft.
-        dockerignore_str += "\n__pycache__/\n*.pyc\n"
-
-        # Ignore any SQLite databases.
-        dockerignore_str += "\n*.sqlite3\n"
-
-        # If on macOS, add .DS_Store.
-        if self.sd.on_macos:
-            dockerignore_str += "\n.DS_Store\n"
-
-        # Write file.
-        path.write_text(dockerignore_str, encoding='utf-8')
-        msg = "  Wrote .dockerignore file."
-        self.sd.write_output(msg)
-
+            dockerignore_str = self._build_dockerignore()
+            path.write_text(dockerignore_str, encoding='utf-8')
+            msg = "  Wrote .dockerignore file."
+            self.sd.write_output(msg)
 
     def _add_flytoml_file(self):
         """Add a minimal fly.toml file."""
@@ -351,6 +319,33 @@ class PlatformDeployer:
 
         msg = f"  Set secret: {secret}"
         self.sd.write_output(msg)
+
+    def _build_dockerignore(self):
+        """Build the contents of the dockerignore file."""
+
+        # Start with git repository.
+        dockerignore_str = ".git/\n"
+
+        # Ignore venv dir if a venv is active.
+        if self.sd.unit_testing:
+            # Unit tests build a venv dir, but use the direct path to the venv. They
+            # don't run in an active venv.
+            venv_dir = 'b_env'
+        else:
+            venv_dir = os.environ.get("VIRTUAL_ENV")
+            
+        if venv_dir:
+            venv_path = Path(venv_dir)
+            dockerignore_str += f"\n{venv_path.name}/\n"
+
+        # Ignore Python stuff, SQLite db.
+        dockerignore_str += "\n__pycache__/\n*.pyc\n\n*.sqlite3\n"
+
+        # If on macOS, ignore .DS_Store.
+        if self.sd.on_macos:
+            dockerignore_str += "\n.DS_Store\n"
+
+        return dockerignore_str
 
 
     # --- Helper methods for validate_platform() ---
