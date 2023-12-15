@@ -218,13 +218,13 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
     def _add_requirements(self):
-        """Add requirements for serving on Fly.io."""
+        """Add requirements for deploying to Fly.io."""
         requirements = ["gunicorn", "psycopg2-binary", "dj-database-url", "whitenoise"]
         self.sd.add_packages(requirements)
 
-
     def _conclude_automate_all(self):
         """Finish automating the push to Fly.io.
+
         - Commit all changes.
         - Call `fly deploy`.
         - Call `fly apps open`, and grab URL.
@@ -235,8 +235,8 @@ class PlatformDeployer:
 
         self.sd.commit_changes()
 
-        # Push project.
-        # Use execute_command() to stream output of this long-running command.
+        # Push project. Use execute_command() to stream output, otherwise it appears to
+        # hang.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
         self.sd.log_info(cmd)
@@ -245,11 +245,11 @@ class PlatformDeployer:
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
-        output = self.sd.execute_subp_run(cmd)
         self.sd.log_info(cmd)
+        output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 
-        # Get url of deployed project.
+        # Get URL of deployed project.
         url_re = r'(opening )(http.*?)( \.\.\.)'
         output_str = output.stdout.decode()
         m = re.search(url_re, output_str)
