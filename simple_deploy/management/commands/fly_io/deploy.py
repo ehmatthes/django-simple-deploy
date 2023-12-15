@@ -33,7 +33,6 @@ class PlatformDeployer:
         self.sd = command
         self.stdout = self.sd.stdout
 
-
     # --- Public methods ---
 
     def deploy(self, *args, **options):
@@ -102,7 +101,6 @@ class PlatformDeployer:
         # All necessary resources have been created earlier, during validation.
         pass
 
-
     # --- Helper methods for deploy() ---
 
     def _set_on_flyio(self):
@@ -144,15 +142,15 @@ class PlatformDeployer:
         self.sd.write_output("    No Dockerfile found. Generating file...")
 
         context = {
-            'django_project_name': self.sd.project_name,
-            }
+            "django_project_name": self.sd.project_name,
+        }
 
         if self.sd.pkg_manager == "poetry":
             dockerfile_template = "dockerfile_poetry"
         elif self.sd.pkg_manager == "pipenv":
-            dockerfile_template = 'dockerfile_pipenv'
+            dockerfile_template = "dockerfile_pipenv"
         else:
-            dockerfile_template = 'dockerfile'
+            dockerfile_template = "dockerfile"
         sd_utils.write_file_from_template(path, dockerfile_template, context)
 
         msg = f"\n    Generated Dockerfile: {path}"
@@ -166,13 +164,13 @@ class PlatformDeployer:
         """
         # Check for existing dockerignore file; we're only looking in project root.
         #   If we find one, don't make any changes.
-        path = Path('.dockerignore')
+        path = Path(".dockerignore")
         if path.exists():
             msg = "  Found existing .dockerignore file. Not overwriting this file."
             self.sd.write_output(msg)
         else:
             dockerignore_str = self._build_dockerignore()
-            path.write_text(dockerignore_str, encoding='utf-8')
+            path.write_text(dockerignore_str, encoding="utf-8")
             msg = "  Wrote .dockerignore file."
             self.sd.write_output(msg)
 
@@ -181,16 +179,16 @@ class PlatformDeployer:
         # File should be in project root, if present.
         self.sd.write_output(f"\n  Looking in {self.sd.git_path} for fly.toml file...")
 
-        path = self.sd.project_root / 'fly.toml'
+        path = self.sd.project_root / "fly.toml"
         if path.exists():
             self.sd.write_output("    Found existing fly.toml file.")
         else:
             # Generate file from template.
             context = {
-                'deployed_project_name': self.deployed_project_name,
-                'using_pipenv': (self.sd.pkg_manager == "pipenv"),
-                }
-            sd_utils.write_file_from_template(path, 'fly.toml', context)
+                "deployed_project_name": self.deployed_project_name,
+                "using_pipenv": (self.sd.pkg_manager == "pipenv"),
+            }
+            sd_utils.write_file_from_template(path, "fly.toml", context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
@@ -209,10 +207,10 @@ class PlatformDeployer:
 
         safe_settings_string = mark_safe(settings_string)
         context = {
-            'current_settings': safe_settings_string,
-            'deployed_project_name': self.deployed_project_name,
+            "current_settings": safe_settings_string,
+            "deployed_project_name": self.deployed_project_name,
         }
-        sd_utils.write_file_from_template(self.sd.settings_path, 'settings.py', context)
+        sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
@@ -250,7 +248,7 @@ class PlatformDeployer:
         self.sd.write_output(output)
 
         # Get URL of deployed project.
-        url_re = r'(opening )(http.*?)( \.\.\.)'
+        url_re = r"(opening )(http.*?)( \.\.\.)"
         output_str = output.stdout.decode()
         m = re.search(url_re, output_str)
         if m:
@@ -305,10 +303,10 @@ class PlatformDeployer:
         if self.sd.unit_testing:
             # Unit tests build a venv dir, but use the direct path to the venv. They
             # don't run in an active venv.
-            venv_dir = 'b_env'
+            venv_dir = "b_env"
         else:
             venv_dir = os.environ.get("VIRTUAL_ENV")
-            
+
         if venv_dir:
             venv_path = Path(venv_dir)
             dockerignore_str += f"\n{venv_path.name}/\n"
@@ -322,26 +320,25 @@ class PlatformDeployer:
 
         return dockerignore_str
 
-
     # --- Helper methods for validate_platform() ---
 
     def _validate_cli(self):
         """Make sure the Fly.io CLI is installed, and user is authenticated."""
-        cmd = 'fly version'
+        cmd = "fly version"
         self.sd.log_info(cmd)
-        
+
         # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
             output_obj = self.sd.execute_subp_run(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
-        
+
         self.sd.log_info(output_obj)
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
-            
+
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
         self.sd.log_info(cmd)
@@ -350,7 +347,7 @@ class PlatformDeployer:
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_logged_out)
-        
+
         # Show current authenticated fly user.
         whoami_json = json.loads(output_obj.stdout.decode())
         user_email = whoami_json["email"]
@@ -406,16 +403,14 @@ class PlatformDeployer:
     def _get_undeployed_projects(self, output_json):
         """Identify fly apps that have not yet been deployed to."""
         candidate_apps = [
-            app_dict
-            for app_dict in output_json
-            if not app_dict["Deployed"]
+            app_dict for app_dict in output_json if not app_dict["Deployed"]
         ]
 
         # Remove all apps with 'builder' in name.
         project_names = [
             apps_dict["Name"]
             for apps_dict in candidate_apps
-            if 'builder' not in apps_dict["Name"]
+            if "builder" not in apps_dict["Name"]
         ]
 
         return project_names
@@ -466,10 +461,7 @@ class PlatformDeployer:
             confirmed = False
             while not confirmed:
                 selection = sd_utils.get_numbered_choice(
-                    self.sd,
-                    prompt,
-                    valid_choices,
-                    flyio_msgs.no_project_name
+                    self.sd, prompt, valid_choices, flyio_msgs.no_project_name
                 )
                 selected_name = project_names[selection]
 
@@ -533,7 +525,7 @@ class PlatformDeployer:
         Sets:
             str: self.db_name
 
-        Returns: 
+        Returns:
             None
 
         Raises:
@@ -604,7 +596,7 @@ class PlatformDeployer:
         url = "https://liveview-counter.fly.dev/"
         r = requests.get(url)
 
-        re_region = r'Connected to ([a-z]{3})'
+        re_region = r"Connected to ([a-z]{3})"
         m = re.search(re_region, r.text)
         if m:
             region = m.group(1)
@@ -612,7 +604,7 @@ class PlatformDeployer:
             msg = f"  Found lowest latency region: {region}"
             self.sd.write_output(msg)
         else:
-            region = 'sea'
+            region = "sea"
 
             msg = f"  Couldn't find lowest latency region, using 'sea'."
             self.sd.write_output(msg)
@@ -637,10 +629,7 @@ class PlatformDeployer:
             return False
 
         # There are some Postgres dbs. Get their names.
-        pg_names = [
-            pg_dict["Name"]
-            for pg_dict in json.loads(output_str)
-        ]
+        pg_names = [pg_dict["Name"] for pg_dict in json.loads(output_str)]
 
         # See if any of these names match this app.
         if self.db_name in pg_names:
@@ -682,7 +671,7 @@ class PlatformDeployer:
 
         Raises:
             SimpleDeployCommandError: If this db has users in addtion to the default db
-            users and a user corresponding to this app, we raise an error. 
+            users and a user corresponding to this app, we raise an error.
         """
         # Get users of this db.
         #   `fly postgres users list` does not accept `--json` flag. :/
@@ -695,12 +684,12 @@ class PlatformDeployer:
         # Strip extra whitespace, split into lines, remove header. Split each line on
         # tabs, and strip the first element.
         lines = output_str.strip().split("\n")[1:]
-        self.db_users = [line.split('\t')[0].strip() for line in lines]
+        self.db_users = [line.split("\t")[0].strip() for line in lines]
 
         self.sd.log_info(f"DB users: {self.db_users}")
 
-        default_users = {'flypgadmin', 'postgres', 'repmgr'}
-        app_user = self.app_name.replace('-', '_')
+        default_users = {"flypgadmin", "postgres", "repmgr"}
+        app_user = self.app_name.replace("-", "_")
         if set(self.db_users) == default_users:
             # This db only has the default users set when a fresh db is made.
             #   Assume it's unattached.
