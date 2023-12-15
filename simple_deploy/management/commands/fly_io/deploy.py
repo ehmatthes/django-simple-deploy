@@ -1,28 +1,31 @@
-"""Manages all Fly.io-specific aspects of the deployment process."""
+"""Manages all Fly.io-specific aspects of the deployment process.
 
-# Note: Internal references to Fly.io will almost always be flyio.
-#   Public references, such as the --platform argument, will be fly_io.
+Notes:
+- Internal references to Fly.io will almost always be flyio. Public references, such as
+  the --platform argument, will be fly_io.
+- self.deployed_project_name and self.app_name are identical. The first is used in the
+  simple_deploy CLI, but Fly refers to "apps" in their docs. This redundancy makes it
+  easier to code Fly CLI commands.
+"""
 
-import sys, os, re, subprocess, json
+import sys, os, re, json
 from pathlib import Path
 
-from django.conf import settings
-from django.core.management.base import CommandError
-from django.core.management.utils import get_random_secret_key
-from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 import requests
 
-from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
-
-from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
+from simple_deploy.management.commands.utils import SimpleDeployCommandError
+import simple_deploy.management.commands.utils as sd_utils
 
 
 class PlatformDeployer:
-    """Perform the initial deployment of a simple project.
-    Configure as much as possible automatically.
+    """Perform the initial deployment to Fly.io
+
+    If --automate-all is used, carry out an actual deployment.
+    If not, do all configuration work so the user only has to commit changes, and call
+    `fly deploy`.
     """
 
     def __init__(self, command):
@@ -30,16 +33,17 @@ class PlatformDeployer:
         self.sd = command
         self.stdout = self.sd.stdout
 
+    # --- Public methods ---
 
     def deploy(self, *args, **options):
+        """Coordinate the overall configuration and deployment."""
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
         self._set_on_flyio()
         self._set_debug()
-
         self._add_dockerfile()
         self._add_dockerignore()
-        self._add_flytoml_file()
+        self._add_flytoml()
         self._modify_settings()
         self._add_requirements()
 
@@ -47,235 +51,178 @@ class PlatformDeployer:
 
         self._show_success_message()
 
+    def confirm_preliminary(self):
+        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
+
+        if self.sd.unit_testing:
+            return
+
+        self.sd.write_output(flyio_msgs.confirm_preliminary)
+        if self.sd.get_confirmation():
+            self.sd.write_output("  Continuing with Fly.io deployment...")
+        else:
+            # Quit and invite the user to try another platform. We are happily exiting
+            # the script; there's no need to raise an error.
+            self.sd.write_output(flyio_msgs.cancel_flyio)
+            sys.exit()
+
+    def validate_platform(self):
+        """Make sure the local environment and project supports deployment to Fly.io.
+
+        Make sure CLI is installed, and user is authenticated. Make sure necessary
+        resources have been created and identified, and that we have the user's
+        permission to use those resources.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If we find any reason deployment to this platform
+            won't succeed.
+        """
+        if self.sd.unit_testing:
+            # Unit tests don't use the platform's CLI. Use the deployed project name
+            # that was passed to the simple_deploy CLI.
+            self.deployed_project_name = self.sd.deployed_project_name
+            return
+
+        self._validate_cli()
+
+        # Make sure a Fly.io app has been created, or create one if  using
+        # --automate-all. Get the name of that app, which will be the  same as
+        # self.app_name.
+        self.deployed_project_name = self._get_deployed_project_name()
+
+        # Create the db now, before any additional configuration.
+        self._create_db()
+
+    def prep_automate_all(self):
+        """Take any further actions needed if using automate_all."""
+        # All necessary resources have been created earlier, during validation.
+        pass
+
+    # --- Helper methods for deploy() ---
 
     def _set_on_flyio(self):
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
         deployment-specific settings.
-        Returns:
-        - None
         """
         msg = "Setting ON_FLYIO secret..."
         self.sd.write_output(msg)
-
-        # Skip when unit testing.
-        if self.sd.unit_testing:
-            msg = "  Skipping for unit testing."
-            self.sd.write_output(msg)
-            return
-
-        # First check if secret has already been set.
-        #   Don't log output of `fly secrets list`!
-        cmd = f"fly secrets list -a {self.deployed_project_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-
-        if 'ON_FLYIO' in output_str:
-            msg = "  Found ON_FLYIO in existing secrets."
-            self.sd.write_output(msg)
-            return
-
-        cmd = f"fly secrets set -a {self.deployed_project_name} ON_FLYIO=1"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-        self.sd.write_output(output_str)
-
-        msg = "  Set ON_FLYIO secret."
-        self.sd.write_output(msg)
-
+        self._set_secret("ON_FLYIO", "ON_FLYIO=1")
 
     def _set_debug(self):
         """Set a secret, DEBUG=FALSE. This is used in settings.py to apply
         deployment-specific settings.
-        Returns:
-        - None
         """
         msg = "Setting DEBUG secret..."
         self.sd.write_output(msg)
-
-        # Skip when unit testing.
-        if self.sd.unit_testing:
-            msg = "  Skipping for unit testing."
-            self.sd.write_output(msg)
-            return
-
-        # First check if secret has already been set.
-        #   Don't log output of `fly secrets list`!
-        cmd = f"fly secrets list -a {self.deployed_project_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-
-        if 'DEBUG' in output_str:
-            msg = "  Found DEBUG in existing secrets."
-            self.sd.write_output(msg)
-            return
-
-        cmd = f"fly secrets set -a {self.deployed_project_name} DEBUG=FALSE"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-        self.sd.write_output(output_str)
-
-        msg = "  Set DEBUG=FALSE secret."
-        self.sd.write_output(msg)
-
+        self._set_secret("DEBUG", "DEBUG=FALSE")
 
     def _add_dockerfile(self):
         """Add a minimal dockerfile.
 
-        Different dependency management systems need different Dockerfiles.
-        We could send an argument to the template to dynamically generate the
-          appropriate dockerfile, but that makes the template *much* harder to
-          read and reason about. It's much nicer to keep that logic in here, and
-          have a couple clean templates that read almost as easily as the final
-          dockerfiles that are generated for each dependency management system.
-
-        Returns:
-        - path to Dockerfile that was gnerated.
-        - None, if an existing Dockerfile was found.
+        Different dependency management systems need different Dockerfiles. We could
+        send an argument to the template to dynamically generate the appropriate
+        dockerfile, but that makes the template *much* harder to read and reason about.
+        It's much nicer to keep that logic in here, and have a couple clean templates
+        that read almost as easily as the final dockerfiles that are generated for each
+        dependency management system.
         """
 
-        # File should be in project root, if present.
+        # Existing dockerfile should be in project root, if present.
         self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Dockerfile...")
-        dockerfile_present = 'Dockerfile' in os.listdir(self.sd.git_path)
 
-        if dockerfile_present:
+        path = self.sd.project_root / "Dockerfile"
+        if path.exists():
             self.sd.write_output("    Found existing Dockerfile.")
+            return
+
+        # No Dockerfile exists. Generate new file from template.
+        self.sd.write_output("    No Dockerfile found. Generating file...")
+
+        context = {
+            "django_project_name": self.sd.project_name,
+        }
+
+        if self.sd.pkg_manager == "poetry":
+            dockerfile_template = "dockerfile_poetry"
+        elif self.sd.pkg_manager == "pipenv":
+            dockerfile_template = "dockerfile_pipenv"
         else:
-            # Generate file from template.
-            self.sd.write_output("    No Dockerfile found. Generating file...")
+            dockerfile_template = "dockerfile"
+        sd_utils.write_file_from_template(path, dockerfile_template, context)
 
-            context = {
-                'django_project_name': self.sd.project_name,
-                }
-
-            path = self.sd.project_root / 'Dockerfile'
-            if self.sd.pkg_manager == "poetry":
-                dockerfile_template = "dockerfile_poetry"
-            elif self.sd.pkg_manager == "pipenv":
-                dockerfile_template = 'dockerfile_pipenv'
-            else:
-                dockerfile_template = 'dockerfile'
-            write_file_from_template(path, dockerfile_template, context)
-
-            msg = f"\n    Generated Dockerfile: {path}"
-            self.sd.write_output(msg)
-            return path
-
+        msg = f"\n    Generated Dockerfile: {path}"
+        self.sd.write_output(msg)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
         Ignore virtual environment dir, system-specific cruft, and IDE cruft.
 
         If an existing dockerignore is found, make note of that but don't overwrite.
-
-        Returns:
-        - True if added dockerignore.
-        - False if dockerignore found unnecessary, or if an existing dockerfile
-          was found.
         """
-
         # Check for existing dockerignore file; we're only looking in project root.
         #   If we find one, don't make any changes.
-        path = Path('.dockerignore')
+        path = Path(".dockerignore")
         if path.exists():
             msg = "  Found existing .dockerignore file. Not overwriting this file."
             self.sd.write_output(msg)
-            return
-
-        # Build dockerignore string.
-        dockerignore_str = ""
-
-        # Ignore git repository.
-        dockerignore_str += ".git/\n"
-
-        # Ignore venv dir if a venv is active.
-        if self.sd.unit_testing:
-            venv_dir = 'b_env'
         else:
-            venv_dir = os.environ.get("VIRTUAL_ENV")
-            
-        if venv_dir:
-            venv_path = Path(venv_dir)
-            dockerignore_str += f"\n{venv_path.name}/\n"
+            dockerignore_str = self._build_dockerignore()
+            path.write_text(dockerignore_str, encoding="utf-8")
+            msg = "  Wrote .dockerignore file."
+            self.sd.write_output(msg)
 
-
-        # Add python cruft.
-        dockerignore_str += "\n__pycache__/\n*.pyc\n"
-
-        # Ignore any SQLite databases.
-        dockerignore_str += "\n*.sqlite3\n"
-
-        # If on macOS, add .DS_Store.
-        if self.sd.on_macos:
-            dockerignore_str += "\n.DS_Store\n"
-
-        # Write file.
-        path.write_text(dockerignore_str, encoding='utf-8')
-        msg = "  Wrote .dockerignore file."
-        self.sd.write_output(msg)
-
-
-    def _add_flytoml_file(self):
+    def _add_flytoml(self):
         """Add a minimal fly.toml file."""
         # File should be in project root, if present.
         self.sd.write_output(f"\n  Looking in {self.sd.git_path} for fly.toml file...")
-        flytoml_present = 'fly.toml' in os.listdir(self.sd.git_path)
 
-        if flytoml_present:
+        path = self.sd.project_root / "fly.toml"
+        if path.exists():
             self.sd.write_output("    Found existing fly.toml file.")
         else:
             # Generate file from template.
             context = {
-                'deployed_project_name': self.deployed_project_name,
-                'using_pipenv': (self.sd.pkg_manager == "pipenv"),
-                }
-            path = self.sd.project_root / 'fly.toml'
-            write_file_from_template(path, 'fly.toml', context)
+                "deployed_project_name": self.deployed_project_name,
+                "using_pipenv": (self.sd.pkg_manager == "pipenv"),
+            }
+            sd_utils.write_file_from_template(path, "fly.toml", context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
-            return path
-
 
     def _modify_settings(self):
-        """Add settings specific to Fly.io."""
-        #   Check if a fly.io section is present. If not, add settings. If already present,
-        #   do nothing.
-        self.sd.write_output("\n  Checking if settings block for Fly.io present in settings.py...")
+        """Add settings specific to Fly.io, if not already present."""
+        self.sd.write_output("\n  Checking for Fly.io-specific settings...")
 
-        with open(self.sd.settings_path) as f:
-            settings_string = f.read()
-
+        settings_string = self.sd.settings_path.read_text()
         if 'if os.environ.get("ON_FLYIO"):' in settings_string:
             self.sd.write_output("\n    Found Fly.io settings block in settings.py.")
             return
 
-        # Add Fly.io settings block.
-        self.sd.write_output("    No Fly.io settings found in settings.py; adding settings...")
+        # No Fly-specific settings found; add Fly.io settings block.
+        self.sd.write_output("    No Fly.io settings found; adding settings...")
 
         safe_settings_string = mark_safe(settings_string)
         context = {
-            'current_settings': safe_settings_string,
-            'deployed_project_name': self.deployed_project_name,
+            "current_settings": safe_settings_string,
+            "deployed_project_name": self.deployed_project_name,
         }
-        path = Path(self.sd.settings_path)
-        write_file_from_template(path, 'settings.py', context)
+        sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
 
-        msg = f"    Modified settings.py file: {path}"
+        msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
 
-
     def _add_requirements(self):
-        """Add requirements for serving on Fly.io."""
+        """Add requirements for deploying to Fly.io."""
         requirements = ["gunicorn", "psycopg2-binary", "dj-database-url", "whitenoise"]
         self.sd.add_packages(requirements)
 
-
     def _conclude_automate_all(self):
         """Finish automating the push to Fly.io.
+
         - Commit all changes.
         - Call `fly deploy`.
         - Call `fly apps open`, and grab URL.
@@ -286,8 +233,8 @@ class PlatformDeployer:
 
         self.sd.commit_changes()
 
-        # Push project.
-        # Use execute_command() to stream output of this long-running command.
+        # Push project. Use execute_command() to stream output, otherwise it appears to
+        # hang.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
         self.sd.log_info(cmd)
@@ -296,261 +243,336 @@ class PlatformDeployer:
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
-        output = self.sd.execute_subp_run(cmd)
         self.sd.log_info(cmd)
+        output = self.sd.execute_subp_run(cmd)
         self.sd.write_output(output)
 
-        # Get url of deployed project.
-        url_re = r'(opening )(http.*?)( \.\.\.)'
+        # Get URL of deployed project.
+        url_re = r"(opening )(http.*?)( \.\.\.)"
         output_str = output.stdout.decode()
         m = re.search(url_re, output_str)
         if m:
             self.deployed_url = m.group(2).strip()
 
-
     def _show_success_message(self):
-        """After a successful run, show a message about what to do next."""
+        """After a successful run, show a message about what to do next.
 
-        # DEV:
-        # - Mention that this script should not need to be run again, unless
-        #   creating a new deployment.
-        #   - Describe ongoing approach of commit, push, migrate. Lots to consider
-        #     when doing this on production app with users, make sure you learn.
-
+        Describe ongoing approach of commit, push, migrate.
+        """
         if self.sd.automate_all:
             msg = flyio_msgs.success_msg_automate_all(self.deployed_url)
-            self.sd.write_output(msg)
         else:
             msg = flyio_msgs.success_msg(log_output=self.sd.log_output)
-            self.sd.write_output(msg)
+        self.sd.write_output(msg)
 
-
-    # --- Methods called from simple_deploy.py ---
-
-    def confirm_preliminary(self):
-        """Deployment to Fly.io is in a preliminary state, and we need to be
-        explicit about that.
-        """
-        # Skip this confirmation when unit testing.
+    def _set_secret(self, needle, secret):
+        """Set a secret on Fly, if it's not already set."""
         if self.sd.unit_testing:
+            msg = "  Skipping for unit testing."
+            self.sd.write_output(msg)
             return
 
-        self.sd.write_output(flyio_msgs.confirm_preliminary)
-        confirmed = self.sd.get_confirmation()
+        # First check if secret has already been set.
+        #   Don't log output of `fly secrets list`!
+        cmd = f"fly secrets list -a {self.deployed_project_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
 
-        if confirmed:
-            self.sd.write_output("  Continuing with Fly.io deployment...")
+        if needle in output_str:
+            msg = f"  Found {needle} in existing secrets."
+            self.sd.write_output(msg)
+            return
+
+        cmd = f"fly secrets set -a {self.deployed_project_name} {secret}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.write_output(output_str)
+
+        msg = f"  Set secret: {secret}"
+        self.sd.write_output(msg)
+
+    def _build_dockerignore(self):
+        """Build the contents of the dockerignore file."""
+
+        # Start with git repository.
+        dockerignore_str = ".git/\n"
+
+        # Ignore venv dir if a venv is active.
+        if self.sd.unit_testing:
+            # Unit tests build a venv dir, but use the direct path to the venv. They
+            # don't run in an active venv.
+            venv_dir = "b_env"
         else:
-            # Quit and invite the user to try another platform.
-            # We are happily exiting the script; there's no need to raise a
-            #   CommandError.
-            self.sd.write_output(flyio_msgs.cancel_flyio)
-            sys.exit()
+            venv_dir = os.environ.get("VIRTUAL_ENV")
 
+        if venv_dir:
+            venv_path = Path(venv_dir)
+            dockerignore_str += f"\n{venv_path.name}/\n"
 
-    def validate_platform(self):
-        """Make sure the local environment and project supports deployment to
-        Fly.io.
-        
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
-        """
+        # Ignore Python stuff, SQLite db.
+        dockerignore_str += "\n__pycache__/\n*.pyc\n\n*.sqlite3\n"
 
-        # When running unit tests, will not be logged into CLI.
-        if not self.sd.unit_testing:
-            self._validate_cli()
-            
-            self.deployed_project_name = self._get_deployed_project_name()
+        # If on macOS, ignore .DS_Store.
+        if self.sd.on_macos:
+            dockerignore_str += "\n.DS_Store\n"
 
-            # If using automate_all, we need to create the app before creating
-            #   the db. But if there's already an app with no deployment, we can 
-            #   use that one (maybe created from a previous automate_all run).
-            # DEV: Update _get_deployed_project_name() to not throw error if
-            #   using automate_all. _create_flyio_app() can exit if not using
-            #   automate_all(). If self.deployed_project_name is set, just return
-            #   because we'll use that project. If it's not set, call create.
-            if not self.deployed_project_name and self.sd.automate_all:
-                self.deployed_project_name = self._create_flyio_app()
+        return dockerignore_str
 
-            # Create the db now, before any additional configuration. Get region
-            #   so we know where to create the db.
-            self.region = self._get_region()
-            self._create_db()
-        else:
-            self.deployed_project_name = self.sd.deployed_project_name
-
-
-    def prep_automate_all(self):
-        """Take any further actions needed if using automate_all."""
-        # All creation has been taken care of earlier, during validation.
-        pass
-
-
-    # --- Helper methods for methods called from simple_deploy.py ---
+    # --- Helper methods for validate_platform() ---
 
     def _validate_cli(self):
-        """Make sure the Fly.io CLI is installed, and user is logged in."""
-        cmd = 'fly version'
+        """Make sure the Fly.io CLI is installed, and user is authenticated."""
+        cmd = "fly version"
         self.sd.log_info(cmd)
-        
-        # This generates a FileNotFoundError on Ubuntu.
+
+        # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
             output_obj = self.sd.execute_subp_run(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
-        
+
         self.sd.log_info(output_obj)
+
+        # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
-            
-        # Check that user is logged in.
+
+        # Check that user is authenticated.
         cmd = "fly auth whoami --json"
         self.sd.log_info(cmd)
         output_obj = self.sd.execute_subp_run(cmd)
-        if "Error: No access token available. Please login with 'flyctl auth login'" in output_obj.stderr.decode():
+
+        error_msg = "Error: No access token available."
+        if error_msg in output_obj.stderr.decode():
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_logged_out)
-        
+
         # Show current authenticated fly user.
         whoami_json = json.loads(output_obj.stdout.decode())
         user_email = whoami_json["email"]
         msg = f"  Logged in to Fly.io CLI as: {user_email}"
         self.sd.write_output(msg)
-        
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
-        Parse the output of `fly apps list`, and look for apps that have not
-          been deployed yet.
 
-        Also, sets self.app_name, so the name can be used here as well.
+        Parse the output of `fly apps list`, and look for apps that have not
+        been deployed yet. Note there's some ambiguity between the use of
+        "project name" and "app name". This comes from usage in both Django
+        and target platforms. Also note that database apps can't be easily
+        distinguished from other apps.
+
+        During automated runs, creates a new Fly app if there isn't one we can use.
+
+        User interactions:
+        - If one app found, prompts user to confirm correct app.
+        - If multiple apps found, prompts user to select correct one.
+
+        Sets:
+            str: self.app_name
 
         Returns:
-        - String representing deployed project name.
-        - Empty string if no deployed project name found, but using automate_all.
-        - Raises CommandError if deployed project name can't be found.
-        """
-        if self.sd.automate_all:
-            # Simply return an empty string to indicate no suitable app was found,
-            #   and we'll create one later.
-            return ""
+            str: The deployed project name (self.app_name). Empty string if
+            using --automate-all.
 
+        Raises:
+            SimpleDeployCommandError: If deployed project name can't be found.
+        """
         msg = "\nLooking for Fly.io app to deploy against..."
         self.sd.write_output(msg)
 
-        # Get apps info.
+        # Get info about user's apps on Fly.io.
         cmd = "fly apps list --json"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
+
+        # Run command, and get json output.
+        # CLI has been validated; should not have to deal with stderr.
+        output_str = self.sd.execute_subp_run(cmd).stdout.decode()
         self.sd.log_info(output_str)
         output_json = json.loads(output_str)
 
-        # Only consider projects that have not been deployed yet.
+        project_names = self._get_undeployed_projects(output_json)
+        self._select_project_name(project_names)
+
+        # Display and return deployed app name.
+        msg = f"  Using Fly.io app: {self.app_name}"
+        self.sd.write_output(msg)
+        return self.app_name
+
+    def _get_undeployed_projects(self, output_json):
+        """Identify fly apps that have not yet been deployed to."""
         candidate_apps = [
-            app_dict
-            for app_dict in output_json
-            if not app_dict["Deployed"]
+            app_dict for app_dict in output_json if not app_dict["Deployed"]
         ]
 
-        # Get all names that might be the app we want to deploy to.
-        project_names = [apps_dict["Name"] for apps_dict in candidate_apps]
-        project_names = [name for name in project_names if 'builder' not in name]
+        # Remove all apps with 'builder' in name.
+        project_names = [
+            apps_dict["Name"]
+            for apps_dict in candidate_apps
+            if "builder" not in apps_dict["Name"]
+        ]
 
-        # We need to respond according to how many possible names were found.
-        if len(project_names) == 0:
-            # If no app name found, raise error.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+        return project_names
+
+    def _select_project_name(self, project_names):
+        """Select the correct project to deploy to."""
+
+        if not project_names:
+            # No app name found.
+            if self.sd.automate_all:
+                self.app_name = self._create_flyio_app()
+            else:
+                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
         elif len(project_names) == 1:
-            # If only one project name, confirm that it's the correct project.
+            # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
-            msg = f"\n*** Found one app on Fly.io: {project_name} ***"
+            msg = f"\n*** Found one undeployed app on Fly.io: {project_name} ***"
             self.sd.write_output(msg)
-            msg = "Is this the app you want to deploy to?"
-            if self.sd.get_confirmation(msg):
+
+            prompt = "Is this the app you want to deploy to?"
+            if self.sd.get_confirmation(prompt):
                 self.app_name = project_name
+            elif self.sd.automate_all:
+                self.app_name = self._create_flyio_app()
             else:
                 raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
         else:
-            # `apps list` does not show much specific inforamtion for undeployed apps.
-            #   ie, no creation date, so can't identify most recently created app.
+            # More than one undeployed app found. `apps list` doesn't show
+            # much specific information for undeployed apps. For exmaple we
+            # don't know the creation date, so we can't identify the most
+            # recently created app.
+
+            # Rather than a bunch of conditional logic about automate-all runs, just add
+            # "Create a new app" for automated runs. If that's chosen, create a new app.
+            if self.sd.automate_all:
+                project_names.append("Create a new app")
+
             # Show all undeployed apps, ask user to make selection.
-            while True:
-                msg = "\n*** Found multiple undeployed apps on Fly.io. ***"
-                for index, name in enumerate(project_names):
-                    msg += f"\n  {index}: {name}"
-                msg += "\n\nYou can cancel this configuration work by entering q."
-                msg += "\nWhich app would you like to use? "
-                self.sd.log_info(msg)
-                selection = input(msg)
-                self.sd.log_info(selection)
+            prompt = "\n*** Found multiple undeployed apps on Fly.io. ***"
+            for index, name in enumerate(project_names):
+                prompt += f"\n  {index}: {name}"
+            prompt += "\nWhich app would you like to use? "
 
-                if selection.lower() in ['q', 'quit']:
-                    raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+            valid_choices = [i for i in range(len(project_names))]
 
-                selected_name = project_names[int(selection)]
+            # Confirm selection, because we do *not* want to deploy
+            # against the wrong app.
+            confirmed = False
+            while not confirmed:
+                selection = sd_utils.get_numbered_choice(
+                    self.sd, prompt, valid_choices, flyio_msgs.no_project_name
+                )
+                selected_name = project_names[selection]
 
-                # Confirm selection, because we do *not* want to deploy against
-                #   the wrong app.
-                msg = f"You have selected {selected_name}. Is that correct?"
-                confirmed = self.sd.get_confirmation(msg)
-                if confirmed:
-                    self.app_name = selected_name
-                    break
+                confirm_prompt = f"You have selected {selected_name}."
+                confirm_prompt += " Is that correct?"
+                confirmed = self.sd.get_confirmation(confirm_prompt)
 
-        # Return deployed app name, or raise CommandError.
-        if self.app_name:
-            msg = f"  Using Fly.io app: {self.app_name}"
-            self.sd.write_output(msg)
-            return self.app_name
-        else:
-            # Can't continue without a Fly.io app to configure against.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+            # Create a new app for automated runs, if needed.
+            if selected_name == "Create a new app":
+                self.app_name = self._create_flyio_app()
+            else:
+                self.app_name = selected_name
 
     def _create_flyio_app(self):
         """Create a new Fly.io app.
-        Assumes caller already checked for automate_all, and that a suitable
-          app is not already available.
+
+        Assumes caller already checked for automate_all, and that a suitable app to
+        deploy to is not already available.
+
+        Sets:
+            str: self.app_name
+
         Returns:
-        - String representing new app name.
-        - Raises CommandError if an app can't be created.
+            str: self.app_name
+
+        Raises:
+            SimpleDeployCommandError: if an app can't be created.
         """
         msg = "  Creating a new app on Fly.io..."
         self.sd.write_output(msg)
 
-        cmd = "fly apps create --generate-name"
+        cmd = "fly apps create --generate-name --json"
         output_obj = self.sd.execute_subp_run(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         # Get app name.
-        app_name_re = r'(New app created: )(\w+\-\w+\-\d+)'
-        self.app_name = ''
-        m = re.search(app_name_re, output_str)
-        if m:
-            self.app_name = m.group(2).strip()
-
-        if self.app_name:
+        app_dict = json.loads(output_str)
+        try:
+            self.app_name = app_dict["Name"]
+        except KeyError:
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.create_app_failed)
+        else:
             msg = f"  Created new app: {self.app_name}"
             self.sd.write_output(msg)
             return self.app_name
-        else:
-            # Can't continue without a Fly.io app to deploy to.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.create_app_failed)
 
+    def _create_db(self):
+        """Create a remote database.
+
+        An appropriate db should not already exist. We tell people to create
+        an app, and then we take care of everything else. We create a db with
+        the name app_name-db.
+
+        We'll look for a db with that name, for example in case someone has already run
+        simple_deploy, but only gotten partway through the deployment process. If one
+        exists, we'll ask if we should use it. Otherwise, we'll just create a new db for
+        the app.
+
+        Sets:
+            str: self.db_name
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If can't create a new db, or don't get
+            permission to use existing db with matching name.
+        """
+        msg = "Looking for a Postgres database..."
+        self.sd.write_output(msg)
+
+        self.db_name = self.app_name + "-db"
+        if self._check_db_exists():
+            return self._manage_existing_db()
+
+        # No usable db found. Get region before creating the db.
+        self.region = self._get_region()
+
+        # Create a new db.
+        msg = f"  Creating a new Postgres database..."
+        self.sd.write_output(msg)
+
+        cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
+        cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
+        self.sd.log_info(cmd)
+        self._confirm_create_db(db_cmd=cmd)
+
+        # Create database. Use execute_command(), to stream output of long-running
+        # process. Also, we're not logging this because I believe it contains db
+        # credentials. May want to scrub and then log output.
+        self.sd.execute_command(cmd, skip_logging=True)
+
+        msg = "  Created Postgres database."
+        self.sd.write_output(msg)
+
+        self._attach_db()
 
     def _get_region(self):
-        """Get the region that the Fly.io app is configured for. We'll need this
-        to create a postgres database.
+        """Get the region nearest to the user.
 
         Notes:
         - V1 `fly apps create` automatically configured a region for the app.
-        - In V2, an app doesn't seem to have a region until it's deployed.
+        - In V2, an app doesn't have a region; it's really a container for machines,
+          which do have regions.
         - We need a region to create a db.
         - `fly postgres create` only prompts for a region, there's no -q or -y.
         - `fly postgres create` does highlight nearest region.
         - `fly platform regions` lists available regions, but doesn't identify nearest.
-        - So, for now:
+        - Possible approach:
           - Default to sea just so deployments work for now. They'll be slow for people
             far from sea.
           - Full fix: Parse `fly platform regions`, present list, ask user to select
@@ -564,7 +586,7 @@ class PlatformDeployer:
         - Return 'sea' if this doesn't work.
 
         Returns:
-        - String representing region.
+            str: Region with lowest latency for user.
         """
 
         msg = "Looking for Fly.io region..."
@@ -574,7 +596,7 @@ class PlatformDeployer:
         url = "https://liveview-counter.fly.dev/"
         r = requests.get(url)
 
-        re_region = r'Connected to ([a-z]{3})'
+        re_region = r"Connected to ([a-z]{3})"
         m = re.search(re_region, r.text)
         if m:
             region = m.group(1)
@@ -582,108 +604,181 @@ class PlatformDeployer:
             msg = f"  Found lowest latency region: {region}"
             self.sd.write_output(msg)
         else:
-            region = 'sea'
+            region = "sea"
 
             msg = f"  Couldn't find lowest latency region, using 'sea'."
             self.sd.write_output(msg)
 
         return region
 
+    def _check_db_exists(self):
+        """Check if a postgres db already exists that should be used with this app.
 
-    def _create_db(self):
-        """Create a db to deploy to.
-
-        An appropriate db should not already exist. We tell people to create
-          an app, and then we take care of everything else. We create a db with
-          the name app_name-db.
-        We will look for a db with that name. If one exists, we'll ask if we
-          should use it.
-        Otherwise, we'll just create a new db for the app.
-
-        Returns: 
-        - None.
-        - Raises CommandError if...
+        Returns:
+            bool: True if appropriate db found; False if not found.
         """
-        msg = "Looking for a Postgres database..."
-        self.sd.write_output(msg)
 
-        db_exists = self._check_if_db_exists()
-
-        if db_exists:
-            # A database with the name app_name-db exists.
-            # - Is it attached to this app?
-            # - Can we use it?
-            attached = self._check_db_attached()
-
-            db_name = self.app_name + "-db"
-            if attached:
-                # Database is attached to this app; get permission to use it.
-                msg = flyio_msgs.use_attached_db(db_name, self.db_users)
-                self.sd.write_output(msg)
-
-                msg = f"Okay to use {db_name} and proceed?"
-                use_db = self.sd.get_confirmation(msg)
-
-                if use_db:
-                    # We're going to use this db, and it's already been
-                    #   attached. We don't need to do anything further.
-                    return
-                else:
-                    # Permission to use this db denied.
-                    # Can't simply create a new db, because the name we'd use
-                    #   is already taken.
-                    raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
-            else:
-                # Existing db is not attached; get permission to attach this db.
-                msg = flyio_msgs.use_unattached_db(db_name, self.db_users)
-                self.sd.write_output(msg)
-
-                msg = f"Okay to use {db_name} and proceed?"
-                use_db = self.sd.get_confirmation(msg)
-
-                # Attach db if confirmed.
-                if use_db:
-                    self._attach_db(db_name)
-                    self.db_name = db_name
-                    # We're all done.
-                    return
-                else:
-                    # Permission to use this db denied.
-                    # Can't simply create a new db, because the name we'd use
-                    #   is already taken.
-                    raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
-
-        # No usable db found, create a new db.
-        msg = f"  Create a new Postgres database..."
-        self.sd.write_output(msg)
-
-        self.db_name = f"{self.deployed_project_name}-db"
-        cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
-        cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
+        # First, see if any Postgres clusters exist.
+        cmd = "fly postgres list --json"
         self.sd.log_info(cmd)
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(output_str)
 
-        # If not using automate_all, make sure it's okay to create a resource
-        #   on user's account.
-        if not self.sd.automate_all:
-            self._confirm_create_db(db_cmd=cmd)
+        if "No postgres clusters found" in output_str:
+            return False
 
-        # Create database.
-        # Use execute_command(), to stream output of long-running process.
-        # Also, we're not logging this because I believe it contains
-        #   db credentials. May want to scrub and then log output.
-        self.sd.execute_command(cmd, skip_logging=True)
+        # There are some Postgres dbs. Get their names.
+        pg_names = [pg_dict["Name"] for pg_dict in json.loads(output_str)]
 
-        msg = "  Created Postgres database."
+        # See if any of these names match this app.
+        if self.db_name in pg_names:
+            msg = f"  Postgres db found: {self.db_name}"
+            self.sd.write_output(msg)
+            return True
+        else:
+            msg = "  No matching Postgres database found."
+            self.sd.write_output(msg)
+            return False
+
+    def _manage_existing_db(self):
+        """Figure out what to do with an existing db whose name matches app.
+
+        Returns:
+            None: If we can use and configure existing db.
+
+        Raises:
+            SimpleDeployCommandError: If we can't use existing db, or fail to configure
+            it correctly.
+        """
+        if self._check_db_attached():
+            return self._confirm_use_attached_db(self.db_name)
+        else:
+            return self._confirm_use_unattached_db(self.db_name)
+
+    def _check_db_attached(self):
+        """Check if the db that was found is attached to this app.
+
+        Database is considered attached to this app it has a user with the same
+        name as the app, using underscores instead of hyphens. This is the default
+        behavior if you create a new app, then a new db, then attach the db to that app.
+
+        Sets:
+            list: self.db_users, which can be used in messages to the user.
+
+        Returns:
+            bool: True if attached to this app, False if not attached.
+
+        Raises:
+            SimpleDeployCommandError: If this db has users in addtion to the default db
+            users and a user corresponding to this app, we raise an error.
+        """
+        # Get users of this db.
+        #   `fly postgres users list` does not accept `--json` flag. :/
+        cmd = f"fly postgres users list -a {self.db_name}"
+        output_obj = self.sd.execute_subp_run(cmd)
+        output_str = output_obj.stdout.decode()
+        self.sd.log_info(cmd)
+        self.sd.log_info(output_str)
+
+        # Strip extra whitespace, split into lines, remove header. Split each line on
+        # tabs, and strip the first element.
+        lines = output_str.strip().split("\n")[1:]
+        self.db_users = [line.split("\t")[0].strip() for line in lines]
+
+        self.sd.log_info(f"DB users: {self.db_users}")
+
+        default_users = {"flypgadmin", "postgres", "repmgr"}
+        app_user = self.app_name.replace("-", "_")
+        if set(self.db_users) == default_users:
+            # This db only has the default users set when a fresh db is made.
+            #   Assume it's unattached.
+            return False
+        elif (app_user in self.db_users) and (len(self.db_users) == 4):
+            # This db appears to have been attached to the remote app. Will still need
+            # confirmation we can use this db.
+            return True
+        else:
+            # This db has more than the default users, and not just the current app.
+            # Let's not touch it. If anyone hits this situation and we should proceed,
+            # we'll revisit this block.
+            # Note: This path has only been tested once, by manually adding
+            # "dummy-user" to the list of db users."
+            msg = flyio_msgs.cant_use_db(self.db_name, self.db_users)
+            raise SimpleDeployCommandError(self.sd, msg)
+
+    def _confirm_use_attached_db(self):
+        """Confirm it's okay to use db that's already attached to this app.
+
+        Returns:
+            None: If confirmation granted.
+
+        Raises:
+            SimpleDeployCommandError: If confirmation denied.
+        """
+        msg = flyio_msgs.use_attached_db(self.db_name, self.db_users)
         self.sd.write_output(msg)
 
-        self._attach_db(self.db_name)
+        msg = f"Okay to use {self.db_name} and proceed?"
+        if not self.sd.get_confirmation(msg):
+            # Permission to use this db denied. Can't simply create a new db,
+            # because the name we'd use is already taken.
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
 
-    def _attach_db(self, db_name):
+    def _confirm_use_unattached_db(self):
+        """Confirm it's okay to use db whose name matches this app, but hasn't
+        been attached to this app.
+
+        If confirmation given, calls _attach_db().
+
+        Sets:
+            str: self.db_name
+
+        Returns:
+            None: If confirmation given.
+
+        Raises:
+            SimpleDeployCommandError: If confirmation denied.
+        """
+        msg = flyio_msgs.use_unattached_db(self.db_name, self.db_users)
+        self.sd.write_output(msg)
+
+        msg = f"Okay to use {self.db_name} and proceed?"
+        if self.sd.get_confirmation(msg):
+            self._attach_db(self.db_name)
+            return
+        else:
+            # Permission to use this db denied.
+            # Can't simply create a new db, because the name we'd use is
+            # already taken.
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+
+    def _confirm_create_db(self, db_cmd):
+        """Confirm the user wants a database created on their behalf.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If not confirmed.
+        """
+        # Ignore this check during testing, and when using --automate-all.
+        if self.sd.unit_testing or self.sd.automate_all:
+            return
+
+        # Show the command that will be run on the user's behalf.
+        self.stdout.write(flyio_msgs.confirm_create_db(db_cmd))
+        if self.sd.get_confirmation():
+            self.stdout.write("  Creating database...")
+        else:
+            # Quit and invite the user to create a database manually.
+            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+
+    def _attach_db(self):
         """Attach the database to the app."""
-        # Run `attach` command (and confirm DATABASE_URL is set?)
         msg = "  Attaching database to Fly.io app..."
         self.sd.write_output(msg)
-        cmd = f"fly postgres attach --app {self.deployed_project_name} {db_name}"
+        cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
         self.sd.log_info(cmd)
 
         output_obj = self.sd.execute_subp_run(cmd)
@@ -692,114 +787,3 @@ class PlatformDeployer:
 
         msg = "  Attached database to app."
         self.sd.write_output(msg)
-
-    def _check_if_db_exists(self):
-        """Check if a postgres db already exists that should be used with this app.
-        Returns:
-        - True if db found.
-        - False if not found.
-        """
-
-        # First, see if any Postgres clusters exist.
-        cmd = "fly postgres list --json"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-        self.sd.log_info(output_str)
-
-        if "No postgres clusters found" in output_str:
-            return False
-
-        # There are some Postgres dbs. Get their names.
-        pg_names = [
-            pg_dict["Name"]
-            for pg_dict in json.loads(output_str)
-        ]
-
-        # See if any of these names match this app.
-        usable_pg_name = self.app_name + "-db"
-        if usable_pg_name in pg_names:
-            msg = f"  Postgres db found: {usable_pg_name}"
-            self.sd.write_output(msg)
-            return True
-        else:
-            msg = "  No matching Postgres database found."
-            self.sd.write_output(msg)
-            return False
-
-    def _check_db_attached(self):
-        """Check if the db that was found is attached to this app.
-
-        Database is considered attached to this app it has a user with the same
-          name as the app, using underscores instead of hyphens.
-        This is the default behavior if you create a new app, then a new db,
-          then attach the db to that app.
-
-        Returns:
-        - True if db attached to this app.
-        - False if db not attached to this app.
-        - Raises SimpleDeployCommandError if we can't find a reason to use the db.
-
-        Also, defines self.db_users, which can be used in subsequent messages.
-        """
-        # Get users of this db.
-        #   `fly postgres users list` does not accept `--json` flag. :/
-        db_name = self.app_name + "-db"
-        cmd = f"fly postgres users list -a {db_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
-        self.sd.log_info(output_str)
-
-        # Break output into lines, get rid of header line.
-        lines = output_str.split("\n")[1:]
-        # Get rid of blank lines.
-        lines = [line for line in lines if line]
-        # Pull user from each line.
-        self.db_users = []
-        for line in lines:
-            # user is everything before first tab.
-            tab_index = line.find("\t")
-            user = line[:tab_index].strip()
-            self.db_users.append(user)
-
-        self.sd.log_info(f"DB users: {self.db_users}")
-
-        default_users = {'flypgadmin', 'postgres', 'repmgr'}
-        app_user = self.app_name.replace('-', '_')
-        if set(self.db_users) == default_users:
-            # This db only has default users set when a fresh db is made.
-            #   Assume it's unattached.
-            return False
-        elif (app_user in self.db_users) and (len(self.db_users) == 4):
-            # The current remote app has been attached to this db.
-            #   Will still need confirmation we can use this db.
-            return True
-        else:
-            # This db has more than the default users, and not just the
-            #   current app. Let's not touch it.
-            # If anyone hits this situation and we should proceed, we'll
-            #   revisit this block.
-            # Note: This path has only been tested once, by manually adding
-            #   "dummy-user" to the list of db users."
-            msg = flyio_msgs.cant_use_db(db_name, self.db_users)
-            raise SimpleDeployCommandError(self.sd, msg)
-
-    def _confirm_create_db(self, db_cmd):
-        """We really need to confirm that the user wants a db created on their behalf.
-        Show the command that will be run on the user's behalf.
-        Returns:
-        - True if confirmed.
-        - Raises CommandError if not confirmed.
-        """
-        if self.sd.unit_testing:
-            return
-
-        self.stdout.write(flyio_msgs.confirm_create_db(db_cmd))
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.stdout.write("  Creating database...")
-        else:
-            # Quit and invite the user to create a database manually.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)

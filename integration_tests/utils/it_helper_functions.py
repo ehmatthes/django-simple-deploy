@@ -95,7 +95,7 @@ def check_local_app_functionality(python_cmd):
     return "--- All tested functionality works. ---" in test_output
 
 def summarize_results(remote_functionality_passed, local_functionality_passed,
-        cli_options):
+        cli_options, tmp_proj_dir):
     """Summarize test results.
     pytest's summary is not particularly helpful here.
     """
@@ -117,6 +117,8 @@ def summarize_results(remote_functionality_passed, local_functionality_passed,
     msg = dedent(f"""
         ************************************
         ***** Integration test summary *****
+
+        Temp project dir: {tmp_proj_dir}
 
         Test options:
         - Tested {'PyPI' if cli_options.pypi else 'local'} version of django-simple-deploy.

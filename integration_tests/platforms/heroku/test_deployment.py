@@ -56,7 +56,7 @@ def test_heroku_deployment(tmp_project, cli_options, request):
     remote_functionality_passed = it_utils.check_deployed_app_functionality(python_cmd, project_url)
     local_functionality_passed = it_utils.check_local_app_functionality(python_cmd)
     it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
-            cli_options)
+            cli_options, tmp_project)
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed

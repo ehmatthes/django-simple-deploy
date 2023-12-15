@@ -1,0 +1,5 @@
+NAME      	SUPERUSER	DATABASES        
+flypgadmin	yes      	postgres, repmgr	
+postgres  	yes      	postgres, repmgr	
+repmgr    	yes      	postgres, repmgr	
+

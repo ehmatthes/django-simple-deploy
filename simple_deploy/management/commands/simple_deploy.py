@@ -333,7 +333,7 @@ class Command(BaseCommand):
         if self.log_output:
             self._ignore_sd_logs()
 
-        self.settings_path = f"{self.project_root}/{self.project_name}/settings.py"
+        self.settings_path = self.project_root/ self.project_name / "settings.py"
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
@@ -930,6 +930,8 @@ class Command(BaseCommand):
         You can pass a different message for the prompt; it should be phrased
           to elicit a yes/no response. Don't include the yes/no part.
         This method shows a yes|no prompt, and returns True or False.
+
+        DEV: This should probably be moved to utils.
         """
         if not msg:
             prompt = "\nAre you sure you want to do this? (yes|no) "
