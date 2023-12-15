@@ -256,22 +256,16 @@ class PlatformDeployer:
         if m:
             self.deployed_url = m.group(2).strip()
 
-
     def _show_success_message(self):
-        """After a successful run, show a message about what to do next."""
+        """After a successful run, show a message about what to do next.
 
-        # DEV:
-        # - Mention that this script should not need to be run again, unless
-        #   creating a new deployment.
-        #   - Describe ongoing approach of commit, push, migrate. Lots to consider
-        #     when doing this on production app with users, make sure you learn.
-
+        Describe ongoing approach of commit, push, migrate.
+        """
         if self.sd.automate_all:
             msg = flyio_msgs.success_msg_automate_all(self.deployed_url)
-            self.sd.write_output(msg)
         else:
             msg = flyio_msgs.success_msg(log_output=self.sd.log_output)
-            self.sd.write_output(msg)
+        self.sd.write_output(msg)
 
     def _set_secret(self, needle, secret):
         """Set a secret on Fly, if it's not already set."""
