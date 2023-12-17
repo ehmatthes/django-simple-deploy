@@ -55,16 +55,23 @@ class Command(BaseCommand):
         """Customize help output."""
 
         # Keep default BaseCommand args out of help text.
-        self.suppressed_base_arguments.update([
-            '--version', '-v', '--settings', '--pythonpath', '--traceback', '--no-color',
-            '--force-color'
-            ])
+        self.suppressed_base_arguments.update(
+            [
+                "--version",
+                "-v",
+                "--settings",
+                "--pythonpath",
+                "--traceback",
+                "--no-color",
+                "--force-color",
+            ]
+        )
         # Ensure that --skip-checks is not included in help output.
         self.requires_system_checks = []
 
         super().__init__()
 
-
+    # fmt: off
     def create_parser(self, prog_name, subcommand, **kwargs):
         """Customize the ArgumentParser object that will be created."""
         epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
