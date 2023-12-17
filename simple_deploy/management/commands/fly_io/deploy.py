@@ -38,7 +38,6 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
         self.sd.write_output("Configuring project for deployment to Fly.io...")
-
         self._set_on_flyio()
         self._set_debug()
         self._add_dockerfile()
@@ -46,9 +45,7 @@ class PlatformDeployer:
         self._add_flytoml()
         self._modify_settings()
         self._add_requirements()
-
         self._conclude_automate_all()
-
         self._show_success_message()
 
     def confirm_preliminary(self):
