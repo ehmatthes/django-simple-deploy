@@ -1,9 +1,32 @@
-"""Handles all platform-agnostic aspects of the deployment process."""
+"""Manage deployement to a variety of platforms.
 
-# This is the command that's called to automate deployment.
-# - It starts the process, and then dispatches to platform-specific helpers.
-# - Each helper gets a reference to this command object.
+Configuration-only mode: 
+    $ python manage.py simple_deploy --platform <platform-name>
+    Configures project for deployment to the specified platform.
 
+Automated mode:
+    $ python manage.py simple_deploy --platform <platform-name> --automate-all
+    Configures project for deployment, *and* issues platform's CLI commands to create
+    any resources needed for deployment. Also commits changes, and pushes project.
+
+Overview:
+    This is the command that's called to manage the configuration. In the automated
+    mode, it also makes the actual deployment. The entire process is coordinated in 
+    handle():
+    - Parse the CLI options that were passed.
+    - Start logging, unless suppressed.
+    - Validate the set of arguments that were passed.
+    - Inspect the user's system.
+    - Inspect the project.
+    - Get confirmation for an automated run, if appropriate.
+    - Call the platform's `validate_platform()` method.
+    - In automated mode, call the platform's `prep_automate_all()` method.
+    - Add django-simple-deploy to project requirements.
+    - Call the platform's `deploy()` method.
+
+See the project documentation for more about this process:
+    https://django-simple-deploy.readthedocs.io/en/latest/
+"""
 
 import sys, os, platform, re, subprocess, logging, shlex
 from datetime import datetime
