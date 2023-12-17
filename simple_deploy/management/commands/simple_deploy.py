@@ -71,16 +71,22 @@ class Command(BaseCommand):
 
         super().__init__()
 
-    # fmt: off
     def create_parser(self, prog_name, subcommand, **kwargs):
         """Customize the ArgumentParser object that will be created."""
-        epilog = "For more help, see the full documentation at: https://django-simple-deploy.readthedocs.io"
-        parser = super().create_parser(prog_name, subcommand, usage=cli.get_usage(),
-                epilog=epilog, add_help=False, **kwargs)
+        epilog = "For more help, see the full documentation at: "
+        epilog += "https://django-simple-deploy.readthedocs.io"
+        parser = super().create_parser(
+            prog_name,
+            subcommand,
+            usage=cli.get_usage(),
+            epilog=epilog,
+            add_help=False,
+            **kwargs,
+        )
 
         return parser
 
-
+    # fmt: off
     def add_arguments(self, parser):
         """Define CLI options."""
         sd_cli = cli.SimpleDeployCLI(parser)

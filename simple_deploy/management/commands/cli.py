@@ -15,6 +15,7 @@ def get_usage():
         [--deployed-project-name DEPLOYED_PROJECT_NAME]"""
 
 
+# fmt: off
 class SimpleDeployCLI:
     def __init__(self, parser):
         """Defines the CLI for django-simple-deploy."""
