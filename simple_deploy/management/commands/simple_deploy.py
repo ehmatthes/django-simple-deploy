@@ -38,7 +38,7 @@ from django.conf import settings
 import toml
 
 from . import deploy_messages as d_msgs
-from .utils import write_file_from_template, SimpleDeployCommandError
+from . import utils as sd_utils
 from . import cli
 
 
@@ -91,7 +91,15 @@ class Command(BaseCommand):
         sd_cli = cli.SimpleDeployCLI(parser)
 
     def handle(self, *args, **options):
-        """Parse options, and dispatch to platform-specific helpers."""
+        """Manage the overall configuration process.
+
+        Parse options, start logging, validate the simple_deploy command used, inspect
+        the user's system, inspect the project.
+        Verify that the user should be able to deploy to this platform.
+        Add django-simple-deploy to project requirements.
+        Call the platform-specific deploy() method.
+        """
+
         self.stdout.write("Configuring project for deployment...")
 
         # Parse CLI options. This needs to be done before logging starts.
@@ -137,6 +145,47 @@ class Command(BaseCommand):
         #   deploy() method.
         self.platform_deployer.deploy()
 
+
+    # --- Methods used here, and also by platform-specific modules ---
+
+    def write_output(self, output_obj, log_level='INFO',
+            write_to_console=True, skip_logging=False):
+        """Write output to the appropriate places.
+
+        Output may be a string, or an instance of subprocess.CompletedProcess.
+
+        Skip logging if --no-logging, or if skip_logging has been passed.
+          This is useful for writing sensitive information to console.
+        """
+
+        # Extract the subprocess output as a string.
+        if isinstance(output_obj, subprocess.CompletedProcess):
+            # Assume output is either stdout or stderr.
+            output_str = output_obj.stdout.decode()
+            if not output_str:
+                output_str = output_obj.stderr.decode()
+        elif isinstance(output_obj, str):
+            output_str = output_obj
+
+        # Almost always write to console. Input from prompts is not streamed
+        #   because user just typed it into the console.
+        if write_to_console:
+            self.stdout.write(output_str)
+
+        # Log when appropriate. Log as a series of single lines, for better
+        #   log file parsing. 
+        if self.log_output and not skip_logging:
+            for line in output_str.splitlines():
+                # Strip secret key from any line that holds it.
+                line = self._strip_secret_key(line)
+                logging.info(line)
+
+    def log_info(self, output_obj):
+        """Simple wrapper on write_output(), that just logs information
+        that doesn't need to be written to the console.
+        """
+        self.write_output(output_obj, write_to_console=False)
+
     # --- Internal methods; used only in this class ---
 
     # fmt: off
@@ -177,12 +226,12 @@ class Command(BaseCommand):
         get confirmation about using a platform with preliminary support.
         """
         if not self.platform:
-            raise SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
+            raise sd_utils.SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
         elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
             self.write_output(f"  Deployment target: {self.platform}")
         else:
             error_msg = d_msgs.invalid_platform_msg(self.platform)
-            raise SimpleDeployCommandError(self, error_msg)
+            raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
         self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
 
@@ -402,7 +451,7 @@ class Command(BaseCommand):
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
-            raise SimpleDeployCommandError(self, error_msg)
+            raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
 
     def _check_git_status(self):
@@ -448,7 +497,7 @@ class Command(BaseCommand):
             if self.automate_all:
                 error_msg += d_msgs.unclean_git_automate_all
 
-            raise SimpleDeployCommandError(self, error_msg)
+            raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
 
     def _diff_output_clean(self, output_str):
@@ -540,7 +589,7 @@ class Command(BaseCommand):
 
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        raise SimpleDeployCommandError(self, error_msg)
+        raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
 
     def _check_using_poetry(self):
@@ -730,45 +779,6 @@ class Command(BaseCommand):
 
 
     # --- Methods also used by platform-specific scripts ---
-
-    def write_output(self, output_obj, log_level='INFO',
-            write_to_console=True, skip_logging=False):
-        """Write output to the appropriate places.
-        Output may be a string, or an instance of subprocess.CompletedProcess.
-
-        Skip logging if --no-logging, or if skip_logging has been passed.
-          This is useful for writing sensitive information to console.
-        """
-
-        # Extract the subprocess output as a string.
-        if isinstance(output_obj, subprocess.CompletedProcess):
-            # Assume output is either stdout or stderr.
-            output_str = output_obj.stdout.decode()
-            if not output_str:
-                output_str = output_obj.stderr.decode()
-        elif isinstance(output_obj, str):
-            output_str = output_obj
-
-        # Almost always write to console. Input from prompts is not streamed
-        #   because user just typed it into the console.
-        if write_to_console:
-            self.stdout.write(output_str)
-
-        # Log when appropriate. Log as a series of single lines, for better
-        #   log file parsing. 
-        if self.log_output and not skip_logging:
-            for line in output_str.splitlines():
-                # Strip secret key from any line that holds it.
-                line = self._strip_secret_key(line)
-                logging.info(line)
-
-
-    def log_info(self, output_obj):
-        """Simple wrapper on write_output(), that just logs information
-        that doesn't need to be written to the console.
-        """
-        self.write_output(output_obj, write_to_console=False)
-
 
     def execute_subp_run(self, cmd, check=False):
         """Execute subprocess.run() command.
