@@ -43,17 +43,18 @@ from . import cli
 
 
 class Command(BaseCommand):
-    """Perform the initial deployment of a simple project.
-    Configure as much as possible automatically.
+    """Configure a project for deployment to a specific platform.
+
+    If using --automate-all, carry out the actual deployment as well.
     """
 
-    # Provide a summary of simple_deploy in the help text.
+    # Show a summary of simple_deploy in the help text.
     help = "Configures your project for deployment to the specified platform."
 
     def __init__(self):
         """Customize help output."""
 
-        # Keep default BaseCommand args out of our help text.
+        # Keep default BaseCommand args out of help text.
         self.suppressed_base_arguments.update([
             '--version', '-v', '--settings', '--pythonpath', '--traceback', '--no-color',
             '--force-color'
