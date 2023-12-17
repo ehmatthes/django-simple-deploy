@@ -86,11 +86,9 @@ class Command(BaseCommand):
 
         return parser
 
-    # fmt: off
     def add_arguments(self, parser):
         """Define CLI options."""
         sd_cli = cli.SimpleDeployCLI(parser)
-
 
     def handle(self, *args, **options):
         """Parse options, and dispatch to platform-specific helpers."""
@@ -139,9 +137,9 @@ class Command(BaseCommand):
         #   deploy() method.
         self.platform_deployer.deploy()
 
-
     # --- Internal methods; used only in this class ---
 
+    # fmt: off
     def _parse_cli_options(self, options):
         """Parse cli options."""
 
