@@ -145,11 +145,11 @@ class Command(BaseCommand):
         #   deploy() method.
         self.platform_deployer.deploy()
 
-
     # --- Methods used here, and also by platform-specific modules ---
 
-    def write_output(self, output_obj, log_level='INFO',
-            write_to_console=True, skip_logging=False):
+    def write_output(
+        self, output_obj, log_level="INFO", write_to_console=True, skip_logging=False
+    ):
         """Write output to the appropriate places.
 
         Output may be a string, or an instance of subprocess.CompletedProcess.
@@ -173,7 +173,7 @@ class Command(BaseCommand):
             self.stdout.write(output_str)
 
         # Log when appropriate. Log as a series of single lines, for better
-        #   log file parsing. 
+        #   log file parsing.
         if self.log_output and not skip_logging:
             for line in output_str.splitlines():
                 # Strip secret key from any line that holds it.
