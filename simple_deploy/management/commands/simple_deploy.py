@@ -343,16 +343,13 @@ class Command(BaseCommand):
         """
         self.use_shell = False
         self.on_windows, self.on_macos = False, False
-        if platform.system() == 'Windows':
+        if platform.system() == "Windows":
             self.on_windows = True
             self.use_shell = True
             self.log_info("  Local platform identified: Windows")
-        elif platform.system() == 'Darwin':
+        elif platform.system() == "Darwin":
             self.on_macos = True
             self.log_info("  Local platform identified: macOS")
-
-
-
 
     # fmt: off
     def _confirm_automate_all(self):
