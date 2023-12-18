@@ -112,6 +112,7 @@ class Command(BaseCommand):
         # Validate the set of arguments we've been given.
         #   _validate_command() instantiates a PlatformDeployer object.
         self._validate_command()
+        self._prep_platform()
 
         # Inspect system; we'll run some system commands differently on Windows.
         self._inspect_system()
@@ -296,20 +297,14 @@ class Command(BaseCommand):
         else:
             return False
 
-    # fmt: off
     def _validate_command(self):
         """Verify simple_deploy has been called with a valid set of arguments.
 
         Returns:
             None
-        """
-        # There will likely be more validation to do, so user helper methods here.
-        self._validate_platform_arg()
 
-    def _validate_platform_arg(self):
-        """Find out which platform we're targeting, instantiate the
-        platform-specific deployer object and platform-specific messages, and 
-        get confirmation about using a platform with preliminary support.
+        Raises:
+            SimpleDeployCommandError: If requested platform is supported.
         """
         if not self.platform:
             raise sd_utils.SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
@@ -319,18 +314,24 @@ class Command(BaseCommand):
             error_msg = d_msgs.invalid_platform_msg(self.platform)
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
-        self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
+    def _prep_platform(self):
+        """Prepare platform-specific resources needed in this module.
 
+        Instantiate the PlatformDeployer object.
+        Import platform-specific messages.
+        Get confirmation regarding preliminary support, if needed.
+        """
         deployer_module = import_module(f".{self.platform}.deploy", package='simple_deploy.management.commands')
         self.platform_deployer = deployer_module.PlatformDeployer(self)
+
+        self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
 
         try:
             self.platform_deployer.confirm_preliminary()
         except AttributeError:
-            # The targeted platform does not have a preliminary status warning.
             pass
 
-
+    # fmt: off
     def _confirm_automate_all(self):
         """If the --automate-all flag has been passed, confirm that the user
         really wants us to take these actions for them.
