@@ -98,6 +98,7 @@ class SimpleDeployCommandError(CommandError):
         sd_command.log_info(message)
         super().__init__(message)
 
+
 def get_string_from_output(output):
     """Convert output to string.
 
@@ -121,6 +122,7 @@ def get_string_from_output(output):
 
         return output_str
 
+
 def log_output_string(output):
     """Log output as a series of single lines, for better log parsing.
 
@@ -134,11 +136,12 @@ def log_output_string(output):
 
 # --- Helper functions ---
 
+
 def strip_secret_key(line):
     """Strip secret key value from log file lines."""
-    if 'SECRET_KEY:' in line:
-        new_line = line.split('SECRET_KEY:')[0]
-        new_line += 'SECRET_KEY: *value hidden*'
+    if "SECRET_KEY:" in line:
+        new_line = line.split("SECRET_KEY:")[0]
+        new_line += "SECRET_KEY: *value hidden*"
         return new_line
     else:
         return line

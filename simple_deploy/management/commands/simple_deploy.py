@@ -147,9 +147,7 @@ class Command(BaseCommand):
 
     # --- Methods used here, and also by platform-specific modules ---
 
-    def write_output(
-        self, output, write_to_console=True, skip_logging=False
-    ):
+    def write_output(self, output, write_to_console=True, skip_logging=False):
         """Write output to the appropriate places.
 
         Typically, this is used for writing output to the console as the configuration
