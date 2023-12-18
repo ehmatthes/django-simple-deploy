@@ -112,10 +112,6 @@ class Command(BaseCommand):
         self._validate_command()
         self._prep_platform()
         self._inspect_system()
-
-        # Inspect project here. If there's anything we can't work with locally,
-        #   we want to recognize that now and exit before making any changes
-        #   to the project, and before making any remote calls.
         self._inspect_project()
 
         # Confirm --automate-all, if needed. Currently, this needs to happen before
@@ -351,53 +347,6 @@ class Command(BaseCommand):
             self.on_macos = True
             self.log_info("  Local platform identified: macOS")
 
-    # fmt: off
-    def _confirm_automate_all(self):
-        """If the --automate-all flag has been passed, confirm that the user
-        really wants us to take these actions for them.
-        """
-
-        # Placing this check here makes handle() much cleaner.
-        if not self.automate_all:
-            return
-
-        # Confirm the user knows exactly what will be automated.
-        self.write_output(self.platform_msgs.confirm_automate_all)
-        confirmed = self.get_confirmation()
-
-        if confirmed:
-            self.write_output("Automating all steps...")
-        else:
-            # Quit and have the user run the command again; don't assume not
-            #   wanting to automate means they want to configure.
-            self.write_output(d_msgs.cancel_automate_all)
-            sys.exit()
-
-    def _ignore_sd_logs(self):
-        """Add log dir to .gitignore.
-        Adds a .gitignore file if one is not found.
-        """
-        ignore_msg = "# Ignore logs from simple_deploy."
-        ignore_msg += "\nsimple_deploy_logs/\n"
-
-        # Assume .gitignore is in same directory as .git/ directory.
-        # gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
-        gitignore_path = self.git_path / '.gitignore'
-        if not gitignore_path.exists():
-            # Make the .gitignore file, and add log directory.
-            gitignore_path.write_text(ignore_msg, encoding='utf-8')
-            self.write_output("No .gitignore file found; created .gitignore.")
-            self.write_output("Added simple_deploy_logs/ to .gitignore.")
-        else:
-            # Append log directory to .gitignore if it's not already there.
-            # In r+ mode, a single read moves file pointer to end of file,
-            #   setting up for appending.
-            with open(gitignore_path, 'r+') as f:
-                gitignore_contents = f.read()
-                if 'simple_deploy_logs/' not in gitignore_contents:
-                    f.write(f"\n{ignore_msg}")
-                    self.write_output("Added simple_deploy_logs/ to .gitignore")
-
     def _inspect_project(self):
         """Find out everything we need to know about the project, before
         making any remote calls.
@@ -449,7 +398,6 @@ class Command(BaseCommand):
 
         self.requirements = self._get_current_requirements()
 
-
     def _find_git_dir(self):
         """Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
         If it's in BASE_DIR.parent, this is a project with a nested
@@ -475,7 +423,6 @@ class Command(BaseCommand):
             error_msg = "Could not find a .git/ directory."
             error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
-
 
     def _check_git_status(self):
         """Make sure we're starting from a clean working state.
@@ -521,6 +468,231 @@ class Command(BaseCommand):
                 error_msg += d_msgs.unclean_git_automate_all
 
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
+    def _ignore_sd_logs(self):
+        """Add log dir to .gitignore.
+        Adds a .gitignore file if one is not found.
+        """
+        ignore_msg = "# Ignore logs from simple_deploy."
+        ignore_msg += "\nsimple_deploy_logs/\n"
+
+        # Assume .gitignore is in same directory as .git/ directory.
+        # gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
+        gitignore_path = self.git_path / '.gitignore'
+        if not gitignore_path.exists():
+            # Make the .gitignore file, and add log directory.
+            gitignore_path.write_text(ignore_msg, encoding='utf-8')
+            self.write_output("No .gitignore file found; created .gitignore.")
+            self.write_output("Added simple_deploy_logs/ to .gitignore.")
+        else:
+            # Append log directory to .gitignore if it's not already there.
+            # In r+ mode, a single read moves file pointer to end of file,
+            #   setting up for appending.
+            with open(gitignore_path, 'r+') as f:
+                gitignore_contents = f.read()
+                if 'simple_deploy_logs/' not in gitignore_contents:
+                    f.write(f"\n{ignore_msg}")
+                    self.write_output("Added simple_deploy_logs/ to .gitignore")
+
+    def _get_dep_man_approach(self):
+        """Identify which dependency management approach the project uses.
+        req_txt, poetry, or pipenv.
+
+        Sets the self.pkg_manager attribute.
+        Looks for most specific tests first: Pipenv, Poetry, then requirements.txt.
+          ie if a project uses Poetry and has a requirements.txt file, we'll prioritize
+          Poetry.
+
+        Returns
+        - String representing dependency management system found:
+            req_txt | poetry | pipenv
+        - Raises CommandError if no pkg_manager can be identified.
+        """
+        if (self.git_path / "Pipfile").exists():
+            return "pipenv"
+        elif self._check_using_poetry():
+            return "poetry"
+        elif (self.git_path / "requirements.txt").exists():
+            return "req_txt"
+
+        # Exit if we haven't found any requirements.
+        error_msg = f"Couldn't find any specified requirements in {self.git_path}."
+        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
+
+    def _check_using_poetry(self):
+        """Check if the project appears to be using poetry.
+
+        Check for a poetry.lock file, or a pyproject.toml file with a
+          [tool.poetry] section.
+
+        Returns:
+        - True if one of these is found.
+        - False if one of these is not found.
+        """
+        path = self.git_path / "poetry.lock"
+        if path.exists():
+            return True
+
+        path = self.git_path / "pyproject.toml"
+        if path.exists():
+            if "[tool.poetry]" in path.read_text():
+                return True
+
+        # Couldn't find any evidence of using Poetry.
+        return False
+
+    def _get_current_requirements(self):
+        """Get current project requirements, before adding any new ones.
+
+        Returns:
+        - List of requirements, with no version information.
+        """
+        msg = "  Checking current project requirements..."
+        self.write_output(msg)
+
+        if self.pkg_manager == "req_txt":
+            requirements = self._get_req_txt_requirements()
+        elif self.pkg_manager == "pipenv":
+            requirements = self._get_pipfile_requirements()
+        elif self.pkg_manager == "poetry":
+            requirements = self._get_poetry_requirements()
+
+        # Report findings. 
+        msg = "    Found existing dependencies:"
+        self.write_output(msg)
+        for requirement in requirements:
+            msg = f"      {requirement}"
+            self.write_output(msg)
+
+        return requirements
+
+    def _get_req_txt_requirements(self):
+        """Get a list of requirements from the current requirements.txt file.
+
+        Parses requirements.txt file directly, rather than using a command
+          like `pip list`. `pip list` lists all installed packages, but they
+          may not be in requirements.txt, depending on when `pip freeze` was
+          last run. This is different than other dependency management systems,
+          which write to various requirements files whenever a package is installed.
+
+        Returns:
+        - List of requirements, with no version information.
+        """
+        # This path will be used later, so make it an attribute.
+        self.req_txt_path = self.git_path / "requirements.txt"
+        contents = self.req_txt_path.read_text()
+        lines = contents.split("\n")
+
+        # Parse requirements file, without including version information.
+        req_re = r'^([a-zA-Z0-9\-]*)'
+        requirements = []
+        for line in lines:
+            m = re.search(req_re, line)
+            if m:
+                requirements.append(m.group(1))
+
+        return requirements
+
+
+    def _get_pipfile_requirements(self):
+        """Get a list of requirements that are already in the Pipfile.
+
+        Parses Pipfile, because we don't want to trust a lock file, and we need
+          to examine packages that may be listed in Pipfile but not currently
+          installed.
+
+        Returns:
+        - List of requirements, without version information.
+        """
+        # The path to pipfile is used when writing to pipfile as well.
+        self.pipfile_path = f"{self.git_path}/Pipfile"
+
+        with open(self.pipfile_path) as f:
+            lines = f.readlines()
+
+        requirements = []
+        in_packages = False
+        for line in lines:
+            # Ignore all lines until we've found the start of packages.
+            #   Stop parsing when we hit dev-packages.
+            if '[packages]' in line:
+                in_packages = True
+                continue
+            elif '[dev-packages]' in line:
+                # Ignore dev packages for now.
+                break
+
+            if in_packages:
+                pkg_name = line.split('=')[0].rstrip()
+
+                # Ignore blank lines.
+                if pkg_name:
+                    requirements.append(pkg_name)
+
+        return requirements
+
+    def _get_poetry_requirements(self):
+        """Get a list of requirements that Poetry is already tracking.
+
+        Parses pyproject.toml file. It's easier to work with the output of 
+          `poetry show`, but that examines poetry.lock. We are interested in
+          what's written to pyproject.toml, not what's in the lock file.
+
+        Returns:
+        - List of requirements, with no version information.
+        """
+        # We'll use this again, so make it an attribute.
+        self.pyprojecttoml_path = self.git_path / "pyproject.toml"
+        parsed_toml = toml.loads(self.pyprojecttoml_path.read_text())
+
+        # For now, just examine main requirements and deploy group requirements.
+        main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
+        requirements = list(main_reqs)
+        try:
+            deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
+        except KeyError:
+            # This group doesn't exist yet, which is fine.
+            pass
+        else:
+            requirements += list(deploy_reqs)
+
+        # Remove python as a requirement, as we're only interested in packages.
+        requirements.remove("python")
+
+        return requirements
+
+
+
+
+    # fmt: off
+    def _confirm_automate_all(self):
+        """If the --automate-all flag has been passed, confirm that the user
+        really wants us to take these actions for them.
+        """
+
+        # Placing this check here makes handle() much cleaner.
+        if not self.automate_all:
+            return
+
+        # Confirm the user knows exactly what will be automated.
+        self.write_output(self.platform_msgs.confirm_automate_all)
+        confirmed = self.get_confirmation()
+
+        if confirmed:
+            self.write_output("Automating all steps...")
+        else:
+            # Quit and have the user run the command again; don't assume not
+            #   wanting to automate means they want to configure.
+            self.write_output(d_msgs.cancel_automate_all)
+            sys.exit()
+
+    
+
+    
+
+
+    
 
 
     def _diff_output_clean(self, output_str):
@@ -589,79 +761,10 @@ class Command(BaseCommand):
         return False
 
 
-    def _get_dep_man_approach(self):
-        """Identify which dependency management approach the project uses.
-        req_txt, poetry, or pipenv.
-
-        Sets the self.pkg_manager attribute.
-        Looks for most specific tests first: Pipenv, Poetry, then requirements.txt.
-          ie if a project uses Poetry and has a requirements.txt file, we'll prioritize
-          Poetry.
-
-        Returns
-        - String representing dependency management system found:
-            req_txt | poetry | pipenv
-        - Raises CommandError if no pkg_manager can be identified.
-        """
-        if (self.git_path / "Pipfile").exists():
-            return "pipenv"
-        elif self._check_using_poetry():
-            return "poetry"
-        elif (self.git_path / "requirements.txt").exists():
-            return "req_txt"
-
-        # Exit if we haven't found any requirements.
-        error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+    
 
 
-    def _check_using_poetry(self):
-        """Check if the project appears to be using poetry.
-
-        Check for a poetry.lock file, or a pyproject.toml file with a
-          [tool.poetry] section.
-
-        Returns:
-        - True if one of these is found.
-        - False if one of these is not found.
-        """
-        path = self.git_path / "poetry.lock"
-        if path.exists():
-            return True
-
-        path = self.git_path / "pyproject.toml"
-        if path.exists():
-            if "[tool.poetry]" in path.read_text():
-                return True
-
-        # Couldn't find any evidence of using Poetry.
-        return False
-
-
-    def _get_current_requirements(self):
-        """Get current project requirements, before adding any new ones.
-
-        Returns:
-        - List of requirements, with no version information.
-        """
-        msg = "  Checking current project requirements..."
-        self.write_output(msg)
-
-        if self.pkg_manager == "req_txt":
-            requirements = self._get_req_txt_requirements()
-        elif self.pkg_manager == "pipenv":
-            requirements = self._get_pipfile_requirements()
-        elif self.pkg_manager == "poetry":
-            requirements = self._get_poetry_requirements()
-
-        # Report findings. 
-        msg = "    Found existing dependencies:"
-        self.write_output(msg)
-        for requirement in requirements:
-            msg = f"      {requirement}"
-            self.write_output(msg)
-
-        return requirements
+    
 
 
     def _add_simple_deploy_req(self):
@@ -679,70 +782,7 @@ class Command(BaseCommand):
         self.add_package('django-simple-deploy')
 
 
-    def _get_req_txt_requirements(self):
-        """Get a list of requirements from the current requirements.txt file.
-
-        Parses requirements.txt file directly, rather than using a command
-          like `pip list`. `pip list` lists all installed packages, but they
-          may not be in requirements.txt, depending on when `pip freeze` was
-          last run. This is different than other dependency management systems,
-          which write to various requirements files whenever a package is installed.
-
-        Returns:
-        - List of requirements, with no version information.
-        """
-        # This path will be used later, so make it an attribute.
-        self.req_txt_path = self.git_path / "requirements.txt"
-        contents = self.req_txt_path.read_text()
-        lines = contents.split("\n")
-
-        # Parse requirements file, without including version information.
-        req_re = r'^([a-zA-Z0-9\-]*)'
-        requirements = []
-        for line in lines:
-            m = re.search(req_re, line)
-            if m:
-                requirements.append(m.group(1))
-
-        return requirements
-
-
-    def _get_pipfile_requirements(self):
-        """Get a list of requirements that are already in the Pipfile.
-
-        Parses Pipfile, because we don't want to trust a lock file, and we need
-          to examine packages that may be listed in Pipfile but not currently
-          installed.
-
-        Returns:
-        - List of requirements, without version information.
-        """
-        # The path to pipfile is used when writing to pipfile as well.
-        self.pipfile_path = f"{self.git_path}/Pipfile"
-
-        with open(self.pipfile_path) as f:
-            lines = f.readlines()
-
-        requirements = []
-        in_packages = False
-        for line in lines:
-            # Ignore all lines until we've found the start of packages.
-            #   Stop parsing when we hit dev-packages.
-            if '[packages]' in line:
-                in_packages = True
-                continue
-            elif '[dev-packages]' in line:
-                # Ignore dev packages for now.
-                break
-
-            if in_packages:
-                pkg_name = line.split('=')[0].rstrip()
-
-                # Ignore blank lines.
-                if pkg_name:
-                    requirements.append(pkg_name)
-
-        return requirements
+    
 
 
     def _write_pipfile_pkg(self, package_name, version=""):
@@ -770,35 +810,7 @@ class Command(BaseCommand):
         self.write_output(f"    Added {package_name} to Pipfile.")
 
 
-    def _get_poetry_requirements(self):
-        """Get a list of requirements that Poetry is already tracking.
-
-        Parses pyproject.toml file. It's easier to work with the output of 
-          `poetry show`, but that examines poetry.lock. We are interested in
-          what's written to pyproject.toml, not what's in the lock file.
-
-        Returns:
-        - List of requirements, with no version information.
-        """
-        # We'll use this again, so make it an attribute.
-        self.pyprojecttoml_path = self.git_path / "pyproject.toml"
-        parsed_toml = toml.loads(self.pyprojecttoml_path.read_text())
-
-        # For now, just examine main requirements and deploy group requirements.
-        main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
-        requirements = list(main_reqs)
-        try:
-            deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
-        except KeyError:
-            # This group doesn't exist yet, which is fine.
-            pass
-        else:
-            requirements += list(deploy_reqs)
-
-        # Remove python as a requirement, as we're only interested in packages.
-        requirements.remove("python")
-
-        return requirements
+    
 
 
     # --- Methods also used by platform-specific scripts ---
