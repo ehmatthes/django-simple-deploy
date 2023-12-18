@@ -148,47 +148,94 @@ class Command(BaseCommand):
     # --- Methods used here, and also by platform-specific modules ---
 
     def write_output(
-        self, output_obj, log_level="INFO", write_to_console=True, skip_logging=False
+        self, output, write_to_console=True, skip_logging=False
     ):
         """Write output to the appropriate places.
 
-        Output may be a string, or an instance of subprocess.CompletedProcess.
+        Typically, this is used for writing output to the console as the configuration
+        and deployment work is carried out.  Output may be a string, or an instance of
+        subprocess.CompletedProcess.
 
-        Skip logging if --no-logging, or if skip_logging has been passed.
-          This is useful for writing sensitive information to console.
+        Output that's passed to this method typically needs to be logged as well, unless
+        skip_logging has been passed. This is useful, for example, when writing
+        sensitive information to the console.
+
+        Returns:
+            None
         """
+        output_str = sd_utils.get_string_from_output(output)
 
-        # Extract the subprocess output as a string.
-        if isinstance(output_obj, subprocess.CompletedProcess):
-            # Assume output is either stdout or stderr.
-            output_str = output_obj.stdout.decode()
-            if not output_str:
-                output_str = output_obj.stderr.decode()
-        elif isinstance(output_obj, str):
-            output_str = output_obj
-
-        # Almost always write to console. Input from prompts is not streamed
-        #   because user just typed it into the console.
+        # Some output, such as user input, does not need to be written to the console.
         if write_to_console:
             self.stdout.write(output_str)
 
-        # Log when appropriate. Log as a series of single lines, for better
-        #   log file parsing.
-        if self.log_output and not skip_logging:
-            for line in output_str.splitlines():
-                # Strip secret key from any line that holds it.
-                line = self._strip_secret_key(line)
-                logging.info(line)
+        if not skip_logging:
+            self.log_info(output_str)
 
-    def log_info(self, output_obj):
-        """Simple wrapper on write_output(), that just logs information
-        that doesn't need to be written to the console.
+    def log_info(self, output):
+        """Log output, which may be a string or CompletedProcess instance."""
+        if self.log_output:
+            output_str = sd_utils.get_string_from_output(output)
+            sd_utils.log_output_string(output_str)
+
+    # fmt: off
+    def execute_subp_run(self, cmd, check=False):
+        """Execute subprocess.run() command.
+        We're running commands differently on Windows, so this method
+          takes a command and runs it appropriately on each system.
+
+        The `check` parameter is included because some callers will need to 
+          handle exceptions. For an example, see prep_automate_all() in
+          deploy_platformsh.py. Most callers will only check whether returncode
+          is nonzero, and not need to involve exception handling.
+
+        Returns:
+            - CompletedProcess instance
+            - if check=True is passed, raises CalledProcessError instead of
+              CompletedProcess with an error code.
         """
-        self.write_output(output_obj, write_to_console=False)
+        if self.on_windows:
+            output = subprocess.run(cmd, shell=True, capture_output=True)
+        else:
+            cmd_parts = shlex.split(cmd)
+            output = subprocess.run(cmd_parts, capture_output=True, check=check)
+
+        return output
+
+    def execute_command(self, cmd, skip_logging=False):
+        """Execute command, and stream output while logging.
+        This method is intended for commands that run long enough that we 
+        can't use a simple subprocess.run(capture_output=True), which doesn't
+        stream any output until the command is finished. That works for logging,
+        but makes it seem as if the deployment is hanging. This is an issue
+        especially on platforms like Azure that have some steps that take minutes
+        to run.
+        """
+
+        # DEV: This only captures stderr right now.
+        #   This is used for commands that run long enough that we don't
+        #   want to use a simple subprocess.run(capture_output=True). Right
+        #   now that's the `git push heroku` call. That call writes to
+        #   stderr; I'm not sure how to stream both stdout and stderr. It also
+        #   affects `platform create` and `platform push`.
+        #
+        #     This will also be needed for long-running steps on other platforms,
+        #   which may or may not write to stderr. Adding a parameter
+        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
+        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
+        #   topic date back to Python2/3 days.
+        cmd_parts = cmd.split()
+        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
+            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
+            for line in p.stderr:
+                self.write_output(line, skip_logging=skip_logging)
+
+        if p.returncode != 0:
+            raise subprocess.CalledProcessError(p.returncode, p.args)
+
 
     # --- Internal methods; used only in this class ---
 
-    # fmt: off
     def _parse_cli_options(self, options):
         """Parse cli options."""
 
@@ -336,17 +383,6 @@ class Command(BaseCommand):
                 if 'simple_deploy_logs/' not in gitignore_contents:
                     f.write(f"\n{ignore_msg}")
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
-
-
-    def _strip_secret_key(self, line):
-        """Strip secret key value from log file lines."""
-        if 'SECRET_KEY:' in line:
-            new_line = line.split('SECRET_KEY:')[0]
-            new_line += 'SECRET_KEY: *value hidden*'
-            return new_line
-        else:
-            return line
-
 
     def _inspect_system(self):
         """Inspect the user's local system for relevant information.
@@ -779,62 +815,6 @@ class Command(BaseCommand):
 
 
     # --- Methods also used by platform-specific scripts ---
-
-    def execute_subp_run(self, cmd, check=False):
-        """Execute subprocess.run() command.
-        We're running commands differently on Windows, so this method
-          takes a command and runs it appropriately on each system.
-
-        The `check` parameter is included because some callers will need to 
-          handle exceptions. For an example, see prep_automate_all() in
-          deploy_platformsh.py. Most callers will only check whether returncode
-          is nonzero, and not need to involve exception handling.
-
-        Returns:
-            - CompletedProcess instance
-            - if check=True is passed, raises CalledProcessError instead of
-              CompletedProcess with an error code.
-        """
-        if self.on_windows:
-            output = subprocess.run(cmd, shell=True, capture_output=True)
-        else:
-            cmd_parts = shlex.split(cmd)
-            output = subprocess.run(cmd_parts, capture_output=True, check=check)
-
-        return output
-
-
-    def execute_command(self, cmd, skip_logging=False):
-        """Execute command, and stream output while logging.
-        This method is intended for commands that run long enough that we 
-        can't use a simple subprocess.run(capture_output=True), which doesn't
-        stream any output until the command is finished. That works for logging,
-        but makes it seem as if the deployment is hanging. This is an issue
-        especially on platforms like Azure that have some steps that take minutes
-        to run.
-        """
-
-        # DEV: This only captures stderr right now.
-        #   This is used for commands that run long enough that we don't
-        #   want to use a simple subprocess.run(capture_output=True). Right
-        #   now that's the `git push heroku` call. That call writes to
-        #   stderr; I'm not sure how to stream both stdout and stderr. It also
-        #   affects `platform create` and `platform push`.
-        #
-        #     This will also be needed for long-running steps on other platforms,
-        #   which may or may not write to stderr. Adding a parameter
-        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
-        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
-        #   topic date back to Python2/3 days.
-        cmd_parts = cmd.split()
-        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
-            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
-            for line in p.stderr:
-                self.write_output(line, skip_logging=skip_logging)
-
-        if p.returncode != 0:
-            raise subprocess.CalledProcessError(p.returncode, p.args)
-
 
     def add_packages(self, package_list):
         """Adds a set of packages to the project's requirements.

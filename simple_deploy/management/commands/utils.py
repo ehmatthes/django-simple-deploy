@@ -4,7 +4,7 @@ Also contains resources useful to multiple platform-specific deployment
 scripts.
 """
 
-import inspect, re, sys
+import inspect, re, sys, subprocess, logging
 
 from django.template.engine import Engine
 from django.template.utils import get_app_template_dirs
@@ -97,3 +97,48 @@ class SimpleDeployCommandError(CommandError):
         sd_command.log_info("\nSimpleDeployCommandError:")
         sd_command.log_info(message)
         super().__init__(message)
+
+def get_string_from_output(output):
+    """Convert output to string.
+
+    Output may be a string, or an instance of subprocess.CompletedProcess.
+
+    This function assumes that output is either stdout *or* stderr, but not both. If we
+    need to display both, consider redirecting stderr to stdout:
+        subprocess.run(cmd_parts, stderr=subprocess.STDOUT, ...)
+    This has not been necessary yet; if it becomes necessary we'll probably need to
+    modify simple_deploy.execute_subp_run() to accomodate the necessary args.
+    """
+    if isinstance(output, str):
+        return output
+
+    if isinstance(output, subprocess.CompletedProcess):
+        # Extract subprocess output as a string. Assume output is either stdout or
+        # stderr, but not both.
+        output_str = output.stdout.decode()
+        if not output_str:
+            output_str = output.stderr.decode()
+
+        return output_str
+
+def log_output_string(output):
+    """Log output as a series of single lines, for better log parsing.
+
+    Returns:
+        None
+    """
+    for line in output.splitlines():
+        line = strip_secret_key(line)
+        logging.info(line)
+
+
+# --- Helper functions ---
+
+def strip_secret_key(line):
+    """Strip secret key value from log file lines."""
+    if 'SECRET_KEY:' in line:
+        new_line = line.split('SECRET_KEY:')[0]
+        new_line += 'SECRET_KEY: *value hidden*'
+        return new_line
+    else:
+        return line
