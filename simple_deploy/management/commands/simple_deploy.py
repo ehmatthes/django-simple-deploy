@@ -233,6 +233,7 @@ class Command(BaseCommand):
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
+
     # --- Internal methods; used only in this class ---
 
     def _parse_cli_options(self, options):
@@ -252,17 +253,62 @@ class Command(BaseCommand):
         self.unit_testing = options["unit_testing"]
         self.integration_testing = options["integration_testing"]
 
+    def _start_logging(self):
+        """Set up for logging."""
+        # Create a log directory if needed. Then create the log file, and 
+        #   log the creation of the log directory if it happened.
+        # In many libraries, one log file is created and then that file is
+        #   appended to, and it's on the user to manage log sizes.
+        # In this project, the user is expected to run simple_deploy
+        #   once, or maybe a couple times if they make a mistake and it exits.
+        # So, we should never have runaway log creation. It could be really
+        #   helpful to see how many logs are created, and it's also simpler
+        #   to review what happened if every log file represents a single run.
+        # To create a new log file each time simple_deploy is run, we append
+        #   a timestamp to the log filename.
+        created_log_dir = self._create_log_dir()
+
+        timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
+        log_filename = f"simple_deploy_{timestamp}.log"
+        verbose_log_path = self.log_dir_path / log_filename
+        verbose_logger = logging.basicConfig(level=logging.INFO,
+                filename=verbose_log_path,
+                format='%(asctime)s %(levelname)s: %(message)s')
+
+        self.log_info("\nLogging run of `manage.py simple_deploy`...")
+
+        if created_log_dir:
+            self.write_output(f"Created {self.log_dir_path}.")
+
+        # We'll make sure the log path is in .gitignore when we inspect the project
+        #   and find the .git dir.
+
+
+    def _create_log_dir(self):
+        """Create a directory to hold log files, if not already present.
+        Returns True if created directory, False if directory was already
+          present. Can't log from here, because log file has not been
+          created yet.
+        """
+        self.log_dir_path = settings.BASE_DIR / Path('simple_deploy_logs')
+        if not self.log_dir_path.exists():
+            self.log_dir_path.mkdir()
+            return True
+        else:
+            return False
+
+
+
+
     # fmt: off
     def _validate_command(self):
-        """Make sure the command has been called with a valid set of arguments.
-        Returns:
-        - None
-        - Calls methods that will raise a CommandError if the command is invalid.
-        """
-        # Right now, we're just validating the platform argument. There will be
-        #   more validation, so keep this method in place.
-        self._validate_platform_arg()
+        """Verify simple_deploy has been called with a valid set of arguments.
 
+        Returns:
+            None
+        """
+        # There will likely be more validation to do, so user helper methods here.
+        self._validate_platform_arg()
 
     def _validate_platform_arg(self):
         """Find out which platform we're targeting, instantiate the
@@ -311,49 +357,7 @@ class Command(BaseCommand):
             sys.exit()
 
 
-    def _start_logging(self):
-        """Set up for logging."""
-        # Create a log directory if needed. Then create the log file, and 
-        #   log the creation of the log directory if it happened.
-        # In many libraries, one log file is created and then that file is
-        #   appended to, and it's on the user to manage log sizes.
-        # In this project, the user is expected to run simple_deploy
-        #   once, or maybe a couple times if they make a mistake and it exits.
-        # So, we should never have runaway log creation. It could be really
-        #   helpful to see how many logs are created, and it's also simpler
-        #   to review what happened if every log file represents a single run.
-        # To create a new log file each time simple_deploy is run, we append
-        #   a timestamp to the log filename.
-        created_log_dir = self._create_log_dir()
 
-        timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
-        log_filename = f"simple_deploy_{timestamp}.log"
-        verbose_log_path = self.log_dir_path / log_filename
-        verbose_logger = logging.basicConfig(level=logging.INFO,
-                filename=verbose_log_path,
-                format='%(asctime)s %(levelname)s: %(message)s')
-
-        self.log_info("\nLogging run of `manage.py simple_deploy`...")
-
-        if created_log_dir:
-            self.write_output(f"Created {self.log_dir_path}.")
-
-        # We'll make sure the log path is in .gitignore when we inspect the project
-        #   and find the .git dir.
-
-
-    def _create_log_dir(self):
-        """Create a directory to hold log files, if not already present.
-        Returns True if created directory, False if directory was already
-          present. Can't log from here, because log file has not been
-          created yet.
-        """
-        self.log_dir_path = settings.BASE_DIR / Path('simple_deploy_logs')
-        if not self.log_dir_path.exists():
-            self.log_dir_path.mkdir()
-            return True
-        else:
-            return False
 
 
     def _ignore_sd_logs(self):
