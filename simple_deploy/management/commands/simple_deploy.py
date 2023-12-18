@@ -179,7 +179,7 @@ class Command(BaseCommand):
         We're running commands differently on Windows, so this method
           takes a command and runs it appropriately on each system.
 
-        The `check` parameter is included because some callers will need to 
+        The `check` parameter is included because some callers will need to
           handle exceptions. For an example, see prep_automate_all() in
           deploy_platformsh.py. Most callers will only check whether returncode
           is nonzero, and not need to involve exception handling.
@@ -199,7 +199,7 @@ class Command(BaseCommand):
 
     def execute_command(self, cmd, skip_logging=False):
         """Execute command, and stream output while logging.
-        This method is intended for commands that run long enough that we 
+        This method is intended for commands that run long enough that we
         can't use a simple subprocess.run(capture_output=True), which doesn't
         stream any output until the command is finished. That works for logging,
         but makes it seem as if the deployment is hanging. This is an issue
@@ -220,35 +220,37 @@ class Command(BaseCommand):
         #   misses stderr. Maybe combine the loops with zip()? SO posts on this
         #   topic date back to Python2/3 days.
         cmd_parts = cmd.split()
-        with subprocess.Popen(cmd_parts, stderr=subprocess.PIPE,
-            bufsize=1, universal_newlines=True, shell=self.use_shell) as p:
+        with subprocess.Popen(
+            cmd_parts,
+            stderr=subprocess.PIPE,
+            bufsize=1,
+            universal_newlines=True,
+            shell=self.use_shell,
+        ) as p:
             for line in p.stderr:
                 self.write_output(line, skip_logging=skip_logging)
 
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
-
     # --- Internal methods; used only in this class ---
 
     def _parse_cli_options(self, options):
-        """Parse cli options."""
+        """Parse CLI options from simple_deploy command."""
 
         # Platform-agnostic arguments.
-        self.automate_all = options['automate_all']
-        self.platform = options['platform']
-        
-        # This is a True-to-disable option; turn it into a more intuitive flag?
-        self.log_output = not(options['no_logging'])
-        self.ignore_unclean_git = options['ignore_unclean_git']
+        self.automate_all = options["automate_all"]
+        self.platform = options["platform"]
+        self.log_output = not (options["no_logging"])
+        self.ignore_unclean_git = options["ignore_unclean_git"]
 
         # Platform.sh arguments.
-        self.deployed_project_name = options['deployed_project_name']
-        self.region = options['region']
+        self.deployed_project_name = options["deployed_project_name"]
+        self.region = options["region"]
 
         # Developer arguments.
-        self.unit_testing = options['unit_testing']
-        self.integration_testing = options['integration_testing']
+        self.unit_testing = options["unit_testing"]
+        self.integration_testing = options["integration_testing"]
 
     # fmt: off
     def _validate_command(self):
