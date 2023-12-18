@@ -139,9 +139,9 @@ def log_output_string(output):
 
 def strip_secret_key(line):
     """Strip secret key value from log file lines."""
-    if "SECRET_KEY:" in line:
-        new_line = line.split("SECRET_KEY:")[0]
-        new_line += "SECRET_KEY: *value hidden*"
+    if "SECRET_KEY =" in line:
+        new_line = line.split("SECRET_KEY")[0]
+        new_line += "SECRET_KEY = *value hidden*"
         return new_line
     else:
         return line
