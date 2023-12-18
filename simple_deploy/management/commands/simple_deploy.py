@@ -109,12 +109,8 @@ class Command(BaseCommand):
             self._start_logging()
             self.log_info(f"\nCLI args: {options}")
 
-        # Validate the set of arguments we've been given.
-        #   _validate_command() instantiates a PlatformDeployer object.
         self._validate_command()
         self._prep_platform()
-
-        # Inspect system; we'll run some system commands differently on Windows.
         self._inspect_system()
 
         # Inspect project here. If there's anything we can't work with locally,
@@ -336,6 +332,28 @@ class Command(BaseCommand):
         except AttributeError:
             pass
 
+    def _inspect_system(self):
+        """Inspect the user's local system for relevant information.
+
+        Uses self.on_windows and self.on_macos because those are clean checks to run.
+        May want to refactor to self.user_system at some point. Don't ever use
+        self.platform, because "platform" refers to the host we're deploying to.
+
+        Linux is not mentioned because so far, if it works on macOS it works on Linux.
+        """
+        self.use_shell = False
+        self.on_windows, self.on_macos = False, False
+        if platform.system() == 'Windows':
+            self.on_windows = True
+            self.use_shell = True
+            self.log_info("  Local platform identified: Windows")
+        elif platform.system() == 'Darwin':
+            self.on_macos = True
+            self.log_info("  Local platform identified: macOS")
+
+
+
+
     # fmt: off
     def _confirm_automate_all(self):
         """If the --automate-all flag has been passed, confirm that the user
@@ -357,10 +375,6 @@ class Command(BaseCommand):
             #   wanting to automate means they want to configure.
             self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
-
-
-
-
 
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
@@ -386,33 +400,6 @@ class Command(BaseCommand):
                 if 'simple_deploy_logs/' not in gitignore_contents:
                     f.write(f"\n{ignore_msg}")
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
-
-    def _inspect_system(self):
-        """Inspect the user's local system for relevant information.
-
-        Currently, we only need to know whether we're on Windows or macOS. The
-          first need was just for Windows, which is why the variables are
-          self.on_windows rather than something more general like self.user_system.
-        Also, keep in mind that we can't use a name like self.platform, because
-          platform almost always has a different meaning in this project.
-
-        Some system-specific notes:
-        - Some CLI commands are os-specific.
-        - Some subsystem calls need to be made a specific way depending on the os.
-        """
-        self.use_shell = False
-        self.on_windows, self.on_macos = False, False
-        if os.name == 'nt':
-            # DEV: This should use platform.system() as well, but I'm not on Windows
-            #   at the moment, so can't test it properly.
-            self.on_windows = True
-            self.use_shell = True
-
-            self.log_info("  Local platform identified: Windows")
-        elif platform.system() == 'Darwin':
-            self.on_macos = True
-            self.log_info("  Local platform identified: macOS")
-
 
     def _inspect_project(self):
         """Find out everything we need to know about the project, before
