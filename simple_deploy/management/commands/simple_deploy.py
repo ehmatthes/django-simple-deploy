@@ -101,13 +101,12 @@ class Command(BaseCommand):
         """
         self.write_output("Configuring project for deployment...", skip_logging=True)
 
-        # Parse CLI options. This needs to be done before logging starts.
+        # CLI options need to be parsed before logging starts, in case --no-logging
+        # has been passed.
         self._parse_cli_options(options)
 
-        # Start logging.
         if self.log_output:
             self._start_logging()
-            # Log the options used for this run.
             self.log_info(f"\nCLI args: {options}")
 
         # Validate the set of arguments we've been given.
@@ -233,7 +232,6 @@ class Command(BaseCommand):
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
-
     # --- Internal methods; used only in this class ---
 
     def _parse_cli_options(self, options):
@@ -254,51 +252,49 @@ class Command(BaseCommand):
         self.integration_testing = options["integration_testing"]
 
     def _start_logging(self):
-        """Set up for logging."""
-        # Create a log directory if needed. Then create the log file, and 
-        #   log the creation of the log directory if it happened.
-        # In many libraries, one log file is created and then that file is
-        #   appended to, and it's on the user to manage log sizes.
-        # In this project, the user is expected to run simple_deploy
-        #   once, or maybe a couple times if they make a mistake and it exits.
-        # So, we should never have runaway log creation. It could be really
-        #   helpful to see how many logs are created, and it's also simpler
-        #   to review what happened if every log file represents a single run.
-        # To create a new log file each time simple_deploy is run, we append
-        #   a timestamp to the log filename.
+        """Set up for logging.
+
+        Create a log directory if needed; create a new log file for every run of
+        simple_deploy. Since simple_deploy should be called once, it's helpful to have
+        separate files for each run. It should only be run more than once when users
+        are fixing errors that are called out by simple_deploy, or if a remote resource
+        hangs.
+
+        Log path is added to .gitignore when the project is inspected.
+        See _inspect_project().
+
+        Returns:
+            None
+        """
         created_log_dir = self._create_log_dir()
 
-        timestamp = datetime.now().strftime('%Y-%m-%d-%H%M%S')
+        # Instantiate a logger. Append a timestamp so each new run generates a unique
+        # log filename.
+        timestamp = datetime.now().strftime("%Y-%m-%d-%H%M%S")
         log_filename = f"simple_deploy_{timestamp}.log"
         verbose_log_path = self.log_dir_path / log_filename
-        verbose_logger = logging.basicConfig(level=logging.INFO,
-                filename=verbose_log_path,
-                format='%(asctime)s %(levelname)s: %(message)s')
+        verbose_logger = logging.basicConfig(
+            level=logging.INFO,
+            filename=verbose_log_path,
+            format="%(asctime)s %(levelname)s: %(message)s",
+        )
 
         self.log_info("\nLogging run of `manage.py simple_deploy`...")
-
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
 
-        # We'll make sure the log path is in .gitignore when we inspect the project
-        #   and find the .git dir.
-
-
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
-        Returns True if created directory, False if directory was already
-          present. Can't log from here, because log file has not been
-          created yet.
+
+        Returns:
+            bool: True if created directory, False if already one present.
         """
-        self.log_dir_path = settings.BASE_DIR / Path('simple_deploy_logs')
+        self.log_dir_path = settings.BASE_DIR / Path("simple_deploy_logs")
         if not self.log_dir_path.exists():
             self.log_dir_path.mkdir()
             return True
         else:
             return False
-
-
-
 
     # fmt: off
     def _validate_command(self):
