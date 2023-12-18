@@ -99,8 +99,7 @@ class Command(BaseCommand):
         Add django-simple-deploy to project requirements.
         Call the platform-specific deploy() method.
         """
-
-        self.stdout.write("Configuring project for deployment...")
+        self.write_output("Configuring project for deployment...", skip_logging=True)
 
         # Parse CLI options. This needs to be done before logging starts.
         self._parse_cli_options(options)
@@ -163,7 +162,6 @@ class Command(BaseCommand):
         """
         output_str = sd_utils.get_string_from_output(output)
 
-        # Some output, such as user input, does not need to be written to the console.
         if write_to_console:
             self.stdout.write(output_str)
 
@@ -176,7 +174,6 @@ class Command(BaseCommand):
             output_str = sd_utils.get_string_from_output(output)
             sd_utils.log_output_string(output_str)
 
-    # fmt: off
     def execute_subp_run(self, cmd, check=False):
         """Execute subprocess.run() command.
         We're running commands differently on Windows, so this method
@@ -253,7 +250,7 @@ class Command(BaseCommand):
         self.unit_testing = options['unit_testing']
         self.integration_testing = options['integration_testing']
 
-
+    # fmt: off
     def _validate_command(self):
         """Make sure the command has been called with a valid set of arguments.
         Returns:
