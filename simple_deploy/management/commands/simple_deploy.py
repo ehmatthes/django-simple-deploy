@@ -308,7 +308,7 @@ class Command(BaseCommand):
         """
         if not self.platform:
             raise sd_utils.SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
-        elif self.platform in ['fly_io', 'platform_sh', 'heroku']:
+        elif self.platform in ["fly_io", "platform_sh", "heroku"]:
             self.write_output(f"  Deployment target: {self.platform}")
         else:
             error_msg = d_msgs.invalid_platform_msg(self.platform)
@@ -321,10 +321,15 @@ class Command(BaseCommand):
         Import platform-specific messages.
         Get confirmation regarding preliminary support, if needed.
         """
-        deployer_module = import_module(f".{self.platform}.deploy", package='simple_deploy.management.commands')
+        deployer_module = import_module(
+            f".{self.platform}.deploy", package="simple_deploy.management.commands"
+        )
         self.platform_deployer = deployer_module.PlatformDeployer(self)
 
-        self.platform_msgs = import_module(f".{self.platform}.deploy_messages", package='simple_deploy.management.commands')
+        self.platform_msgs = import_module(
+            f".{self.platform}.deploy_messages",
+            package="simple_deploy.management.commands",
+        )
 
         try:
             self.platform_deployer.confirm_preliminary()
