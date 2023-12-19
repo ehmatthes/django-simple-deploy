@@ -366,13 +366,10 @@ class Command(BaseCommand):
         Returns:
             None
         """
-
         self.local_project_name = settings.ROOT_URLCONF.replace('.urls', '')
         self.log_info(f"  Local project name: {self.local_project_name}")
 
-        # For newer settings files, BASE_DIR is a Path. But for settings files that were
-        # generated before 3.1, it may still be a string.
-        self.project_root = Path(settings.BASE_DIR)
+        self.project_root = settings.BASE_DIR
         self.log_info(f"  Project root: {self.project_root}")
 
         # Find .git location, and make sure there's a clean status.
