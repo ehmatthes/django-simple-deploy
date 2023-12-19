@@ -113,7 +113,7 @@ class PlatformDeployer:
             self.sd.write_output("    No .platform.app.yaml file found. Generating file...")
 
             context = {
-                'project_name': self.sd.project_name, 
+                'project_name': self.sd.local_project_name, 
                 'deployed_project_name': self.deployed_project_name
                 }
             path = self.sd.project_root / '.platform.app.yaml'
@@ -355,7 +355,7 @@ class PlatformDeployer:
         """
         # If we're creating the project, we'll just use the startproject name.
         if self.sd.automate_all:
-            return self.sd.project_name
+            return self.sd.local_project_name
 
         # Use the provided name if --deployed-project-name specified.
         if self.sd.deployed_project_name:

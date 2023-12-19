@@ -139,7 +139,7 @@ class PlatformDeployer:
         self.sd.write_output("    No Dockerfile found. Generating file...")
 
         context = {
-            "django_project_name": self.sd.project_name,
+            "django_project_name": self.sd.local_project_name,
         }
 
         if self.sd.pkg_manager == "poetry":

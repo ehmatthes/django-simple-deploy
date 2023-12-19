@@ -159,9 +159,9 @@ class PlatformDeployer:
         else:
             self.sd.write_output("    No Procfile found. Generating Procfile...")
             if self.sd.nested_project:
-                proc_command = f"web: gunicorn {self.sd.project_name}.{self.sd.project_name}.wsgi --log-file -"
+                proc_command = f"web: gunicorn {self.sd.local_project_name}.{self.sd.local_project_name}.wsgi --log-file -"
             else:
-                proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
+                proc_command = f"web: gunicorn {self.sd.local_project_name}.wsgi --log-file -"
 
             with open(f"{self.sd.git_path}/Procfile", 'w') as f:
                 f.write(proc_command)
@@ -384,7 +384,7 @@ class PlatformDeployer:
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
         if self.sd.nested_project:
-            cmd = f"heroku run python {self.sd.project_name}/manage.py migrate"
+            cmd = f"heroku run python {self.sd.local_project_name}/manage.py migrate"
         else:
             cmd = 'heroku run python manage.py migrate'
         output = self.sd.execute_subp_run(cmd)

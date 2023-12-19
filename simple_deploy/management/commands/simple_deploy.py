@@ -346,29 +346,29 @@ class Command(BaseCommand):
             self.log_info("  Local platform identified: macOS")
 
     def _inspect_project(self):
-        """Find out everything we need to know about the project, before
-        making any remote calls.
+        """Inspect the local project.
 
-        - Determine project name.
-        - Find .git/ directory.
-        - Find out if this is a nested project or not.
-        - Find significant paths: settings, project root, .git/ location.
-        - Get the dependency management approach: requirements.txt, Pipenv, or
-            Poetry.
-        - Get the current requirements.          
+        Find out everything we need to know about the project before making any remote
+        calls.
+            Determine project name.
+            Find paths: .git/, settings, project root.
+            Determine if it's a nested project or not.
+            Get the dependency management approach: requirements.txt, Pipenv, Poetry
+            Get current requirements.          
 
-        This method does the minimum introspection needed before making any
-          remote calls. Anything that would cause us to exit before making the
-          first remote call should be done here.
+        Anything that might cause us to exit before making the first remote call should
+        be inspected here.
+
+        Sets:
+            self.local_project_name, self.project_root, self.settings_path, self.pkg_manager,
+            self.requirements
+
+        Returns:
+            None
         """
 
-        # Get project name. There are a number of ways to get the project
-        #   name; for now we'll assume the root url config file has not
-        #   been moved from the default location.
-        # DEV: Use this code when we can require Python >=3.9.
-        # self.project_name = settings.ROOT_URLCONF.removesuffix('.urls')
-        self.project_name = settings.ROOT_URLCONF.replace('.urls', '')
-        self.log_info(f"  Project name: {self.project_name}")
+        self.local_project_name = settings.ROOT_URLCONF.replace('.urls', '')
+        self.log_info(f"  Project name: {self.local_project_name}")
 
         # Get project root, from settings.
         #   We wrap this in Path(), because settings files generated before 3.1
@@ -387,7 +387,7 @@ class Command(BaseCommand):
         if self.log_output:
             self._ignore_sd_logs()
 
-        self.settings_path = self.project_root/ self.project_name / "settings.py"
+        self.settings_path = self.project_root/ self.local_project_name / "settings.py"
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
