@@ -114,13 +114,11 @@ class Command(BaseCommand):
         self._inspect_system()
         self._inspect_project()
 
-        # Confirm --automate-all, if needed. Currently, this needs to happen before
-        #   validate_platform(), because fly_io takes action based on automate_all
-        #   in _validate_platform().
-        # Then do platform-specific validation.
-        # Note: Some platforms have validation steps to do even when unit testing,
-        #   so we'll let them handle unit testing differences.
+        # Confirm --automate-all before calling platform.validate_platform(), because
+        # some platforms will take validation actions based on whether it's a
+        # configuration-only run or an automated deployment.
         self._confirm_automate_all()
+
         self.platform_deployer.validate_platform()
 
         # First action that could fail, but should happen after logging, is
