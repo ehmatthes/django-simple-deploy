@@ -393,29 +393,37 @@ class Command(BaseCommand):
         self.requirements = self._get_current_requirements()
 
     def _find_git_dir(self):
-        """Find .git location. Should be in BASE_DIR or BASE_DIR.parent.
-        If it's in BASE_DIR.parent, this is a project with a nested
-          directory structure.
+        """Find .git/ location.
 
-        This method also sets self.nested_project. A nested project has the
-          structure set up by:
+        Should be in BASE_DIR or BASE_DIR.parent. If it's in BASE_DIR.parent, this is a
+        project with a nested directory structure. A nested project has the structure
+        set up by:
            `django-admin startproject project_name`
         A non-nested project has manage.py at the root level, started by:
            `django-admin startproject .`
-        This matters for knowing where manage.py is, and knowing where the
-         .git dir is likely to be.
+        This matters for knowing where manage.py is, and knowing where the .git/ dir is
+        likely to be.
+
+        Sets:
+            self.git_path, self.nested_project
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If .git/ dir not found.
         """
-        if Path(self.project_root / '.git').exists():
-            self.git_path = Path(self.project_root)
+        if (self.project_root / '.git').exists():
+            self.git_path = self.project_root
             self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = False
-        elif (Path(self.project_root).parent / Path('.git')).exists():
-            self.git_path = Path(self.project_root).parent
+        elif (self.project_root.parent / '.git').exists():
+            self.git_path = self.project_root.parent
             self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
-            error_msg += f"\n  Looked in {self.project_root} and in {Path(self.project_root).parent}."
+            error_msg += f"\n  Looked in {self.project_root} and in {self.project_root.parent}."
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
     def _check_git_status(self):
