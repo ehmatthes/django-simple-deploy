@@ -360,22 +360,18 @@ class Command(BaseCommand):
         be inspected here.
 
         Sets:
-            self.local_project_name, self.project_root, self.settings_path, self.pkg_manager,
-            self.requirements
+            self.local_project_name, self.project_root, self.settings_path,
+            self.pkg_manager, self.requirements
 
         Returns:
             None
         """
 
         self.local_project_name = settings.ROOT_URLCONF.replace('.urls', '')
-        self.log_info(f"  Project name: {self.local_project_name}")
+        self.log_info(f"  Local project name: {self.local_project_name}")
 
-        # Get project root, from settings.
-        #   We wrap this in Path(), because settings files generated before 3.1
-        #   had settings.BASE_DIR as a string. Many projects that have been upgraded
-        #   to more recent versions may still have this in settings.py.
-        # This handles string values for settings.BASE_DIR, and has no impact
-        #   when settings.BASE_DIR is already a Path object.
+        # For newer settings files, BASE_DIR is a Path. But for settings files that were
+        # generated before 3.1, it may still be a string.
         self.project_root = Path(settings.BASE_DIR)
         self.log_info(f"  Project root: {self.project_root}")
 
