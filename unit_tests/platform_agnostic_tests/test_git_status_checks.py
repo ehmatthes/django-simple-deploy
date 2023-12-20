@@ -103,7 +103,7 @@ def test_unacceptable_settings_change(tmp_project, capfd):
     assert   "Dependency management system: " not in stdout
     assert "SimpleDeployCommandError" in stderr
 
-def test_simple_deploy_logs_exists(tmp_project, capfd):
+def test_sdlogs_exists(tmp_project, capfd):
     """Add simple_deploy_logs/ dir, and dummy log file with one line."""
     add_simple_deploy_logs(tmp_project)
 
@@ -114,7 +114,7 @@ def test_simple_deploy_logs_exists(tmp_project, capfd):
     # DEV: Consider explicit output about git check that was run, or ignoring git status?
     assert   "Dependency management system: " in stdout
 
-def test_add_simple_deploy_logs_gitignore(tmp_project, capfd):
+def test_add_sdlogs_gitignore(tmp_project, capfd):
     """Add simple_deploy_logs/ to .gitignore."""
     add_simple_deploy_logs_gitignore(tmp_project)
 
@@ -125,9 +125,25 @@ def test_add_simple_deploy_logs_gitignore(tmp_project, capfd):
     # DEV: Consider explicit output about git check that was run, or ignoring git status?
     assert   "Dependency management system: " in stdout
 
-def test_add_simple_deploy_installed_apps(tmp_project, capfd):
+def test_add_sd_installed_apps(tmp_project, capfd):
     """Add simple_deploy to INSTALLED_APPS, as an uncommitted change."""
     add_simple_deploy_installed_apps(tmp_project)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " in stdout
+
+# --- Test combinations of two acceptable changes. ---
+
+def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project, capfd):
+    """Add simple_deploy_logs/ dir, and dummy log file with one line. Also add sdlogs
+    to .gitignore.
+    """
+    add_simple_deploy_logs(tmp_project)
+    add_simple_deploy_logs_gitignore(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
