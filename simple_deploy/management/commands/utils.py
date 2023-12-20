@@ -4,6 +4,7 @@ Also contains resources useful to multiple platform-specific deployment
 scripts.
 """
 
+from pathlib import Path
 import inspect, re, sys, subprocess, logging
 
 from django.template.engine import Engine
@@ -144,6 +145,28 @@ def strip_secret_key(line):
         return new_line
     else:
         return line
+
+def git_status_okay_simple(diff_name_output, diff_output):
+    """Check the output of `git diff`.
+
+    If the only change is adding "simple_deploy" to INSTALLED_APPS, okay to proceed.
+    Only acceptable changes:
+        Adding simple_deploy_logs/ to project.
+        Adding "simple_deploy" to INSTALLED_APPS;
+        Adding "simple_deploy_logs/" to .gitignore.
+
+    Returns:
+        True: If okay to proceed.
+        False: If not okay to proceed.
+    """
+
+    acceptable_files = ['.gitignore', 'settings.py']
+    changed_filenames = diff_name_output.splitlines()
+    changed_paths = [Path(file) for file in changed_filenames]
+    if any([path.name not in acceptable_files for path in changed_paths]):
+        return False
+
+
 
 def git_status_okay(output_str):
     """Check the output of `git status --porcelain`.

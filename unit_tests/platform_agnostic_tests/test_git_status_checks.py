@@ -106,6 +106,22 @@ def test_unacceptable_settings_change(tmp_project, capfd):
     assert   "Dependency management system: " not in stdout
     assert "SimpleDeployCommandError" in stderr
 
+def test_unacceptable_file_changed(tmp_project, capfd):
+    """Call simple_deploy after adding a comment to wsgi.py."""
+    path = tmp_project / "blog" / "wsgi.py"
+    wsgi_text = path.read_text()
+    new_text = "\n# Placeholder comment to create unacceptable git status."
+    new_wsgi_text = wsgi_text + new_text
+    path.write_text(new_wsgi_text)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " not in stdout
+    assert "SimpleDeployCommandError" in stderr
+
 def test_sdlogs_exists(tmp_project, capfd):
     """Add simple_deploy_logs/ dir, and dummy log file with one line."""
     add_simple_deploy_logs(tmp_project)

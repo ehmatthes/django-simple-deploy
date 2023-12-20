@@ -446,37 +446,55 @@ class Command(BaseCommand):
         if self.ignore_unclean_git:
             return
 
-
-
-
-
-        # This command produces no output for clean status. It produces simplified
-        # output if there are changes present.
-        cmd = "git status"
+        cmd = "git diff --name-only"
         output_obj = self.execute_subp_run(cmd)
-        status_output_str = output_obj.stdout.decode()
-        self.log_info(f"\n{cmd}:\n{status_output_str}")
+        diff_name_output = output_obj.stdout.decode()
 
+        cmd = "git diff --unified=0"
+        output_obj = self.execute_subp_run(cmd)
+        diff_output = output_obj.stdout.decode()
 
-        self._raise_unclean_error()
-        return True
+        proceed = sd_utils.git_status_okay_simple(diff_name_output, diff_output)
 
-
-        status_okay = sd_utils.git_status_okay(status_output_str)
-        if status_okay == "proceed":
-            return
-        elif status_okay == "error":
+        if not proceed:
             self._raise_unclean_error()
 
-        # There are changes to settings.py. Call `git diff`, and see if it's okay to
-        # proceed.
-        cmd = "git diff"
-        output_obj = self.execute_subp_run(cmd)
-        diff_output_str = output_obj.stdout.decode()
-        diff_okay = sd_utils.git_diff_okay(status_output_str, diff_output_str)
 
-        if not diff_okay:
-            self._raise_unclean_error()
+
+
+
+
+
+
+
+
+        # # This command produces no output for clean status. It produces simplified
+        # # output if there are changes present.
+        # cmd = "git status"
+        # output_obj = self.execute_subp_run(cmd)
+        # status_output_str = output_obj.stdout.decode()
+        # self.log_info(f"\n{cmd}:\n{status_output_str}")
+
+
+        # self._raise_unclean_error()
+        # return True
+
+
+        # status_okay = sd_utils.git_status_okay(status_output_str)
+        # if status_okay == "proceed":
+        #     return
+        # elif status_okay == "error":
+        #     self._raise_unclean_error()
+
+        # # There are changes to settings.py. Call `git diff`, and see if it's okay to
+        # # proceed.
+        # cmd = "git diff"
+        # output_obj = self.execute_subp_run(cmd)
+        # diff_output_str = output_obj.stdout.decode()
+        # diff_okay = sd_utils.git_diff_okay(status_output_str, diff_output_str)
+
+        # if not diff_okay:
+        #     self._raise_unclean_error()
 
     def _raise_unclean_error(self):
         """Raise unclean git status error."""
