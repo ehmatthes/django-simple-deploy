@@ -48,7 +48,10 @@ def add_simple_deploy_logs_gitignore(tmp_project):
     path.write_text(contents)
 
 def add_simple_deploy_installed_apps(tmp_project):
-    """Add simple_deploy to INSTALLED_APPS, as an uncommitted change."""
+    """Add simple_deploy to INSTALLED_APPS, as an uncommitted change.
+
+    Run this before making other changes.
+    """
     path = tmp_project / "blog" / "settings.py"
     settings_text = path.read_text()
 
@@ -153,12 +156,47 @@ def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project, capfd):
     assert   "Dependency management system: " in stdout
 
 def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
-    pass
+    """Add simple_deploy_logs/ dir, and dummy log file with one line. Also add sd to
+    INSTALLED_APPS.
+    """
+    # Order matters, because adding to INSTALLED_APPS starts by resetting project.
+    add_simple_deploy_installed_apps(tmp_project)
+    add_simple_deploy_logs(tmp_project)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " in stdout
 
 def test_sdlogs_gitignore_sd_installed_apps(tmp_project, capfd):
-    pass
+    """Add simple_deploy_logs/ to .gitignore, and  add sd to INSTALLED_APPS."""
+    # Order matters, because adding to INSTALLED_APPS starts by resetting project.
+    add_simple_deploy_installed_apps(tmp_project)
+    add_simple_deploy_logs_gitignore(tmp_project)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " in stdout
 
 # --- Test combination of all three changes.
 
 def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project, capfd):
-    pass
+    """Add simple_deploy_logs/ dir and a single log file. Add simple_deploy_logs/ to
+    .gitignore, and  add sd to INSTALLED_APPS.
+    """
+    # Order matters, because adding to INSTALLED_APPS starts by resetting project.
+    add_simple_deploy_installed_apps(tmp_project)
+    add_simple_deploy_logs(tmp_project)
+    add_simple_deploy_logs_gitignore(tmp_project)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " in stdout
