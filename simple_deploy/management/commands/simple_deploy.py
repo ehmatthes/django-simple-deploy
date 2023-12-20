@@ -458,7 +458,7 @@ class Command(BaseCommand):
         self.log_info(f"\n{cmd}:\n{status_output_str}")
 
 
-
+        self._raise_unclean_error()
         return True
 
 
