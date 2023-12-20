@@ -13,23 +13,7 @@ from ..utils import manage_sample_project as msp
 
 # --- Helper functions ---
 
-
-# --- Test valid platform-agnostic simple_deploy calls ---
-
-# def test_help_output(tmp_project, capfd):
-#     """Call `manage.py simple_deploy --help`."""
-#     valid_sd_command = "python manage.py simple_deploy --help"
-#     stdout, stderr = msp.call_simple_deploy(tmp_project, valid_sd_command)
-
-#     current_test_dir = Path(__file__).parent
-#     reference_help_output = (current_test_dir / 'reference_files/sd_help_output.txt').read_text()
-
-#     assert stdout == reference_help_output
-
-
-
-# Notes: Test with --ignore-unclean-git.
-
+# --- Test against various valid and invalid states of user's project. ---
 
 def test_clean_git_status(tmp_project, capfd):
     """Call simple_deploy with the existing state of the project."""
@@ -40,7 +24,7 @@ def test_clean_git_status(tmp_project, capfd):
     # DEV: Consider explicit output about git check that was run, or ignoring git status?
     assert   "Dependency management system: " in stdout
 
-def test_unacceptable_git_status(tmp_project, capfd):
+def test_unacceptable_settings_change(tmp_project, capfd):
     """Call simple_deploy after adding a line to settings.py."""
     path = tmp_project / "blog" / "settings.py"
     assert path.exists()
@@ -57,3 +41,19 @@ def test_unacceptable_git_status(tmp_project, capfd):
     # DEV: Consider explicit output about git check that was run, or ignoring git status?
     assert   "Dependency management system: " not in stdout
     assert "SimpleDeployCommandError" in stderr
+
+def test_simple_deploy_logs_exists(tmp_project, capfd):
+    log_dir = tmp_project / "simple_deploy_logs"
+    log_dir.mkdir()
+    assert log_dir.exists()
+
+    log_path = log_dir / "dummy_log.log"
+    log_path.write_text("Dummy log entry.")
+    assert log_path.exists()
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " in stdout
