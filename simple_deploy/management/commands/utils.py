@@ -167,6 +167,9 @@ def git_status_okay_simple(diff_name_output, diff_output):
         return False
 
 
+    return True
+
+
 
 def git_status_okay(output_str):
     """Check the output of `git status --porcelain`.
