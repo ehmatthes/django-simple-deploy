@@ -424,20 +424,26 @@ class Command(BaseCommand):
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
     def _check_git_status(self):
-        """Make sure we're starting from a clean working state.
-        We really want to encourage users to be able to easily undo
-          configuration changes. This is especially true for automate-all.
+        """Make sure all non-simple_deploy changes have already been committed.
 
-        We do continue work if the only uncommitted change is adding 'simple_deploy'
-          to INSTALLED_APPS.
+        All configuration-specific work should be contained in a single commit. This
+        allows users to easily revert back to the version of the project that worked
+        locally, if the overall deployment effort fails, or if they don't like what
+        simple_deploy does for any reason.
+
+        Don't just look for a clean git status. Some uncommitted changes related to
+        simple_deploy's work is acceptable, for example if they are doing a couple
+        runs to get things right.
+
+        Users can override this check with the --ignore-unclean-git flag.
 
         Returns:
-            - None, if we can contine our work.
-            - raises CommandError if we shouldn't continue.
-        """
+            None: If status is such that simple_deploy can continue.
 
+        Raises:
+            SimpleDeployCommandError: If any reason found ot to continue.
+        """
         if self.ignore_unclean_git:
-            # People can override this check.
             return
 
         # If 'working tree clean' is in output of `git status`, we can definitely
@@ -467,6 +473,71 @@ class Command(BaseCommand):
                 error_msg += d_msgs.unclean_git_automate_all
 
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
+    def _diff_output_clean(self, output_str):
+        """Check output of `git diff`.
+        If `git diff` is empty, check `git status` again. If simple_deploy_logs/
+          is all that's listed, we can proceed.
+
+        If there are any lines that start with '- ', that indicates a deletion,
+        and we'll bail.
+
+        If there's more than one line starting with '+ ', that indicates more
+        than one addition, and we'll bail.
+
+        If there's only one addition, and it's 'simple_deploy' being added to
+        INSTALLED_APPS, we can continue.
+
+        Returns:
+            - True if output of `git diff` is okay to continue.
+            - False if output of `git diff` indicates we should bail.
+        """
+
+        # First check if the only change is simple_deploy_logs/ being present.
+        #   This will result in an empty `git diff`, but `git status --porcelain`
+        #   will just show one line:
+        # % git status --porcelain
+        # ?? simple_deploy_logs/
+        # Note: --porcelain shows abbreviated output, meant to be read by scripts.
+        if not output_str:
+            cmd = "git status --porcelain"
+            output_obj = self.execute_subp_run(cmd)
+            gs_output_str = output_obj.stdout.decode()
+            if gs_output_str.strip() == '?? simple_deploy_logs/':
+                return True
+            else:
+                # There are other changes not added.
+                return False
+
+        num_deletions = output_str.count('\n- ')
+        num_additions = output_str.count('\n+ ')
+
+        if (num_deletions > 0) or (num_additions > 1):
+            return False
+
+        # There's only one addition. Check if it's anything other than
+        #   simple_deploy being added to INSTALLED_APPS.
+        # Note: This is not an overly specific test. We're not checking
+        #   which file was changed, but there's no real reason someone would add
+        #   'simple_deploy' by itself in another file.
+        re_diff = r"""(\n\+{1}\s+[',"]simple_deploy[',"],)"""
+        m = re.search(re_diff, output_str)
+        if m:
+            # The only addition was 'simple_deploy', we can move on.
+            return True
+
+        # There was a change, but it wasn't just 'simple_deploy'.
+        # We can proceed if simple_deploy_logs/ was added to .gitignore.
+        if all([
+                "diff --git a/.gitignore b/.gitignore" in output_str,
+                "+# Ignore logs from simple_deploy." in output_str,
+                "+simple_deploy_logs/" in output_str
+                ]):
+            return True
+
+        # Couldn't identify an acceptable reason for an unclean status.
+        # We should bail and have user look at their status.
+        return False
 
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
@@ -686,87 +757,7 @@ class Command(BaseCommand):
             self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
-    
-
-    
-
-
-    
-
-
-    def _diff_output_clean(self, output_str):
-        """Check output of `git diff`.
-        If `git diff` is empty, check `git status` again. If simple_deploy_logs/
-          is all that's listed, we can proceed.
-
-        If there are any lines that start with '- ', that indicates a deletion,
-        and we'll bail.
-
-        If there's more than one line starting with '+ ', that indicates more
-        than one addition, and we'll bail.
-
-        If there's only one addition, and it's 'simple_deploy' being added to
-        INSTALLED_APPS, we can continue.
-
-        Returns:
-            - True if output of `git diff` is okay to continue.
-            - False if output of `git diff` indicates we should bail.
-        """
-
-        # First check if the only change is simple_deploy_logs/ being present.
-        #   This will result in an empty `git diff`, but `git status --porcelain`
-        #   will just show one line:
-        # % git status --porcelain
-        # ?? simple_deploy_logs/
-        # Note: --porcelain shows abbreviated output, meant to be read by scripts.
-        if not output_str:
-            cmd = "git status --porcelain"
-            output_obj = self.execute_subp_run(cmd)
-            gs_output_str = output_obj.stdout.decode()
-            if gs_output_str.strip() == '?? simple_deploy_logs/':
-                return True
-            else:
-                # There are other changes not added.
-                return False
-
-        num_deletions = output_str.count('\n- ')
-        num_additions = output_str.count('\n+ ')
-
-        if (num_deletions > 0) or (num_additions > 1):
-            return False
-
-        # There's only one addition. Check if it's anything other than
-        #   simple_deploy being added to INSTALLED_APPS.
-        # Note: This is not an overly specific test. We're not checking
-        #   which file was changed, but there's no real reason someone would add
-        #   'simple_deploy' by itself in another file.
-        re_diff = r"""(\n\+{1}\s+[',"]simple_deploy[',"],)"""
-        m = re.search(re_diff, output_str)
-        if m:
-            # The only addition was 'simple_deploy', we can move on.
-            return True
-
-        # There was a change, but it wasn't just 'simple_deploy'.
-        # We can proceed if simple_deploy_logs/ was added to .gitignore.
-        if all([
-                "diff --git a/.gitignore b/.gitignore" in output_str,
-                "+# Ignore logs from simple_deploy." in output_str,
-                "+simple_deploy_logs/" in output_str
-                ]):
-            return True
-
-        # Couldn't identify an acceptable reason for an unclean status.
-        # We should bail and have user look at their status.
-        return False
-
-
-    
-
-
-    
-
-
-    def _add_simple_deploy_req(self):
+        def _add_simple_deploy_req(self):
         """Add this project to requirements.txt."""
         # Since the simple_deploy app is in INCLUDED_APPS, it needs to be
         #   required. If it's not, platforms will reject the push.
@@ -779,10 +770,6 @@ class Command(BaseCommand):
         # Do this for all package managers, until testing better sorted?
         self.write_output("\n  Looking for django-simple-deploy in requirements...")
         self.add_package('django-simple-deploy')
-
-
-    
-
 
     def _write_pipfile_pkg(self, package_name, version=""):
         """Write package to Pipfile."""
@@ -807,9 +794,6 @@ class Command(BaseCommand):
             f.write(pipfile_text)
 
         self.write_output(f"    Added {package_name} to Pipfile.")
-
-
-    
 
 
     # --- Methods also used by platform-specific scripts ---
