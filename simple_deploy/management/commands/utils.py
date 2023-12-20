@@ -136,7 +136,6 @@ def log_output_string(output):
 
 # --- Helper functions ---
 
-
 def strip_secret_key(line):
     """Strip secret key value from log file lines."""
     if "SECRET_KEY =" in line:
@@ -145,3 +144,67 @@ def strip_secret_key(line):
         return new_line
     else:
         return line
+
+def git_status_okay(output_str):
+    """Check the output of `git status --porcelain`.
+
+    Returns:
+        "proceed"": If okay to proceed with configuration.
+        "inspect": If further inspection of status needed.
+        "error": If not okay to proceed.
+
+    Note: "inspect" is not used by caller, but it's really helpful to be explicit about
+    that state here.
+    """
+    # No output means a clean git status.
+    if not output_str:
+        return "proceed"
+
+    # Uncommitted changes are present. If only presence of logs, okay.
+    if output_str == "?? simple_deploy_logs/":
+        return "proceed"
+
+    # If logs, settings, or .gitignore have changes, need to inspect more.
+    if output_str == "M blog/settings.py\n?? simple_deploy_logs/":
+        return "inspect"
+
+    # Other files have been changed; will need to raise error.
+    return "error"
+
+def git_diff_okay(status_output_str, diff_output_str):
+    """Check the output of `git diff`.
+
+    If the only change is adding "simple_deploy" to INSTALLED_APPS, okay to proceed.
+    Only acceptable changes:
+        Adding "simple_deploy" to INSTALLED_APPS;
+        Adding "simple_deploy_logs/" to .gitignore.
+
+    Returns:
+        True: If okay to proceed.
+        False: If not okay to proceed.
+    """
+    # If any lines start with '- ', there are deletions.
+    if diff_output_str.count('\n- ') > 1:
+        return False
+
+
+
+    #If more than one line starts
+    # with '+ ', there are multiple additions. Return False for both conditons.
+    num_additions = output_str.count('\n+ ')
+
+    if (num_deletions > 0) or (num_additions > 1):
+        return False
+
+    # There's only one addition. If it's adding simple_deploy to INSTALLED_APPS, return
+    # True.
+    re_diff = r"""(\n\+{1}\s+[',"]simple_deploy[',"],)"""
+    m = re.search(re_diff, output_str)
+    if m:
+        return True
+
+
+
+
+    #     If there's only one addition, and it's 'simple_deploy' being added to
+    #     INSTALLED_APPS, we can continue.

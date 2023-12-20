@@ -446,33 +446,46 @@ class Command(BaseCommand):
         if self.ignore_unclean_git:
             return
 
-        # If 'working tree clean' is in output of `git status`, we can definitely
-        #   continue our work.
+
+
+
+
+        # This command produces no output for clean status. It produces simplified
+        # output if there are changes present.
         cmd = "git status"
         output_obj = self.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
+        status_output_str = output_obj.stdout.decode()
+        self.log_info(f"\n{cmd}:\n{status_output_str}")
 
-        # Log the output here, before any processing.
-        self.log_info(f"\ngit status:\n{output_str}")
 
-        if "working tree clean" in output_str:
+
+        return True
+
+
+        status_okay = sd_utils.git_status_okay(status_output_str)
+        if status_okay == "proceed":
             return
+        elif status_okay == "error":
+            self._raise_unclean_error()
 
-        # `git status` indicated that uncommitted changes have been made.
-        # Run `git diff`, and see if there are any changes beyond adding
-        #   'simple_deploy' to INSTALLED_APPS.
+        # There are changes to settings.py. Call `git diff`, and see if it's okay to
+        # proceed.
         cmd = "git diff"
         output_obj = self.execute_subp_run(cmd)
-        output_str = output_obj.stdout.decode()
+        diff_output_str = output_obj.stdout.decode()
+        diff_okay = sd_utils.git_diff_okay(status_output_str, diff_output_str)
 
-        if not self._diff_output_clean(output_str, ):
-            # There are uncommitted changes beyond just adding simple_deploy to
-            #   INSTALLED_APPS, so we need to bail.
-            error_msg = d_msgs.unclean_git_status
-            if self.automate_all:
-                error_msg += d_msgs.unclean_git_automate_all
+        if not diff_okay:
+            self._raise_unclean_error()
 
-            raise sd_utils.SimpleDeployCommandError(self, error_msg)
+    def _raise_unclean_error(self):
+        """Raise unclean git status error."""
+        error_msg = d_msgs.unclean_git_status
+        if self.automate_all:
+            error_msg += d_msgs.unclean_git_automate_all
+
+        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+
 
     def _diff_output_clean(self, output_str):
         """Check output of `git diff`.
@@ -757,7 +770,7 @@ class Command(BaseCommand):
             self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
-        def _add_simple_deploy_req(self):
+    def _add_simple_deploy_req(self):
         """Add this project to requirements.txt."""
         # Since the simple_deploy app is in INCLUDED_APPS, it needs to be
         #   required. If it's not, platforms will reject the push.
