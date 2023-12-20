@@ -151,3 +151,14 @@ def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project, capfd):
     # This is only found if the git check passed.
     # DEV: Consider explicit output about git check that was run, or ignoring git status?
     assert   "Dependency management system: " in stdout
+
+def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
+    pass
+
+def test_sdlogs_gitignore_sd_installed_apps(tmp_project, capfd):
+    pass
+
+# --- Test combination of all three changes.
+
+def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project, capfd):
+    pass
