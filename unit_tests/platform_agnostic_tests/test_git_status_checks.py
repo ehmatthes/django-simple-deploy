@@ -1,10 +1,15 @@
 """Check the response to various states of the user's repository.
 
 Should be able to use any valid platform for these calls.
+
+Notes:
+    There are a number of assertions about the state of the project as it's being set
+    up. Arrange of AAA is critical, so those are in place to verify assumptions about
+    the state of the project during setup.
 """
 
 from pathlib import Path
-import subprocess
+import subprocess, shlex, os
 
 import pytest
 
@@ -15,18 +20,66 @@ from ..utils import manage_sample_project as msp
 
 # --- Helper functions ---
 
+def execute_quick_command(tmp_project, cmd):
+    """Run a quick command, and return CompletedProcess object."""
+    cmd_parts = shlex.split(cmd)
+    os.chdir(tmp_project)
+    return subprocess.run(cmd_parts, capture_output=True)
+
 def add_simple_deploy_logs(tmp_project):
     """Add simple_deploy_logs/ dir, and a dummy log file with a single line."""
     log_dir = tmp_project / "simple_deploy_logs"
+    assert not log_dir.exists()
     log_dir.mkdir()
 
     log_path = log_dir / "dummy_log.log"
     log_path.write_text("Dummy log entry.")
 
+def add_simple_deploy_logs_gitignore(tmp_project):
+    """Add simple_deploy_logs/ to .gitignore, without committing the change."""
+    path = tmp_project / ".gitignore"
+    assert path.exists()
+
+    # simple_deploy_logs/ should not be in .gitignore yet.
+    contents = path.read_text()
+    assert "simple_deploy_logs" not in contents
+
+    contents += "\nsimple_deploy_logs/\n"
+    path.write_text(contents)
+
+def add_simple_deploy_installed_apps(tmp_project):
+    """Add simple_deploy to INSTALLED_APPS, as an uncommitted change."""
+    path = tmp_project / "blog" / "settings.py"
+    settings_text = path.read_text()
+
+    # It should already be there.
+    assert "simple_deploy" in settings_text
+
+    # Reset project to INITIAL_STATE, then add simple_deploy to INSTALLED_APPS without
+    # committing.
+    cmd = "git reset --hard INITIAL_STATE"
+    output_str = execute_quick_command(tmp_project, cmd).stdout.decode()
+    assert "HEAD is now at " in output_str
+    assert "Initial commit." in output_str
+
+    settings_lines = settings_text.splitlines()
+    for index, line in enumerate(settings_lines):
+        if "django-bootstrap5" in line:
+            break
+
+    settings_lines.insert(index+1, "    simple_deploy,")
+    settings_text = "\n".join(settings_lines)
+    path.write_text(settings_text)
+
+    cmd = "git status --porcelain"
+    output_str = execute_quick_command(tmp_project, cmd).stdout.decode()
+    assert "M blog/settings.py" in output_str
+
+
 # --- Test against various valid and invalid states of user's project. ---
 
 def test_clean_git_status(tmp_project, capfd):
-    """Call simple_deploy with the existing state of the project."""
+    """Call simple_deploy with the existing clean state of the project."""
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
@@ -35,7 +88,7 @@ def test_clean_git_status(tmp_project, capfd):
     assert   "Dependency management system: " in stdout
 
 def test_unacceptable_settings_change(tmp_project, capfd):
-    """Call simple_deploy after adding a line to settings.py."""
+    """Call simple_deploy after adding a non-simple_deploy line to settings.py."""
     path = tmp_project / "blog" / "settings.py"
     settings_text = path.read_text()
     new_text = "\n# Placeholder comment to create unacceptable git status."
@@ -51,7 +104,30 @@ def test_unacceptable_settings_change(tmp_project, capfd):
     assert "SimpleDeployCommandError" in stderr
 
 def test_simple_deploy_logs_exists(tmp_project, capfd):
+    """Add simple_deploy_logs/ dir, and dummy log file with one line."""
     add_simple_deploy_logs(tmp_project)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " in stdout
+
+def test_add_simple_deploy_logs_gitignore(tmp_project, capfd):
+    """Add simple_deploy_logs/ to .gitignore."""
+    add_simple_deploy_logs_gitignore(tmp_project)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    # This is only found if the git check passed.
+    # DEV: Consider explicit output about git check that was run, or ignoring git status?
+    assert   "Dependency management system: " in stdout
+
+def test_add_simple_deploy_installed_apps(tmp_project, capfd):
+    """Add simple_deploy to INSTALLED_APPS, as an uncommitted change."""
+    add_simple_deploy_installed_apps(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
