@@ -458,7 +458,7 @@ class Command(BaseCommand):
         output_obj = self.execute_subp_run(cmd)
         diff_output = output_obj.stdout.decode()
 
-        proceed = sd_utils.git_status_okay_simple(status_output, diff_output)
+        proceed = sd_utils.git_status_okay(status_output, diff_output)
 
         if not proceed:
             self._raise_unclean_error()

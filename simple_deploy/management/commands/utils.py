@@ -146,7 +146,7 @@ def strip_secret_key(line):
     else:
         return line
 
-def git_status_okay_simple(status_output, diff_output):
+def git_status_okay(status_output, diff_output):
     """Look for uncommmitted changes that aren't related to simple_deploy.
 
     If the only change is adding "simple_deploy" to INSTALLED_APPS, okay to proceed.
@@ -162,8 +162,6 @@ def git_status_okay_simple(status_output, diff_output):
 
     if not check_status_output(status_output):
         return False
-
-
 
     return True
 
@@ -198,38 +196,14 @@ def check_status_output(status_output):
 
 
 
+    # DEV: Consider looking at other status codes as well.
+
     # No reason not to continue.
     return True
 
 
 
 
-
-def git_status_okay(output_str):
-    """Check the output of `git status --porcelain`.
-
-    Returns:
-        "proceed"": If okay to proceed with configuration.
-        "inspect": If further inspection of status needed.
-        "error": If not okay to proceed.
-
-    Note: "inspect" is not used by caller, but it's really helpful to be explicit about
-    that state here.
-    """
-    # No output means a clean git status.
-    if not output_str:
-        return "proceed"
-
-    # Uncommitted changes are present. If only presence of logs, okay.
-    if output_str == "?? simple_deploy_logs/":
-        return "proceed"
-
-    # If logs, settings, or .gitignore have changes, need to inspect more.
-    if output_str == "M blog/settings.py\n?? simple_deploy_logs/":
-        return "inspect"
-
-    # Other files have been changed; will need to raise error.
-    return "error"
 
 def git_diff_okay(status_output_str, diff_output_str):
     """Check the output of `git diff`.
