@@ -146,8 +146,8 @@ def strip_secret_key(line):
     else:
         return line
 
-def git_status_okay_simple(diff_name_output, diff_output):
-    """Check the output of `git diff`.
+def git_status_okay_simple(status_output, diff_name_output, diff_output):
+    """Look for uncommmitted changes that aren't related to simple_deploy.
 
     If the only change is adding "simple_deploy" to INSTALLED_APPS, okay to proceed.
     Only acceptable changes:
@@ -160,6 +160,9 @@ def git_status_okay_simple(diff_name_output, diff_output):
         False: If not okay to proceed.
     """
 
+    if not check_status_output(status_output):
+        return False
+
     acceptable_files = ['.gitignore', 'settings.py']
     changed_filenames = diff_name_output.splitlines()
     changed_paths = [Path(file) for file in changed_filenames]
@@ -168,6 +171,24 @@ def git_status_okay_simple(diff_name_output, diff_output):
 
 
     return True
+
+def check_status_output(status_output):
+    """Check output of `git status --porcelain` for uncommitted changes.
+
+    Look for:
+        Untracked changes other than simple_deploy_logs/
+        Modified files beyond .gitignore and settings.py
+
+    """
+    lines = status_output.splitlines()
+    lines = [line.strip() for line in lines]
+    untracked_changes = [line for line in lines if line[0:2] == "??"]
+
+    if len(untracked_changes) > 1:
+        return False
+
+
+
 
 
 

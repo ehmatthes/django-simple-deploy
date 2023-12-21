@@ -446,6 +446,10 @@ class Command(BaseCommand):
         if self.ignore_unclean_git:
             return
 
+        cmd = "git status --porcelain"
+        output_obj = self.execute_subp_run(cmd)
+        status_output = output_obj.stdout.decode()
+
         cmd = "git diff --name-only"
         output_obj = self.execute_subp_run(cmd)
         diff_name_output = output_obj.stdout.decode()
@@ -454,7 +458,8 @@ class Command(BaseCommand):
         output_obj = self.execute_subp_run(cmd)
         diff_output = output_obj.stdout.decode()
 
-        proceed = sd_utils.git_status_okay_simple(diff_name_output, diff_output)
+        proceed = sd_utils.git_status_okay_simple(status_output, diff_name_output,
+                diff_output)
 
         if not proceed:
             self._raise_unclean_error()
