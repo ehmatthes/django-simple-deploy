@@ -26,7 +26,7 @@ def execute_quick_command(tmp_project, cmd):
     os.chdir(tmp_project)
     return subprocess.run(cmd_parts, capture_output=True)
 
-def add_simple_deploy_logs(tmp_project):
+def add_sd_logs(tmp_project):
     """Add simple_deploy_logs/ dir, and a dummy log file with a single line."""
     log_dir = tmp_project / "simple_deploy_logs"
     assert not log_dir.exists()
@@ -35,7 +35,7 @@ def add_simple_deploy_logs(tmp_project):
     log_path = log_dir / "dummy_log.log"
     log_path.write_text("Dummy log entry.")
 
-def add_simple_deploy_logs_gitignore(tmp_project):
+def add_sd_logs_gitignore(tmp_project):
     """Add simple_deploy_logs/ to .gitignore, without committing the change."""
     path = tmp_project / ".gitignore"
     assert path.exists()
@@ -47,7 +47,7 @@ def add_simple_deploy_logs_gitignore(tmp_project):
     contents += "\nsimple_deploy_logs/\n"
     path.write_text(contents)
 
-def add_simple_deploy_installed_apps(tmp_project):
+def add_sd_installed_apps(tmp_project):
     """Add simple_deploy to INSTALLED_APPS, as an uncommitted change.
 
     Run this before making other changes.
@@ -124,7 +124,7 @@ def test_unacceptable_file_changed(tmp_project, capfd):
 
 def test_sdlogs_exists(tmp_project, capfd):
     """Add simple_deploy_logs/ dir, and dummy log file with one line."""
-    add_simple_deploy_logs(tmp_project)
+    add_sd_logs(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -135,7 +135,7 @@ def test_sdlogs_exists(tmp_project, capfd):
 
 def test_add_sdlogs_gitignore(tmp_project, capfd):
     """Add simple_deploy_logs/ to .gitignore."""
-    add_simple_deploy_logs_gitignore(tmp_project)
+    add_sd_logs_gitignore(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -146,7 +146,7 @@ def test_add_sdlogs_gitignore(tmp_project, capfd):
 
 def test_add_sd_installed_apps(tmp_project, capfd):
     """Add simple_deploy to INSTALLED_APPS, as an uncommitted change."""
-    add_simple_deploy_installed_apps(tmp_project)
+    add_sd_installed_apps(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -161,8 +161,8 @@ def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project, capfd):
     """Add simple_deploy_logs/ dir, and dummy log file with one line. Also add sdlogs
     to .gitignore.
     """
-    add_simple_deploy_logs(tmp_project)
-    add_simple_deploy_logs_gitignore(tmp_project)
+    add_sd_logs(tmp_project)
+    add_sd_logs_gitignore(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -176,8 +176,8 @@ def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
     INSTALLED_APPS.
     """
     # Order matters, because adding to INSTALLED_APPS starts by resetting project.
-    add_simple_deploy_installed_apps(tmp_project)
-    add_simple_deploy_logs(tmp_project)
+    add_sd_installed_apps(tmp_project)
+    add_sd_logs(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -189,8 +189,8 @@ def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
 def test_sdlogs_gitignore_sd_installed_apps(tmp_project, capfd):
     """Add simple_deploy_logs/ to .gitignore, and  add sd to INSTALLED_APPS."""
     # Order matters, because adding to INSTALLED_APPS starts by resetting project.
-    add_simple_deploy_installed_apps(tmp_project)
-    add_simple_deploy_logs_gitignore(tmp_project)
+    add_sd_installed_apps(tmp_project)
+    add_sd_logs_gitignore(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -206,9 +206,9 @@ def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project, capfd):
     .gitignore, and  add sd to INSTALLED_APPS.
     """
     # Order matters, because adding to INSTALLED_APPS starts by resetting project.
-    add_simple_deploy_installed_apps(tmp_project)
-    add_simple_deploy_logs(tmp_project)
-    add_simple_deploy_logs_gitignore(tmp_project)
+    add_sd_installed_apps(tmp_project)
+    add_sd_logs(tmp_project)
+    add_sd_logs_gitignore(tmp_project)
 
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
