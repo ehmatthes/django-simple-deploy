@@ -160,17 +160,21 @@ def git_status_okay(status_output, diff_output):
         False: If not okay to proceed.
     """
 
-    if not check_status_output(status_output):
+    if not check_status_output(status_output, diff_output):
         return False
 
     return True
 
-def check_status_output(status_output):
+def check_status_output(status_output, diff_output):
     """Check output of `git status --porcelain` for uncommitted changes.
 
     Look for:
         Untracked changes other than simple_deploy_logs/
         Modified files beyond .gitignore and settings.py
+    Consider looking at other status codes at some point.
+
+    Returns:
+        bool: True if okay to proceed, False if not.
     """
     lines = status_output.splitlines()
     lines = [line.strip() for line in lines]
@@ -188,18 +192,37 @@ def check_status_output(status_output):
 
     # Process modified files.
     modified_files = [line.replace("M ", "") for line in lines if line[0] == "M"]
-    paths = [Path(f) for f in modified_files]
+    modified_paths = [Path(f) for f in modified_files]
     allowed_modifications = ["settings.py", ".gitignore"]
     # Return False if any files other than these have been modified.
-    if any([path.name not in allowed_modifications for path in paths]):
+    if any([path.name not in allowed_modifications for path in modifed_paths]):
         return False
 
+    print(paths)
 
-
-    # DEV: Consider looking at other status codes as well.
+    # Parse git diff output.
+    file_diffs = diff_output.split("\ndiff ")
+    for diff in file_diffs:
+        diff_lines = diff.split("\n")
+        if "settings.py" in diff_lines[0]:
+            # parse settings mods
+            pass
+        elif ".gitignore" in diff_lines[0]:
+            # parse .gitignore mods
+            pass
 
     # No reason not to continue.
     return True
+
+def parse_settings_diff(diff_lines):
+    """Look for any unexpected changes in settings.py."""
+    # Return False or None. True?
+    pass
+
+def parse_gitignore_diff(diff_lines):
+    """Look for any unexpected changes in .gitignore."""
+    pass
+
 
 
 
