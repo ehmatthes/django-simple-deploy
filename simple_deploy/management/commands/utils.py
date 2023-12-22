@@ -195,18 +195,16 @@ def check_status_output(status_output, diff_output):
     modified_paths = [Path(f) for f in modified_files]
     allowed_modifications = ["settings.py", ".gitignore"]
     # Return False if any files other than these have been modified.
-    if any([path.name not in allowed_modifications for path in modifed_paths]):
+    if any([path.name not in allowed_modifications for path in modified_paths]):
         return False
-
-    print(paths)
 
     # Parse git diff output.
     file_diffs = diff_output.split("\ndiff ")
     for diff in file_diffs:
         diff_lines = diff.split("\n")
         if "settings.py" in diff_lines[0]:
-            # parse settings mods
-            pass
+            if not check_settings_diff(diff_lines):
+                return False
         elif ".gitignore" in diff_lines[0]:
             # parse .gitignore mods
             pass
@@ -214,16 +212,37 @@ def check_status_output(status_output, diff_output):
     # No reason not to continue.
     return True
 
-def parse_settings_diff(diff_lines):
+def check_settings_diff(diff_lines):
     """Look for any unexpected changes in settings.py."""
     # Return False or None. True?
-    pass
+    lines = clean_diff(diff_lines)
 
-def parse_gitignore_diff(diff_lines):
+    # If there is more than one change to settings, don't proceed.
+    if len(lines) > 1:
+        return False
+
+    # If the change is not adding simple_deploy, don't proceed.
+    if "simple_deploy" not in lines[0]:
+        return False
+
+def check_gitignore_diff(diff_lines):
     """Look for any unexpected changes in .gitignore."""
     pass
 
+def clean_diff(diff_lines):
+    """Remove unneeded info from diff output."""
+    # Get rid of lines that start with --- or +++
+    lines = [l for l in diff_lines if l[:2] not in ("--", "++")]
 
+    # Ignore additions or deletions of blank lines.
+    lines = [l.strip() for l in lines]
+    lines = [l for l in lines if l not in ("-", "+")]
+
+    print("\n\ndiff:")
+    for line in lines:
+        print(line)
+
+    return lines
 
 
 
