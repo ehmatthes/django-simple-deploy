@@ -9,7 +9,7 @@ Notes:
 """
 
 from pathlib import Path
-import subprocess, shlex, os
+import subprocess, shlex, os, sys
 
 import pytest
 
@@ -52,25 +52,25 @@ def add_sd_installed_apps(tmp_project):
 
     Run this before making other changes.
     """
-    path = tmp_project / "blog" / "settings.py"
-    settings_text = path.read_text()
-
-    # It should already be there.
-    assert "simple_deploy" in settings_text
-
-    # Reset project to INITIAL_STATE, then add simple_deploy to INSTALLED_APPS without
-    # committing.
+    # Reset project to INITIAL_STATE, to remove simple_deploy from INSTALLED_APPS.
     cmd = "git reset --hard INITIAL_STATE"
     output_str = execute_quick_command(tmp_project, cmd).stdout.decode()
     assert "HEAD is now at " in output_str
     assert "Initial commit." in output_str
 
+    path = tmp_project / "blog" / "settings.py"
+    settings_text = path.read_text()
+
+    # 'simple_deploy' should no longer be in settings.
+    assert "simple_deploy" not in settings_text
+
+    # Split settings into lines, and find where to insert 'simple_deploy'.
     settings_lines = settings_text.splitlines()
     for index, line in enumerate(settings_lines):
-        if "django-bootstrap5" in line:
+        if "django_bootstrap5" in line:
             break
 
-    settings_lines.insert(index+1, "    simple_deploy,")
+    settings_lines.insert(index+1, "    'simple_deploy',")
     settings_text = "\n".join(settings_lines)
     path.write_text(settings_text)
 

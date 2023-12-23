@@ -1,0 +1,12 @@
+diff --git a/blog/settings.py b/blog/settings.py
+index 6d40136..be85f21 100644
+--- a/blog/settings.py
++++ b/blog/settings.py
+@@ -38,0 +39 @@ INSTALLED_APPS = [
++    'simple_deploy',
+@@ -134 +135,2 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+-LOGIN_URL = 'users:login'
+\ No newline at end of file
++LOGIN_URL = 'users:login'
++    simple_deploy,
+\ No newline at end of file
