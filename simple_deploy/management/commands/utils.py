@@ -183,11 +183,13 @@ def check_status_output(status_output, diff_output):
     untracked_changes = [line for line in lines if line[0:2] == "??"]
 
     if len(untracked_changes) > 1:
+        print("here aa")
         return False
     if (
         len(untracked_changes) == 1 
         and "simple_deploy_logs/" not in untracked_changes[0]
     ):
+        print("here bb")
         return False
 
     # Process modified files.
@@ -196,6 +198,7 @@ def check_status_output(status_output, diff_output):
     allowed_modifications = ["settings.py", ".gitignore"]
     # Return False if any files other than these have been modified.
     if any([path.name not in allowed_modifications for path in modified_paths]):
+        print("here cc")
         return False
 
     # Parse git diff output.
@@ -204,30 +207,60 @@ def check_status_output(status_output, diff_output):
         diff_lines = diff.split("\n")
         if "settings.py" in diff_lines[0]:
             if not check_settings_diff(diff_lines):
+                print('here dd')
                 return False
         elif ".gitignore" in diff_lines[0]:
-            # parse .gitignore mods
-            pass
+            if not check_gitignore_diff(diff_lines):
+                print('here ee')
+                return False
 
     # No reason not to continue.
     return True
 
 def check_settings_diff(diff_lines):
-    """Look for any unexpected changes in settings.py."""
-    # Return False or None. True?
+    """Look for any unexpected changes in settings.py.
+
+    Note: May want to accept a platform-specific settings block.
+    """
     lines = clean_diff(diff_lines)
 
-    # If there is more than one change to settings, don't proceed.
+    # If no meaningful changes, proceed.
+    if not lines:
+        return True
+
+    # If there's more than one change to settings, don't proceed.
     if len(lines) > 1:
+        print('here 11')
         return False
 
     # If the change is not adding simple_deploy, don't proceed.
     if "simple_deploy" not in lines[0]:
+        print('here 22')
         return False
+
+    return True
 
 def check_gitignore_diff(diff_lines):
     """Look for any unexpected changes in .gitignore."""
-    pass
+    lines = clean_diff(diff_lines)
+
+    # If no meaningful changes, proceed.
+    if not lines:
+        return True
+
+    print("lines:", lines)
+
+    # If there's more than one change to .gitignore, don't proceed.
+    if len(lines) > 1:
+        print('here 1')
+        return False
+
+    # If the change is not adding simple_deploy, don't proceed.
+    if "simple_deploy_logs" not in lines[0]:
+        print('here 2')
+        return False
+
+    return True
 
 def clean_diff(diff_lines):
     """Remove unneeded info from diff output."""
@@ -237,6 +270,11 @@ def clean_diff(diff_lines):
     # Ignore additions or deletions of blank lines.
     lines = [l.strip() for l in lines]
     lines = [l for l in lines if l not in ("-", "+")]
+    # Ignore lines that don't start with - or +.
+    try:
+        lines = [l for l in lines if l[0] in ("-", "+")]
+    except IndexError:
+        return []
 
     print("\n\ndiff:")
     for line in lines:

@@ -461,6 +461,7 @@ class Command(BaseCommand):
         proceed = sd_utils.git_status_okay(status_output, diff_output)
 
         if not proceed:
+            print('here 33')
             self._raise_unclean_error()
 
 
