@@ -449,6 +449,7 @@ class Command(BaseCommand):
         cmd = "git status --porcelain"
         output_obj = self.execute_subp_run(cmd)
         status_output = output_obj.stdout.decode()
+        self.log_info(f"\n{cmd}:\n{status_output}\n")
 
         # cmd = "git diff --name-only"
         # output_obj = self.execute_subp_run(cmd)

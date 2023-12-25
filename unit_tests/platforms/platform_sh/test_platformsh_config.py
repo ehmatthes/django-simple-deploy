@@ -91,10 +91,8 @@ def test_log_dir(tmp_project):
     assert "INFO: CLI args: {" in log_file_text
     assert "INFO:   Deployment target: platform_sh" in log_file_text
     assert "INFO:   Local project name: blog" in log_file_text
-    assert "INFO: git status:" in log_file_text
-    assert "INFO: Untracked files:" in log_file_text
-    assert 'INFO:   (use "git add <file>..." to include in what will be committed)' in log_file_text
-    assert "INFO: \tsimple_deploy_logs/" in log_file_text
+    assert "INFO: git status --porcelain:" in log_file_text
+    assert "INFO: ?? simple_deploy_logs/" in log_file_text
 
     # Spot check for success messages.
     assert "INFO: --- Your project is now configured for deployment on Platform.sh. ---" in log_file_text
