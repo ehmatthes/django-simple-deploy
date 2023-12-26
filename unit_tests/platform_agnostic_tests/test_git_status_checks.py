@@ -105,7 +105,7 @@ def add_sd_installed_apps(tmp_project):
     assert "M blog/settings.py" in output_str
 
 
-# --- Test against various valid and invalid states of user's project. ---
+# --- Tests without --ignore-unclean-git flag. ---
 
 
 def test_clean_git_status(tmp_project, capfd):
@@ -234,3 +234,42 @@ def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project, capfd):
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
+
+
+# --- Tests using --ignore-unclean-git flag. ---
+
+
+def test_clean_git_status_ignore_unclean_flag(tmp_project, capfd):
+    """Call simple_deploy with the existing clean state of the project."""
+    sd_command = "python manage.py simple_deploy --platform fly_io --ignore-unclean-git"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    assert "Ignoring git status." in stdout
+
+
+def test_unacceptable_settings_change_ignore_unclean_flag(tmp_project, capfd):
+    """Call simple_deploy after adding a non-simple_deploy line to settings.py."""
+    path = tmp_project / "blog" / "settings.py"
+    settings_text = path.read_text()
+    new_text = "\n# Placeholder comment to create unacceptable git status."
+    new_settings_text = settings_text + new_text
+    path.write_text(new_settings_text)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io --ignore-unclean-git"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    assert "Ignoring git status." in stdout
+
+
+def test_unacceptable_file_changed_ignore_unclean_flag(tmp_project, capfd):
+    """Call simple_deploy after adding a comment to wsgi.py."""
+    path = tmp_project / "blog" / "wsgi.py"
+    wsgi_text = path.read_text()
+    new_text = "\n# Placeholder comment to create unacceptable git status."
+    new_wsgi_text = wsgi_text + new_text
+    path.write_text(new_wsgi_text)
+
+    sd_command = "python manage.py simple_deploy --platform fly_io --ignore-unclean-git"
+    stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
+
+    assert "Ignoring git status." in stdout

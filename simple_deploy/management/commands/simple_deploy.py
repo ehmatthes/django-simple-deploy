@@ -446,6 +446,8 @@ class Command(BaseCommand):
             SimpleDeployCommandError: If any reason found not to continue.
         """
         if self.ignore_unclean_git:
+            msg = "Ignoring git status."
+            self.write_output(msg)
             return
 
         cmd = "git status --porcelain"
