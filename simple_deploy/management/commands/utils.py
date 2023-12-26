@@ -224,21 +224,16 @@ def check_settings_diff(diff_lines):
     """
     lines = clean_diff(diff_lines)
 
-    # print(diff_lines, lines)
-    # sys.exit()
-
     # If no meaningful changes, proceed.
     if not lines:
         return True
 
     # If there's more than one change to settings, don't proceed.
     if len(lines) > 1:
-        print('here 11')
         return False
 
     # If the change is not adding simple_deploy, don't proceed.
     if "simple_deploy" not in lines[0]:
-        print('here 22')
         return False
 
     return True
@@ -251,16 +246,12 @@ def check_gitignore_diff(diff_lines):
     if not lines:
         return True
 
-    # print("lines:", lines)
-
     # If there's more than one change to .gitignore, don't proceed.
     if len(lines) > 1:
-        print('here 1')
         return False
 
     # If the change is not adding simple_deploy, don't proceed.
     if "simple_deploy_logs" not in lines[0]:
-        print('here 2')
         return False
 
     return True
@@ -269,63 +260,15 @@ def clean_diff(diff_lines):
     """Remove unneeded info from diff output."""
     # Get rid of lines that start with --- or +++
     lines = [l for l in diff_lines if l[:2] not in ("--", "++")]
-    print("\nlines 0:", lines)
 
     # Ignore additions or deletions of blank lines.
     lines = [l.strip() for l in lines]
     lines = [l for l in lines if l]
     lines = [l for l in lines if l not in ("-", "+")]
-    print("\nlines 1:", lines)
     # Ignore lines that don't start with - or +.
     try:
         lines = [l for l in lines if l[0] in ("-", "+")]
     except IndexError:
         return []
-    print("\nlines 2:", lines)
-
-    print("\n\ndiff:")
-    for line in lines:
-        print(line)
 
     return lines
-
-
-
-
-def git_diff_okay(status_output_str, diff_output_str):
-    """Check the output of `git diff`.
-
-    If the only change is adding "simple_deploy" to INSTALLED_APPS, okay to proceed.
-    Only acceptable changes:
-        Adding "simple_deploy" to INSTALLED_APPS;
-        Adding "simple_deploy_logs/" to .gitignore.
-
-    Returns:
-        True: If okay to proceed.
-        False: If not okay to proceed.
-    """
-    # If any lines start with '- ', there are deletions.
-    if diff_output_str.count('\n- ') > 1:
-        return False
-
-
-
-    #If more than one line starts
-    # with '+ ', there are multiple additions. Return False for both conditons.
-    num_additions = output_str.count('\n+ ')
-
-    if (num_deletions > 0) or (num_additions > 1):
-        return False
-
-    # There's only one addition. If it's adding simple_deploy to INSTALLED_APPS, return
-    # True.
-    re_diff = r"""(\n\+{1}\s+[',"]simple_deploy[',"],)"""
-    m = re.search(re_diff, output_str)
-    if m:
-        return True
-
-
-
-
-    #     If there's only one addition, and it's 'simple_deploy' being added to
-    #     INSTALLED_APPS, we can continue.

@@ -118,22 +118,7 @@ def reset_test_project(request, tmp_project):
     """Reset the test project, so it can be used again by another test module,
     which may be another platform.
     """
-    print("\n--- RESETTING (module scope) ---")
     msp.reset_test_project(tmp_project, request.param)
-
-
-# @pytest.fixture(scope='function', params=["req_txt", "poetry", "pipenv"])
-# def reset_test_project_function(request, tmp_project):
-#     """Function-scoped version of reset_test_project().
-
-#     This is used in modules where the project needs to be reset for each test.
-
-#     Reset the test project, so it can be used again by another test module,
-#     which may be another platform.
-#     """
-#     print("\n--- RESETTING (function scope) ---")
-#     msp.reset_test_project(tmp_project, request.param)
-
 
 @pytest.fixture(scope='module', autouse=True)
 def run_simple_deploy(reset_test_project, tmp_project, request):

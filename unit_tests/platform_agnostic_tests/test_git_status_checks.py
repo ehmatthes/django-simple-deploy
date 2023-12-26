@@ -27,8 +27,6 @@ def reset_test_project_function(request, tmp_project):
     Reset the test project, so it can be used again by another test module,
     which may be another platform.
     """
-    print("\n--- RESETTING (function scope) ---")
-
     # All of the work done for checking git status happens before a package manager is
     # even identified. So, should be able to run tests against just one pkg_manager.
     # If a test starts to fail for only one pkg_manager, parametrize this fixture.
