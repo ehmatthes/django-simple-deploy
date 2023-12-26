@@ -451,18 +451,14 @@ class Command(BaseCommand):
         status_output = output_obj.stdout.decode()
         self.log_info(f"\n{cmd}:\n{status_output}\n")
 
-        # cmd = "git diff --name-only"
-        # output_obj = self.execute_subp_run(cmd)
-        # diff_name_output = output_obj.stdout.decode()
-
         cmd = "git diff --unified=0"
         output_obj = self.execute_subp_run(cmd)
         diff_output = output_obj.stdout.decode()
+        self.log_info(f"\n{cmd}:\n{diff_output}\n")
 
         proceed = sd_utils.check_status_output(status_output, diff_output)
 
         if not proceed:
-            print('here 33')
             self._raise_unclean_error()
 
     def _raise_unclean_error(self):
