@@ -113,9 +113,7 @@ def test_clean_git_status(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 def test_unacceptable_settings_change(tmp_project, capfd):
@@ -126,14 +124,10 @@ def test_unacceptable_settings_change(tmp_project, capfd):
     new_settings_text = settings_text + new_text
     path.write_text(new_settings_text)
 
-    # sys.exit()
-
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " not in stdout
+    assert "No uncommitted changes, other than simple_deploy work." not in stdout
     assert "SimpleDeployCommandError" in stderr
 
 
@@ -148,9 +142,7 @@ def test_unacceptable_file_changed(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " not in stdout
+    assert "No uncommitted changes, other than simple_deploy work." not in stdout
     assert "SimpleDeployCommandError" in stderr
 
 
@@ -161,9 +153,7 @@ def test_sdlogs_exists(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 def test_add_sdlogs_gitignore(tmp_project, capfd):
@@ -173,9 +163,7 @@ def test_add_sdlogs_gitignore(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 def test_add_sd_installed_apps(tmp_project, capfd):
@@ -185,9 +173,7 @@ def test_add_sd_installed_apps(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 # --- Test combinations of two acceptable changes. ---
@@ -203,9 +189,7 @@ def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
@@ -219,9 +203,7 @@ def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 def test_sdlogs_gitignore_sd_installed_apps(tmp_project, capfd):
@@ -233,9 +215,7 @@ def test_sdlogs_gitignore_sd_installed_apps(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 # --- Test combination of all three changes.
@@ -253,6 +233,4 @@ def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project, capfd):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    # This is only found if the git check passed.
-    # DEV: Consider explicit output about git check that was run, or ignoring git status?
-    assert "Dependency management system: " in stdout
+    assert "No uncommitted changes, other than simple_deploy work." in stdout

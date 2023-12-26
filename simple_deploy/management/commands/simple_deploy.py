@@ -460,7 +460,10 @@ class Command(BaseCommand):
 
         proceed = sd_utils.check_status_output(status_output, diff_output)
 
-        if not proceed:
+        if proceed:
+            msg = "No uncommitted changes, other than simple_deploy work."
+            self.write_output(msg)
+        else:
             self._raise_unclean_error()
 
     def _raise_unclean_error(self):
