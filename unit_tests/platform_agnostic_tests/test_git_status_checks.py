@@ -18,7 +18,7 @@ from ..utils import manage_sample_project as msp
 
 # --- Fixtures ---
 
-@pytest.fixture(scope='function', params=["req_txt", "poetry", "pipenv"], autouse=True)
+@pytest.fixture(scope='function', autouse=True)
 def reset_test_project_function(request, tmp_project):
     """Function-scoped version of reset_test_project().
 
@@ -28,7 +28,11 @@ def reset_test_project_function(request, tmp_project):
     which may be another platform.
     """
     print("\n--- RESETTING (function scope) ---")
-    msp.reset_test_project(tmp_project, request.param)
+
+    # All of the work done for checking git status happens before a package manager is
+    # even identified. So, should be able to run tests against just one pkg_manager.
+    # If a test starts to fail for only one pkg_manager, parametrize this fixture.
+    msp.reset_test_project(tmp_project, "req_txt")
 
 @pytest.fixture(autouse=True)
 def run_simple_deploy():
