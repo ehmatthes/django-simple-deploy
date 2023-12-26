@@ -146,25 +146,6 @@ def strip_secret_key(line):
     else:
         return line
 
-def git_status_okay(status_output, diff_output):
-    """Look for uncommmitted changes that aren't related to simple_deploy.
-
-    If the only change is adding "simple_deploy" to INSTALLED_APPS, okay to proceed.
-    Only acceptable changes:
-        Adding simple_deploy_logs/ to project.
-        Adding "simple_deploy" to INSTALLED_APPS;
-        Adding "simple_deploy_logs/" to .gitignore.
-
-    Returns:
-        True: If okay to proceed.
-        False: If not okay to proceed.
-    """
-
-    if not check_status_output(status_output, diff_output):
-        return False
-
-    return True
-
 def check_status_output(status_output, diff_output):
     """Check output of `git status --porcelain` for uncommitted changes.
 
