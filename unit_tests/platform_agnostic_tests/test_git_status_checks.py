@@ -115,6 +115,8 @@ def test_unacceptable_settings_change(tmp_project, capfd):
     new_settings_text = settings_text + new_text
     path.write_text(new_settings_text)
 
+    # sys.exit()
+
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 

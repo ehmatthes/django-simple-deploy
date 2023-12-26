@@ -224,6 +224,9 @@ def check_settings_diff(diff_lines):
     """
     lines = clean_diff(diff_lines)
 
+    # print(diff_lines, lines)
+    # sys.exit()
+
     # If no meaningful changes, proceed.
     if not lines:
         return True
@@ -248,7 +251,7 @@ def check_gitignore_diff(diff_lines):
     if not lines:
         return True
 
-    print("lines:", lines)
+    # print("lines:", lines)
 
     # If there's more than one change to .gitignore, don't proceed.
     if len(lines) > 1:
@@ -266,15 +269,19 @@ def clean_diff(diff_lines):
     """Remove unneeded info from diff output."""
     # Get rid of lines that start with --- or +++
     lines = [l for l in diff_lines if l[:2] not in ("--", "++")]
+    print("\nlines 0:", lines)
 
     # Ignore additions or deletions of blank lines.
     lines = [l.strip() for l in lines]
+    lines = [l for l in lines if l]
     lines = [l for l in lines if l not in ("-", "+")]
+    print("\nlines 1:", lines)
     # Ignore lines that don't start with - or +.
     try:
         lines = [l for l in lines if l[0] in ("-", "+")]
     except IndexError:
         return []
+    print("\nlines 2:", lines)
 
     print("\n\ndiff:")
     for line in lines:
