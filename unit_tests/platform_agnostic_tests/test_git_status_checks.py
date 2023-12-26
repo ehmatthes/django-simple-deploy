@@ -108,7 +108,7 @@ def add_sd_installed_apps(tmp_project):
 # --- Tests without --ignore-unclean-git flag. ---
 
 
-def test_clean_git_status(tmp_project, capfd):
+def test_clean_git_status(tmp_project):
     """Call simple_deploy with the existing clean state of the project."""
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -116,7 +116,7 @@ def test_clean_git_status(tmp_project, capfd):
     assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
-def test_unacceptable_settings_change(tmp_project, capfd):
+def test_unacceptable_settings_change(tmp_project):
     """Call simple_deploy after adding a non-simple_deploy line to settings.py."""
     path = tmp_project / "blog" / "settings.py"
     settings_text = path.read_text()
@@ -131,7 +131,7 @@ def test_unacceptable_settings_change(tmp_project, capfd):
     assert "SimpleDeployCommandError" in stderr
 
 
-def test_unacceptable_file_changed(tmp_project, capfd):
+def test_unacceptable_file_changed(tmp_project):
     """Call simple_deploy after adding a comment to wsgi.py."""
     path = tmp_project / "blog" / "wsgi.py"
     wsgi_text = path.read_text()
@@ -146,7 +146,7 @@ def test_unacceptable_file_changed(tmp_project, capfd):
     assert "SimpleDeployCommandError" in stderr
 
 
-def test_sdlogs_exists(tmp_project, capfd):
+def test_sdlogs_exists(tmp_project):
     """Add simple_deploy_logs/ dir, and dummy log file with one line."""
     add_sd_logs(tmp_project)
 
@@ -156,7 +156,7 @@ def test_sdlogs_exists(tmp_project, capfd):
     assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
-def test_add_sdlogs_gitignore(tmp_project, capfd):
+def test_add_sdlogs_gitignore(tmp_project):
     """Add simple_deploy_logs/ to .gitignore."""
     add_sd_logs_gitignore(tmp_project)
 
@@ -166,7 +166,7 @@ def test_add_sdlogs_gitignore(tmp_project, capfd):
     assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
-def test_add_sd_installed_apps(tmp_project, capfd):
+def test_add_sd_installed_apps(tmp_project):
     """Add simple_deploy to INSTALLED_APPS, as an uncommitted change."""
     add_sd_installed_apps(tmp_project)
 
@@ -179,7 +179,7 @@ def test_add_sd_installed_apps(tmp_project, capfd):
 # --- Test combinations of two acceptable changes. ---
 
 
-def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project, capfd):
+def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project):
     """Add simple_deploy_logs/ dir, and dummy log file with one line. Also add sdlogs
     to .gitignore.
     """
@@ -192,7 +192,7 @@ def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project, capfd):
     assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
-def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
+def test_sdlogs_exists_sd_installed_apps(tmp_project):
     """Add simple_deploy_logs/ dir, and dummy log file with one line. Also add sd to
     INSTALLED_APPS.
     """
@@ -206,7 +206,7 @@ def test_sdlogs_exists_sd_installed_apps(tmp_project, capfd):
     assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
-def test_sdlogs_gitignore_sd_installed_apps(tmp_project, capfd):
+def test_sdlogs_gitignore_sd_installed_apps(tmp_project):
     """Add simple_deploy_logs/ to .gitignore, and  add sd to INSTALLED_APPS."""
     # Order matters, because adding to INSTALLED_APPS starts by resetting project.
     add_sd_installed_apps(tmp_project)
@@ -221,7 +221,7 @@ def test_sdlogs_gitignore_sd_installed_apps(tmp_project, capfd):
 # --- Test combination of all three changes.
 
 
-def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project, capfd):
+def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project):
     """Add simple_deploy_logs/ dir and a single log file. Add simple_deploy_logs/ to
     .gitignore, and  add sd to INSTALLED_APPS.
     """
@@ -239,7 +239,7 @@ def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project, capfd):
 # --- Tests using --ignore-unclean-git flag. ---
 
 
-def test_clean_git_status_ignore_unclean_flag(tmp_project, capfd):
+def test_clean_git_status_ignore_unclean_flag(tmp_project):
     """Call simple_deploy with the existing clean state of the project."""
     sd_command = "python manage.py simple_deploy --platform fly_io --ignore-unclean-git"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
@@ -247,7 +247,7 @@ def test_clean_git_status_ignore_unclean_flag(tmp_project, capfd):
     assert "Ignoring git status." in stdout
 
 
-def test_unacceptable_settings_change_ignore_unclean_flag(tmp_project, capfd):
+def test_unacceptable_settings_change_ignore_unclean_flag(tmp_project):
     """Call simple_deploy after adding a non-simple_deploy line to settings.py."""
     path = tmp_project / "blog" / "settings.py"
     settings_text = path.read_text()
@@ -261,7 +261,7 @@ def test_unacceptable_settings_change_ignore_unclean_flag(tmp_project, capfd):
     assert "Ignoring git status." in stdout
 
 
-def test_unacceptable_file_changed_ignore_unclean_flag(tmp_project, capfd):
+def test_unacceptable_file_changed_ignore_unclean_flag(tmp_project):
     """Call simple_deploy after adding a comment to wsgi.py."""
     path = tmp_project / "blog" / "wsgi.py"
     wsgi_text = path.read_text()
