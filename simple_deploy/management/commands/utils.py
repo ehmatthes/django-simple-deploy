@@ -137,6 +137,7 @@ def log_output_string(output):
 
 # --- Helper functions ---
 
+
 def strip_secret_key(line):
     """Strip secret key value from log file lines."""
     if "SECRET_KEY =" in line:
@@ -145,6 +146,7 @@ def strip_secret_key(line):
         return new_line
     else:
         return line
+
 
 def check_status_output(status_output, diff_output):
     """Check output of `git status --porcelain` for uncommitted changes.
@@ -164,13 +166,11 @@ def check_status_output(status_output, diff_output):
     untracked_changes = [line for line in lines if line[0:2] == "??"]
 
     if len(untracked_changes) > 1:
-        print("here aa")
         return False
     if (
-        len(untracked_changes) == 1 
+        len(untracked_changes) == 1
         and "simple_deploy_logs/" not in untracked_changes[0]
     ):
-        print("here bb")
         return False
 
     # Process modified files.
@@ -179,7 +179,6 @@ def check_status_output(status_output, diff_output):
     allowed_modifications = ["settings.py", ".gitignore"]
     # Return False if any files other than these have been modified.
     if any([path.name not in allowed_modifications for path in modified_paths]):
-        print("here cc")
         return False
 
     # Parse git diff output.
@@ -188,15 +187,14 @@ def check_status_output(status_output, diff_output):
         diff_lines = diff.split("\n")
         if "settings.py" in diff_lines[0]:
             if not check_settings_diff(diff_lines):
-                print('here dd')
                 return False
         elif ".gitignore" in diff_lines[0]:
             if not check_gitignore_diff(diff_lines):
-                print('here ee')
                 return False
 
     # No reason not to continue.
     return True
+
 
 def check_settings_diff(diff_lines):
     """Look for any unexpected changes in settings.py.
@@ -219,6 +217,7 @@ def check_settings_diff(diff_lines):
 
     return True
 
+
 def check_gitignore_diff(diff_lines):
     """Look for any unexpected changes in .gitignore."""
     lines = clean_diff(diff_lines)
@@ -236,6 +235,7 @@ def check_gitignore_diff(diff_lines):
         return False
 
     return True
+
 
 def clean_diff(diff_lines):
     """Remove unneeded info from diff output."""
