@@ -354,7 +354,7 @@ class Command(BaseCommand):
             Find paths: .git/, settings, project root.
             Determine if it's a nested project or not.
             Get the dependency management approach: requirements.txt, Pipenv, Poetry
-            Get current requirements.          
+            Get current requirements.
 
         Anything that might cause us to exit before making the first remote call should
         be inspected here.
@@ -366,7 +366,7 @@ class Command(BaseCommand):
         Returns:
             None
         """
-        self.local_project_name = settings.ROOT_URLCONF.replace('.urls', '')
+        self.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
         self.log_info(f"  Local project name: {self.local_project_name}")
 
         self.project_root = settings.BASE_DIR
@@ -380,7 +380,7 @@ class Command(BaseCommand):
         if self.log_output:
             self._ignore_sd_logs()
 
-        self.settings_path = self.project_root/ self.local_project_name / "settings.py"
+        self.settings_path = self.project_root / self.local_project_name / "settings.py"
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
@@ -410,17 +410,19 @@ class Command(BaseCommand):
         Raises:
             SimpleDeployCommandError: If .git/ dir not found.
         """
-        if (self.project_root / '.git').exists():
+        if (self.project_root / ".git").exists():
             self.git_path = self.project_root
             self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = False
-        elif (self.project_root.parent / '.git').exists():
+        elif (self.project_root.parent / ".git").exists():
             self.git_path = self.project_root.parent
             self.write_output(f"  Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
-            error_msg += f"\n  Looked in {self.project_root} and in {self.project_root.parent}."
+            error_msg += (
+                f"\n  Looked in {self.project_root} and in {self.project_root.parent}."
+            )
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
     def _check_git_status(self):
@@ -469,8 +471,6 @@ class Command(BaseCommand):
 
         raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
-
-    # fmt: off
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
         Adds a .gitignore file if one is not found.
@@ -480,22 +480,23 @@ class Command(BaseCommand):
 
         # Assume .gitignore is in same directory as .git/ directory.
         # gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
-        gitignore_path = self.git_path / '.gitignore'
+        gitignore_path = self.git_path / ".gitignore"
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
-            gitignore_path.write_text(ignore_msg, encoding='utf-8')
+            gitignore_path.write_text(ignore_msg, encoding="utf-8")
             self.write_output("No .gitignore file found; created .gitignore.")
             self.write_output("Added simple_deploy_logs/ to .gitignore.")
         else:
             # Append log directory to .gitignore if it's not already there.
             # In r+ mode, a single read moves file pointer to end of file,
             #   setting up for appending.
-            with open(gitignore_path, 'r+') as f:
+            with open(gitignore_path, "r+") as f:
                 gitignore_contents = f.read()
-                if 'simple_deploy_logs/' not in gitignore_contents:
+                if "simple_deploy_logs/" not in gitignore_contents:
                     f.write(f"\n{ignore_msg}")
                     self.write_output("Added simple_deploy_logs/ to .gitignore")
 
+    # fmt: off
     def _get_dep_man_approach(self):
         """Identify which dependency management approach the project uses.
         req_txt, poetry, or pipenv.
