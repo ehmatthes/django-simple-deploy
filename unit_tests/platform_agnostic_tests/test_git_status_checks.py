@@ -18,6 +18,23 @@ from ..utils import manage_sample_project as msp
 
 # --- Fixtures ---
 
+@pytest.fixture(scope='function', params=["req_txt", "poetry", "pipenv"], autouse=True)
+def reset_test_project_function(request, tmp_project):
+    """Function-scoped version of reset_test_project().
+
+    This is used in modules where the project needs to be reset for each test.
+
+    Reset the test project, so it can be used again by another test module,
+    which may be another platform.
+    """
+    print("\n--- RESETTING (function scope) ---")
+    msp.reset_test_project(tmp_project, request.param)
+
+@pytest.fixture(autouse=True)
+def run_simple_deploy():
+    """Overrides main run_simple_deploy() fixture, which is not needed here."""
+    return
+
 # --- Helper functions ---
 
 def execute_quick_command(tmp_project, cmd):
