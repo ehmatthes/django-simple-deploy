@@ -200,17 +200,13 @@ class Command(BaseCommand):
         """
 
         # DEV: This only captures stderr right now.
-        #   This is used for commands that run long enough that we don't
-        #   want to use a simple subprocess.run(capture_output=True). Right
-        #   now that's the `git push heroku` call. That call writes to
-        #   stderr; I'm not sure how to stream both stdout and stderr. It also
-        #   affects `platform create` and `platform push`.
+        # The first call I used this for was `git push heroku`. That call writes to
+        # stderr; I believe streaming to stdout and stderr requires multithreading. The
+        # current approach seems to be working for all calls that use it.
         #
-        #     This will also be needed for long-running steps on other platforms,
-        #   which may or may not write to stderr. Adding a parameter
-        #   stdout=subprocess.PIPE and adding a separate identical loop over p.stdout
-        #   misses stderr. Maybe combine the loops with zip()? SO posts on this
-        #   topic date back to Python2/3 days.
+        # Adding a parameter stdout=subprocess.PIPE and adding a separate identical loop
+        # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
+        # this topic date back to Python2/3 days.
         cmd_parts = cmd.split()
         with subprocess.Popen(
             cmd_parts,
