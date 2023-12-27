@@ -109,7 +109,7 @@ def get_string_from_output(output):
     need to display both, consider redirecting stderr to stdout:
         subprocess.run(cmd_parts, stderr=subprocess.STDOUT, ...)
     This has not been necessary yet; if it becomes necessary we'll probably need to
-    modify simple_deploy.execute_subp_run() to accomodate the necessary args.
+    modify simple_deploy.run_quick_command() to accomodate the necessary args.
     """
     if isinstance(output, str):
         return output

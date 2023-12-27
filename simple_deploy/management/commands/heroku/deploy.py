@@ -60,7 +60,7 @@ class PlatformDeployer:
         else:
             self.sd.write_output("  Inspecting Heroku app...")
             cmd = 'heroku apps:info --json'
-            output_obj = self.sd.execute_subp_run(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
             self.sd.log_info(cmd)
             self.sd.write_output(output_obj)
 
@@ -102,7 +102,7 @@ class PlatformDeployer:
             msg = f"  Could not find an existing database. Creating one now..."
             self.sd.write_output(msg)
             cmd = 'heroku addons:create heroku-postgresql:mini'
-            output_obj = self.sd.execute_subp_run(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
             self.sd.log_info(cmd)
             self.sd.write_output(output_obj)
 
@@ -118,7 +118,7 @@ class PlatformDeployer:
 
         self.sd.write_output("  Setting Heroku environment variable...")
         cmd = 'heroku config:set ON_HEROKU=1'
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
@@ -311,7 +311,7 @@ class PlatformDeployer:
         if not self.sd.unit_testing:
             self.sd.write_output("  Setting DEBUG env var...")
             cmd = 'heroku config:set DEBUG=FALSE'
-            output = self.sd.execute_subp_run(cmd)
+            output = self.sd.run_quick_command(cmd)
             self.sd.log_info(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
@@ -338,7 +338,7 @@ class PlatformDeployer:
         if not self.sd.unit_testing:
             self.sd.write_output("  Setting new secret key for Heroku...")
             cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
-            output = self.sd.execute_subp_run(cmd)
+            output = self.sd.run_quick_command(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set SECRET_KEY config variable.")
 
@@ -362,7 +362,7 @@ class PlatformDeployer:
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
         cmd = 'git status'
-        git_status = self.sd.execute_subp_run(cmd)
+        git_status = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(git_status)
         status_str = git_status.stdout.decode()
@@ -387,7 +387,7 @@ class PlatformDeployer:
             cmd = f"heroku run python {self.sd.local_project_name}/manage.py migrate"
         else:
             cmd = 'heroku run python manage.py migrate'
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
 
         self.sd.write_output(output)
@@ -395,7 +395,7 @@ class PlatformDeployer:
         # Open Heroku app, so it simply appears in user's browser.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = 'heroku open'
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
 
@@ -497,13 +497,13 @@ class PlatformDeployer:
 
         self.sd.write_output("  Running `heroku create`...")
         cmd = 'heroku create'
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         self.sd.write_output("  Creating Postgres database...")
         cmd = 'heroku addons:create heroku-postgresql-mini'
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
 
@@ -522,7 +522,7 @@ class PlatformDeployer:
             
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
             try:
-            	output_obj = self.sd.execute_subp_run(cmd)
+            	output_obj = self.sd.run_quick_command(cmd)
             except FileNotFoundError:
                 raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
             
@@ -557,7 +557,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
 

@@ -216,7 +216,7 @@ class PlatformDeployer:
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = "platform url --yes"
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.log_info(cmd)
         self.sd.write_output(output)
 
@@ -327,7 +327,7 @@ class PlatformDeployer:
         self.sd.log_info(cmd)
 
         try:
-            output_obj = self.sd.execute_subp_run(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
         else:
@@ -337,7 +337,7 @@ class PlatformDeployer:
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
         self.sd.log_info(cmd)
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         output_err = output_obj.stderr.decode()
         
@@ -364,7 +364,7 @@ class PlatformDeployer:
         # Use --yes flag to avoid interactive prompt hanging in background
         #   if the user is not currently logged in to the CLI.
         cmd = "platform project:info --yes"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
 
         self.sd.log_info(cmd)
@@ -417,7 +417,7 @@ class PlatformDeployer:
 
         # Use --yes to suppress hanging at login prompt.
         cmd = "platform organization:list --yes"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)

@@ -241,7 +241,7 @@ class PlatformDeployer:
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
         self.sd.log_info(cmd)
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
         # Get URL of deployed project.
@@ -272,7 +272,7 @@ class PlatformDeployer:
         # First check if secret has already been set.
         #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
 
@@ -282,7 +282,7 @@ class PlatformDeployer:
             return
 
         cmd = f"fly secrets set -a {self.deployed_project_name} {secret}"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.write_output(output_str)
@@ -326,7 +326,7 @@ class PlatformDeployer:
 
         # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
-            output_obj = self.sd.execute_subp_run(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
 
@@ -339,7 +339,7 @@ class PlatformDeployer:
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
         self.sd.log_info(cmd)
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
@@ -385,7 +385,7 @@ class PlatformDeployer:
 
         # Run command, and get json output.
         # CLI has been validated; should not have to deal with stderr.
-        output_str = self.sd.execute_subp_run(cmd).stdout.decode()
+        output_str = self.sd.run_quick_command(cmd).stdout.decode()
         self.sd.log_info(output_str)
         output_json = json.loads(output_str)
 
@@ -491,7 +491,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         cmd = "fly apps create --generate-name --json"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.write_output(output_str)
@@ -618,7 +618,7 @@ class PlatformDeployer:
         # First, see if any Postgres clusters exist.
         cmd = "fly postgres list --json"
         self.sd.log_info(cmd)
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
@@ -673,7 +673,7 @@ class PlatformDeployer:
         # Get users of this db.
         #   `fly postgres users list` does not accept `--json` flag. :/
         cmd = f"fly postgres users list -a {self.db_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(cmd)
         self.sd.log_info(output_str)
@@ -778,7 +778,7 @@ class PlatformDeployer:
         cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
         self.sd.log_info(cmd)
 
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
 

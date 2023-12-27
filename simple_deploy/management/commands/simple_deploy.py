@@ -164,20 +164,25 @@ class Command(BaseCommand):
             output_str = sd_utils.get_string_from_output(output)
             sd_utils.log_output_string(output_str)
 
-    def execute_subp_run(self, cmd, check=False):
-        """Execute subprocess.run() command.
-        We're running commands differently on Windows, so this method
-          takes a command and runs it appropriately on each system.
+    def run_quick_command(self, cmd, check=False):
+        """Run a command that should finish quickly.
 
-        The `check` parameter is included because some callers will need to
-          handle exceptions. For an example, see prep_automate_all() in
-          deploy_platformsh.py. Most callers will only check whether returncode
-          is nonzero, and not need to involve exception handling.
+        Commands that should finish quickly can be run more simply than commands that
+        will take a long time. For quick commands, we can capture output and then deal
+        with it however we like, and the user won't notice that we first captured 
+        the output.
+
+        The `check` parameter is included because some callers will need to handle
+        exceptions. For example, see prep_automate_all() in deploy_platformsh.py. Most
+        callers will only check stderr, or maybe the returncode; they won't need to
+        involve exception handling.
 
         Returns:
-            - CompletedProcess instance
-            - if check=True is passed, raises CalledProcessError instead of
-              CompletedProcess with an error code.
+            CompletedProcess
+
+        Raises:
+            CalledProcessError: If check=True is passed, will raise CPError instead of
+            returning a CompletedProcess instance with an error code set.
         """
         if self.on_windows:
             output = subprocess.run(cmd, shell=True, capture_output=True)
@@ -188,7 +193,13 @@ class Command(BaseCommand):
         return output
 
     def execute_command(self, cmd, skip_logging=False):
-        """Execute command, and stream output while logging.
+        """Run a command that may take some time.
+
+        For commands that may take a while, we need to stream output to the user, rather
+        than just capturing it. Otherwise, the command will appear to hang.
+
+
+        Execute command, and stream output while logging.
         This method is intended for commands that run long enough that we
         can't use a simple subprocess.run(capture_output=True), which doesn't
         stream any output until the command is finished. That works for logging,
@@ -451,12 +462,12 @@ class Command(BaseCommand):
             return
 
         cmd = "git status --porcelain"
-        output_obj = self.execute_subp_run(cmd)
+        output_obj = self.run_quick_command(cmd)
         status_output = output_obj.stdout.decode()
         self.log_info(f"\n{cmd}:\n{status_output}\n")
 
         cmd = "git diff --unified=0"
-        output_obj = self.execute_subp_run(cmd)
+        output_obj = self.run_quick_command(cmd)
         diff_output = output_obj.stdout.decode()
         self.log_info(f"\n{cmd}:\n{diff_output}\n")
 
@@ -916,9 +927,9 @@ class Command(BaseCommand):
         self.write_output("  Committing changes...")
 
         cmd = 'git add .'
-        output = self.execute_subp_run(cmd)
+        output = self.run_quick_command(cmd)
         self.write_output(output)
 
         cmd = 'git commit -am "Configured project for deployment."'
-        output = self.execute_subp_run(cmd)
+        output = self.run_quick_command(cmd)
         self.write_output(output)
