@@ -378,7 +378,7 @@ class PlatformDeployer:
             cmd = f"git push heroku {self.current_branch}"
         else:
             cmd = f"git push heroku {self.current_branch}:main"
-        self.sd.execute_command(cmd)
+        self.sd.run_slow_command(cmd)
         self.sd.log_info(cmd)
 
         # Run initial set of migrations.

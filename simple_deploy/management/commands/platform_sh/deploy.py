@@ -202,7 +202,7 @@ class PlatformDeployer:
         self.sd.commit_changes()
 
         # Push project.
-        # Use execute_command(), to stream the output as it runs.
+        # Use run_slow_command(), to stream the output as it runs.
         self.sd.write_output("  Pushing to Platform.sh...")
 
         # Pause to make sure project that was created can be used.
@@ -211,7 +211,7 @@ class PlatformDeployer:
 
         cmd = "platform push --yes"
         self.sd.log_info(cmd)
-        self.sd.execute_command(cmd)
+        self.sd.run_slow_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
@@ -313,7 +313,7 @@ class PlatformDeployer:
             # Note: if user can't create a project the returncode will be 6, not 1.
             #   This may affect whether a CompletedProcess is returned, or an Exception
             # is raised.
-            self.sd.execute_command(cmd)
+            self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = plsh_msgs.unknown_create_error(e)
             raise SimpleDeployCommandError(self.sd, error_msg)

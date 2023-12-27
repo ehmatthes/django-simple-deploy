@@ -230,12 +230,12 @@ class PlatformDeployer:
 
         self.sd.commit_changes()
 
-        # Push project. Use execute_command() to stream output, otherwise it appears to
+        # Push project. Use run_slow_command() to stream output, otherwise it appears to
         # hang.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
         self.sd.log_info(cmd)
-        self.sd.execute_command(cmd)
+        self.sd.run_slow_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
@@ -548,10 +548,10 @@ class PlatformDeployer:
         self.sd.log_info(cmd)
         self._confirm_create_db(db_cmd=cmd)
 
-        # Create database. Use execute_command(), to stream output of long-running
+        # Create database. Use run_slow_command(), to stream output of long-running
         # process. Also, we're not logging this because I believe it contains db
         # credentials. May want to scrub and then log output.
-        self.sd.execute_command(cmd, skip_logging=True)
+        self.sd.run_slow_command(cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
         self.sd.write_output(msg)

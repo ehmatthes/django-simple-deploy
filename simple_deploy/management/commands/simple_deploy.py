@@ -192,20 +192,11 @@ class Command(BaseCommand):
 
         return output
 
-    def execute_command(self, cmd, skip_logging=False):
+    def run_slow_command(self, cmd, skip_logging=False):
         """Run a command that may take some time.
 
         For commands that may take a while, we need to stream output to the user, rather
         than just capturing it. Otherwise, the command will appear to hang.
-
-
-        Execute command, and stream output while logging.
-        This method is intended for commands that run long enough that we
-        can't use a simple subprocess.run(capture_output=True), which doesn't
-        stream any output until the command is finished. That works for logging,
-        but makes it seem as if the deployment is hanging. This is an issue
-        especially on platforms like Azure that have some steps that take minutes
-        to run.
         """
 
         # DEV: This only captures stderr right now.
