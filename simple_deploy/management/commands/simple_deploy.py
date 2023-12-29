@@ -481,13 +481,12 @@ class Command(BaseCommand):
 
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
+
         Adds a .gitignore file if one is not found.
         """
         ignore_msg = "# Ignore logs from simple_deploy."
         ignore_msg += "\nsimple_deploy_logs/\n"
 
-        # Assume .gitignore is in same directory as .git/ directory.
-        # gitignore_path = Path(settings.BASE_DIR) / Path('.gitignore')
         gitignore_path = self.git_path / ".gitignore"
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
@@ -496,13 +495,11 @@ class Command(BaseCommand):
             self.write_output("Added simple_deploy_logs/ to .gitignore.")
         else:
             # Append log directory to .gitignore if it's not already there.
-            # In r+ mode, a single read moves file pointer to end of file,
-            #   setting up for appending.
-            with open(gitignore_path, "r+") as f:
-                gitignore_contents = f.read()
-                if "simple_deploy_logs/" not in gitignore_contents:
-                    f.write(f"\n{ignore_msg}")
-                    self.write_output("Added simple_deploy_logs/ to .gitignore")
+            contents = gitignore_path.read_text()
+            if "simple_deploy_logs/" not in contents:
+                contents += f"\n{ignore_msg}"
+                gitignore_path.write_text(contents)
+                self.write_output("Added simple_deploy_logs/ to .gitignore")
 
     # fmt: off
     def _get_dep_man_approach(self):
