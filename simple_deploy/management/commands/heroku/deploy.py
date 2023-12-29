@@ -61,7 +61,6 @@ class PlatformDeployer:
             self.sd.write_output("  Inspecting Heroku app...")
             cmd = 'heroku apps:info --json'
             output_obj = self.sd.run_quick_command(cmd)
-            self.sd.log_info(cmd)
             self.sd.write_output(output_obj)
 
             output_str = output_obj.stdout.decode()
@@ -103,7 +102,6 @@ class PlatformDeployer:
             self.sd.write_output(msg)
             cmd = 'heroku addons:create heroku-postgresql:mini'
             output_obj = self.sd.run_quick_command(cmd)
-            self.sd.log_info(cmd)
             self.sd.write_output(output_obj)
 
 
@@ -119,7 +117,6 @@ class PlatformDeployer:
         self.sd.write_output("  Setting Heroku environment variable...")
         cmd = 'heroku config:set ON_HEROKU=1'
         output = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
@@ -312,7 +309,6 @@ class PlatformDeployer:
             self.sd.write_output("  Setting DEBUG env var...")
             cmd = 'heroku config:set DEBUG=FALSE'
             output = self.sd.run_quick_command(cmd)
-            self.sd.log_info(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
@@ -338,7 +334,7 @@ class PlatformDeployer:
         if not self.sd.unit_testing:
             self.sd.write_output("  Setting new secret key for Heroku...")
             cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
-            output = self.sd.run_quick_command(cmd)
+            output = self.sd.run_quick_command(cmd, skip_logging=True)
             self.sd.write_output(output)
             self.sd.write_output("    Set SECRET_KEY config variable.")
 
@@ -363,7 +359,6 @@ class PlatformDeployer:
         #   and keep everything after "On branch ".
         cmd = 'git status'
         git_status = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
         self.sd.write_output(git_status)
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
@@ -379,7 +374,6 @@ class PlatformDeployer:
         else:
             cmd = f"git push heroku {self.current_branch}:main"
         self.sd.run_slow_command(cmd)
-        self.sd.log_info(cmd)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
@@ -388,7 +382,6 @@ class PlatformDeployer:
         else:
             cmd = 'heroku run python manage.py migrate'
         output = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
 
         self.sd.write_output(output)
 
@@ -396,7 +389,6 @@ class PlatformDeployer:
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = 'heroku open'
         output = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
 
@@ -498,13 +490,11 @@ class PlatformDeployer:
         self.sd.write_output("  Running `heroku create`...")
         cmd = 'heroku create'
         output = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         self.sd.write_output("  Creating Postgres database...")
         cmd = 'heroku addons:create heroku-postgresql-mini'
         output = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
 
@@ -518,7 +508,6 @@ class PlatformDeployer:
         # Make sure Heroku CLI is installed, if we're not unit testing.
         if not self.sd.unit_testing:
             cmd = 'heroku --version'
-            self.sd.log_info(cmd)
             
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
             try:
@@ -558,7 +547,6 @@ class PlatformDeployer:
 
         cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
         output = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         msg = "    Wrote requirements.txt file."

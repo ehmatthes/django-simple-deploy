@@ -210,14 +210,12 @@ class PlatformDeployer:
         time.sleep(10)
 
         cmd = "platform push --yes"
-        self.sd.log_info(cmd)
         self.sd.run_slow_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = "platform url --yes"
         output = self.sd.run_quick_command(cmd)
-        self.sd.log_info(cmd)
         self.sd.write_output(output)
 
         # Get url of deployed project.
@@ -307,7 +305,6 @@ class PlatformDeployer:
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
         cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
-        self.sd.log_info(cmd)
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.
@@ -324,7 +321,6 @@ class PlatformDeployer:
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed, and user is authenticated."""
         cmd = 'platform --version'
-        self.sd.log_info(cmd)
 
         try:
             output_obj = self.sd.run_quick_command(cmd)
@@ -336,7 +332,6 @@ class PlatformDeployer:
             
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
-        self.sd.log_info(cmd)
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         output_err = output_obj.stderr.decode()
@@ -367,9 +362,9 @@ class PlatformDeployer:
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
 
+        # Log cmd, but don't log the output of `project:info`. It contains identifying
+        # information about the user and project, including client_ssh_key.
         self.sd.log_info(cmd)
-        # Don't log the output of `project:info`. It contains identifying information
-        #   about the user and project, including client_ssh_key.
 
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
@@ -419,7 +414,6 @@ class PlatformDeployer:
         cmd = "platform organization:list --yes"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
         if not output_str:

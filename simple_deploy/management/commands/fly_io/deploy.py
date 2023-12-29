@@ -230,11 +230,9 @@ class PlatformDeployer:
 
         self.sd.commit_changes()
 
-        # Push project. Use run_slow_command() to stream output, otherwise it appears to
-        # hang.
+        # Push project.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
-        self.sd.log_info(cmd)
         self.sd.run_slow_command(cmd)
 
         # Open project.
@@ -538,12 +536,11 @@ class PlatformDeployer:
 
         cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
-        self.sd.log_info(cmd)
         self._confirm_create_db(db_cmd=cmd)
 
-        # Create database. Use run_slow_command(), to stream output of long-running
-        # process. Also, we're not logging this because I believe it contains db
-        # credentials. May want to scrub and then log output.
+        # Create database. Log command, but don't log output because it should contain
+        # db credentials. May want to scrub and then log output.
+        self.sd.log_info(cmd)
         self.sd.run_slow_command(cmd, skip_logging=True)
 
         msg = "  Created Postgres database."

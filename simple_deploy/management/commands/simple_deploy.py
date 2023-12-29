@@ -210,7 +210,7 @@ class Command(BaseCommand):
         # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
         # this topic date back to Python2/3 days.
         self.log_info(f"\n{cmd}")
-        
+
         cmd_parts = cmd.split()
         with subprocess.Popen(
             cmd_parts,
@@ -272,7 +272,7 @@ class Command(BaseCommand):
             format="%(asctime)s %(levelname)s: %(message)s",
         )
 
-        self.log_info("\nLogging run of `manage.py simple_deploy`...")
+        self.write_output("\nLogging run of `manage.py simple_deploy`...")
         if created_log_dir:
             self.write_output(f"Created {self.log_dir_path}.")
 
