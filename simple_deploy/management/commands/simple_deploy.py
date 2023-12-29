@@ -169,7 +169,7 @@ class Command(BaseCommand):
 
         Commands that should finish quickly can be run more simply than commands that
         will take a long time. For quick commands, we can capture output and then deal
-        with it however we like, and the user won't notice that we first captured 
+        with it however we like, and the user won't notice that we first captured
         the output.
 
         The `check` parameter is included because some callers will need to handle
@@ -501,20 +501,21 @@ class Command(BaseCommand):
                 gitignore_path.write_text(contents)
                 self.write_output("Added simple_deploy_logs/ to .gitignore")
 
-    # fmt: off
     def _get_dep_man_approach(self):
         """Identify which dependency management approach the project uses.
-        req_txt, poetry, or pipenv.
 
-        Sets the self.pkg_manager attribute.
-        Looks for most specific tests first: Pipenv, Poetry, then requirements.txt.
-          ie if a project uses Poetry and has a requirements.txt file, we'll prioritize
-          Poetry.
+        Looks for most specific tests first: Pipenv, Poetry, then requirements.txt. For
+        example, if a project uses Poetry and has a requirements.txt file, we'll
+        prioritize Poetry.
 
-        Returns
-        - String representing dependency management system found:
-            req_txt | poetry | pipenv
-        - Raises CommandError if no pkg_manager can be identified.
+        Sets:
+            self.pkg_manager
+
+        Returns:
+            str: "req_txt" | "poetry" | "pipenv"
+
+        Raises:
+            SimpleDeployCommandError: If a pkg manager can't be identified.
         """
         if (self.git_path / "Pipfile").exists():
             return "pipenv"
@@ -526,7 +527,6 @@ class Command(BaseCommand):
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
         raise sd_utils.SimpleDeployCommandError(self, error_msg)
-
 
     def _check_using_poetry(self):
         """Check if the project appears to be using poetry.
@@ -543,13 +543,13 @@ class Command(BaseCommand):
             return True
 
         path = self.git_path / "pyproject.toml"
-        if path.exists():
-            if "[tool.poetry]" in path.read_text():
-                return True
+        if path.exists() and "[tool.poetry]" in path.read_text():
+            return True
 
         # Couldn't find any evidence of using Poetry.
         return False
 
+    # fmt: off
     def _get_current_requirements(self):
         """Get current project requirements, before adding any new ones.
 
