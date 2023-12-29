@@ -164,7 +164,7 @@ class Command(BaseCommand):
             output_str = sd_utils.get_string_from_output(output)
             sd_utils.log_output_string(output_str)
 
-    def run_quick_command(self, cmd, check=False):
+    def run_quick_command(self, cmd, check=False, skip_logging=False):
         """Run a command that should finish quickly.
 
         Commands that should finish quickly can be run more simply than commands that
@@ -184,7 +184,8 @@ class Command(BaseCommand):
             CalledProcessError: If check=True is passed, will raise CPError instead of
             returning a CompletedProcess instance with an error code set.
         """
-        self.log_info(f"\n{cmd}")
+        if not skip_logging:
+            self.log_info(f"\n{cmd}")
 
         if self.on_windows:
             output = subprocess.run(cmd, shell=True, capture_output=True)
