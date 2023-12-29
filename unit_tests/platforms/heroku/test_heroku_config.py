@@ -83,7 +83,7 @@ def test_log_dir(tmp_project):
     assert "INFO: CLI args: {" in log_file_text
     assert "INFO:   Deployment target: heroku" in log_file_text
     assert "INFO:   Local project name: blog" in log_file_text
-    assert "INFO: git status --porcelain:" in log_file_text
+    assert "INFO: git status --porcelain" in log_file_text
     assert "INFO: ?? simple_deploy_logs/" in log_file_text
 
     # Spot check for success messages.
