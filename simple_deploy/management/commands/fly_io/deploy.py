@@ -240,7 +240,6 @@ class PlatformDeployer:
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
-        self.sd.log_info(cmd)
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
@@ -274,7 +273,6 @@ class PlatformDeployer:
         cmd = f"fly secrets list -a {self.deployed_project_name}"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
 
         if needle in output_str:
             msg = f"  Found {needle} in existing secrets."
@@ -284,7 +282,6 @@ class PlatformDeployer:
         cmd = f"fly secrets set -a {self.deployed_project_name} {secret}"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         msg = f"  Set secret: {secret}"
@@ -322,7 +319,6 @@ class PlatformDeployer:
     def _validate_cli(self):
         """Make sure the Fly.io CLI is installed, and user is authenticated."""
         cmd = "fly version"
-        self.sd.log_info(cmd)
 
         # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
@@ -338,7 +334,6 @@ class PlatformDeployer:
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
-        self.sd.log_info(cmd)
         output_obj = self.sd.run_quick_command(cmd)
 
         error_msg = "Error: No access token available."
@@ -381,7 +376,6 @@ class PlatformDeployer:
 
         # Get info about user's apps on Fly.io.
         cmd = "fly apps list --json"
-        self.sd.log_info(cmd)
 
         # Run command, and get json output.
         # CLI has been validated; should not have to deal with stderr.
@@ -493,7 +487,6 @@ class PlatformDeployer:
         cmd = "fly apps create --generate-name --json"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         # Get app name.
@@ -617,7 +610,6 @@ class PlatformDeployer:
 
         # First, see if any Postgres clusters exist.
         cmd = "fly postgres list --json"
-        self.sd.log_info(cmd)
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
@@ -675,7 +667,6 @@ class PlatformDeployer:
         cmd = f"fly postgres users list -a {self.db_name}"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
         # Strip extra whitespace, split into lines, remove header. Split each line on
@@ -776,7 +767,6 @@ class PlatformDeployer:
         msg = "  Attaching database to Fly.io app..."
         self.sd.write_output(msg)
         cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
-        self.sd.log_info(cmd)
 
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()

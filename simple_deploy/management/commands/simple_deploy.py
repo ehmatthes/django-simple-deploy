@@ -184,6 +184,8 @@ class Command(BaseCommand):
             CalledProcessError: If check=True is passed, will raise CPError instead of
             returning a CompletedProcess instance with an error code set.
         """
+        self.log_info(f"\n{cmd}")
+
         if self.on_windows:
             output = subprocess.run(cmd, shell=True, capture_output=True)
         else:
@@ -207,6 +209,8 @@ class Command(BaseCommand):
         # Adding a parameter stdout=subprocess.PIPE and adding a separate identical loop
         # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
         # this topic date back to Python2/3 days.
+        self.log_info(f"\n{cmd}")
+        
         cmd_parts = cmd.split()
         with subprocess.Popen(
             cmd_parts,
@@ -451,12 +455,12 @@ class Command(BaseCommand):
         cmd = "git status --porcelain"
         output_obj = self.run_quick_command(cmd)
         status_output = output_obj.stdout.decode()
-        self.log_info(f"\n{cmd}:\n{status_output}\n")
+        self.log_info(f"{status_output}\n")
 
         cmd = "git diff --unified=0"
         output_obj = self.run_quick_command(cmd)
         diff_output = output_obj.stdout.decode()
-        self.log_info(f"\n{cmd}:\n{diff_output}\n")
+        self.log_info(f"{diff_output}\n")
 
         proceed = sd_utils.check_status_output(status_output, diff_output)
 
