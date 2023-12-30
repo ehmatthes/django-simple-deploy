@@ -557,7 +557,7 @@ class Command(BaseCommand):
         for most packages.
 
         Returns:
-            list: List of strings, each representing a requirement.
+            List[str]: List of strings, each representing a requirement.
         """
         msg = "  Checking current project requirements..."
         self.write_output(msg)
@@ -569,7 +569,7 @@ class Command(BaseCommand):
         elif self.pkg_manager == "poetry":
             requirements = self._get_poetry_requirements()
 
-        # Report findings.
+        # Report findings. 
         msg = "    Found existing dependencies:"
         self.write_output(msg)
         for requirement in requirements:
@@ -581,14 +581,17 @@ class Command(BaseCommand):
     def _get_req_txt_requirements(self):
         """Get a list of requirements from the current requirements.txt file.
 
-        Parses requirements.txt file directly, rather than using a command
-          like `pip list`. `pip list` lists all installed packages, but they
-          may not be in requirements.txt, depending on when `pip freeze` was
-          last run. This is different than other dependency management systems,
-          which write to various requirements files whenever a package is installed.
+        Parses requirements.txt file directly, rather than using a command like
+        `pip list`. `pip list` lists all installed packages, but they may not be in
+        requirements.txt, depending on when `pip freeze` was last run. This is different
+        than other dependency management systems, which write to various requirements
+        files whenever a package is installed.
+
+        Sets:
+            self.req_txt_path
 
         Returns:
-        - List of requirements, with no version information.
+            List[str]: List of strings representing each requirement.
         """
         # This path will be used later, so make it an attribute.
         self.req_txt_path = self.git_path / "requirements.txt"
@@ -596,7 +599,7 @@ class Command(BaseCommand):
         lines = contents.split("\n")
 
         # Parse requirements file, without including version information.
-        req_re = r"^([a-zA-Z0-9\-]*)"
+        req_re = r'^([a-zA-Z0-9\-]*)'
         requirements = []
         for line in lines:
             m = re.search(req_re, line)
@@ -604,6 +607,7 @@ class Command(BaseCommand):
                 requirements.append(m.group(1))
 
         return requirements
+
 
     def _get_pipfile_requirements(self):
         """Get a list of requirements that are already in the Pipfile.
@@ -626,15 +630,15 @@ class Command(BaseCommand):
         for line in lines:
             # Ignore all lines until we've found the start of packages.
             #   Stop parsing when we hit dev-packages.
-            if "[packages]" in line:
+            if '[packages]' in line:
                 in_packages = True
                 continue
-            elif "[dev-packages]" in line:
+            elif '[dev-packages]' in line:
                 # Ignore dev packages for now.
                 break
 
             if in_packages:
-                pkg_name = line.split("=")[0].rstrip()
+                pkg_name = line.split('=')[0].rstrip()
 
                 # Ignore blank lines.
                 if pkg_name:
@@ -645,7 +649,7 @@ class Command(BaseCommand):
     def _get_poetry_requirements(self):
         """Get a list of requirements that Poetry is already tracking.
 
-        Parses pyproject.toml file. It's easier to work with the output of
+        Parses pyproject.toml file. It's easier to work with the output of 
           `poetry show`, but that examines poetry.lock. We are interested in
           what's written to pyproject.toml, not what's in the lock file.
 
@@ -657,12 +661,10 @@ class Command(BaseCommand):
         parsed_toml = toml.loads(self.pyprojecttoml_path.read_text())
 
         # For now, just examine main requirements and deploy group requirements.
-        main_reqs = parsed_toml["tool"]["poetry"]["dependencies"].keys()
+        main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
         requirements = list(main_reqs)
         try:
-            deploy_reqs = parsed_toml["tool"]["poetry"]["group"]["deploy"][
-                "dependencies"
-            ].keys()
+            deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
         except KeyError:
             # This group doesn't exist yet, which is fine.
             pass
@@ -673,6 +675,7 @@ class Command(BaseCommand):
         requirements.remove("python")
 
         return requirements
+
 
     # fmt: off
     def _confirm_automate_all(self):
