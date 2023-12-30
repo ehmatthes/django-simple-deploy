@@ -556,6 +556,9 @@ class Command(BaseCommand):
         are needed on the remote platform. We don't need to deal with version numbers
         for most packages.
 
+        Sets:
+            self.req_txt_path
+
         Returns:
             List[str]: List of strings, each representing a requirement.
         """
@@ -563,7 +566,8 @@ class Command(BaseCommand):
         self.write_output(msg)
 
         if self.pkg_manager == "req_txt":
-            requirements = self._get_req_txt_requirements()
+            self.req_txt_path = self.git_path / "requirements.txt"
+            requirements = sd_utils.parse_req_txt(self.req_txt_path)
         elif self.pkg_manager == "pipenv":
             requirements = self._get_pipfile_requirements()
         elif self.pkg_manager == "poetry":
@@ -577,37 +581,6 @@ class Command(BaseCommand):
             self.write_output(msg)
 
         return requirements
-
-    def _get_req_txt_requirements(self):
-        """Get a list of requirements from the current requirements.txt file.
-
-        Parses requirements.txt file directly, rather than using a command like
-        `pip list`. `pip list` lists all installed packages, but they may not be in
-        requirements.txt, depending on when `pip freeze` was last run. This is different
-        than other dependency management systems, which write to various requirements
-        files whenever a package is installed.
-
-        Sets:
-            self.req_txt_path
-
-        Returns:
-            List[str]: List of strings representing each requirement.
-        """
-        # This path will be used later, so make it an attribute.
-        self.req_txt_path = self.git_path / "requirements.txt"
-        contents = self.req_txt_path.read_text()
-        lines = contents.split("\n")
-
-        # Parse requirements file, without including version information.
-        req_re = r'^([a-zA-Z0-9\-]*)'
-        requirements = []
-        for line in lines:
-            m = re.search(req_re, line)
-            if m:
-                requirements.append(m.group(1))
-
-        return requirements
-
 
     def _get_pipfile_requirements(self):
         """Get a list of requirements that are already in the Pipfile.

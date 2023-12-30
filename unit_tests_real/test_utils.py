@@ -1,5 +1,7 @@
 """Tests for simple_deploy/management/commands/utils.py."""
 
+from pathlib import Path
+
 import django
 import simple_deploy.management.commands.utils as sd_utils
 import simple_deploy.management.commands.simple_deploy as sd
@@ -34,3 +36,9 @@ def test_get_string_from_output_with_stderr():
         args=[], returncode=1, stdout=b"", stderr=b"Error message\n"
     )
     assert sd_utils.get_string_from_output(output_obj) == "Error message\n"
+
+def test_parse_req_txt():
+    path = Path(__file__).parent / "resources" / "requirements.txt"
+    requirements = sd_utils.parse_req_txt(path)
+    print("\n", requirements)
+    assert requirements == ['asgiref', 'certifi', 'charset-normalizer', 'Django', 'django-bootstrap5', 'idna', 'requests', 'sqlparse', 'urllib3', '']

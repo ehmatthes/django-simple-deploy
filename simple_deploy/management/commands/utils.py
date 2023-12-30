@@ -253,3 +253,27 @@ def clean_diff(diff_lines):
         return []
 
     return lines
+
+def parse_req_txt(path):
+    """Get a list of requirements from a requirements.txt file.
+
+    Parses requirements.txt file directly, rather than using a command like
+    `pip list`. `pip list` lists all installed packages, but they may not be in
+    requirements.txt, depending on when `pip freeze` was last run. This is different
+    than other dependency management systems, which write to various requirements
+    files whenever a package is installed.
+
+    Returns:
+        List[str]: List of strings representing each requirement.
+    """
+    lines = path.read_text().split("\n")
+
+    # Parse requirements file, without including version information.
+    req_re = r'^([a-zA-Z0-9\-]*)'
+    requirements = []
+    for line in lines:
+        m = re.search(req_re, line)
+        if m:
+            requirements.append(m.group(1))
+
+    return requirements
