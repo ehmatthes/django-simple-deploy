@@ -549,12 +549,15 @@ class Command(BaseCommand):
         # Couldn't find any evidence of using Poetry.
         return False
 
-    # fmt: off
     def _get_current_requirements(self):
-        """Get current project requirements, before adding any new ones.
+        """Get current project requirements.
+
+        We need to know which requirements are already specified, so we can add any that
+        are needed on the remote platform. We don't need to deal with version numbers
+        for most packages.
 
         Returns:
-        - List of requirements, with no version information.
+            list: List of strings, each representing a requirement.
         """
         msg = "  Checking current project requirements..."
         self.write_output(msg)
@@ -671,7 +674,7 @@ class Command(BaseCommand):
         return requirements
 
 
-
+    # fmt: off
     def _confirm_automate_all(self):
         """If the --automate-all flag has been passed, confirm that the user
         really wants us to take these actions for them.
