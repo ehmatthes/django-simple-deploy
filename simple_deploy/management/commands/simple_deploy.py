@@ -569,7 +569,8 @@ class Command(BaseCommand):
             self.req_txt_path = self.git_path / "requirements.txt"
             requirements = sd_utils.parse_req_txt(self.req_txt_path)
         elif self.pkg_manager == "pipenv":
-            requirements = self._get_pipfile_requirements()
+            self.pipfile_path = self.git_path / "Pipfile"
+            requirements = sd_utils.parse_pipfile(self.pipfile_path)
         elif self.pkg_manager == "poetry":
             requirements = self._get_poetry_requirements()
 
@@ -579,43 +580,6 @@ class Command(BaseCommand):
         for requirement in requirements:
             msg = f"      {requirement}"
             self.write_output(msg)
-
-        return requirements
-
-    def _get_pipfile_requirements(self):
-        """Get a list of requirements that are already in the Pipfile.
-
-        Parses Pipfile, because we don't want to trust a lock file, and we need
-          to examine packages that may be listed in Pipfile but not currently
-          installed.
-
-        Returns:
-        - List of requirements, without version information.
-        """
-        # The path to pipfile is used when writing to pipfile as well.
-        self.pipfile_path = f"{self.git_path}/Pipfile"
-
-        with open(self.pipfile_path) as f:
-            lines = f.readlines()
-
-        requirements = []
-        in_packages = False
-        for line in lines:
-            # Ignore all lines until we've found the start of packages.
-            #   Stop parsing when we hit dev-packages.
-            if '[packages]' in line:
-                in_packages = True
-                continue
-            elif '[dev-packages]' in line:
-                # Ignore dev packages for now.
-                break
-
-            if in_packages:
-                pkg_name = line.split('=')[0].rstrip()
-
-                # Ignore blank lines.
-                if pkg_name:
-                    requirements.append(pkg_name)
 
         return requirements
 

@@ -281,3 +281,36 @@ def parse_req_txt(path):
             requirements.append(m.group(1))
 
     return requirements
+
+def parse_pipfile(path):
+    """Get a list of requirements that are already in the Pipfile.
+
+    Parses Pipfile, because we don't want to trust a lock file, and we need
+      to examine packages that may be listed in Pipfile but not currently
+      installed.
+
+    Returns:
+    - List of requirements, without version information.
+    """
+    # Use splitlines()?
+    lines = path.read_text().split("\n")
+
+    requirements = []
+    in_packages = False
+    for line in lines:
+        # Ignore all lines until the start of packages. Stop parsing at dev-packages.
+        if '[packages]' in line:
+            in_packages = True
+            continue
+        elif '[dev-packages]' in line:
+            # Ignore dev packages for now.
+            break
+
+        if in_packages:
+            pkg_name = line.split('=')[0].rstrip()
+
+            # Ignore blank lines.
+            if pkg_name:
+                requirements.append(pkg_name)
+
+    return requirements
