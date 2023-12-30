@@ -268,8 +268,12 @@ def parse_req_txt(path):
     """
     lines = path.read_text().split("\n")
 
+    # Remove blank lines, extra whitespace, and comments.
+    lines = [l.strip() for l in lines if l]
+    lines = [l for l in lines if l[0] != "#"]
+
     # Parse requirements file, without including version information.
-    req_re = r'^([a-zA-Z0-9\-]*)'
+    req_re = r'^([a-zA-Z0-9_\-]*)'
     requirements = []
     for line in lines:
         m = re.search(req_re, line)
