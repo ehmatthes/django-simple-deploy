@@ -255,6 +255,43 @@ class Command(BaseCommand):
                     "  Please answer yes or no.", skip_logging=skip_logging
                 )
 
+    def add_packages(self, package_list):
+        """Add a set of packages to the project's requirements.
+        
+        This is a simple wrapper for add_package(), to make it easier to add multiple
+        requirements at once. If you need to specify a version for a particular package,
+        use add_package().
+
+        Returns:
+            None
+        """
+        for package in package_list:
+            self.add_package(package)
+
+    def add_package(self, package_name, version=""):
+        """Add a package to the project's requirements, if not already present.
+
+        This method is pkg_manager-agnostic. It delegates to a method specific to the
+        dependency management system in use.
+
+        Handles calls with version information with pip formatting:
+            add_package("psycopg2", version="<2.9")
+        The delegated methods handle this version information correctly for the
+        dependency management system in use.
+
+        Returns:
+            None
+        """
+        self.write_output(f"\n  Looking for {package_name}...")
+
+        if self.pkg_manager == "pipenv":
+            self._add_pipenv_pkg(package_name, version)
+        elif self.pkg_manager == "poetry":
+            self._add_poetry_pkg(package_name, version)
+        else:
+            self._add_req_txt_pkg(package_name, version)
+
+
     # --- Internal methods; used only in this class ---
 
     def _parse_cli_options(self, options):
@@ -628,87 +665,17 @@ class Command(BaseCommand):
             self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
-    # fmt: off
     def _add_simple_deploy_req(self):
-        """Add this project to requirements.txt."""
-        # Since the simple_deploy app is in INCLUDED_APPS, it needs to be
-        #   required. If it's not, platforms will reject the push.
-        # This step isn't needed for Pipenv users, because when they install
-        #   django-simple-deploy it's automatically added to Pipfile.
-        # if self.pkg_manager != "pipenv":
-        #     self.write_output("\n  Looking for django-simple-deploy in requirements...")
-        #     self.add_package('django-simple-deploy')
+        """Add django-simple-deploy to the project's requirements.
 
-        # Do this for all package managers, until testing better sorted?
-        self.write_output("\n  Looking for django-simple-deploy in requirements...")
+        Since simple_deploy is in INCLUDED_APPS, it needs to be in the project's
+        requirements. If it's missing, platforms will reject the push.
+        """
+        msg = "\n  Looking for django-simple-deploy in requirements..."
+        self.write_output(msg)
         self.add_package('django-simple-deploy')
 
-    def _write_pipfile_pkg(self, package_name, version=""):
-        """Write package to Pipfile."""
-
-        with open(self.pipfile_path) as f:
-            pipfile_text = f.read()
-
-        if not version:
-            version = '*'
-
-        # Don't make ugly comments; make space to align comments.
-        #   Align at column 30, so take away name length, and version spec space.
-        tab_string = ' ' * (30 - len(package_name) - 5 - len(version))
-
-        # Write package name right after [packages].
-        #   For simple projects, this shouldn't cause any issues.
-        #   If ordering matters, we can address that later.
-        new_pkg_string = f'[packages]\n{package_name} = "{version}"{tab_string}# Added by simple_deploy command.'
-        pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
-
-        with open(self.pipfile_path, 'w') as f:
-            f.write(pipfile_text)
-
-        self.write_output(f"    Added {package_name} to Pipfile.")
-
-
-    # --- Methods also used by platform-specific scripts ---
-
-    def add_packages(self, package_list):
-        """Adds a set of packages to the project's requirements.
-        
-        This is a simple wrapper for add_package(), to make it easier to add 
-          multiple requirements at once.
-        If you need to specify a version for a particular package,
-          use add_package().
-
-        Returns:
-        - None
-        """
-        for package in package_list:
-            self.add_package(package)
-
-
-    def add_package(self, package_name, version=""):
-        """Add a pacakage to the project's requirements.
-
-        This method is pkg_manager-agnostic. It delegates to a method that's 
-          specific to the dependency management system that's in use.
-
-        Handles calls with version information with pip formatting:
-        - self.sd.add_package("psycopg2", version="<2.9")
-        The delegated methods handle this version information correctly for
-          the dependency management system in use.
-
-        Returns:
-        - None
-        """
-        self.write_output(f"\n  Looking for {package_name}...")
-
-        if self.pkg_manager == "pipenv":
-            self._add_pipenv_pkg(package_name, version)
-        elif self.pkg_manager == "poetry":
-            self._add_poetry_pkg(package_name, version)
-        else:
-            self._add_req_txt_pkg(package_name, version)
-
-
+    # fmt: off
     def _add_req_txt_pkg(self, package_name, version):
         """Add a package to requirements.txt, if not already present.
 
@@ -801,6 +768,30 @@ class Command(BaseCommand):
         else:
             self._write_pipfile_pkg(package_name, version)
 
+
+    def _write_pipfile_pkg(self, package_name, version=""):
+        """Write package to Pipfile."""
+
+        with open(self.pipfile_path) as f:
+            pipfile_text = f.read()
+
+        if not version:
+            version = '*'
+
+        # Don't make ugly comments; make space to align comments.
+        #   Align at column 30, so take away name length, and version spec space.
+        tab_string = ' ' * (30 - len(package_name) - 5 - len(version))
+
+        # Write package name right after [packages].
+        #   For simple projects, this shouldn't cause any issues.
+        #   If ordering matters, we can address that later.
+        new_pkg_string = f'[packages]\n{package_name} = "{version}"{tab_string}# Added by simple_deploy command.'
+        pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
+
+        with open(self.pipfile_path, 'w') as f:
+            f.write(pipfile_text)
+
+        self.write_output(f"    Added {package_name} to Pipfile.")
 
     def commit_changes(self):
         """Commit changes that have been made to the project.
