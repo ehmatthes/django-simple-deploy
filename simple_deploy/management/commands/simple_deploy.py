@@ -35,7 +35,6 @@ from importlib import import_module
 
 from django.core.management.base import BaseCommand
 from django.conf import settings
-import toml
 
 from . import deploy_messages as d_msgs
 from . import utils as sd_utils
@@ -572,7 +571,8 @@ class Command(BaseCommand):
             self.pipfile_path = self.git_path / "Pipfile"
             requirements = sd_utils.parse_pipfile(self.pipfile_path)
         elif self.pkg_manager == "poetry":
-            requirements = self._get_poetry_requirements()
+            self.pyprojecttoml_path = self.git_path / "pyproject.toml"
+            requirements = sd_utils.parse_pyproject_toml(self.pyprojecttoml_path)
 
         # Report findings. 
         msg = "    Found existing dependencies:"
@@ -583,35 +583,35 @@ class Command(BaseCommand):
 
         return requirements
 
-    def _get_poetry_requirements(self):
-        """Get a list of requirements that Poetry is already tracking.
+    # def _get_poetry_requirements(self):
+    #     """Get a list of requirements that Poetry is already tracking.
 
-        Parses pyproject.toml file. It's easier to work with the output of 
-          `poetry show`, but that examines poetry.lock. We are interested in
-          what's written to pyproject.toml, not what's in the lock file.
+    #     Parses pyproject.toml file. It's easier to work with the output of 
+    #       `poetry show`, but that examines poetry.lock. We are interested in
+    #       what's written to pyproject.toml, not what's in the lock file.
 
-        Returns:
-        - List of requirements, with no version information.
-        """
-        # We'll use this again, so make it an attribute.
-        self.pyprojecttoml_path = self.git_path / "pyproject.toml"
-        parsed_toml = toml.loads(self.pyprojecttoml_path.read_text())
+    #     Returns:
+    #     - List of requirements, with no version information.
+    #     """
+    #     # We'll use this again, so make it an attribute.
+    #     self.pyprojecttoml_path = self.git_path / "pyproject.toml"
+    #     parsed_toml = toml.loads(self.pyprojecttoml_path.read_text())
 
-        # For now, just examine main requirements and deploy group requirements.
-        main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
-        requirements = list(main_reqs)
-        try:
-            deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
-        except KeyError:
-            # This group doesn't exist yet, which is fine.
-            pass
-        else:
-            requirements += list(deploy_reqs)
+    #     # For now, just examine main requirements and deploy group requirements.
+    #     main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
+    #     requirements = list(main_reqs)
+    #     try:
+    #         deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
+    #     except KeyError:
+    #         # This group doesn't exist yet, which is fine.
+    #         pass
+    #     else:
+    #         requirements += list(deploy_reqs)
 
-        # Remove python as a requirement, as we're only interested in packages.
-        requirements.remove("python")
+    #     # Remove python as a requirement, as we're only interested in packages.
+    #     requirements.remove("python")
 
-        return requirements
+    #     return requirements
 
 
     # fmt: off

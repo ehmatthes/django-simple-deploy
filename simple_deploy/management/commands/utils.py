@@ -11,6 +11,8 @@ from django.template.engine import Engine
 from django.template.utils import get_app_template_dirs
 from django.core.management.base import CommandError
 
+import toml
+
 
 def write_file_from_template(path, template, context=None):
     """Write a file based on a platform-specific template.
@@ -311,5 +313,33 @@ def parse_pipfile(path):
         if in_packages:
             pkg_name = line.split('=')[0].rstrip()
             requirements.append(pkg_name)
+
+    return requirements
+
+def parse_pyproject_toml(path):
+    """Get a list of requirements that Poetry is already tracking.
+
+    Parses pyproject.toml file. It's easier to work with the output of
+    `poetry show`, but that examines poetry.lock. We are interested in what's
+    written to pyproject.toml, not what's in the lock file.
+
+    Returns:
+        List[str]: List of strings representing each requirement.
+    """
+    parsed_toml = toml.loads(path.read_text())
+
+    # For now, just examine main requirements and deploy group requirements.
+    main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
+    requirements = list(main_reqs)
+    try:
+        deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
+    except KeyError:
+        # This group doesn't exist yet, which is fine.
+        pass
+    else:
+        requirements += list(deploy_reqs)
+
+    # Remove python as a requirement, as we're only interested in packages.
+    requirements.remove("python")
 
     return requirements
