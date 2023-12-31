@@ -40,6 +40,7 @@ def test_get_string_from_output_with_stderr():
 
 # --- git status checks ---
 
+
 def test_simple_git_status():
     """Tests for simple `git status --porcelain` and `git diff --unified=0` outputs."""
     status_output = " M .gitignore"
@@ -52,6 +53,7 @@ def test_simple_git_status():
 
 
 # --- Parsing requirements ---
+
 
 def test_parse_req_txt():
     path = Path(__file__).parent / "resources" / "requirements.txt"
@@ -71,12 +73,24 @@ def test_parse_req_txt():
         "plotly",
     ]
 
+
 def test_parse_pipfile():
     path = Path(__file__).parent / "resources" / "Pipfile"
     requirements = sd_utils.parse_pipfile(path)
 
     assert requirements == [
         "django",
+        "django-bootstrap5",
+        "requests",
+    ]
+
+
+def test_parse_pyproject_toml():
+    path = Path(__file__).parent / "resources" / "pyproject.toml"
+    requirements = sd_utils.parse_pyproject_toml(path)
+
+    assert requirements == [
+        "Django",
         "django-bootstrap5",
         "requests",
     ]
