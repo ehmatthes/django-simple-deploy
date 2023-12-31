@@ -225,7 +225,9 @@ class Command(BaseCommand):
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
 
-    def get_confirmation(self, msg="Are you sure you want to do this?", skip_logging=False):
+    def get_confirmation(
+        self, msg="Are you sure you want to do this?", skip_logging=False
+    ):
         """Get confirmation for an action.
 
         Assumes an appropriate message has already been displayed about what is to be
@@ -236,7 +238,7 @@ class Command(BaseCommand):
             bool: True if confirmation granted, False if not granted.
         """
         prompt = f"\n{msg} (yes|no) "
-        confirmed = ''
+        confirmed = ""
 
         # If doing integration testing, always return True.
         if self.integration_testing:
@@ -250,16 +252,18 @@ class Command(BaseCommand):
             confirmed = input()
 
             # Log user's response before processing it.
-            self.write_output(confirmed, skip_logging=skip_logging,
-                    write_to_console=False)
+            self.write_output(
+                confirmed, skip_logging=skip_logging, write_to_console=False
+            )
 
-            if confirmed.lower() in ('y', 'yes'):
+            if confirmed.lower() in ("y", "yes"):
                 return True
-            elif confirmed.lower() in ('n', 'no'):
+            elif confirmed.lower() in ("n", "no"):
                 return False
             else:
-                self.write_output("  Please answer yes or no.",
-                        skip_logging=skip_logging)
+                self.write_output(
+                    "  Please answer yes or no.", skip_logging=skip_logging
+                )
 
     # --- Internal methods; used only in this class ---
 
@@ -610,7 +614,7 @@ class Command(BaseCommand):
             self.pyprojecttoml_path = self.git_path / "pyproject.toml"
             requirements = sd_utils.parse_pyproject_toml(self.pyprojecttoml_path)
 
-        # Report findings. 
+        # Report findings.
         msg = "    Found existing dependencies:"
         self.write_output(msg)
         for requirement in requirements:
