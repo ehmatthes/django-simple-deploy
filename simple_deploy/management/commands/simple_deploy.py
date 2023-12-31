@@ -257,7 +257,7 @@ class Command(BaseCommand):
 
     def add_packages(self, package_list):
         """Add a set of packages to the project's requirements.
-        
+
         This is a simple wrapper for add_package(), to make it easier to add multiple
         requirements at once. If you need to specify a version for a particular package,
         use add_package().
@@ -290,7 +290,6 @@ class Command(BaseCommand):
             self._add_poetry_pkg(package_name, version)
         else:
             self._add_req_txt_pkg(package_name, version)
-
 
     # --- Internal methods; used only in this class ---
 
@@ -673,7 +672,7 @@ class Command(BaseCommand):
         """
         msg = "\n  Looking for django-simple-deploy in requirements..."
         self.write_output(msg)
-        self.add_package('django-simple-deploy')
+        self.add_package("django-simple-deploy")
 
     # fmt: off
     def _add_req_txt_pkg(self, package_name, version):
