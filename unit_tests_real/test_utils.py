@@ -38,6 +38,21 @@ def test_get_string_from_output_with_stderr():
     assert sd_utils.get_string_from_output(output_obj) == "Error message\n"
 
 
+# --- git status checks ---
+
+def test_simple_git_status():
+    """Tests for simple `git status --porcelain` and `git diff --unified=0` outputs."""
+    status_output = " M .gitignore"
+    diff_output = ""
+    assert sd_utils.check_status_output(status_output, diff_output)
+
+    status_output = " M .gitignore"
+    diff_string = "diff --git a/.gitignore b/.gitignore\nindex 9c96d1b..4279ffb 100644\n--- a/.gitignore\n+++ b/.gitignore\n@@ -8,0 +9,3 @@ db.sqlite3\n+\n+# Ignore logs from simple_deploy.\n+simple_deploy_logs/"
+    assert sd_utils.check_status_output(status_output, diff_output)
+
+
+# --- Parsing requirements ---
+
 def test_parse_req_txt():
     path = Path(__file__).parent / "resources" / "requirements.txt"
     requirements = sd_utils.parse_req_txt(path)
