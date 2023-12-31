@@ -326,7 +326,7 @@ def parse_pyproject_toml(path):
     Returns:
         List[str]: List of strings representing each requirement.
     """
-    parsed_toml = toml.loads(path.read_text())
+    parsed_toml = toml.load(path)
 
     # For now, just examine main requirements and deploy group requirements.
     main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
@@ -340,6 +340,7 @@ def parse_pyproject_toml(path):
         requirements += list(deploy_reqs)
 
     # Remove python as a requirement, as we're only interested in packages.
-    requirements.remove("python")
+    if "python" in requirements:
+        requirements.remove("python")
 
     return requirements
