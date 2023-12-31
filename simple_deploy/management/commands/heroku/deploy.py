@@ -27,6 +27,10 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Heroku...")
 
+        self.validate_platform()
+        if self.sd.automate_all:
+            self.prep_automate_all()
+
         self._get_heroku_app_info()
         self._set_heroku_env_var()
         self._get_heroku_settings()

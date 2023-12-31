@@ -32,6 +32,10 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
+        self.validate_platform()
+        if self.sd.automate_all:
+            self.prep_automate_all()
+
         self._add_platformsh_settings()
 
         # DEV: Group this with later yaml generation methods.

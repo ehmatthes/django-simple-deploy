@@ -118,14 +118,14 @@ class Command(BaseCommand):
         if self.automate_all:
             self._confirm_automate_all()
 
-        self.platform_deployer.validate_platform()
+        # self.platform_deployer.validate_platform()
 
         # First action that could fail, but should happen after logging, is
         #   calling platform-specific prep_automate_all(). This usually creates
         #   an empty project on the target platform. This is one of the steps
         #   most likely to fail, so it should be called before other modifications.
-        if self.automate_all:
-            self.platform_deployer.prep_automate_all()
+        # if self.automate_all:
+        #     self.platform_deployer.prep_automate_all()
 
         self._add_simple_deploy_req()
 
