@@ -630,8 +630,7 @@ class Command(BaseCommand):
         if confirmed:
             self.write_output("Automating all steps...")
         else:
-            # Quit and have the user run the command again; don't assume not
-            #   wanting to automate means they want to configure.
+            # Quit with a message, but don't raise an error.
             self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
