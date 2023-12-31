@@ -113,10 +113,10 @@ class Command(BaseCommand):
         self._inspect_system()
         self._inspect_project()
 
-        # Confirm --automate-all before calling platform.validate_platform(), because
-        # some platforms will take validation actions based on whether it's a
-        # configuration-only run or an automated deployment.
-        self._confirm_automate_all()
+        # Confirm --automate-all before calling platform.validate_platform(). Some
+        # platforms will take specific validation actions for an automated deployment.
+        if self.automate_all:
+            self._confirm_automate_all()
 
         self.platform_deployer.validate_platform()
 
@@ -224,6 +224,42 @@ class Command(BaseCommand):
 
         if p.returncode != 0:
             raise subprocess.CalledProcessError(p.returncode, p.args)
+
+    def get_confirmation(self, msg="Are you sure you want to do this?", skip_logging=False):
+        """Get confirmation for an action.
+
+        Assumes an appropriate message has already been displayed about what is to be
+        done. Shows a yes|no prompt. You can pass a different message for the prompt; it
+        should be phrased to elicit a yes/no response.
+
+        Returns:
+            bool: True if confirmation granted, False if not granted.
+        """
+        prompt = f"\n{msg} (yes|no) "
+        confirmed = ''
+
+        # If doing integration testing, always return True.
+        if self.integration_testing:
+            self.write_output(prompt, skip_logging=skip_logging)
+            msg = "  Confirmed for integration testing..."
+            self.write_output(msg, skip_logging=skip_logging)
+            return True
+
+        while True:
+            self.write_output(prompt, skip_logging=skip_logging)
+            confirmed = input()
+
+            # Log user's response before processing it.
+            self.write_output(confirmed, skip_logging=skip_logging,
+                    write_to_console=False)
+
+            if confirmed.lower() in ('y', 'yes'):
+                return True
+            elif confirmed.lower() in ('n', 'no'):
+                return False
+            else:
+                self.write_output("  Please answer yes or no.",
+                        skip_logging=skip_logging)
 
     # --- Internal methods; used only in this class ---
 
@@ -583,17 +619,11 @@ class Command(BaseCommand):
 
         return requirements
 
-    # fmt: off
     def _confirm_automate_all(self):
-        """If the --automate-all flag has been passed, confirm that the user
-        really wants us to take these actions for them.
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
         """
-
-        # Placing this check here makes handle() much cleaner.
-        if not self.automate_all:
-            return
-
-        # Confirm the user knows exactly what will be automated.
         self.write_output(self.platform_msgs.confirm_automate_all)
         confirmed = self.get_confirmation()
 
@@ -605,6 +635,7 @@ class Command(BaseCommand):
             self.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
+    # fmt: off
     def _add_simple_deploy_req(self):
         """Add this project to requirements.txt."""
         # Since the simple_deploy app is in INCLUDED_APPS, it needs to be
@@ -776,46 +807,6 @@ class Command(BaseCommand):
             self.write_output(f"    Found {package_name} in Pipfile.")
         else:
             self._write_pipfile_pkg(package_name, version)
-
-
-    def get_confirmation(self, msg="", skip_logging=False):
-        """Get confirmation for an action.
-        This method assumes an appropriate message has already been displayed
-          about what is to be done.
-        You can pass a different message for the prompt; it should be phrased
-          to elicit a yes/no response. Don't include the yes/no part.
-        This method shows a yes|no prompt, and returns True or False.
-
-        DEV: This should probably be moved to utils.
-        """
-        if not msg:
-            prompt = "\nAre you sure you want to do this? (yes|no) "
-        else:
-            prompt = f"\n{msg} (yes|no) "
-        confirmed = ''
-
-        # If doing integration testing, always return True.
-        if self.integration_testing:
-            self.write_output(prompt, skip_logging=skip_logging)
-            msg = "  Confirmed for integration testing..."
-            self.write_output(msg, skip_logging=skip_logging)
-            return True
-
-        while True:
-            self.write_output(prompt, skip_logging=skip_logging)
-            confirmed = input()
-
-            # Log user's response before processing it.
-            self.write_output(confirmed, skip_logging=skip_logging,
-                    write_to_console=False)
-
-            if confirmed.lower() in ('y', 'yes'):
-                return True
-            elif confirmed.lower() in ('n', 'no'):
-                return False
-            else:
-                self.write_output("  Please answer yes or no.",
-                        skip_logging=skip_logging)
 
 
     def commit_changes(self):
