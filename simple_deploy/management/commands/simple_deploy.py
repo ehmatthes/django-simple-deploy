@@ -113,24 +113,14 @@ class Command(BaseCommand):
         self._inspect_system()
         self._inspect_project()
 
-        # Confirm --automate-all before calling platform.validate_platform(). Some
-        # platforms will take specific validation actions for an automated deployment.
+        # Make sure user knows exactly what --automate-all will do.
         if self.automate_all:
             self._confirm_automate_all()
 
-        # self.platform_deployer.validate_platform()
-
-        # First action that could fail, but should happen after logging, is
-        #   calling platform-specific prep_automate_all(). This usually creates
-        #   an empty project on the target platform. This is one of the steps
-        #   most likely to fail, so it should be called before other modifications.
-        # if self.automate_all:
-        #     self.platform_deployer.prep_automate_all()
-
         self._add_simple_deploy_req()
 
-        # All platform-agnostic work has been completed. Call platform-specific
-        #   deploy() method.
+        # All platform-agnostic work has been completed. Call platform-specific deploy()
+        # method.
         self.platform_deployer.deploy()
 
     # --- Methods used here, and also by platform-specific modules ---

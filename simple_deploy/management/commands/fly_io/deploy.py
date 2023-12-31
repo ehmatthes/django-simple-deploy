@@ -39,9 +39,9 @@ class PlatformDeployer:
         """Coordinate the overall configuration and deployment."""
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
-        self.validate_platform()
+        self._validate_platform()
         if self.sd.automate_all:
-            self.prep_automate_all()
+            self._prep_automate_all()
 
         self._set_on_flyio()
         self._set_debug()
@@ -68,7 +68,10 @@ class PlatformDeployer:
             self.sd.write_output(flyio_msgs.cancel_flyio)
             sys.exit()
 
-    def validate_platform(self):
+
+    # --- Helper methods for deploy() ---
+
+    def _validate_platform(self):
         """Make sure the local environment and project supports deployment to Fly.io.
 
         Make sure CLI is installed, and user is authenticated. Make sure necessary
@@ -98,12 +101,10 @@ class PlatformDeployer:
         # Create the db now, before any additional configuration.
         self._create_db()
 
-    def prep_automate_all(self):
+    def _prep_automate_all(self):
         """Take any further actions needed if using automate_all."""
         # All necessary resources have been created earlier, during validation.
         pass
-
-    # --- Helper methods for deploy() ---
 
     def _set_on_flyio(self):
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
@@ -317,7 +318,7 @@ class PlatformDeployer:
 
         return dockerignore_str
 
-    # --- Helper methods for validate_platform() ---
+    # --- Helper methods for _validate_platform() ---
 
     def _validate_cli(self):
         """Make sure the Fly.io CLI is installed, and user is authenticated."""

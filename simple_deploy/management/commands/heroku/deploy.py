@@ -27,9 +27,9 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Heroku...")
 
-        self.validate_platform()
+        self._validate_platform()
         if self.sd.automate_all:
-            self.prep_automate_all()
+            self._prep_automate_all()
 
         self._get_heroku_app_info()
         self._set_heroku_env_var()
@@ -101,7 +101,7 @@ class PlatformDeployer:
                 return
 
             # DEV: This should be moved to a separate method.
-            #   New method should be called from here and prep_automate_all().
+            #   New method should be called from here and _prep_automate_all().
             msg = f"  Could not find an existing database. Creating one now..."
             self.sd.write_output(msg)
             cmd = 'heroku addons:create heroku-postgresql:mini'
@@ -480,9 +480,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
 
-    # --- Methods called from simple_deploy.py ---
-
-    def prep_automate_all(self):
+    def _prep_automate_all(self):
         """Do intial work for automating entire process.
         - Create a heroku app to deploy to.
         - Create a Heroku Postgres database.
@@ -502,7 +500,7 @@ class PlatformDeployer:
         self.sd.write_output(output)
 
 
-    def validate_platform(self):
+    def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
         Heroku.
 

@@ -32,9 +32,9 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
-        self.validate_platform()
+        self._validate_platform()
         if self.sd.automate_all:
-            self.prep_automate_all()
+            self._prep_automate_all()
 
         self._add_platformsh_settings()
 
@@ -271,7 +271,7 @@ class PlatformDeployer:
             sys.exit()
 
 
-    def validate_platform(self):
+    def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
         Platform.sh.
         
@@ -294,7 +294,7 @@ class PlatformDeployer:
         self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
 
 
-    def prep_automate_all(self):
+    def _prep_automate_all(self):
         """Do intial work for automating entire process.
         We know from validate_project() that user is logged into CLI.
         
