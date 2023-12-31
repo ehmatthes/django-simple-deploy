@@ -41,7 +41,6 @@ def test_get_string_from_output_with_stderr():
 def test_parse_req_txt():
     path = Path(__file__).parent / "resources" / "requirements.txt"
     requirements = sd_utils.parse_req_txt(path)
-    print("\n", requirements)
 
     assert requirements == [
         "asgiref",
