@@ -674,30 +674,27 @@ class Command(BaseCommand):
         self.write_output(msg)
         self.add_package("django-simple-deploy")
 
-    # fmt: off
     def _add_req_txt_pkg(self, package_name, version):
-        """Add a package to requirements.txt, if not already present.
-
-        Returns:
-        - None
-        """
-        # Note: This does not check for specific versions. It gives priority
-        #   to any version already specified in requirements.
+        """Add a package to requirements.txt, if not already present."""
+        # Don't check for specific versions; give priority to any version already
+        # specified in requirements.
         if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in requirements file.")
             return
 
-        # Package not in requirements.txt, so add it.
-        with open(self.req_txt_path, 'a') as f:
-            # Add version information to package name, ie "pscopg2<2.9".
-            package_name += version
-            # Align comments, so we don't make req_txt file ugly.
-            tab_string = ' ' * (30 - len(package_name))
-            f.write(f"\n{package_name}{tab_string}# Added by simple_deploy command.")
+        # Build entry for package in requirements.txt.
+        package_name += version
+        # Align comments, so we don't make req_txt file ugly.
+        tab_string = ' ' * (30 - len(package_name))
+        pkg_string = f"\n{package_name}{tab_string}# Added by simple_deploy command."
+
+        # Add new line to requirements.txt.
+        contents = self.req_txt_path.read_text()
+        self.req_txt_path.write_text(contents + pkg_string)
 
         self.write_output(f"    Added {package_name} to requirements.txt.")
 
-
+    # fmt: off
     def _add_poetry_pkg(self, package_name, version):
         """Add a package when project is using Poetry.
 
