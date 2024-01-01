@@ -710,7 +710,6 @@ class Command(BaseCommand):
         # Add package to pyproject.toml. Define new requirement entry, read contents,
         # replace group definition with group definition plus new requirement line. This
         # adds each new requirement to the beginning of the deploy group.
-        # DEV: `version` should just be a default arg, instead of having an if block here.
         if not version:
             version = "*"
         new_req_line = f'{package_name} = "{version}"'
