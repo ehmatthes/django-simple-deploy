@@ -686,7 +686,7 @@ class Command(BaseCommand):
         package_name += version
         # Align comments, so we don't make req_txt file ugly.
         tab_string = ' ' * (30 - len(package_name))
-        pkg_string = f"\n{package_name}{tab_string}# Added by simple_deploy command."
+        pkg_string = f"\n{package_name}{tab_string}# Added by simple_deploy."
 
         # Add new line to requirements.txt.
         contents = self.req_txt_path.read_text()
