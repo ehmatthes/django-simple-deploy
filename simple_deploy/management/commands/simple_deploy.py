@@ -694,14 +694,11 @@ class Command(BaseCommand):
 
         self.write_output(f"    Added {package_name} to requirements.txt.")
 
-    # fmt: off
     def _add_poetry_pkg(self, package_name, version):
         """Add a package when project is using Poetry.
 
-        Adds an entry to pyproject.toml, without modifying the lock file.
-        Ensures the optional "deploy" group exists, and creates it if not.
-        Returns:
-        - None
+        Ensures the optional "deploy" group exists, and creates it if not. Adds an entry
+        to pyproject.toml, without modifying the lock file.
         """
         self._check_poetry_deploy_group()
 
@@ -710,10 +707,9 @@ class Command(BaseCommand):
             self.write_output(f"    Found {package_name} in requirements file.")
             return
 
-        # Add package to pyproject.toml.
-        #   Define new requirement entry, read contents, replace group definition
-        #   with group definition plus new requirement line. This has the effect
-        #   of adding each new requirement to the beginning of the deploy group.
+        # Add package to pyproject.toml. Define new requirement entry, read contents,
+        # replace group definition with group definition plus new requirement line. This
+        # adds each new requirement to the beginning of the deploy group.
         # DEV: `version` should just be a default arg, instead of having an if block here.
         if not version:
             version = "*"
@@ -727,14 +723,10 @@ class Command(BaseCommand):
         self.write_output(f"    Added {package_name} to pyproject.toml.")
 
     def _check_poetry_deploy_group(self):
-        """Make sure that an optional deploy group exists in pyproject.toml.
+        """Make sure a deploy group exists in pyproject.toml.
 
-        If the group does not exist, write that group in pyproject.toml.
-          Establish the opening lines as an attribute, to make it easier to
-          add packages later.
-
-        Returns:
-        - None
+        If deploy group does not exist, write it in pyproject.toml. Establish the
+        opening lines as an attribute, to make it easier to add packages later.
         """
         self.poetry_group_string = "[tool.poetry.group.deploy]\noptional = true\n"
         self.poetry_group_string += "\n[tool.poetry.group.deploy.dependencies]\n"
@@ -749,10 +741,10 @@ class Command(BaseCommand):
         contents += f"\n\n{self.poetry_group_string}"
         self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
 
-        msg = '    Added optional "deploy" group to pyproject.toml.'
+        msg = '    Added optional deploy group to pyproject.toml.'
         self.write_output(msg)
 
-
+    # fmt: off
     def _add_pipenv_pkg(self, package_name, version=""):
         """Add a package to Pipfile, if not already present.
 
