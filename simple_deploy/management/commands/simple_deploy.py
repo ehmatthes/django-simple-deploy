@@ -681,7 +681,7 @@ class Command(BaseCommand):
         # Build entry for package in requirements.txt.
         package_name += version
         # Align comments, so we don't make req_txt file ugly.
-        tab_string = ' ' * (30 - len(package_name))
+        tab_string = " " * (30 - len(package_name))
         pkg_string = f"\n{package_name}{tab_string}# Added by simple_deploy."
 
         # Add new line to requirements.txt.
@@ -707,33 +707,33 @@ class Command(BaseCommand):
         # Add package to pyproject.toml, in the deploy dependencies group.
         if not version:
             version = "*"
- 
+
         pptoml_data = toml.load(self.pyprojecttoml_path)
-        pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][package_name] = version
+        pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][
+            package_name
+        ] = version
         pptoml_data_str = toml.dumps(pptoml_data)
-        self.pyprojecttoml_path.write_text(pptoml_data_str)        
+        self.pyprojecttoml_path.write_text(pptoml_data_str)
 
         self.write_output(f"    Added {package_name} to pyproject.toml.")
 
     def _check_poetry_deploy_group(self):
-        """Make sure a deploy group exists in pyproject.toml.
-        """
+        """Make sure a deploy group exists in pyproject.toml."""
         pptoml_data = toml.load(self.pyprojecttoml_path)
         try:
             deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
         except KeyError:
             # Make group dict if needed, then make deploy group idct.
-            if 'group' not in pptoml_data['tool']['poetry']:
-                pptoml_data['tool']['poetry']['group'] = {}
-            pptoml_data['tool']['poetry']['group']["deploy"] = {"optional": True}
+            if "group" not in pptoml_data["tool"]["poetry"]:
+                pptoml_data["tool"]["poetry"]["group"] = {}
+            pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
 
             pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
-
 
             pptoml_data_str = toml.dumps(pptoml_data)
             self.pyprojecttoml_path.write_text(pptoml_data_str)
 
-            msg = '    Added optional deploy group to pyproject.toml.'
+            msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
     # fmt: off
