@@ -36,6 +36,8 @@ from importlib import import_module
 from django.core.management.base import BaseCommand
 from django.conf import settings
 
+import toml
+
 from . import deploy_messages as d_msgs
 from . import utils as sd_utils
 from . import cli
@@ -596,23 +598,17 @@ class Command(BaseCommand):
     def _check_using_poetry(self):
         """Check if the project appears to be using poetry.
 
-        Check for a poetry.lock file, or a pyproject.toml file with a
-          [tool.poetry] section.
+        Check for a pyproject.toml file with a [tool.poetry] section.
 
         Returns:
-        - True if one of these is found.
-        - False if one of these is not found.
+            bool: True if found, False if not found.
         """
-        path = self.git_path / "poetry.lock"
-        if path.exists():
-            return True
-
         path = self.git_path / "pyproject.toml"
-        if path.exists() and "[tool.poetry]" in path.read_text():
-            return True
+        if not path.exists():
+            return False
 
-        # Couldn't find any evidence of using Poetry.
-        return False
+        pptoml_data = toml.load(path)
+        return "poetry" in pptoml_data.get("tool", {})
 
     def _get_current_requirements(self):
         """Get current project requirements.
@@ -742,6 +738,17 @@ class Command(BaseCommand):
 
         msg = '    Added optional deploy group to pyproject.toml.'
         self.write_output(msg)
+
+        # DEV: Use toml.
+        # pp_data = toml.load(self.pyprojecttoml_path)
+
+        # try:
+        #     deploy_group = pp_data["tool"]["poetry"]["group"]["deploy"]
+
+
+
+
+
 
     # fmt: off
     def _add_pipenv_pkg(self, package_name, version=""):
