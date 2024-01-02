@@ -1,6 +1,7 @@
 """Tests for simple_deploy/management/commands/utils.py."""
 
 from pathlib import Path
+import filecmp
 
 import django
 import simple_deploy.management.commands.utils as sd_utils
@@ -100,3 +101,15 @@ def test_parse_pyproject_toml():
         "django-bootstrap5",
         "requests",
     ]
+
+def test_create_poetry_deploy_group(tmp_path):
+    path = Path(__file__).parent / "resources" / "pyproject_no_deploy.toml"
+    contents = path.read_text()
+
+    # Create tmp copy of file, and modify that one.
+    tmp_pptoml = tmp_path / "pp.toml"
+    tmp_pptoml.write_text(contents)
+
+    sd_utils.create_poetry_deploy_group(tmp_pptoml)
+    ref_file = Path(__file__).parent / "reference_files" / "pyproject.toml"
+    assert filecmp.cmp(tmp_pptoml, ref_file)
