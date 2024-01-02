@@ -561,8 +561,8 @@ class PlatformDeployer:
         self.sd.log_info("    Package manager set to req_txt.")
         self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
 
-        # Need to add simple_deploy to requirements.txt. Remove it from requirements,
-        # because Heroku won't look at pyproject.toml.
+        # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
+        # Optional deploy group dependencies aren't added to requirements.txt.        
         self.sd._get_current_requirements()
         self.sd._add_simple_deploy_req()
     
