@@ -256,6 +256,7 @@ def clean_diff(diff_lines):
 
     return lines
 
+
 def parse_req_txt(path):
     """Get a list of requirements from a requirements.txt file.
 
@@ -275,7 +276,7 @@ def parse_req_txt(path):
     lines = [l for l in lines if l[0] != "#"]
 
     # Parse requirements file, without including version information.
-    req_re = r'^([a-zA-Z0-9_\-]*)'
+    req_re = r"^([a-zA-Z0-9_\-]*)"
     requirements = []
     for line in lines:
         m = re.search(req_re, line)
@@ -283,6 +284,7 @@ def parse_req_txt(path):
             requirements.append(m.group(1))
 
     return requirements
+
 
 def parse_pipfile(path):
     """Get a list of requirements that are already in the Pipfile.
@@ -294,7 +296,7 @@ def parse_pipfile(path):
         List[str]: List of strings representing each requirement.
     """
     lines = path.read_text().splitlines()
-    
+
     # Remove blank lines, extra whitespace, and comments.
     lines = [l.strip() for l in lines if l]
     lines = [l for l in lines if l[0] != "#"]
@@ -303,7 +305,7 @@ def parse_pipfile(path):
     in_packages = False
     for line in lines:
         # Ignore all lines until the start of packages. Stop parsing at the next block.
-        if '[packages]' in line:
+        if "[packages]" in line:
             in_packages = True
             continue
         elif in_packages and line[0] == "[":
@@ -311,10 +313,11 @@ def parse_pipfile(path):
             break
 
         if in_packages:
-            pkg_name = line.split('=')[0].rstrip()
+            pkg_name = line.split("=")[0].rstrip()
             requirements.append(pkg_name)
 
     return requirements
+
 
 def parse_pyproject_toml(path):
     """Get a list of requirements that Poetry is already tracking.
@@ -329,10 +332,12 @@ def parse_pyproject_toml(path):
     parsed_toml = toml.load(path)
 
     # For now, just examine main requirements and deploy group requirements.
-    main_reqs = parsed_toml['tool']['poetry']['dependencies'].keys()
+    main_reqs = parsed_toml["tool"]["poetry"]["dependencies"].keys()
     requirements = list(main_reqs)
     try:
-        deploy_reqs = parsed_toml['tool']['poetry']['group']['deploy']['dependencies'].keys()
+        deploy_reqs = parsed_toml["tool"]["poetry"]["group"]["deploy"][
+            "dependencies"
+        ].keys()
     except KeyError:
         # This group doesn't exist yet, which is fine.
         pass
@@ -344,6 +349,7 @@ def parse_pyproject_toml(path):
         requirements.remove("python")
 
     return requirements
+
 
 def create_poetry_deploy_group(pptoml_path):
     """Create a deploy group for Poetry in pyproject.toml."""
