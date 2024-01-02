@@ -20,7 +20,7 @@ def test_requirements_txt(tmp_project, pkg_manager):
     if pkg_manager == "req_txt":
         hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
     elif pkg_manager == "poetry":
-        pytest.skip("Skipping poetry test for now.")
+        # pytest.skip("Skipping poetry test for now.")
         hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
                 reference_filename="poetry.requirements.txt")
     elif pkg_manager == "pipenv":
