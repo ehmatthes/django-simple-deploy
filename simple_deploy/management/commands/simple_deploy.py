@@ -696,18 +696,17 @@ class Command(BaseCommand):
         Ensures the optional "deploy" group exists, and creates it if not. Adds an entry
         to pyproject.toml, without modifying the lock file.
         """
-        # DEV: Move this after requirements check.
-        self._check_poetry_deploy_group()
-
-        # Check if package already in pyproject.toml.
         if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in requirements file.")
             return
 
-        # Add package to pyproject.toml, in the deploy dependencies group.
+        # A method that calls this one may pass an empty string, which would override a
+        # default argument value of "*".
         if not version:
             version = "*"
 
+        # Add package to pyproject.toml, in the deploy dependencies group.
+        self._check_poetry_deploy_group()
         pptoml_data = toml.load(self.pyprojecttoml_path)
         pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][
             package_name
