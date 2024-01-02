@@ -723,27 +723,38 @@ class Command(BaseCommand):
         If deploy group does not exist, write it in pyproject.toml. Establish the
         opening lines as an attribute, to make it easier to add packages later.
         """
-        self.poetry_group_string = "[tool.poetry.group.deploy]\noptional = true\n"
-        self.poetry_group_string += "\n[tool.poetry.group.deploy.dependencies]\n"
+        # self.poetry_group_string = "[tool.poetry.group.deploy]\noptional = true\n"
+        # self.poetry_group_string += "\n[tool.poetry.group.deploy.dependencies]\n"
 
-        contents = self.pyprojecttoml_path.read_text()
+        # contents = self.pyprojecttoml_path.read_text()
 
-        if self.poetry_group_string in contents:
-            # Group already exists, we don't need to do anything.
-            return
+        # if self.poetry_group_string in contents:
+        #     # Group already exists, we don't need to do anything.
+        #     return
         
-        # Group not found, so create it now.
-        contents += f"\n\n{self.poetry_group_string}"
-        self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
+        # # Group not found, so create it now.
+        # contents += f"\n\n{self.poetry_group_string}"
+        # self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
 
-        msg = '    Added optional deploy group to pyproject.toml.'
-        self.write_output(msg)
 
         # DEV: Use toml.
-        # pp_data = toml.load(self.pyprojecttoml_path)
+        pptoml_data = toml.load(self.pyprojecttoml_path)
+        try:
+            deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
+        except KeyError:
+            # Make group dict if needed, then make deploy group idct.
+            if 'group' not in pptoml_data['tool']['poetry']:
+                pptoml_data['tool']['poetry']['group'] = {}
+            pptoml_data['tool']['poetry']['group']["deploy"] = {"optional": True}
 
-        # try:
-        #     deploy_group = pp_data["tool"]["poetry"]["group"]["deploy"]
+            pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
+            
+
+            pptoml_data_str = toml.dumps(pptoml_data)
+            self.pyprojecttoml_path.write_text(pptoml_data_str)
+
+            msg = '    Added optional deploy group to pyproject.toml.'
+            self.write_output(msg)
 
 
 
