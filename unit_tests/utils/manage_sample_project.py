@@ -159,6 +159,7 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
         python_exe = Path(tmp_dir) / "b_env" / "bin" / "python"
 
     sd_command = sd_command.replace("python", python_exe.as_posix())
+    print(f"*** sd_command: {sd_command} ***")
 
     # Make the call to simple_deploy.
     #   The `text=True` argument causes this to return stdout and stderr as strings, not objects.
