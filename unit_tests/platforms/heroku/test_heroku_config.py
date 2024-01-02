@@ -20,9 +20,20 @@ def test_requirements_txt(tmp_project, pkg_manager):
     if pkg_manager == "req_txt":
         hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
     elif pkg_manager == "poetry":
-        # pytest.skip("Skipping poetry test for now.")
-        hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
-                reference_filename="poetry.requirements.txt")
+        # Poetry is so specific, the version numbers of sub-dependencies change
+        # frequently. Just check that the appropriate packages are present.
+        packages = [
+            "django-bootstrap5",
+            "django",
+            "requests",
+            "django-simple-deploy",
+            "gunicorn",
+            "psycopg2",
+            "dj-database-url",
+            "whitenoise"
+        ]
+        path = tmp_project / "requirements.txt"
+        assert all([pkg in path.read_text() for pkg in packages])
     elif pkg_manager == "pipenv":
         assert not Path("requirements.txt").exists()
 
@@ -38,8 +49,8 @@ def test_pyproject_toml(tmp_project, pkg_manager):
     if pkg_manager in ("req_txt", "pipenv"):
         assert not Path("pyproject.toml").exists()
     elif pkg_manager == "poetry":
-        # pytest.skip("Skipping poetry test for now.")
-        # The file should be unchanged from the original, but it should exist.
+        # Heroku uses requirements.txt for deployment, but simple_deploy will slightly
+        # restructure pyproject.toml.
         hf.check_reference_file(tmp_project, "pyproject.toml", "heroku")
 
 def test_gitignore(tmp_project):
