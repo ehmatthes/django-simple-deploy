@@ -43,6 +43,7 @@ def test_get_string_from_output_with_stderr():
 
 # --- git status checks ---
 
+
 @pytest.mark.skip()
 def test_simple_git_status():
     """Tests for simple `git status --porcelain` and `git diff --unified=0` outputs."""
@@ -101,6 +102,7 @@ def test_parse_pyproject_toml():
         "django-bootstrap5",
         "requests",
     ]
+
 
 def test_create_poetry_deploy_group(tmp_path):
     path = Path(__file__).parent / "resources" / "pyproject_no_deploy.toml"
