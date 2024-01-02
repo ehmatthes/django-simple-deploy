@@ -704,50 +704,20 @@ class Command(BaseCommand):
             self.write_output(f"    Found {package_name} in requirements file.")
             return
 
-        # Add package to pyproject.toml. Define new requirement entry, read contents,
-        # replace group definition with group definition plus new requirement line. This
-        # adds each new requirement to the beginning of the deploy group.
+        # Add package to pyproject.toml, in the deploy dependencies group.
         if not version:
             version = "*"
-        # new_req_line = f'{package_name} = "{version}"'
-
-        # contents = self.pyprojecttoml_path.read_text()
-        # new_group_string = f"{self.poetry_group_string}{new_req_line}\n"
-        # contents = contents.replace(self.poetry_group_string, new_group_string)
-        # self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
-
-        # DEV: Use toml.
+ 
         pptoml_data = toml.load(self.pyprojecttoml_path)
         pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][package_name] = version
         pptoml_data_str = toml.dumps(pptoml_data)
         self.pyprojecttoml_path.write_text(pptoml_data_str)        
 
-
-
-
         self.write_output(f"    Added {package_name} to pyproject.toml.")
 
     def _check_poetry_deploy_group(self):
         """Make sure a deploy group exists in pyproject.toml.
-
-        If deploy group does not exist, write it in pyproject.toml. Establish the
-        opening lines as an attribute, to make it easier to add packages later.
         """
-        # self.poetry_group_string = "[tool.poetry.group.deploy]\noptional = true\n"
-        # self.poetry_group_string += "\n[tool.poetry.group.deploy.dependencies]\n"
-
-        # contents = self.pyprojecttoml_path.read_text()
-
-        # if self.poetry_group_string in contents:
-        #     # Group already exists, we don't need to do anything.
-        #     return
-        
-        # # Group not found, so create it now.
-        # contents += f"\n\n{self.poetry_group_string}"
-        # self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
-
-
-        # DEV: Use toml.
         pptoml_data = toml.load(self.pyprojecttoml_path)
         try:
             deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
@@ -765,11 +735,6 @@ class Command(BaseCommand):
 
             msg = '    Added optional deploy group to pyproject.toml.'
             self.write_output(msg)
-
-
-
-
-
 
     # fmt: off
     def _add_pipenv_pkg(self, package_name, version=""):
