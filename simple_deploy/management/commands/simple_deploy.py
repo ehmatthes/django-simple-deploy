@@ -696,6 +696,7 @@ class Command(BaseCommand):
         Ensures the optional "deploy" group exists, and creates it if not. Adds an entry
         to pyproject.toml, without modifying the lock file.
         """
+        # DEV: Move this after requirements check.
         self._check_poetry_deploy_group()
 
         # Check if package already in pyproject.toml.
@@ -708,12 +709,21 @@ class Command(BaseCommand):
         # adds each new requirement to the beginning of the deploy group.
         if not version:
             version = "*"
-        new_req_line = f'{package_name} = "{version}"'
+        # new_req_line = f'{package_name} = "{version}"'
 
-        contents = self.pyprojecttoml_path.read_text()
-        new_group_string = f"{self.poetry_group_string}{new_req_line}\n"
-        contents = contents.replace(self.poetry_group_string, new_group_string)
-        self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
+        # contents = self.pyprojecttoml_path.read_text()
+        # new_group_string = f"{self.poetry_group_string}{new_req_line}\n"
+        # contents = contents.replace(self.poetry_group_string, new_group_string)
+        # self.pyprojecttoml_path.write_text(contents, encoding='utf-8')
+
+        # DEV: Use toml.
+        pptoml_data = toml.load(self.pyprojecttoml_path)
+        pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][package_name] = version
+        pptoml_data_str = toml.dumps(pptoml_data)
+        self.pyprojecttoml_path.write_text(pptoml_data_str)        
+
+
+
 
         self.write_output(f"    Added {package_name} to pyproject.toml.")
 
@@ -748,7 +758,7 @@ class Command(BaseCommand):
             pptoml_data['tool']['poetry']['group']["deploy"] = {"optional": True}
 
             pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
-            
+
 
             pptoml_data_str = toml.dumps(pptoml_data)
             self.pyprojecttoml_path.write_text(pptoml_data_str)
