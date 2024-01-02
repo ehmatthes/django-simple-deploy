@@ -722,16 +722,7 @@ class Command(BaseCommand):
         try:
             deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
         except KeyError:
-            # Make group dict if needed, then make deploy group idct.
-            if "group" not in pptoml_data["tool"]["poetry"]:
-                pptoml_data["tool"]["poetry"]["group"] = {}
-            pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
-
-            pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
-
-            pptoml_data_str = toml.dumps(pptoml_data)
-            self.pyprojecttoml_path.write_text(pptoml_data_str)
-
+            sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 

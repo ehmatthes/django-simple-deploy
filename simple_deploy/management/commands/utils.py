@@ -344,3 +344,16 @@ def parse_pyproject_toml(path):
         requirements.remove("python")
 
     return requirements
+
+def create_poetry_deploy_group(pptoml_path):
+    """Create a deploy group for Poetry in pyproject.toml."""
+    pptoml_data = toml.load(pptoml_path)
+
+    if "group" not in pptoml_data["tool"]["poetry"]:
+        pptoml_data["tool"]["poetry"]["group"] = {}
+    pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
+
+    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
+
+    pptoml_data_str = toml.dumps(pptoml_data)
+    pptoml_path.write_text(pptoml_data_str)
