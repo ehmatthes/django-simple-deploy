@@ -1,8 +1,12 @@
+[build-system]
+requires = [ "poetry-core>=1.0.0",]
+build-backend = "poetry.core.masonry.api"
+
 [tool.poetry]
 name = "poetry_unpinned"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
+authors = [ "Your Name <you@example.com>",]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -12,15 +16,11 @@ requests = "*"
 
 [tool.poetry.dev-dependencies]
 
-[build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
-
 [tool.poetry.group.deploy]
 optional = true
 
 [tool.poetry.group.deploy.dependencies]
-psycopg2 = "*"
-gunicorn = "*"
-platformshconfig = "*"
 django-simple-deploy = "*"
+platformshconfig = "*"
+gunicorn = "*"
+psycopg2 = "*"
