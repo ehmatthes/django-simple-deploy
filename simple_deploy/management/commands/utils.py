@@ -367,7 +367,7 @@ def create_poetry_deploy_group(pptoml_path):
     pptoml_path.write_text(pptoml_data_str)
 
 def add_poetry_pkg(pptoml_path, package, version):
-    """Add a package to pyproject.toml, when using Poetry."""
+    """Add a package to poetry deploy group of pyproject.toml."""
 
     # A method in simple_deploy may pass an empty string, which would override a
     # default argument value of "*".
