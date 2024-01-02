@@ -365,3 +365,19 @@ def create_poetry_deploy_group(pptoml_path):
 
     pptoml_data_str = toml.dumps(pptoml_data)
     pptoml_path.write_text(pptoml_data_str)
+
+def add_poetry_pkg(pptoml_path, package, version):
+    """Add a package to pyproject.toml, when using Poetry."""
+
+    # A method in simple_deploy may pass an empty string, which would override a
+    # default argument value of "*".
+    if not version:
+        version = "*"
+
+    pptoml_data = toml.load(pptoml_path)
+    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][
+        package
+    ] = version
+
+    pptoml_data_str = toml.dumps(pptoml_data)
+    pptoml_path.write_text(pptoml_data_str)

@@ -700,19 +700,20 @@ class Command(BaseCommand):
             self.write_output(f"    Found {package_name} in requirements file.")
             return
 
-        # A method that calls this one may pass an empty string, which would override a
-        # default argument value of "*".
-        if not version:
-            version = "*"
+        # # A method that calls this one may pass an empty string, which would override a
+        # # default argument value of "*".
+        # if not version:
+        #     version = "*"
 
         # Add package to pyproject.toml, in the deploy dependencies group.
         self._check_poetry_deploy_group()
-        pptoml_data = toml.load(self.pyprojecttoml_path)
-        pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][
-            package_name
-        ] = version
-        pptoml_data_str = toml.dumps(pptoml_data)
-        self.pyprojecttoml_path.write_text(pptoml_data_str)
+        # pptoml_data = toml.load(self.pyprojecttoml_path)
+        # pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][
+        #     package_name
+        # ] = version
+        # pptoml_data_str = toml.dumps(pptoml_data)
+        # self.pyprojecttoml_path.write_text(pptoml_data_str)
+        sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
 
         self.write_output(f"    Added {package_name} to pyproject.toml.")
 
