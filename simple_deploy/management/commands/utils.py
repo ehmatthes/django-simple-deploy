@@ -355,10 +355,12 @@ def create_poetry_deploy_group(pptoml_path):
     """Create a deploy group for Poetry in pyproject.toml."""
     pptoml_data = toml.load(pptoml_path)
 
+    # Create Poetry group if needed.
     if "group" not in pptoml_data["tool"]["poetry"]:
         pptoml_data["tool"]["poetry"]["group"] = {}
-    pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
 
+    # Create optional deploy group, and deploy group dependencies.
+    pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
     pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
 
     pptoml_data_str = toml.dumps(pptoml_data)
