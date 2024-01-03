@@ -295,7 +295,7 @@ class Command(BaseCommand):
 
     def commit_changes(self):
         """Commit changes that have been made to the project.
-        
+
         This should only be called when automate_all is being used.
         """
         if not self.automate_all:
@@ -303,7 +303,7 @@ class Command(BaseCommand):
 
         self.write_output("  Committing changes...")
 
-        cmd = 'git add .'
+        cmd = "git add ."
         output = self.run_quick_command(cmd)
         self.write_output(output)
 
@@ -732,7 +732,6 @@ class Command(BaseCommand):
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
-    
     def _add_pipenv_pkg(self, package_name, version=""):
         """Add a package to Pipfile, if not already present."""
         if package_name in self.requirements:
