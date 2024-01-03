@@ -4,13 +4,13 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-psycopg2 = "*"                # Added by simple_deploy command.
-gunicorn = "*"                # Added by simple_deploy command.
-platformshconfig = "*"        # Added by simple_deploy command.
-django-simple-deploy = "*"    # Added by simple_deploy command.
 django = "*"
 django-bootstrap5 = "*"
 requests = "*"
+django-simple-deploy = "*"
+platformshconfig = "*"
+gunicorn = "*"
+psycopg2 = "*"
 
 [dev-packages]
 

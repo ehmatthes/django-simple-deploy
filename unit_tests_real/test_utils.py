@@ -86,11 +86,8 @@ def test_parse_pipfile():
     path = Path(__file__).parent / "resources" / "Pipfile"
     requirements = sd_utils.parse_pipfile(path)
 
-    assert requirements == [
-        "django",
-        "django-bootstrap5",
-        "requests",
-    ]
+    packages = ["django", "django-bootstrap5", "requests"]
+    assert all([pkg in requirements for pkg in packages])
 
 
 def test_parse_pyproject_toml():

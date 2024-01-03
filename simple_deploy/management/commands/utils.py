@@ -287,36 +287,15 @@ def parse_req_txt(path):
 
 
 def parse_pipfile(path):
-    """Get a list of requirements that are already in the Pipfile.
+    """Get a list of requirements that are already in Pipfile.
 
     Parses Pipfile, because we don't want to trust a lock file, and we need to examine
     packages that may be listed in Pipfile but not currently installed.
 
-    Returns:
-        List[str]: List of strings representing each requirement.
+    This is a one-line utility, but having it here allows for easier testing, and makes
+    it easier to expand this to manage a deploy group if appropriate.
     """
-    lines = path.read_text().splitlines()
-
-    # Remove blank lines, extra whitespace, and comments.
-    lines = [l.strip() for l in lines if l]
-    lines = [l for l in lines if l[0] != "#"]
-
-    requirements = []
-    in_packages = False
-    for line in lines:
-        # Ignore all lines until the start of packages. Stop parsing at the next block.
-        if "[packages]" in line:
-            in_packages = True
-            continue
-        elif in_packages and line[0] == "[":
-            # Ignore dev packages for now.
-            break
-
-        if in_packages:
-            pkg_name = line.split("=")[0].rstrip()
-            requirements.append(pkg_name)
-
-    return requirements
+    return toml.load(path)["packages"].keys()
 
 
 def parse_pyproject_toml(path):
