@@ -4,14 +4,14 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-whitenoise = "*"
-dj-database-url = "*"
-psycopg2-binary = "*"
-gunicorn = "*"
-django-simple-deploy = "*"
 django = "*"
 django-bootstrap5 = "*"
 requests = "*"
+django-simple-deploy = "*"
+gunicorn = "*"
+psycopg2-binary = "*"
+dj-database-url = "*"
+whitenoise = "*"
 
 [dev-packages]
 

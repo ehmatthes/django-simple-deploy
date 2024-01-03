@@ -389,22 +389,7 @@ def add_pipenv_pkg(pipfile_path, package, version):
     if not version:
         version = "*"
 
-    pipfile_text = pipfile_path.read_text()
-
-    # Align comments. Align at column 30; take away name length, and version spec space.
-    # tab_string = " " * (30 - len(package) - 5 - len(version))
-
-    # Write package name right after [packages]. For simple projects, this shouldn't
-    # cause any issues.
-    new_pkg_string = f'[packages]\n{package} = "{version}"'
-    pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
-
-    pipfile_path.write_text(pipfile_text)
-
-
-
-    # Use toml.
-    # data = toml.load(pipfile_path)
-    # data[packages][package_name] = version
-    # data_str = toml.dumps(data)
-    # pipfile_path.write_text(data_str)
+    data = toml.load(pipfile_path)
+    data["packages"][package] = version
+    data_str = toml.dumps(data)
+    pipfile_path.write_text(data_str)
