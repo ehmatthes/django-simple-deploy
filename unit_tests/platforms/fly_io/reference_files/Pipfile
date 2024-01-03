@@ -4,11 +4,11 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-whitenoise = "*"              # Added by simple_deploy command.
-dj-database-url = "*"         # Added by simple_deploy command.
-psycopg2-binary = "*"         # Added by simple_deploy command.
-gunicorn = "*"                # Added by simple_deploy command.
-django-simple-deploy = "*"    # Added by simple_deploy command.
+whitenoise = "*"
+dj-database-url = "*"
+psycopg2-binary = "*"
+gunicorn = "*"
+django-simple-deploy = "*"
 django = "*"
 django-bootstrap5 = "*"
 requests = "*"
