@@ -380,3 +380,22 @@ def add_poetry_pkg(pptoml_path, package, version):
 
     pptoml_data_str = toml.dumps(pptoml_data)
     pptoml_path.write_text(pptoml_data_str)
+
+def add_pipenv_pkg(pipfile_path, package, version):
+    """Add a package to Pipfile."""
+    # A method in simple_deploy may pass an empty string, which would override a
+    # default argument value of "*".
+    if not version:
+        version = '*'
+
+    pipfile_text = pipfile_path.read_text()
+
+    # Align comments. Align at column 30; take away name length, and version spec space.
+    tab_string = ' ' * (30 - len(package_name) - 5 - len(version))
+
+    # Write package name right after [packages]. For simple projects, this shouldn't
+    # cause any issues.
+    new_pkg_string = f'[packages]\n{package_name} = "{version}"{tab_string}# Added by simple_deploy command.'
+    pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
+
+    pipfile_path.write_text(pipfile_text)

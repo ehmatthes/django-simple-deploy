@@ -715,24 +715,16 @@ class Command(BaseCommand):
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
-    # fmt: off
+    
     def _add_pipenv_pkg(self, package_name, version=""):
-        """Add a package to Pipfile, if not already present.
-
-        Returns:
-        - None
-        """
+        """Add a package to Pipfile, if not already present."""
         if package_name in self.requirements:
             self.write_output(f"    Found {package_name} in Pipfile.")
-        else:
-            self._write_pipfile_pkg(package_name, version)
+            return
 
-
-    def _write_pipfile_pkg(self, package_name, version=""):
-        """Write package to Pipfile."""
-
-        with open(self.pipfile_path) as f:
-            pipfile_text = f.read()
+        # with open(self.pipfile_path) as f:
+        #     pipfile_text = f.read()
+        pipfile_text = self.pipfile_path.read_text()
 
         if not version:
             version = '*'
@@ -752,6 +744,8 @@ class Command(BaseCommand):
 
         self.write_output(f"    Added {package_name} to Pipfile.")
 
+
+    # fmt: off
     def commit_changes(self):
         """Commit changes that have been made to the project.
         This should only be called when automate_all is being used.
