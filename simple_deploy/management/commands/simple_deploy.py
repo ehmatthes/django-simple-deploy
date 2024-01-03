@@ -702,7 +702,6 @@ class Command(BaseCommand):
 
         self._check_poetry_deploy_group()
         sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
-
         self.write_output(f"    Added {package_name} to pyproject.toml.")
 
     def _check_poetry_deploy_group(self):
@@ -722,26 +721,7 @@ class Command(BaseCommand):
             self.write_output(f"    Found {package_name} in Pipfile.")
             return
 
-        # with open(self.pipfile_path) as f:
-        #     pipfile_text = f.read()
-        pipfile_text = self.pipfile_path.read_text()
-
-        if not version:
-            version = '*'
-
-        # Don't make ugly comments; make space to align comments.
-        #   Align at column 30, so take away name length, and version spec space.
-        tab_string = ' ' * (30 - len(package_name) - 5 - len(version))
-
-        # Write package name right after [packages].
-        #   For simple projects, this shouldn't cause any issues.
-        #   If ordering matters, we can address that later.
-        new_pkg_string = f'[packages]\n{package_name} = "{version}"{tab_string}# Added by simple_deploy command.'
-        pipfile_text = pipfile_text.replace("[packages]", new_pkg_string)
-
-        with open(self.pipfile_path, 'w') as f:
-            f.write(pipfile_text)
-
+        sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
         self.write_output(f"    Added {package_name} to Pipfile.")
 
 
