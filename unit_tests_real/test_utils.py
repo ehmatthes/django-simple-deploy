@@ -131,3 +131,19 @@ def test_add_poetry_pkg(tmp_path):
         / "pyproject_deploy_group_awesome_pkg.toml"
     )
     assert filecmp.cmp(tmp_pptoml, ref_file)
+
+def test_add_pipenv_pkg(tmp_path):
+    path = Path(__file__).parent / "resources" / "Pipfile"
+    contents = path.read_text()
+
+    # Create tmp copy of file, and modify that one.
+    tmp_pipfile = tmp_path / "tmp_pipfile"
+    tmp_pipfile.write_text(contents)
+
+    sd_utils.add_pipenv_pkg(tmp_pipfile, "awesome-deployment-package", "")
+    ref_file = (
+        Path(__file__).parent
+        / "reference_files"
+        / "Pipfile"
+    )
+    assert filecmp.cmp(tmp_pipfile, ref_file)
