@@ -293,6 +293,24 @@ class Command(BaseCommand):
         else:
             self._add_req_txt_pkg(package_name, version)
 
+    def commit_changes(self):
+        """Commit changes that have been made to the project.
+        
+        This should only be called when automate_all is being used.
+        """
+        if not self.automate_all:
+            return
+
+        self.write_output("  Committing changes...")
+
+        cmd = 'git add .'
+        output = self.run_quick_command(cmd)
+        self.write_output(output)
+
+        cmd = 'git commit -m "Configured project for deployment."'
+        output = self.run_quick_command(cmd)
+        self.write_output(output)
+
     # --- Internal methods; used only in this class ---
 
     def _parse_cli_options(self, options):
@@ -723,22 +741,3 @@ class Command(BaseCommand):
 
         sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
         self.write_output(f"    Added {package_name} to Pipfile.")
-
-
-    # fmt: off
-    def commit_changes(self):
-        """Commit changes that have been made to the project.
-        This should only be called when automate_all is being used.
-        """
-        if not self.automate_all:
-            return
-
-        self.write_output("  Committing changes...")
-
-        cmd = 'git add .'
-        output = self.run_quick_command(cmd)
-        self.write_output(output)
-
-        cmd = 'git commit -am "Configured project for deployment."'
-        output = self.run_quick_command(cmd)
-        self.write_output(output)
