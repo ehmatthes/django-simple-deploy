@@ -23,7 +23,6 @@ def test_simple_git_status():
 
 
 def test_ignore_sd_logs():
-
     status_output = " M .gitignore"
     diff_output = dedent(
         """\
@@ -39,8 +38,21 @@ def test_ignore_sd_logs():
     assert sd_utils.check_status_output(status_output, diff_output)
 
 
-@pytest.mark.skip()
-def test_blah():
-    status_output = " M blog/settings.py\n?? simple_deploy_logs/"
-    diff_output = "diff --git a/blog/settings.py b/blog/settings.py\nindex 6d40136..6395c5a 100644\n--- a/blog/settings.py\n+++ b/blog/settings.py\n@@ -39,0 +40 @@ INSTALLED_APPS = [\n+    'simple_deploy',\n@@ -134 +135 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'\n-LOGIN_URL = 'users:login'\n\\ No newline at end of file\n+LOGIN_URL = 'users:login'"
+def test_diff_settings_sd_with_newline():
+    """Make sure a newline change at end of file doesn't fail the git status check."""
+    status_output = " M .gitignore"
+    diff_output = dedent(
+        """\
+        diff --git a/blog/settings.py b/blog/settings.py
+        index 6d40136..6395c5a 100644
+        --- a/blog/settings.py
+        +++ b/blog/settings.py
+        @@ -39,0 +40 @@ INSTALLED_APPS = [
+        +    'simple_deploy',
+        @@ -134 +135 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+        -LOGIN_URL = 'users:login'
+        \\ No newline at end of file
+        +LOGIN_URL = 'users:login'"""
+    )
+
     assert sd_utils.check_status_output(status_output, diff_output)

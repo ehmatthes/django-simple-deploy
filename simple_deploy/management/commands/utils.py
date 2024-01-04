@@ -254,6 +254,15 @@ def clean_diff(diff_lines):
     except IndexError:
         return []
 
+    # Ignore changes that relate to newlines, like this:
+    #     -LOGIN_URL = 'users:login'            <-- this line
+    #     \\ No newline at end of file
+    #     +LOGIN_URL = 'users:login'"""         <--- and this line
+    # Remove the + or -, and find any lines that are repeated.
+    changes = [l[1:] for l in lines]
+    changes_to_remove = [c for c in changes if changes.count(c) == 2]
+    lines = [l for l in lines if l[1:] not in changes_to_remove]
+
     return lines
 
 
