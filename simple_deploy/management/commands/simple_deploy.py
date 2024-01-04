@@ -286,12 +286,21 @@ class Command(BaseCommand):
         """
         self.write_output(f"\n  Looking for {package_name}...")
 
+        if package_name in self.requirements:
+            self.write_output(f"    Found {package_name} in requirements file.")
+            return
+
         if self.pkg_manager == "pipenv":
-            self._add_pipenv_pkg(package_name, version)
+            sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
+            self.write_output(f"    Added {package_name} to Pipfile.")
         elif self.pkg_manager == "poetry":
-            self._add_poetry_pkg(package_name, version)
+            self._check_poetry_deploy_group()
+            sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
+            self.write_output(f"    Added {package_name} to pyproject.toml.")
         else:
-            self._add_req_txt_pkg(package_name, version)
+            sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
+            self.write_output(f"    Added {package_name} to requirements.txt.")
+            
 
     def commit_changes(self):
         """Commit changes that have been made to the project.
@@ -688,30 +697,21 @@ class Command(BaseCommand):
         self.write_output(msg)
         self.add_package("django-simple-deploy")
 
-    def _add_req_txt_pkg(self, package_name, version):
-        """Add a package to requirements.txt, if not already present."""
-        # Don't check for specific versions; give priority to any version already
-        # specified in requirements.
-        if package_name in self.requirements:
-            self.write_output(f"    Found {package_name} in requirements file.")
-            return
+    # def _add_req_txt_pkg(self, package_name, version):
+    #     """Add a package to requirements.txt, if not already present."""
+    #     # Don't check for specific versions; give priority to any version already
+    #     sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
+    #     self.write_output(f"    Added {package_name} to requirements.txt.")
 
-        sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
-        self.write_output(f"    Added {package_name} to requirements.txt.")
+    # def _add_poetry_pkg(self, package_name, version):
+    #     """Add a package when project is using Poetry.
 
-    def _add_poetry_pkg(self, package_name, version):
-        """Add a package when project is using Poetry.
-
-        Ensures the optional "deploy" group exists, and creates it if not. Adds an entry
-        to pyproject.toml, without modifying the lock file.
-        """
-        if package_name in self.requirements:
-            self.write_output(f"    Found {package_name} in requirements file.")
-            return
-
-        self._check_poetry_deploy_group()
-        sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
-        self.write_output(f"    Added {package_name} to pyproject.toml.")
+    #     Ensures the optional "deploy" group exists, and creates it if not. Adds an entry
+    #     to pyproject.toml, without modifying the lock file.
+    #     """
+    #     self._check_poetry_deploy_group()
+    #     sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
+    #     self.write_output(f"    Added {package_name} to pyproject.toml.")
 
     def _check_poetry_deploy_group(self):
         """Make sure a deploy group exists in pyproject.toml."""
@@ -723,11 +723,7 @@ class Command(BaseCommand):
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
-    def _add_pipenv_pkg(self, package_name, version=""):
-        """Add a package to Pipfile, if not already present."""
-        if package_name in self.requirements:
-            self.write_output(f"    Found {package_name} in Pipfile.")
-            return
-
-        sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
-        self.write_output(f"    Added {package_name} to Pipfile.")
+    # def _add_pipenv_pkg(self, package_name, version=""):
+    #     """Add a package to Pipfile, if not already present."""
+    #     sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
+    #     self.write_output(f"    Added {package_name} to Pipfile.")
