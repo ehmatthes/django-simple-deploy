@@ -11,13 +11,13 @@ import pytest
 
 def test_strip_secret_key_with_key():
     line = "SECRET_KEY = 'django-insecure-j+*1=he4!%=(-3g^$hj=1pkmzkbdjm0-h2%yd-=1sf%trwun_-'"
-    stripped_line = sd_utils.strip_secret_key(line)
+    stripped_line = sd_utils._strip_secret_key(line)
     assert stripped_line == "SECRET_KEY = *value hidden*"
 
 
 def test_strip_secret_key_without_key():
     line = "INSTALLED_APPS = ["
-    assert sd_utils.strip_secret_key(line) == line
+    assert sd_utils._strip_secret_key(line) == line
 
 
 def test_get_string_from_output_string():

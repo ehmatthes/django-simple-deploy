@@ -133,21 +133,8 @@ def log_output_string(output):
         None
     """
     for line in output.splitlines():
-        line = strip_secret_key(line)
+        line = _strip_secret_key(line)
         logging.info(line)
-
-
-# --- Helper functions ---
-
-
-def strip_secret_key(line):
-    """Strip secret key value from log file lines."""
-    if "SECRET_KEY =" in line:
-        new_line = line.split("SECRET_KEY")[0]
-        new_line += "SECRET_KEY = *value hidden*"
-        return new_line
-    else:
-        return line
 
 
 def check_status_output(status_output, diff_output):
@@ -183,33 +170,49 @@ def check_status_output(status_output, diff_output):
     if any([path.name not in allowed_modifications for path in modified_paths]):
         return False
 
-    if not check_git_diff(diff_output):
+    if not _check_git_diff(diff_output):
         return False
 
     # No reason not to continue.
     return True
 
-def check_git_diff(diff_output):
+
+# --- Helper functions ---
+
+
+def _strip_secret_key(line):
+    """Strip secret key value from log file lines."""
+    if "SECRET_KEY =" in line:
+        new_line = line.split("SECRET_KEY")[0]
+        new_line += "SECRET_KEY = *value hidden*"
+        return new_line
+    else:
+        return line
+
+
+
+
+def _check_git_diff(diff_output):
     """Check git diff output, which may include several changed files."""
     file_diffs = diff_output.split("\ndiff ")
     for diff in file_diffs:
         diff_lines = diff.split("\n")
         if "settings.py" in diff_lines[0]:
-            if not check_settings_diff(diff_lines):
+            if not _check_settings_diff(diff_lines):
                 return False
         elif ".gitignore" in diff_lines[0]:
-            if not check_gitignore_diff(diff_lines):
+            if not _check_gitignore_diff(diff_lines):
                 return False
 
     return True
 
 
-def check_settings_diff(diff_lines):
+def _check_settings_diff(diff_lines):
     """Look for any unexpected changes in settings.py.
 
     Note: May want to accept a platform-specific settings block.
     """
-    lines = clean_diff(diff_lines)
+    lines = _clean_diff(diff_lines)
 
     # If no meaningful changes, proceed.
     if not lines:
@@ -226,9 +229,9 @@ def check_settings_diff(diff_lines):
     return True
 
 
-def check_gitignore_diff(diff_lines):
+def _check_gitignore_diff(diff_lines):
     """Look for any unexpected changes in .gitignore."""
-    lines = clean_diff(diff_lines)
+    lines = _clean_diff(diff_lines)
 
     # If no meaningful changes, proceed.
     if not lines:
@@ -245,7 +248,7 @@ def check_gitignore_diff(diff_lines):
     return True
 
 
-def clean_diff(diff_lines):
+def _clean_diff(diff_lines):
     """Remove unneeded info from diff output."""
     # Get rid of lines that start with --- or +++
     lines = [l for l in diff_lines if l[:2] not in ("--", "++")]
