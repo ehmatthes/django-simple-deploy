@@ -348,12 +348,8 @@ def create_poetry_deploy_group(pptoml_path):
 
 def add_req_txt_pkg(req_txt_path, package, version):
     """Add a package to requirements.txt."""
-    # Build entry for package in requirements.txt.
-    # package += version
-    pkg_string = f"\n{package + version}"
-
-    # Add new line to requirements.txt.
     contents = req_txt_path.read_text()
+    pkg_string = f"\n{package + version}"
     req_txt_path.write_text(contents + pkg_string)
 
 

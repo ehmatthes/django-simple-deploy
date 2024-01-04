@@ -273,13 +273,10 @@ class Command(BaseCommand):
     def add_package(self, package_name, version=""):
         """Add a package to the project's requirements, if not already present.
 
-        This method is pkg_manager-agnostic. It delegates to a method specific to the
-        dependency management system in use.
-
         Handles calls with version information with pip formatting:
             add_package("psycopg2", version="<2.9")
-        The delegated methods handle this version information correctly for the
-        dependency management system in use.
+        The utility methods handle this version information correctly for the dependency
+        management system in use.
 
         Returns:
             None
@@ -292,15 +289,13 @@ class Command(BaseCommand):
 
         if self.pkg_manager == "pipenv":
             sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
-            self.write_output(f"    Added {package_name} to Pipfile.")
         elif self.pkg_manager == "poetry":
             self._check_poetry_deploy_group()
             sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
-            self.write_output(f"    Added {package_name} to pyproject.toml.")
         else:
             sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
-            self.write_output(f"    Added {package_name} to requirements.txt.")
-            
+
+        self.write_output(f"    Added {package_name} to requirements file.")
 
     def commit_changes(self):
         """Commit changes that have been made to the project.
@@ -697,22 +692,6 @@ class Command(BaseCommand):
         self.write_output(msg)
         self.add_package("django-simple-deploy")
 
-    # def _add_req_txt_pkg(self, package_name, version):
-    #     """Add a package to requirements.txt, if not already present."""
-    #     # Don't check for specific versions; give priority to any version already
-    #     sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
-    #     self.write_output(f"    Added {package_name} to requirements.txt.")
-
-    # def _add_poetry_pkg(self, package_name, version):
-    #     """Add a package when project is using Poetry.
-
-    #     Ensures the optional "deploy" group exists, and creates it if not. Adds an entry
-    #     to pyproject.toml, without modifying the lock file.
-    #     """
-    #     self._check_poetry_deploy_group()
-    #     sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
-    #     self.write_output(f"    Added {package_name} to pyproject.toml.")
-
     def _check_poetry_deploy_group(self):
         """Make sure a deploy group exists in pyproject.toml."""
         pptoml_data = toml.load(self.pyprojecttoml_path)
@@ -722,8 +701,3 @@ class Command(BaseCommand):
             sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
-
-    # def _add_pipenv_pkg(self, package_name, version=""):
-    #     """Add a package to Pipfile, if not already present."""
-    #     sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
-    #     self.write_output(f"    Added {package_name} to Pipfile.")
