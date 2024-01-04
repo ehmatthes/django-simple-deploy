@@ -696,17 +696,7 @@ class Command(BaseCommand):
             self.write_output(f"    Found {package_name} in requirements file.")
             return
 
-        # # Build entry for package in requirements.txt.
-        # package_name += version
-        # # Align comments, so we don't make req_txt file ugly.
-        # tab_string = " " * (30 - len(package_name))
-        # pkg_string = f"\n{package_name}{tab_string}# Added by simple_deploy."
-
-        # # Add new line to requirements.txt.
-        # contents = self.req_txt_path.read_text()
-        # self.req_txt_path.write_text(contents + pkg_string)
         sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
-
         self.write_output(f"    Added {package_name} to requirements.txt.")
 
     def _add_poetry_pkg(self, package_name, version):
