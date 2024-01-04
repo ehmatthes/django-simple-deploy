@@ -114,6 +114,19 @@ def test_create_poetry_deploy_group(tmp_path):
     assert filecmp.cmp(tmp_pptoml, ref_file)
 
 
+def test_add_req_txt_pkg(tmp_path):
+    path = Path(__file__).parent / "resources" / "requirements.txt"
+    contents = path.read_text()
+
+    # Create tmp copy of file, and modify that one.
+    tmp_req_txt = tmp_path / "tmp_requirements.txt"
+    tmp_req_txt.write_text(contents)
+
+    sd_utils.add_req_txt_pkg(tmp_req_txt, "awesome-deployment-package", "")
+    ref_file = Path(__file__).parent / "reference_files" / "requirements.txt"
+    assert filecmp.cmp(tmp_req_txt, ref_file)
+
+
 def test_add_poetry_pkg(tmp_path):
     path = (
         Path(__file__).parent / "resources" / "pyproject_toml_empty_deploy_group.toml"
