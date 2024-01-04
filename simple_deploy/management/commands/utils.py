@@ -346,6 +346,19 @@ def create_poetry_deploy_group(pptoml_path):
     pptoml_path.write_text(pptoml_data_str)
 
 
+def add_req_txt_pkg(req_txt_path, package, version):
+    """Add a package to requirements.txt."""
+    # Build entry for package in requirements.txt.
+    package += version
+    # Align comments, so we don't make req_txt file ugly.
+    tab_string = " " * (30 - len(package))
+    pkg_string = f"\n{package}{tab_string}# Added by simple_deploy."
+
+    # Add new line to requirements.txt.
+    contents = req_txt_path.read_text()
+    req_txt_path.write_text(contents + pkg_string)
+
+
 def add_poetry_pkg(pptoml_path, package, version):
     """Add a package to poetry deploy group of pyproject.toml."""
 
