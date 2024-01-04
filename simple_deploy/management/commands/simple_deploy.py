@@ -573,8 +573,7 @@ class Command(BaseCommand):
 
         Adds a .gitignore file if one is not found.
         """
-        ignore_msg = "# Ignore logs from simple_deploy."
-        ignore_msg += "\nsimple_deploy_logs/\n"
+        ignore_msg = "simple_deploy_logs/\n"
 
         gitignore_path = self.git_path / ".gitignore"
         if not gitignore_path.exists():
