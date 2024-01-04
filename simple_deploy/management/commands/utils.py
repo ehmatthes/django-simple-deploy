@@ -137,144 +137,6 @@ def log_output_string(output):
         logging.info(line)
 
 
-def check_status_output(status_output, diff_output):
-    """Check output of `git status --porcelain` for uncommitted changes.
-
-    Look for:
-        Untracked changes other than simple_deploy_logs/
-        Modified files beyond .gitignore and settings.py
-    Consider looking at other status codes at some point.
-
-    Returns:
-        bool: True if okay to proceed, False if not.
-    """
-    lines = status_output.splitlines()
-    lines = [line.strip() for line in lines]
-
-    # Process untracked changes first.
-    untracked_changes = [line for line in lines if line[0:2] == "??"]
-
-    if len(untracked_changes) > 1:
-        return False
-    if (
-        len(untracked_changes) == 1
-        and "simple_deploy_logs/" not in untracked_changes[0]
-    ):
-        return False
-
-    # Process modified files.
-    modified_files = [line.replace("M ", "") for line in lines if line[0] == "M"]
-    modified_paths = [Path(f) for f in modified_files]
-    allowed_modifications = ["settings.py", ".gitignore"]
-    # Return False if any files other than these have been modified.
-    if any([path.name not in allowed_modifications for path in modified_paths]):
-        return False
-
-    if not _check_git_diff(diff_output):
-        return False
-
-    # No reason not to continue.
-    return True
-
-
-# --- Helper functions ---
-
-
-def _strip_secret_key(line):
-    """Strip secret key value from log file lines."""
-    if "SECRET_KEY =" in line:
-        new_line = line.split("SECRET_KEY")[0]
-        new_line += "SECRET_KEY = *value hidden*"
-        return new_line
-    else:
-        return line
-
-
-
-
-def _check_git_diff(diff_output):
-    """Check git diff output, which may include several changed files."""
-    file_diffs = diff_output.split("\ndiff ")
-    for diff in file_diffs:
-        diff_lines = diff.split("\n")
-        if "settings.py" in diff_lines[0]:
-            if not _check_settings_diff(diff_lines):
-                return False
-        elif ".gitignore" in diff_lines[0]:
-            if not _check_gitignore_diff(diff_lines):
-                return False
-
-    return True
-
-
-def _check_settings_diff(diff_lines):
-    """Look for any unexpected changes in settings.py.
-
-    Note: May want to accept a platform-specific settings block.
-    """
-    lines = _clean_diff(diff_lines)
-
-    # If no meaningful changes, proceed.
-    if not lines:
-        return True
-
-    # If there's more than one change to settings, don't proceed.
-    if len(lines) > 1:
-        return False
-
-    # If the change is not adding simple_deploy, don't proceed.
-    if "simple_deploy" not in lines[0]:
-        return False
-
-    return True
-
-
-def _check_gitignore_diff(diff_lines):
-    """Look for any unexpected changes in .gitignore."""
-    lines = _clean_diff(diff_lines)
-
-    # If no meaningful changes, proceed.
-    if not lines:
-        return True
-
-    # If there's more than one change to .gitignore, don't proceed.
-    if len(lines) > 1:
-        return False
-
-    # If the change is not adding simple_deploy, don't proceed.
-    if "simple_deploy_logs" not in lines[0]:
-        return False
-
-    return True
-
-
-def _clean_diff(diff_lines):
-    """Remove unneeded info from diff output."""
-    # Get rid of lines that start with --- or +++
-    lines = [l for l in diff_lines if l[:2] not in ("--", "++")]
-
-    # Ignore additions or deletions of blank lines.
-    lines = [l.strip() for l in lines]
-    lines = [l for l in lines if l]
-    lines = [l for l in lines if l not in ("-", "+")]
-    # Ignore lines that don't start with - or +.
-    try:
-        lines = [l for l in lines if l[0] in ("-", "+")]
-    except IndexError:
-        return []
-
-    # Ignore changes that relate to newlines, like this:
-    #     -LOGIN_URL = 'users:login'            <-- this line
-    #     \\ No newline at end of file
-    #     +LOGIN_URL = 'users:login'"""         <--- and this line
-    # Remove the + or -, and find any lines that are repeated.
-    changes = [l[1:] for l in lines]
-    changes_to_remove = [c for c in changes if changes.count(c) == 2]
-    lines = [l for l in lines if l[1:] not in changes_to_remove]
-
-    return lines
-
-
 def parse_req_txt(path):
     """Get a list of requirements from a requirements.txt file.
 
@@ -397,3 +259,139 @@ def add_pipenv_pkg(pipfile_path, package, version):
     data["packages"][package] = version
     data_str = toml.dumps(data)
     pipfile_path.write_text(data_str)
+
+
+def check_status_output(status_output, diff_output):
+    """Check output of `git status --porcelain` for uncommitted changes.
+
+    Look for:
+        Untracked changes other than simple_deploy_logs/
+        Modified files beyond .gitignore and settings.py
+    Consider looking at other status codes at some point.
+
+    Returns:
+        bool: True if okay to proceed, False if not.
+    """
+    lines = status_output.splitlines()
+    lines = [line.strip() for line in lines]
+
+    # Process untracked changes first.
+    untracked_changes = [line for line in lines if line[0:2] == "??"]
+
+    if len(untracked_changes) > 1:
+        return False
+    if (
+        len(untracked_changes) == 1
+        and "simple_deploy_logs/" not in untracked_changes[0]
+    ):
+        return False
+
+    # Process modified files.
+    modified_files = [line.replace("M ", "") for line in lines if line[0] == "M"]
+    modified_paths = [Path(f) for f in modified_files]
+    allowed_modifications = ["settings.py", ".gitignore"]
+    # Return False if any files other than these have been modified.
+    if any([path.name not in allowed_modifications for path in modified_paths]):
+        return False
+
+    if not _check_git_diff(diff_output):
+        return False
+
+    # No reason not to continue.
+    return True
+
+
+# --- Helper functions ---
+
+
+def _strip_secret_key(line):
+    """Strip secret key value from log file lines."""
+    if "SECRET_KEY =" in line:
+        new_line = line.split("SECRET_KEY")[0]
+        new_line += "SECRET_KEY = *value hidden*"
+        return new_line
+    else:
+        return line
+
+
+def _check_git_diff(diff_output):
+    """Check git diff output, which may include several changed files."""
+    file_diffs = diff_output.split("\ndiff ")
+    for diff in file_diffs:
+        diff_lines = diff.split("\n")
+        if "settings.py" in diff_lines[0]:
+            if not _check_settings_diff(diff_lines):
+                return False
+        elif ".gitignore" in diff_lines[0]:
+            if not _check_gitignore_diff(diff_lines):
+                return False
+
+    return True
+
+
+def _check_settings_diff(diff_lines):
+    """Look for any unexpected changes in settings.py.
+
+    Note: May want to accept a platform-specific settings block.
+    """
+    lines = _clean_diff(diff_lines)
+
+    # If no meaningful changes, proceed.
+    if not lines:
+        return True
+
+    # If there's more than one change to settings, don't proceed.
+    if len(lines) > 1:
+        return False
+
+    # If the change is not adding simple_deploy, don't proceed.
+    if "simple_deploy" not in lines[0]:
+        return False
+
+    return True
+
+
+def _check_gitignore_diff(diff_lines):
+    """Look for any unexpected changes in .gitignore."""
+    lines = _clean_diff(diff_lines)
+
+    # If no meaningful changes, proceed.
+    if not lines:
+        return True
+
+    # If there's more than one change to .gitignore, don't proceed.
+    if len(lines) > 1:
+        return False
+
+    # If the change is not adding simple_deploy, don't proceed.
+    if "simple_deploy_logs" not in lines[0]:
+        return False
+
+    return True
+
+
+def _clean_diff(diff_lines):
+    """Remove unneeded info from diff output."""
+    # Get rid of lines that start with --- or +++
+    lines = [l for l in diff_lines if l[:2] not in ("--", "++")]
+
+    # Ignore additions or deletions of blank lines.
+    lines = [l.strip() for l in lines]
+    lines = [l for l in lines if l]
+    lines = [l for l in lines if l not in ("-", "+")]
+    # Ignore lines that don't start with - or +.
+    try:
+        lines = [l for l in lines if l[0] in ("-", "+")]
+    except IndexError:
+        return []
+
+    # Ignore changes that relate to newlines, like this:
+    #     -LOGIN_URL = 'users:login'            <-- this line
+    #     \\ No newline at end of file
+    #     +LOGIN_URL = 'users:login'"""         <--- and this line
+    # Remove the + or -, and find any lines that are repeated.
+    changes = [l[1:] for l in lines]
+    changes_to_remove = [c for c in changes if changes.count(c) == 2]
+    lines = [l for l in lines if l[1:] not in changes_to_remove]
+
+    return lines
