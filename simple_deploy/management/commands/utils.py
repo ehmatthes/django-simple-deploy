@@ -183,7 +183,14 @@ def check_status_output(status_output, diff_output):
     if any([path.name not in allowed_modifications for path in modified_paths]):
         return False
 
-    # Parse git diff output.
+    if not check_git_diff(diff_output):
+        return False
+
+    # No reason not to continue.
+    return True
+
+def check_git_diff(diff_output):
+    """Check git diff output, which may include several changed files."""
     file_diffs = diff_output.split("\ndiff ")
     for diff in file_diffs:
         diff_lines = diff.split("\n")
@@ -194,7 +201,6 @@ def check_status_output(status_output, diff_output):
             if not check_gitignore_diff(diff_lines):
                 return False
 
-    # No reason not to continue.
     return True
 
 
