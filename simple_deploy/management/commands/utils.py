@@ -372,26 +372,18 @@ def _check_gitignore_diff(diff_lines):
 
 def _clean_diff(diff_lines):
     """Remove unneeded info from diff output."""
+    # Get rid of blank lines. Most likely a newline at end of output.
+    lines = [l for l in diff_lines if l]
+
     # Get rid of lines that start with --- or +++
-    lines = [l for l in diff_lines if l[:2] not in ("--", "++")]
+    # Also, get rid of line starting with -- from split() removing first occurrence of
+    # "diff".
+    lines = [l for l in lines if l[:2] not in ("--", "++")]
+
+    # Only keep lines indicating changes.
+    lines = [l for l in lines if l[0] in ("-", "+")]
 
     # Ignore additions or deletions of blank lines.
-    lines = [l.strip() for l in lines]
-    lines = [l for l in lines if l]
     lines = [l for l in lines if l not in ("-", "+")]
-    # Ignore lines that don't start with - or +.
-    try:
-        lines = [l for l in lines if l[0] in ("-", "+")]
-    except IndexError:
-        return []
-
-    # Ignore changes that relate to newlines, like this:
-    #     -LOGIN_URL = 'users:login'            <-- this line
-    #     \\ No newline at end of file
-    #     +LOGIN_URL = 'users:login'"""         <--- and this line
-    # Remove the + or -, and find any lines that are repeated.
-    changes = [l[1:] for l in lines]
-    changes_to_remove = [c for c in changes if changes.count(c) == 2]
-    lines = [l for l in lines if l[1:] not in changes_to_remove]
 
     return lines

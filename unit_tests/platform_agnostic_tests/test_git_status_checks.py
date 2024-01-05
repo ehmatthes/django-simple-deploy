@@ -120,7 +120,7 @@ def test_unacceptable_settings_change(tmp_project):
     """Call simple_deploy after adding a non-simple_deploy line to settings.py."""
     path = tmp_project / "blog" / "settings.py"
     settings_text = path.read_text()
-    new_text = "\n# Placeholder comment to create unacceptable git status."
+    new_text = "\n# Placeholder comment to create unacceptable git status.\n"
     new_settings_text = settings_text + new_text
     path.write_text(new_settings_text)
 
