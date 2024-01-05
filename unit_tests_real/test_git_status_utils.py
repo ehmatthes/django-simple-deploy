@@ -133,6 +133,7 @@ def test_clean_diff():
 
     cleaned_diff = sd_utils._clean_diff(diff_output.splitlines())
     assert cleaned_diff == ["+    'simple_deploy',"]
+    assert sd_utils._check_settings_diff(diff_output.splitlines())
 
 def test_clean_diff_remove_blank_changes():
     diff_output = dedent(
@@ -149,6 +150,7 @@ def test_clean_diff_remove_blank_changes():
 
     cleaned_diff = sd_utils._clean_diff(diff_output.splitlines())
     assert cleaned_diff == ["+# Placeholder comment to create unacceptable git status."]
+    assert not sd_utils._check_settings_diff(diff_output.splitlines())
 
 def test_clean_diff_remove_trailing_newline():
     diff_output = dedent(
@@ -165,6 +167,7 @@ def test_clean_diff_remove_trailing_newline():
 
     cleaned_diff = sd_utils._clean_diff(diff_output.splitlines())
     assert cleaned_diff == ["+# Placeholder comment to create unacceptable git status."]
+    assert not sd_utils._check_settings_diff(diff_output.splitlines())
 
 def test_clean_diff_gitignore():
     diff_output = dedent(
@@ -180,7 +183,6 @@ def test_clean_diff_gitignore():
 
     cleaned_diff = sd_utils._clean_diff(diff_output.splitlines())
     assert cleaned_diff == ["+simple_deploy_logs/"]
-
     assert sd_utils._check_gitignore_diff(diff_output.splitlines())
 
 def test_clean_diff_settings():
@@ -196,5 +198,4 @@ def test_clean_diff_settings():
 
     cleaned_diff = sd_utils._clean_diff(diff_output.splitlines())
     assert cleaned_diff == ["+    'simple_deploy',"]
-
     assert sd_utils._check_settings_diff(diff_output.splitlines())
