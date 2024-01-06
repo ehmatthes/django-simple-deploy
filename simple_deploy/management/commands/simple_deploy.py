@@ -120,9 +120,7 @@ class Command(BaseCommand):
 
         self._add_simple_deploy_req()
 
-        # All platform-agnostic work has been completed. Call platform-specific deploy()
-        # method.
-        # self._prep_platform()
+        # All platform-agnostic work has been completed.
         self._create_deployer()
         self.platform_deployer.deploy()
 
@@ -396,30 +394,6 @@ class Command(BaseCommand):
         else:
             error_msg = d_msgs.invalid_platform_msg(self.platform)
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
-
-    # def _prep_platform(self):
-    #     """Instantiate the PlatformDeployer object."""
-    #     deployer_module = import_module(
-    #         f".{self.platform}.deploy", package="simple_deploy.management.commands"
-    #     )
-    #     self.platform_deployer = deployer_module.PlatformDeployer(self)
-
-    #     self.platform_msgs = import_module(
-    #         f".{self.platform}.deploy_messages",
-    #         package="simple_deploy.management.commands",
-    #     )
-
-    #     try:
-    #         self.platform_deployer.confirm_preliminary()
-    #     except AttributeError:
-    #         pass
-
-    def _create_deployer(self):
-        """Instantiate the PlatformDeployer object."""
-        deployer_module = import_module(
-            f".{self.platform}.deploy", package="simple_deploy.management.commands"
-        )
-        self.platform_deployer = deployer_module.PlatformDeployer(self)
 
     def _inspect_system(self):
         """Inspect the user's local system for relevant information.
@@ -703,3 +677,12 @@ class Command(BaseCommand):
             sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
+
+    def _create_deployer(self):
+        """Instantiate the PlatformDeployer object."""
+        deployer_module = import_module(
+            f".{self.platform}.deploy", package="simple_deploy.management.commands"
+        )
+        self.platform_deployer = deployer_module.PlatformDeployer(self)
+
+    
