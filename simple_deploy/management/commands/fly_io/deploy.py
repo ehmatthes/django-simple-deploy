@@ -662,9 +662,9 @@ class PlatformDeployer:
             it correctly.
         """
         if self._check_db_attached():
-            return self._confirm_use_attached_db(self.db_name)
+            return self._confirm_use_attached_db()
         else:
-            return self._confirm_use_unattached_db(self.db_name)
+            return self._confirm_use_unattached_db()
 
     def _check_db_attached(self):
         """Check if the db that was found is attached to this app.
