@@ -56,7 +56,6 @@ class PlatformDeployer:
         self._conclude_automate_all()
         self._show_success_message()
 
-
     # --- Helper methods for deploy() ---
 
     def _confirm_automate_all(self):
