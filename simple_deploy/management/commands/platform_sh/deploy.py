@@ -254,13 +254,13 @@ class PlatformDeployer:
         """Deployment to platform.sh is in a preliminary state, and we need to be
         explicit about that.
         """
-        # Skip this confirmation when unit testing.
+        self.sd.write_output(plsh_msgs.confirm_preliminary)
+
+        # Unit test check is here, so message is logged.
         if self.sd.unit_testing:
             return
 
-        self.sd.write_output(plsh_msgs.confirm_preliminary)
         confirmed = self.sd.get_confirmation()
-
         if confirmed:
             self.sd.write_output("  Continuing with platform.sh deployment...")
         else:

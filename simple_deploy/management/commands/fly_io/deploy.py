@@ -55,11 +55,12 @@ class PlatformDeployer:
 
     def confirm_preliminary(self):
         """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
+        self.sd.write_output(flyio_msgs.confirm_preliminary)
 
+        # Unit test check is here, so message is logged.
         if self.sd.unit_testing:
             return
 
-        self.sd.write_output(flyio_msgs.confirm_preliminary)
         if self.sd.get_confirmation():
             self.sd.write_output("  Continuing with Fly.io deployment...")
         else:

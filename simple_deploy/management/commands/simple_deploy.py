@@ -111,7 +111,6 @@ class Command(BaseCommand):
             self.log_info(f"\nCLI args: {options}")
 
         self._validate_command()
-        self._prep_platform()
         self._inspect_system()
         self._inspect_project()
 
@@ -123,6 +122,7 @@ class Command(BaseCommand):
 
         # All platform-agnostic work has been completed. Call platform-specific deploy()
         # method.
+        self._prep_platform()
         self.platform_deployer.deploy()
 
     # --- Methods used here, and also by platform-specific modules ---
@@ -397,12 +397,7 @@ class Command(BaseCommand):
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
     def _prep_platform(self):
-        """Prepare platform-specific resources needed in this module.
-
-        Instantiate the PlatformDeployer object.
-        Import platform-specific messages.
-        Get confirmation regarding preliminary support, if needed.
-        """
+        """Instantiate the PlatformDeployer object."""
         deployer_module = import_module(
             f".{self.platform}.deploy", package="simple_deploy.management.commands"
         )
