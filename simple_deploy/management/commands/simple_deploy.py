@@ -113,14 +113,8 @@ class Command(BaseCommand):
         self._validate_command()
         self._inspect_system()
         self._inspect_project()
-
-        # Make sure user knows exactly what --automate-all will do.
-        if self.automate_all:
-            self._confirm_automate_all()
-
         self._add_simple_deploy_req()
 
-        # All platform-agnostic work has been completed.
         self._create_deployer()
         self.platform_deployer.deploy()
 
