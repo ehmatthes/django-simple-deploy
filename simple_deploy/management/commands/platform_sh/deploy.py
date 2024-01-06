@@ -16,6 +16,7 @@ from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
 
 from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
+import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
 class PlatformDeployer:
@@ -35,6 +36,7 @@ class PlatformDeployer:
         self._confirm_preliminary()
         self._validate_platform()
         if self.sd.automate_all:
+            self._confirm_automate_all()
             self._prep_automate_all()
 
         self._add_platformsh_settings()
@@ -54,6 +56,21 @@ class PlatformDeployer:
 
 
     # --- Methods used in this class ---
+
+    def _confirm_automate_all(self):
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
+        """
+        self.sd.write_output(plsh_msgs.confirm_automate_all)
+        confirmed = self.get_confirmation()
+
+        if confirmed:
+            self.sd.write_output("Automating all steps...")
+        else:
+            # Quit with a message, but don't raise an error.
+            self.sd.write_output(d_msgs.cancel_automate_all)
+            sys.exit()
 
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""

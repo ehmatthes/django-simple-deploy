@@ -18,6 +18,7 @@ import requests
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
 import simple_deploy.management.commands.utils as sd_utils
+import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
 class PlatformDeployer:
@@ -42,6 +43,7 @@ class PlatformDeployer:
         self._confirm_preliminary()
         self._validate_platform()
         if self.sd.automate_all:
+            self._confirm_automate_all()
             self._prep_automate_all()
 
         self._set_on_flyio()
@@ -56,6 +58,21 @@ class PlatformDeployer:
 
 
     # --- Helper methods for deploy() ---
+
+    def _confirm_automate_all(self):
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
+        """
+        self.sd.write_output(flyio_msgs.confirm_automate_all)
+        confirmed = self.get_confirmation()
+
+        if confirmed:
+            self.sd.write_output("Automating all steps...")
+        else:
+            # Quit with a message, but don't raise an error.
+            self.sd.write_output(d_msgs.cancel_automate_all)
+            sys.exit()
 
     def _confirm_preliminary(self):
         """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
