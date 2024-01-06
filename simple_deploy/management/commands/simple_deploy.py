@@ -637,21 +637,6 @@ class Command(BaseCommand):
 
         return requirements
 
-    # def _confirm_automate_all(self):
-    #     """Confirm the user understands what --automate-all does.
-
-    #     If confirmation not granted, exit with a message, but no error.
-    #     """
-    #     self.write_output(self.platform_msgs.confirm_automate_all)
-    #     confirmed = self.get_confirmation()
-
-    #     if confirmed:
-    #         self.write_output("Automating all steps...")
-    #     else:
-    #         # Quit with a message, but don't raise an error.
-    #         self.write_output(d_msgs.cancel_automate_all)
-    #         sys.exit()
-
     def _add_simple_deploy_req(self):
         """Add django-simple-deploy to the project's requirements.
 
