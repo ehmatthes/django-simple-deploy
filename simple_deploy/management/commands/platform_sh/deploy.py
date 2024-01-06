@@ -32,6 +32,7 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
+        self._confirm_preliminary()
         self._validate_platform()
         if self.sd.automate_all:
             self._prep_automate_all()
@@ -250,7 +251,7 @@ class PlatformDeployer:
 
     # --- Methods called from simple_deploy.py ---
 
-    def confirm_preliminary(self):
+    def _confirm_preliminary(self):
         """Deployment to platform.sh is in a preliminary state, and we need to be
         explicit about that.
         """

@@ -39,6 +39,7 @@ class PlatformDeployer:
         """Coordinate the overall configuration and deployment."""
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
+        self._confirm_preliminary()
         self._validate_platform()
         if self.sd.automate_all:
             self._prep_automate_all()
@@ -53,7 +54,10 @@ class PlatformDeployer:
         self._conclude_automate_all()
         self._show_success_message()
 
-    def confirm_preliminary(self):
+
+    # --- Helper methods for deploy() ---
+
+    def _confirm_preliminary(self):
         """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
         self.sd.write_output(flyio_msgs.confirm_preliminary)
 
@@ -68,9 +72,6 @@ class PlatformDeployer:
             # the script; there's no need to raise an error.
             self.sd.write_output(flyio_msgs.cancel_flyio)
             sys.exit()
-
-
-    # --- Helper methods for deploy() ---
 
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to Fly.io.
