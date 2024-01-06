@@ -64,7 +64,7 @@ class PlatformDeployer:
         If confirmation not granted, exit with a message, but no error.
         """
         self.sd.write_output(flyio_msgs.confirm_automate_all)
-        confirmed = self.get_confirmation()
+        confirmed = self.sd.get_confirmation()
 
         if confirmed:
             self.sd.write_output("Automating all steps...")
