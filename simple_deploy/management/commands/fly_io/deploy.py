@@ -41,9 +41,12 @@ class PlatformDeployer:
         self.sd.write_output("Configuring project for deployment to Fly.io...")
 
         self._confirm_preliminary()
-        self._validate_platform()
         if self.sd.automate_all:
             self._confirm_automate_all()
+
+        self._validate_platform()
+
+        if self.sd.automate_all:
             self._prep_automate_all()
 
         self._set_on_flyio()

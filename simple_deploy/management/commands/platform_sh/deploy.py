@@ -34,9 +34,12 @@ class PlatformDeployer:
         self.sd.write_output("Configuring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
-        self._validate_platform()
         if self.sd.automate_all:
             self._confirm_automate_all()
+
+        self._validate_platform()
+
+        if self.sd.automate_all:
             self._prep_automate_all()
 
         self._add_platformsh_settings()
