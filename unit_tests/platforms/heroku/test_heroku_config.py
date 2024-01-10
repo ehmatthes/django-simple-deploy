@@ -94,9 +94,9 @@ def test_log_dir(tmp_project):
     assert "INFO: Logging run of `manage.py simple_deploy`..." in log_file_text
     assert "INFO: Configuring project for deployment to Heroku..." in log_file_text
 
-    assert "INFO: CLI args: {" in log_file_text
-    assert "INFO:   Deployment target: heroku" in log_file_text
-    assert "INFO:   Local project name: blog" in log_file_text
+    assert "INFO: CLI args:" in log_file_text
+    assert "INFO: Deployment target: heroku" in log_file_text
+    assert "INFO: Local project name: blog" in log_file_text
     assert "INFO: git status --porcelain" in log_file_text
     assert "INFO: ?? simple_deploy_logs/" in log_file_text
 

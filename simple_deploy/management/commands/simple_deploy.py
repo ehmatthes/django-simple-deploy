@@ -274,7 +274,7 @@ class Command(BaseCommand):
         Returns:
             None
         """
-        self.write_output(f"\n  Looking for {package_name}...")
+        self.write_output(f"\nLooking for {package_name}...")
 
         if package_name in self.requirements:
             self.write_output(f"  Found {package_name} in requirements file.")

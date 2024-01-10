@@ -108,9 +108,10 @@ def test_log_dir(tmp_project):
     assert "INFO: ***** Support for Fly.io is in the preliminary phase ***" in log_file_text
     assert "INFO: Configuring project for deployment to Fly.io..." in log_file_text
 
-    assert "INFO: CLI args: {" in log_file_text
-    assert "INFO:   Deployment target: fly_io" in log_file_text
-    assert "INFO:   Local project name: blog" in log_file_text
+    assert "INFO: CLI args:" in log_file_text
+    assert "INFO:   platform: fly_io" in log_file_text
+    assert "INFO: Deployment target: fly_io" in log_file_text
+    assert "INFO: Local project name: blog" in log_file_text
     assert "INFO: git status --porcelain" in log_file_text
     assert "INFO: ?? simple_deploy_logs/" in log_file_text
 

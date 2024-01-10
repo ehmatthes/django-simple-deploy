@@ -89,9 +89,9 @@ def test_log_dir(tmp_project):
     assert "INFO: ***** Deployments to platform.sh are experimental at this point ***"
     assert "INFO: Configuring project for deployment to Platform.sh..." in log_file_text
 
-    assert "INFO: CLI args: {" in log_file_text
-    assert "INFO:   Deployment target: platform_sh" in log_file_text
-    assert "INFO:   Local project name: blog" in log_file_text
+    assert "INFO: CLI args:" in log_file_text
+    assert "INFO: Deployment target: platform_sh" in log_file_text
+    assert "INFO: Local project name: blog" in log_file_text
     assert "INFO: git status --porcelain" in log_file_text
     assert "INFO: ?? simple_deploy_logs/" in log_file_text
 
