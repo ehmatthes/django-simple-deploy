@@ -38,7 +38,7 @@ class PlatformDeployer:
 
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
-        self.sd.write_output("Configuring project for deployment to Fly.io...")
+        self.sd.write_output("\nConfiguring project for deployment to Fly.io...")
 
         self._confirm_preliminary()
         if self.sd.automate_all:
@@ -131,7 +131,7 @@ class PlatformDeployer:
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
         deployment-specific settings.
         """
-        msg = "Setting ON_FLYIO secret..."
+        msg = "\nSetting ON_FLYIO secret..."
         self.sd.write_output(msg)
         self._set_secret("ON_FLYIO", "ON_FLYIO=1")
 

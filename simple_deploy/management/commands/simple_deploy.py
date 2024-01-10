@@ -108,7 +108,7 @@ class Command(BaseCommand):
 
         if self.log_output:
             self._start_logging()
-            self.log_info(f"\nCLI args: {options}")
+            self._log_cli_args(options)
 
         self._validate_command()
         self._inspect_system()
@@ -277,7 +277,7 @@ class Command(BaseCommand):
         self.write_output(f"\n  Looking for {package_name}...")
 
         if package_name in self.requirements:
-            self.write_output(f"    Found {package_name} in requirements file.")
+            self.write_output(f"  Found {package_name} in requirements file.")
             return
 
         if self.pkg_manager == "pipenv":
@@ -288,7 +288,7 @@ class Command(BaseCommand):
         else:
             sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
 
-        self.write_output(f"    Added {package_name} to requirements file.")
+        self.write_output(f"  Added {package_name} to requirements file.")
 
     def commit_changes(self):
         """Commit changes that have been made to the project.
@@ -355,9 +355,15 @@ class Command(BaseCommand):
             format="%(asctime)s %(levelname)s: %(message)s",
         )
 
-        self.write_output("\nLogging run of `manage.py simple_deploy`...")
-        if created_log_dir:
-            self.write_output(f"Created {self.log_dir_path}.")
+        self.write_output("Logging run of `manage.py simple_deploy`...")
+        self.write_output(f"Created {verbose_log_path}.")
+
+    def _log_cli_args(self, options):
+        """Log the args used for this call."""
+        self.log_info(f"\nCLI args:")
+        for option, value in options.items():
+            self.log_info(f"  {option}: {value}")
+
 
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
@@ -384,7 +390,7 @@ class Command(BaseCommand):
         if not self.platform:
             raise sd_utils.SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
-            self.write_output(f"  Deployment target: {self.platform}")
+            self.write_output(f"\nDeployment target: {self.platform}")
         else:
             error_msg = d_msgs.invalid_platform_msg(self.platform)
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
@@ -403,10 +409,10 @@ class Command(BaseCommand):
         if platform.system() == "Windows":
             self.on_windows = True
             self.use_shell = True
-            self.log_info("  Local platform identified: Windows")
+            self.log_info("Local platform identified: Windows")
         elif platform.system() == "Darwin":
             self.on_macos = True
-            self.log_info("  Local platform identified: macOS")
+            self.log_info("Local platform identified: macOS")
 
     def _inspect_project(self):
         """Inspect the local project.
@@ -430,10 +436,10 @@ class Command(BaseCommand):
             None
         """
         self.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
-        self.log_info(f"  Local project name: {self.local_project_name}")
+        self.log_info(f"Local project name: {self.local_project_name}")
 
         self.project_root = settings.BASE_DIR
-        self.log_info(f"  Project root: {self.project_root}")
+        self.log_info(f"Project root: {self.project_root}")
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
@@ -447,7 +453,7 @@ class Command(BaseCommand):
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
-        msg = f"  Dependency management system: {self.pkg_manager}"
+        msg = f"Dependency management system: {self.pkg_manager}"
         self.write_output(msg)
 
         self.requirements = self._get_current_requirements()
@@ -475,11 +481,11 @@ class Command(BaseCommand):
         """
         if (self.project_root / ".git").exists():
             self.git_path = self.project_root
-            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.write_output(f"Found .git dir at {self.git_path}.")
             self.nested_project = False
         elif (self.project_root.parent / ".git").exists():
             self.git_path = self.project_root.parent
-            self.write_output(f"  Found .git dir at {self.git_path}.")
+            self.write_output(f"Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
@@ -516,7 +522,7 @@ class Command(BaseCommand):
         cmd = "git status --porcelain"
         output_obj = self.run_quick_command(cmd)
         status_output = output_obj.stdout.decode()
-        self.log_info(f"{status_output}\n")
+        self.log_info(f"{status_output}")
 
         cmd = "git diff --unified=0"
         output_obj = self.run_quick_command(cmd)
@@ -615,7 +621,7 @@ class Command(BaseCommand):
         Returns:
             List[str]: List of strings, each representing a requirement.
         """
-        msg = "  Checking current project requirements..."
+        msg = "Checking current project requirements..."
         self.write_output(msg)
 
         if self.pkg_manager == "req_txt":
@@ -629,10 +635,10 @@ class Command(BaseCommand):
             requirements = sd_utils.parse_pyproject_toml(self.pyprojecttoml_path)
 
         # Report findings.
-        msg = "    Found existing dependencies:"
+        msg = "  Found existing dependencies:"
         self.write_output(msg)
         for requirement in requirements:
-            msg = f"      {requirement}"
+            msg = f"    {requirement}"
             self.write_output(msg)
 
         return requirements
@@ -643,7 +649,7 @@ class Command(BaseCommand):
         Since simple_deploy is in INCLUDED_APPS, it needs to be in the project's
         requirements. If it's missing, platforms will reject the push.
         """
-        msg = "\n  Looking for django-simple-deploy in requirements..."
+        msg = "\nLooking for django-simple-deploy in requirements..."
         self.write_output(msg)
         self.add_package("django-simple-deploy")
 

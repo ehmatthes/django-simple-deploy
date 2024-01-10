@@ -31,7 +31,7 @@ class PlatformDeployer:
 
 
     def deploy(self, *args, **options):
-        self.sd.write_output("Configuring project for deployment to Platform.sh...")
+        self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
         if self.sd.automate_all:
