@@ -794,7 +794,13 @@ class PlatformDeployer:
 
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.write_output(output_str)
+
+        # Show full output, then scrub for logging.
+        self.sd.write_output(output_str, skip_logging=True)
+
+        output_scrubbed = [l for l in output_str.splitlines() if "DATABASE_URL" not in l]
+        output_scrubbed = "\n".join(output_scrubbed)
+        self.sd.log_info(output_scrubbed)
 
         msg = "  Attached database to app."
         self.sd.write_output(msg)

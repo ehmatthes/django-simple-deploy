@@ -194,7 +194,8 @@ class Command(BaseCommand):
         # Adding a parameter stdout=subprocess.PIPE and adding a separate identical loop
         # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
         # this topic date back to Python2/3 days.
-        self.log_info(f"\n{cmd}")
+        if not skip_logging:
+            self.log_info(f"\n{cmd}")
 
         cmd_parts = cmd.split()
         with subprocess.Popen(
