@@ -1,4 +1,4 @@
-"""Configuration for integration tests."""
+"""Configuration for e2e tests."""
 
 import sys, importlib
 from pathlib import Path
@@ -12,13 +12,13 @@ from .utils.it_helper_functions import confirm_destroy_project
 # --- Validity check ---
 
 def check_valid_call():
-    """Make sure the test call works for integration tests."""
+    """Make sure the test call works for e2e tests."""
     # Require -s flag.
-    # This is required for some prompts. Also, integration testing involves a full
+    # This is required for some prompts. Also, e2e testing involves a full
     #   deployment, and there's information generated that really needs to be in
     #   the test output at this point.
     if '-s' not in sys.argv:
-        msg = "You must use the `-s` flag when running integration tests."
+        msg = "You must use the `-s` flag when running e2e tests."
         print(msg)
         return False
 
@@ -26,7 +26,7 @@ def check_valid_call():
     if sum(platform in ' '.join(sys.argv) for platform in ['platform_sh', 'fly_io', 'heroku']) == 1:
         return True
     else:
-        msg = "For integration testing, you must target one specific platform."
+        msg = "For e2e testing, you must target one specific platform."
         print(msg)
         return False
 
@@ -34,7 +34,7 @@ def check_valid_call():
     return False
 
 if not check_valid_call():
-    print("That is not a valid command for integration testing.")
+    print("That is not a valid command for e2e testing.")
     sys.exit()
 
 
@@ -121,6 +121,6 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     if confirm_destroy_project(cli_options):
         # Import the platform-specific utils module and call destroy_project().
         platform = request.config.cache.get("platform", None)
-        import_path = f"integration_tests.platforms.{platform}.utils"
+        import_path = f"tests.e2e_tests.platforms.{platform}.utils"
         platform_utils = importlib.import_module(import_path)
         platform_utils.destroy_project(request)

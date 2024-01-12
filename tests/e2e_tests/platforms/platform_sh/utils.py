@@ -12,12 +12,12 @@ def check_logged_in():
     auth_info_output = make_sp_call("platform auth:info --quiet", capture_output=True)
     if "LoginRequiredException" in auth_info_output.stderr.decode():
         msg = "\n----- Error: Not logged in through CLI -----"
-        msg += "\nPlease log in to the Platform.sh CLI and then run the integration test."
+        msg += "\nPlease log in to the Platform.sh CLI and then run the e2e test."
         msg += "\n  You can log in with the command: platform login"
         msg += "\n-----\n"
         print(msg)
 
-        exit_msg = "Please run `platform login` and then run integration tests."
+        exit_msg = "Please run `platform login` and then run e2e tests."
         pytest.exit(exit_msg)
 
 def create_project():

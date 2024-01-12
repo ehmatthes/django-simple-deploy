@@ -1,4 +1,4 @@
-"""Helper functions for integration tests of different platforms.
+"""Helper functions for e2e tests of different platforms.
 
 The functions in this module are not specific to any one platform. If a function
   starts to be used by tests for more than one platform, it should be moved here.
@@ -49,9 +49,9 @@ def run_simple_deploy(python_cmd, platform, automate_all):
     """Run simple_deploy against the test project."""
     print("Running manage.py simple_deploy...")
     if automate_all:
-        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --automate-all --integration-testing")
+        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --automate-all --e2e-testing")
     else:
-        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --integration-testing")
+        make_sp_call(f"{python_cmd} manage.py simple_deploy --platform {platform} --e2e-testing")
 
 def commit_configuration_changes():
     """Commit configuration changes made by simple_deploy."""
@@ -116,7 +116,7 @@ def summarize_results(remote_functionality_passed, local_functionality_passed,
 
     msg = dedent(f"""
         ************************************
-        ***** Integration test summary *****
+        ***** e2e test summary *****
 
         Temp project dir: {tmp_proj_dir}
 

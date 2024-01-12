@@ -141,7 +141,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     # We use a git tag to do the reset, instead of trying to capture the initial hash.
     # Note: This tag refers to the version of the project that contains files for all
     #   dependency management systems, ie requirements.txt, pyproject.toml, and Pipfile.
-    # Note: Current integration tests don't reuse the project, but this is a very cheap step
+    # Note: Current e2e tests don't reuse the project, but this is a very cheap step
     #   that makes the tmp project much more flexible in how we use it. For example, when
     #   dropping into this 
     git_exe = "git"
