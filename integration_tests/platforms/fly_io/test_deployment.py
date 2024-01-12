@@ -61,9 +61,12 @@ def test_flyio_deployment(tmp_project, cli_options, request):
     #   affected functionality of the local project using the development server.
     remote_functionality_passed = it_utils.check_deployed_app_functionality(python_cmd, project_url)
     local_functionality_passed = it_utils.check_local_app_functionality(python_cmd)
+    log_check_passed = platform_utils.check_log(tmp_project)
+
     it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
             cli_options, tmp_project)
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed
     assert local_functionality_passed
+    assert log_check_passed

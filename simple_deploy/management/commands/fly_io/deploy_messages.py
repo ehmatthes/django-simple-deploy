@@ -87,20 +87,23 @@ If you think there's a database that simple_deploy should be able to use,
 
 
 # --- Dynamic strings ---
-# These need to be generated in functions, to display information that's 
+# These need to be generated in functions, to display information that's
 #   determined as the script runs.
+
 
 def region_not_found(app_name):
     """Could not find a region to deploy to."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         --- A Fly.io region was not found. ---
 
         We need to know what region the app is going to be deployed to.
         We could not find a region in the output of:
 
         $ fly regions list -a {app_name}
-    """)
+    """
+    )
 
     return msg
 
@@ -108,14 +111,16 @@ def region_not_found(app_name):
 def confirm_use_org_name(org_name):
     """Confirm use of this org name to create a new project."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         --- The Fly.io CLI requires an organization name when creating a new project. ---
         When using --automate-all, a project will be created on your behalf. The following
         organization name was found: {org_name}
 
         This organization will be used to create a new project. If this is not okay,
         enter n to cancel this operation.
-    """)
+    """
+    )
 
     return msg
 
@@ -123,19 +128,21 @@ def confirm_use_org_name(org_name):
 def confirm_create_db(db_cmd):
     """Confirm it's okay to create a Postgres database on the user's account."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         A Postgres database is required to continue with deployment. If you confirm this,
         the following command will be run, to create a new database on your account:
         $ {db_cmd}
-    """)
+    """
+    )
 
     return msg
 
 
 def use_attached_db(db_name, users):
-    """Found the db attached, with only default users and app_name-db user.
-    """
-    msg = dedent(f"""
+    """Found the db attached, with only default users and app_name-db user."""
+    msg = dedent(
+        f"""
         *** Found a database whose name matches the app name: {db_name} ***
         This is the naming convention used by simple_deploy, so this is
           probably a database that was created for you by a previous
@@ -145,15 +152,16 @@ def use_attached_db(db_name, users):
         Three of these are the default users, and the fourth is the name of the 
           app (with underscores). This database appears to have been configured
           to work with this app.
-    """)
+    """
+    )
 
     return msg
 
 
 def use_unattached_db(db_name, users):
-    """Found the db unattached, with only default users.
-    """
-    msg = dedent(f"""
+    """Found the db unattached, with only default users."""
+    msg = dedent(
+        f"""
         *** Found a database whose name matches the app name: {db_name} ***
         This is the naming convention used by simple_deploy, so this is
           probably a database that was created for you by a previous
@@ -162,14 +170,16 @@ def use_unattached_db(db_name, users):
           {users}
         These are the default users for a Fly.io Postgres database. This database
           does not appear to have been used yet.
-    """)
+    """
+    )
 
     return msg
 
 
 def cant_use_db(db_name, users):
     """Can't use the db that was found, because it has multiple users."""
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         Found a database whose name matches the app name: {db_name}
         This database has the following users:
           {users}
@@ -177,19 +187,21 @@ def cant_use_db(db_name, users):
           will have. It also has a user that doesn't match the name of the app.
         This situation is unexpected; if you think this situation should be handled, 
           please open an issue: https://github.com/ehmatthes/django-simple-deploy/issues
-    """)
+    """
+    )
 
     return msg
 
 
-def success_msg(log_output=''):
+def success_msg(log_output=""):
     """Success message, for configuration-only run.
 
     Note: This is immensely helpful; I use it just about every time I do a
       manual test run.
     """
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         --- Your project is now configured for deployment on Fly.io ---
 
         To deploy your project, you will need to:
@@ -205,12 +217,15 @@ def success_msg(log_output=''):
             - Make local changes
             - Commit your local changes
             - Run `fly deploy` again to push your changes.
-    """)
+    """
+    )
 
     if log_output:
-        msg += dedent(f"""
+        msg += dedent(
+            f"""
         - You can find a full record of this configuration in the simple_deploy_logs directory.
-        """)
+        """
+        )
 
     return msg
 
@@ -218,7 +233,8 @@ def success_msg(log_output=''):
 def success_msg_automate_all(deployed_url):
     """Success message, when using --automate-all."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
 
         --- Your project should now be deployed on Fly.io ---
 
@@ -230,6 +246,6 @@ def success_msg_automate_all(deployed_url):
 
         If you make further changes and want to push them to Fly.io,
         commit your changes and then run `fly deploy`.
-    """)
+    """
+    )
     return msg
-

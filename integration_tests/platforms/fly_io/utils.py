@@ -56,6 +56,25 @@ def get_project_url_name():
 
     return project_url, app_name
 
+def check_log(tmp_proj_dir):
+    """Check the log that was generated during a full deployment.
+
+    Checks that log file exists, and that DATABASE_URL is not logged.
+    """
+    path = tmp_proj_dir / "simple_deploy_logs"
+    if not path.exists():
+        return False
+
+    log_files = list(path.glob("simple_deploy_*.log"))
+    if not log_files:
+        return False
+        
+    log_str = log_files[0].read_text()
+    if "DATABASE_URL" in log_str:
+        return False
+
+    return True
+
 def destroy_project(request):
     """Destroy the deployed project, and all remote resources."""
     print("\nCleaning up:")

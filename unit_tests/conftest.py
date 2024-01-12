@@ -120,7 +120,6 @@ def reset_test_project(request, tmp_project):
     """
     msp.reset_test_project(tmp_project, request.param)
 
-
 @pytest.fixture(scope='module', autouse=True)
 def run_simple_deploy(reset_test_project, tmp_project, request):
     """Call simple deploy, targeting the platform that's currently being tested.

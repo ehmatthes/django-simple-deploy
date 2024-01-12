@@ -11,6 +11,7 @@ from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.heroku import deploy_messages as dh_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
+import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
 class PlatformDeployer:
@@ -25,7 +26,15 @@ class PlatformDeployer:
 
 
     def deploy(self, *args, **options):
-        self.sd.write_output("Configuring project for deployment to Heroku...")
+        self.sd.write_output("\nConfiguring project for deployment to Heroku...")
+
+        if self.sd.automate_all:
+            self._confirm_automate_all()
+
+        self._validate_platform()
+
+        if self.sd.automate_all:
+            self._prep_automate_all()
 
         self._get_heroku_app_info()
         self._set_heroku_env_var()
@@ -44,6 +53,22 @@ class PlatformDeployer:
 
     # --- Methods used in this class ---
 
+    def _confirm_automate_all(self):
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
+        """
+        self.sd.write_output(plsh_msgs.confirm_automate_all)
+        confirmed = self.sd.get_confirmation()
+
+        if confirmed:
+            self.sd.write_output("Automating all steps...")
+        else:
+            # Quit with a message, but don't raise an error.
+            self.sd.write_output(d_msgs.cancel_automate_all)
+            sys.exit()
+
+
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to."""
         # We assume the user has already run 'heroku create', or --automate-all
@@ -60,8 +85,7 @@ class PlatformDeployer:
         else:
             self.sd.write_output("  Inspecting Heroku app...")
             cmd = 'heroku apps:info --json'
-            output_obj = self.sd.execute_subp_run(cmd)
-            self.sd.log_info(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
             self.sd.write_output(output_obj)
 
             output_str = output_obj.stdout.decode()
@@ -98,12 +122,11 @@ class PlatformDeployer:
                 return
 
             # DEV: This should be moved to a separate method.
-            #   New method should be called from here and prep_automate_all().
+            #   New method should be called from here and _prep_automate_all().
             msg = f"  Could not find an existing database. Creating one now..."
             self.sd.write_output(msg)
             cmd = 'heroku addons:create heroku-postgresql:mini'
-            output_obj = self.sd.execute_subp_run(cmd)
-            self.sd.log_info(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
             self.sd.write_output(output_obj)
 
 
@@ -118,8 +141,7 @@ class PlatformDeployer:
 
         self.sd.write_output("  Setting Heroku environment variable...")
         cmd = 'heroku config:set ON_HEROKU=1'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
@@ -159,9 +181,9 @@ class PlatformDeployer:
         else:
             self.sd.write_output("    No Procfile found. Generating Procfile...")
             if self.sd.nested_project:
-                proc_command = f"web: gunicorn {self.sd.project_name}.{self.sd.project_name}.wsgi --log-file -"
+                proc_command = f"web: gunicorn {self.sd.local_project_name}.{self.sd.local_project_name}.wsgi --log-file -"
             else:
-                proc_command = f"web: gunicorn {self.sd.project_name}.wsgi --log-file -"
+                proc_command = f"web: gunicorn {self.sd.local_project_name}.wsgi --log-file -"
 
             with open(f"{self.sd.git_path}/Procfile", 'w') as f:
                 f.write(proc_command)
@@ -311,8 +333,7 @@ class PlatformDeployer:
         if not self.sd.unit_testing:
             self.sd.write_output("  Setting DEBUG env var...")
             cmd = 'heroku config:set DEBUG=FALSE'
-            output = self.sd.execute_subp_run(cmd)
-            self.sd.log_info(cmd)
+            output = self.sd.run_quick_command(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
@@ -338,7 +359,7 @@ class PlatformDeployer:
         if not self.sd.unit_testing:
             self.sd.write_output("  Setting new secret key for Heroku...")
             cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
-            output = self.sd.execute_subp_run(cmd)
+            output = self.sd.run_quick_command(cmd, skip_logging=True)
             self.sd.write_output(output)
             self.sd.write_output("    Set SECRET_KEY config variable.")
 
@@ -362,8 +383,7 @@ class PlatformDeployer:
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
         cmd = 'git status'
-        git_status = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        git_status = self.sd.run_quick_command(cmd)
         self.sd.write_output(git_status)
         status_str = git_status.stdout.decode()
         self.current_branch = status_str.split('\n')[0][10:]
@@ -378,25 +398,22 @@ class PlatformDeployer:
             cmd = f"git push heroku {self.current_branch}"
         else:
             cmd = f"git push heroku {self.current_branch}:main"
-        self.sd.execute_command(cmd)
-        self.sd.log_info(cmd)
+        self.sd.run_slow_command(cmd)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")
         if self.sd.nested_project:
-            cmd = f"heroku run python {self.sd.project_name}/manage.py migrate"
+            cmd = f"heroku run python {self.sd.local_project_name}/manage.py migrate"
         else:
             cmd = 'heroku run python manage.py migrate'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        output = self.sd.run_quick_command(cmd)
 
         self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = 'heroku open'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
 
@@ -484,9 +501,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
 
-    # --- Methods called from simple_deploy.py ---
-
-    def prep_automate_all(self):
+    def _prep_automate_all(self):
         """Do intial work for automating entire process.
         - Create a heroku app to deploy to.
         - Create a Heroku Postgres database.
@@ -497,18 +512,16 @@ class PlatformDeployer:
 
         self.sd.write_output("  Running `heroku create`...")
         cmd = 'heroku create'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
         self.sd.write_output("  Creating Postgres database...")
         cmd = 'heroku addons:create heroku-postgresql-mini'
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
 
-    def validate_platform(self):
+    def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
         Heroku.
 
@@ -518,11 +531,10 @@ class PlatformDeployer:
         # Make sure Heroku CLI is installed, if we're not unit testing.
         if not self.sd.unit_testing:
             cmd = 'heroku --version'
-            self.sd.log_info(cmd)
             
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
             try:
-            	output_obj = self.sd.execute_subp_run(cmd)
+            	output_obj = self.sd.run_quick_command(cmd)
             except FileNotFoundError:
                 raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
             
@@ -557,8 +569,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
         msg = "    Wrote requirements.txt file."
@@ -570,4 +581,9 @@ class PlatformDeployer:
         self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
         self.sd.log_info("    Package manager set to req_txt.")
         self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
+
+        # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
+        # Optional deploy group dependencies aren't added to requirements.txt.        
+        self.sd._get_current_requirements()
+        self.sd._add_simple_deploy_req()
     

@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import pytest
 
 import unit_tests.utils.ut_helper_functions as hf
 
@@ -19,8 +20,20 @@ def test_requirements_txt(tmp_project, pkg_manager):
     if pkg_manager == "req_txt":
         hf.check_reference_file(tmp_project, 'requirements.txt', 'heroku')
     elif pkg_manager == "poetry":
-        hf.check_reference_file(tmp_project, "requirements.txt", "heroku",
-                reference_filename="poetry.requirements.txt")
+        # Poetry is so specific, the version numbers of sub-dependencies change
+        # frequently. Just check that the appropriate packages are present.
+        packages = [
+            "django-bootstrap5",
+            "django",
+            "requests",
+            "django-simple-deploy",
+            "gunicorn",
+            "psycopg2",
+            "dj-database-url",
+            "whitenoise"
+        ]
+        path = tmp_project / "requirements.txt"
+        assert all([pkg in path.read_text() for pkg in packages])
     elif pkg_manager == "pipenv":
         assert not Path("requirements.txt").exists()
 
@@ -36,7 +49,8 @@ def test_pyproject_toml(tmp_project, pkg_manager):
     if pkg_manager in ("req_txt", "pipenv"):
         assert not Path("pyproject.toml").exists()
     elif pkg_manager == "poetry":
-        # The file should be unchanged from the original, but it should exist.
+        # Heroku uses requirements.txt for deployment, but simple_deploy will slightly
+        # restructure pyproject.toml.
         hf.check_reference_file(tmp_project, "pyproject.toml", "heroku")
 
 def test_gitignore(tmp_project):
@@ -80,13 +94,11 @@ def test_log_dir(tmp_project):
     assert "INFO: Logging run of `manage.py simple_deploy`..." in log_file_text
     assert "INFO: Configuring project for deployment to Heroku..." in log_file_text
 
-    assert "INFO: CLI args: {" in log_file_text
-    assert "INFO:   Deployment target: heroku" in log_file_text
-    assert "INFO:   Project name: blog" in log_file_text
-    assert "INFO: git status:" in log_file_text
-    assert "INFO: Untracked files:" in log_file_text
-    assert 'INFO:   (use "git add <file>..." to include in what will be committed)' in log_file_text
-    assert "INFO: \tsimple_deploy_logs/" in log_file_text
+    assert "INFO: CLI args:" in log_file_text
+    assert "INFO: Deployment target: heroku" in log_file_text
+    assert "INFO: Local project name: blog" in log_file_text
+    assert "INFO: git status --porcelain" in log_file_text
+    assert "INFO: ?? simple_deploy_logs/" in log_file_text
 
     # Spot check for success messages.
     assert "INFO: --- Your project is now configured for deployment on Heroku. ---" in log_file_text

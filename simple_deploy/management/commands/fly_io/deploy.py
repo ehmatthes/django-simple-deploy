@@ -18,6 +18,7 @@ import requests
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
 import simple_deploy.management.commands.utils as sd_utils
+import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
 class PlatformDeployer:
@@ -37,7 +38,16 @@ class PlatformDeployer:
 
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
-        self.sd.write_output("Configuring project for deployment to Fly.io...")
+        self.sd.write_output("\nConfiguring project for deployment to Fly.io...")
+
+        self._confirm_preliminary()
+        if self.sd.automate_all:
+            self._confirm_automate_all()
+
+        self._validate_platform()
+
+        if self.sd.automate_all:
+            self._prep_automate_all()
 
         self._set_on_flyio()
         self._set_debug()
@@ -46,18 +56,34 @@ class PlatformDeployer:
         self._add_flytoml()
         self._modify_settings()
         self._add_requirements()
-
         self._conclude_automate_all()
-
         self._show_success_message()
 
-    def confirm_preliminary(self):
-        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
+    # --- Helper methods for deploy() ---
 
+    def _confirm_automate_all(self):
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
+        """
+        self.sd.write_output(flyio_msgs.confirm_automate_all)
+        confirmed = self.sd.get_confirmation()
+
+        if confirmed:
+            self.sd.write_output("Automating all steps...")
+        else:
+            # Quit with a message, but don't raise an error.
+            self.sd.write_output(d_msgs.cancel_automate_all)
+            sys.exit()
+
+    def _confirm_preliminary(self):
+        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
+        self.sd.write_output(flyio_msgs.confirm_preliminary)
+
+        # Unit test check is here, so message is logged.
         if self.sd.unit_testing:
             return
 
-        self.sd.write_output(flyio_msgs.confirm_preliminary)
         if self.sd.get_confirmation():
             self.sd.write_output("  Continuing with Fly.io deployment...")
         else:
@@ -66,7 +92,7 @@ class PlatformDeployer:
             self.sd.write_output(flyio_msgs.cancel_flyio)
             sys.exit()
 
-    def validate_platform(self):
+    def _validate_platform(self):
         """Make sure the local environment and project supports deployment to Fly.io.
 
         Make sure CLI is installed, and user is authenticated. Make sure necessary
@@ -96,18 +122,16 @@ class PlatformDeployer:
         # Create the db now, before any additional configuration.
         self._create_db()
 
-    def prep_automate_all(self):
+    def _prep_automate_all(self):
         """Take any further actions needed if using automate_all."""
         # All necessary resources have been created earlier, during validation.
         pass
-
-    # --- Helper methods for deploy() ---
 
     def _set_on_flyio(self):
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
         deployment-specific settings.
         """
-        msg = "Setting ON_FLYIO secret..."
+        msg = "\nSetting ON_FLYIO secret..."
         self.sd.write_output(msg)
         self._set_secret("ON_FLYIO", "ON_FLYIO=1")
 
@@ -142,7 +166,7 @@ class PlatformDeployer:
         self.sd.write_output("    No Dockerfile found. Generating file...")
 
         context = {
-            "django_project_name": self.sd.project_name,
+            "django_project_name": self.sd.local_project_name,
         }
 
         if self.sd.pkg_manager == "poetry":
@@ -233,18 +257,15 @@ class PlatformDeployer:
 
         self.sd.commit_changes()
 
-        # Push project. Use execute_command() to stream output, otherwise it appears to
-        # hang.
+        # Push project.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
-        self.sd.log_info(cmd)
-        self.sd.execute_command(cmd)
+        self.sd.run_slow_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
-        self.sd.log_info(cmd)
-        output = self.sd.execute_subp_run(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
         # Get URL of deployed project.
@@ -275,9 +296,8 @@ class PlatformDeployer:
         # First check if secret has already been set.
         #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
 
         if needle in output_str:
             msg = f"  Found {needle} in existing secrets."
@@ -285,9 +305,8 @@ class PlatformDeployer:
             return
 
         cmd = f"fly secrets set -a {self.deployed_project_name} {secret}"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         msg = f"  Set secret: {secret}"
@@ -320,16 +339,15 @@ class PlatformDeployer:
 
         return dockerignore_str
 
-    # --- Helper methods for validate_platform() ---
+    # --- Helper methods for _validate_platform() ---
 
     def _validate_cli(self):
         """Make sure the Fly.io CLI is installed, and user is authenticated."""
         cmd = "fly version"
-        self.sd.log_info(cmd)
 
         # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
-            output_obj = self.sd.execute_subp_run(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
 
@@ -341,8 +359,7 @@ class PlatformDeployer:
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
-        self.sd.log_info(cmd)
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
@@ -384,11 +401,10 @@ class PlatformDeployer:
 
         # Get info about user's apps on Fly.io.
         cmd = "fly apps list --json"
-        self.sd.log_info(cmd)
 
         # Run command, and get json output.
         # CLI has been validated; should not have to deal with stderr.
-        output_str = self.sd.execute_subp_run(cmd).stdout.decode()
+        output_str = self.sd.run_quick_command(cmd).stdout.decode()
         self.sd.log_info(output_str)
         output_json = json.loads(output_str)
 
@@ -494,9 +510,8 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         cmd = "fly apps create --generate-name --json"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.write_output(output_str)
 
         # Get app name.
@@ -548,13 +563,12 @@ class PlatformDeployer:
 
         cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
-        self.sd.log_info(cmd)
         self._confirm_create_db(db_cmd=cmd)
 
-        # Create database. Use execute_command(), to stream output of long-running
-        # process. Also, we're not logging this because I believe it contains db
-        # credentials. May want to scrub and then log output.
-        self.sd.execute_command(cmd, skip_logging=True)
+        # Create database. Log command, but don't log output because it should contain
+        # db credentials. May want to scrub and then log output.
+        self.sd.log_info(cmd)
+        self.sd.run_slow_command(cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
         self.sd.write_output(msg)
@@ -620,8 +634,7 @@ class PlatformDeployer:
 
         # First, see if any Postgres clusters exist.
         cmd = "fly postgres list --json"
-        self.sd.log_info(cmd)
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
@@ -652,9 +665,9 @@ class PlatformDeployer:
             it correctly.
         """
         if self._check_db_attached():
-            return self._confirm_use_attached_db(self.db_name)
+            return self._confirm_use_attached_db()
         else:
-            return self._confirm_use_unattached_db(self.db_name)
+            return self._confirm_use_unattached_db()
 
     def _check_db_attached(self):
         """Check if the db that was found is attached to this app.
@@ -676,9 +689,8 @@ class PlatformDeployer:
         # Get users of this db.
         #   `fly postgres users list` does not accept `--json` flag. :/
         cmd = f"fly postgres users list -a {self.db_name}"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
         # Strip extra whitespace, split into lines, remove header. Split each line on
@@ -779,11 +791,16 @@ class PlatformDeployer:
         msg = "  Attaching database to Fly.io app..."
         self.sd.write_output(msg)
         cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
-        self.sd.log_info(cmd)
 
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.write_output(output_str)
+
+        # Show full output, then scrub for logging.
+        self.sd.write_output(output_str, skip_logging=True)
+
+        output_scrubbed = [l for l in output_str.splitlines() if "DATABASE_URL" not in l]
+        output_scrubbed = "\n".join(output_scrubbed)
+        self.sd.log_info(output_scrubbed)
 
         msg = "  Attached database to app."
         self.sd.write_output(msg)

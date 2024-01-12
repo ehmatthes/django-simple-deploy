@@ -7,10 +7,7 @@ name = "pypi"
 django = "*"
 django-bootstrap5 = "*"
 requests = "*"
-django-simple-deploy = "*"
-platformshconfig = "*"
-gunicorn = "*"
-psycopg2 = "*"
+awesome-deployment-package = "*"
 
 [dev-packages]
 

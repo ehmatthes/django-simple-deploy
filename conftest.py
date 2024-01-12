@@ -9,12 +9,12 @@ import pytest
 
 def check_valid_test_call():
     """When testing, you must specify either unit_tests or integration_tests.
-    It doesn't make sense to run both kinds of tests in the same test run.
+    Currently, it doesn't make sense to run both kinds of tests in the same test run.
 
     Returns: True or False
     """
     # Running from either unit_tests/ or integration_tests/ is fine.
-    if Path.cwd().name in ('unit_tests', 'integration_tests'):
+    if Path.cwd().name in ('unit_tests_real', 'unit_tests', 'integration_tests'):
         return True
 
     # Find out what kind of tests are being requested.

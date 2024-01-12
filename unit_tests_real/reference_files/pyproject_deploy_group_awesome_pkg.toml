@@ -20,4 +20,4 @@ requests = "*"
 optional = true
 
 [tool.poetry.group.deploy.dependencies]
-django-simple-deploy = "*"
+awesome-deployment-package = "*"

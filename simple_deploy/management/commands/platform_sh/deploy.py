@@ -16,6 +16,7 @@ from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
 
 from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
+import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
 class PlatformDeployer:
@@ -30,7 +31,16 @@ class PlatformDeployer:
 
 
     def deploy(self, *args, **options):
-        self.sd.write_output("Configuring project for deployment to Platform.sh...")
+        self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
+
+        self._confirm_preliminary()
+        if self.sd.automate_all:
+            self._confirm_automate_all()
+
+        self._validate_platform()
+
+        if self.sd.automate_all:
+            self._prep_automate_all()
 
         self._add_platformsh_settings()
 
@@ -49,6 +59,21 @@ class PlatformDeployer:
 
 
     # --- Methods used in this class ---
+
+    def _confirm_automate_all(self):
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
+        """
+        self.sd.write_output(plsh_msgs.confirm_automate_all)
+        confirmed = self.sd.get_confirmation()
+
+        if confirmed:
+            self.sd.write_output("Automating all steps...")
+        else:
+            # Quit with a message, but don't raise an error.
+            self.sd.write_output(d_msgs.cancel_automate_all)
+            sys.exit()
 
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""
@@ -113,7 +138,7 @@ class PlatformDeployer:
             self.sd.write_output("    No .platform.app.yaml file found. Generating file...")
 
             context = {
-                'project_name': self.sd.project_name, 
+                'project_name': self.sd.local_project_name, 
                 'deployed_project_name': self.deployed_project_name
                 }
             path = self.sd.project_root / '.platform.app.yaml'
@@ -202,7 +227,7 @@ class PlatformDeployer:
         self.sd.commit_changes()
 
         # Push project.
-        # Use execute_command(), to stream the output as it runs.
+        # Use run_slow_command(), to stream the output as it runs.
         self.sd.write_output("  Pushing to Platform.sh...")
 
         # Pause to make sure project that was created can be used.
@@ -210,14 +235,12 @@ class PlatformDeployer:
         time.sleep(10)
 
         cmd = "platform push --yes"
-        self.sd.log_info(cmd)
-        self.sd.execute_command(cmd)
+        self.sd.run_slow_command(cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = "platform url --yes"
-        output = self.sd.execute_subp_run(cmd)
-        self.sd.log_info(cmd)
+        output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
         # Get url of deployed project.
@@ -248,17 +271,17 @@ class PlatformDeployer:
 
     # --- Methods called from simple_deploy.py ---
 
-    def confirm_preliminary(self):
+    def _confirm_preliminary(self):
         """Deployment to platform.sh is in a preliminary state, and we need to be
         explicit about that.
         """
-        # Skip this confirmation when unit testing.
+        self.sd.write_output(plsh_msgs.confirm_preliminary)
+
+        # Unit test check is here, so message is logged.
         if self.sd.unit_testing:
             return
 
-        self.sd.write_output(plsh_msgs.confirm_preliminary)
         confirmed = self.sd.get_confirmation()
-
         if confirmed:
             self.sd.write_output("  Continuing with platform.sh deployment...")
         else:
@@ -269,7 +292,7 @@ class PlatformDeployer:
             sys.exit()
 
 
-    def validate_platform(self):
+    def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
         Platform.sh.
         
@@ -292,7 +315,7 @@ class PlatformDeployer:
         self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
 
 
-    def prep_automate_all(self):
+    def _prep_automate_all(self):
         """Do intial work for automating entire process.
         We know from validate_project() that user is logged into CLI.
         
@@ -307,13 +330,12 @@ class PlatformDeployer:
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
         cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
-        self.sd.log_info(cmd)
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.
             #   This may affect whether a CompletedProcess is returned, or an Exception
             # is raised.
-            self.sd.execute_command(cmd)
+            self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = plsh_msgs.unknown_create_error(e)
             raise SimpleDeployCommandError(self.sd, error_msg)
@@ -324,10 +346,9 @@ class PlatformDeployer:
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed, and user is authenticated."""
         cmd = 'platform --version'
-        self.sd.log_info(cmd)
 
         try:
-            output_obj = self.sd.execute_subp_run(cmd)
+            output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
         else:
@@ -336,8 +357,7 @@ class PlatformDeployer:
             
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
-        self.sd.log_info(cmd)
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         output_err = output_obj.stderr.decode()
         
@@ -355,7 +375,7 @@ class PlatformDeployer:
         """
         # If we're creating the project, we'll just use the startproject name.
         if self.sd.automate_all:
-            return self.sd.project_name
+            return self.sd.local_project_name
 
         # Use the provided name if --deployed-project-name specified.
         if self.sd.deployed_project_name:
@@ -364,12 +384,12 @@ class PlatformDeployer:
         # Use --yes flag to avoid interactive prompt hanging in background
         #   if the user is not currently logged in to the CLI.
         cmd = "platform project:info --yes"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
 
+        # Log cmd, but don't log the output of `project:info`. It contains identifying
+        # information about the user and project, including client_ssh_key.
         self.sd.log_info(cmd)
-        # Don't log the output of `project:info`. It contains identifying information
-        #   about the user and project, including client_ssh_key.
 
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
@@ -417,9 +437,8 @@ class PlatformDeployer:
 
         # Use --yes to suppress hanging at login prompt.
         cmd = "platform organization:list --yes"
-        output_obj = self.sd.execute_subp_run(cmd)
+        output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(cmd)
         self.sd.log_info(output_str)
 
         if not output_str:
