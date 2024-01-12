@@ -98,7 +98,7 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     request.config.cache.set("project_id", None)
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parent.parent
+    sd_root_dir = Path(__file__).parent.parent.parent
     tmp_proj_dir = tmp_path_factory.mktemp('blog_project')
 
     print(f"\nTemp project directory: {tmp_proj_dir}")
