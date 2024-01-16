@@ -25,7 +25,7 @@ def pytest_addoption(parser):
         help="Open the test project in an active terminal window at the end of the test run")
 
 def pytest_sessionfinish(session, exitstatus):
-    if session.config.getoption("--open-test-project"):
+    if session.config.getoption("--open-test-project", None):
         # DEV: How can we identify the terminal environment where
         #   pytest is currently running?
 

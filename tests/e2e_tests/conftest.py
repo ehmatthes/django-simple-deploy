@@ -11,16 +11,51 @@ from .utils.it_helper_functions import confirm_destroy_project
 
 # --- Validity check ---
 
+def pytest_collection_modifyitems(session, config, items):
+    print("--- HERE ---")
+    print('sa:', sys.argv)
+
+    # For bare pytest calls, remove all e2e tests from collected items.
+    print(len(items))
+    e2e_items = [i for i in items if "e2e_tests" in str(i.fspath)]
+    print(e2e_items)
+
+    # if len(sys.argv) == 1:
+    items[:] = [i for i in items if "e2e_tests" not in str(i.fspath)]
+    print(items)
+    print(len(items))
+
+    print("--- end diagnostics ---")
+    # pytest.exit("Test bail")
+
+# def pytest_configure(config):
+#     """Validate the configuration for e2e tests."""
+#     print("config:", config)
+#     print("Skipping e2e tests.")
+
+#     pytest.skip(allow_module_level=True)
+#     sys.exit()
+
 def check_valid_call():
-    """Make sure the test call works for e2e tests."""
-    # Require -s flag.
-    # This is required for some prompts. Also, e2e testing involves a full
-    #   deployment, and there's information generated that really needs to be in
-    #   the test output at this point.
+    """Make sure the test call is valid for current e2e tests.
+
+    e2e tests create remote resources on the user's account, which can accrue charges.
+    For now, these must be run separately from local tests, and in a controlled manner.
+
+    Requires -s flag; there's information during the deployment that really should be
+    displayed as the test progresses.
+    """
+    print("In e2e conftest.")
+    print('sa:', sys.argv)
+    # sys.exit()
+    # Don't run for bare pytest calls.
+
+
     if '-s' not in sys.argv:
         msg = "You must use the `-s` flag when running e2e tests."
         print(msg)
         return False
+
 
     # Verify that one specific platform has been requested.
     if sum(platform in ' '.join(sys.argv) for platform in ['platform_sh', 'fly_io', 'heroku']) == 1:
@@ -33,9 +68,9 @@ def check_valid_call():
     # Can't verify it was a valid call, so return False.
     return False
 
-if not check_valid_call():
-    print("That is not a valid command for e2e testing.")
-    sys.exit()
+# if not check_valid_call():
+#     print("That is not a valid command for e2e testing.")
+#     sys.exit()
 
 
 # --- CLI args ---
