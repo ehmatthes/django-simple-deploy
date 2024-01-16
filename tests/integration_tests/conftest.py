@@ -7,7 +7,7 @@ from time import sleep
 import pytest
 
 from .utils import manage_sample_project as msp
-from .utils import ut_helper_functions as uhf
+from .utils import it_helper_functions as ihf
 
 
 # --- Plugins ---
@@ -80,8 +80,8 @@ def pytest_sessionfinish(session, exitstatus):
 @pytest.fixture(scope='session', autouse=True)
 def check_prerequisites():
     """Make sure dev environment supports unit tests."""
-    uhf.check_package_manager_available('poetry')
-    uhf.check_package_manager_available('pipenv')
+    ihf.check_package_manager_available('poetry')
+    ihf.check_package_manager_available('pipenv')
 
 
 @pytest.fixture(scope='session')
