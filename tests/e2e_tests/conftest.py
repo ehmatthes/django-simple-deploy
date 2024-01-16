@@ -36,9 +36,9 @@ def check_valid_call():
     # Can't verify it was a valid call, so return False.
     return False
 
-if not check_valid_call():
-    print("Invalid command for e2e testing.")
-    sys.exit()
+def pytest_configure(config):
+    if not check_valid_call():
+        pytest.exit("Invalid command for e2e testing.")
 
 
 # --- CLI args ---
