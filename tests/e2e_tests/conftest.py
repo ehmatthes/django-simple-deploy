@@ -11,7 +11,7 @@ from .utils.it_helper_functions import confirm_destroy_project
 
 # --- Validity check ---
 
-def check_valid_call():
+def check_valid_call(config):
     """Make sure the test call is valid for current e2e tests.
 
     e2e tests create remote resources on the user's account, which can accrue charges.
@@ -20,13 +20,15 @@ def check_valid_call():
     Requires -s flag; there's information during the deployment that really should be
     displayed as the test progresses.
     """
-    if '-s' not in sys.argv:
-        msg = "You must use the `-s` flag when running e2e tests."
+    if not config.getoption("-s") == "no":
+        msg = "You must use the `-s` or `--capture=no` flag when running e2e tests."
         print(msg)
         return False
 
+    print('ca:', config.args)
     # Verify that one specific platform has been requested.
-    if sum(platform in ' '.join(sys.argv) for platform in ['platform_sh', 'fly_io', 'heroku']) == 1:
+    num_platforms = sum(platform in ' '.join(sys.argv) for platform in ['platform_sh', 'fly_io', 'heroku'])
+    if num_platforms == 1:
         return True
     else:
         msg = "For e2e testing, you must target one specific platform."
@@ -37,7 +39,7 @@ def check_valid_call():
     return False
 
 def pytest_configure(config):
-    if not check_valid_call():
+    if not check_valid_call(config):
         pytest.exit("Invalid command for e2e testing.")
 
 
