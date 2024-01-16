@@ -39,15 +39,13 @@ def check_valid_call(config):
         platform in " ".join(config.args)
         for platform in ["platform_sh", "fly_io", "heroku"]
     )
-    if num_platforms == 1:
-        return True
-    else:
+    if num_platforms != 1:
         msg = "For e2e testing, you must target one specific platform."
         print(msg)
         return False
 
-    # Can't verify it was a valid call, so return False.
-    return False
+    # No obvious reason not to run e2e tests.
+    return True
 
 
 def pytest_configure(config):
