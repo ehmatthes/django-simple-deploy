@@ -25,9 +25,14 @@ def check_valid_call(config):
         print(msg)
         return False
 
-    print('ca:', config.args)
+    # Make sure unit tests or integration tests aren't being run as well.
+    if "unit_tests" in " ".join(config.args) or "integration_tests" in " ".join(config.args):
+        msg = "Unit and integration tests should be run separate from e2e tests."
+        print(msg)
+        return False
+
     # Verify that one specific platform has been requested.
-    num_platforms = sum(platform in ' '.join(sys.argv) for platform in ['platform_sh', 'fly_io', 'heroku'])
+    num_platforms = sum(platform in ' '.join(config.args) for platform in ['platform_sh', 'fly_io', 'heroku'])
     if num_platforms == 1:
         return True
     else:
