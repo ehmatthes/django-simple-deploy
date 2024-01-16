@@ -49,7 +49,7 @@ def pytest_sessionfinish(session, exitstatus):
         # Write a script containing all the commands we need to set up
         #   a terminal environment for exploring the test project in its
         #   final state.
-        shell_script = f"""
+        shell_script = rf"""
         #!/bin/bash
         cd {tmp_proj_dir}
         export PS1="\W$ "
