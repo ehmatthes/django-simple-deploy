@@ -1,1 +1,1 @@
-"""Conftest for actual unit tests."""
+"""Configuration for unit tests."""

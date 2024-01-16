@@ -1,3 +1,5 @@
+"""Configuration for integration_tests/."""
+
 import subprocess, re, sys, os, tempfile
 from pathlib import Path
 from time import sleep
