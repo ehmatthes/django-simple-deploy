@@ -43,7 +43,7 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[2]
-    fp_reference = sd_root_dir / f'unit_tests/platforms/{platform}/reference_files/{filename}'
+    fp_reference = sd_root_dir / f'integration_tests/platforms/{platform}/reference_files/{filename}'
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.

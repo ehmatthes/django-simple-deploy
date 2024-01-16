@@ -1,4 +1,4 @@
-"""Unit tests for django-simple-deploy, targeting Fly.io."""
+"""Integration tests for django-simple-deploy, targeting Fly.io."""
 
 import sys
 from pathlib import Path
@@ -6,7 +6,7 @@ import subprocess
 
 import pytest
 
-import unit_tests.utils.ut_helper_functions as hf
+import integration_tests.utils.it_helper_functions as hf
 
 
 # --- Fixtures ---
