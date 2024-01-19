@@ -1,11 +1,11 @@
-"""Unit tests for django-simple-deploy, targeting Platform.sh."""
+"""Integration tests for django-simple-deploy, targeting Platform.sh."""
 
 from pathlib import Path
 import subprocess
 
 import pytest
 
-import unit_tests.utils.ut_helper_functions as hf
+import integration_tests.utils.it_helper_functions as hf
 
 
 # --- Fixtures ---
