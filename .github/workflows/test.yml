@@ -1,0 +1,96 @@
+name: test
+
+on:
+  push:
+    # branches: main
+  pull_request_target:
+
+concurrency:
+  group: test-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUNBUFFERED: "1"
+  FORCE_COLOR: "1"
+
+jobs:
+  unit_tests:
+    name: test (${{ matrix.platform.name }}, Python ${{ matrix.python-version }}, ${{ startsWith(matrix.os, 'macos-') && 'macOS' || startsWith(matrix.os, 'windows-') && 'Windows' || 'Linux' }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
+        platform:
+          - name: Agnostic
+            platform: agnostic
+            test_path: platform_agnostic_tests/
+          - name: Fly.io
+            platform: fly_io
+            test_path: platforms/fly_io/
+          - name: Heroku
+            platform: heroku
+            test_path: platforms/heroku/
+          - name: Platform.sh
+            platform: platform_sh
+            test_path: platforms/platform_sh/
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+
+      - name: Install Fly.io CLI (Linux/macOS)
+        if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'macos-') || startsWith(matrix.os, 'ubuntu-')
+        uses: superfly/flyctl-actions/setup-flyctl@master
+      - name: Install Fly.io CLI (Windows)
+        if: matrix.platform.platform == 'fly_io' && startsWith(matrix.os, 'windows-')
+        run: |
+          iwr https://fly.io/install.ps1 -useb | iex
+          echo "$HOME/.fly/bin" >> $GITHUB_PATH
+      - name: Check Fly.io CLI installation
+        if: matrix.platform.platform == 'fly_io'
+        run: |
+          flyctl version
+
+      - name: Install Heroku CLI (Linux/Windows/macOS)
+        if: matrix.platform.platform == 'heroku'
+        run: |
+          npm install -g --force heroku
+      - name: Check Heroku CLI installation
+        if: matrix.platform.platform == 'heroku'
+        run: |
+          heroku --version
+
+      - name: Install Platform.sh CLI (Linux/Windows/macOS)
+        if: matrix.platform.platform == 'platform_sh'
+        run: |
+          curl -sS https://platform.sh/cli/installer | php
+          echo "$HOME/.platformsh/bin" >> $GITHUB_PATH
+          . $HOME/.platformsh/shell-config.rc
+      - name: Check Platform.sh CLI installation
+        if: matrix.platform.platform == 'platform_sh'
+        run: |
+          platform --version
+
+      - name: Run tests
+        run: |
+          cd unit_tests
+          pytest ${{ matrix.platform.test_path }} --basetemp=dsd_temp
+      - name: Compress test results
+        if: always()
+        run: |
+          cd unit_tests
+          7z a -tzip dsd_temp.zip dsd_temp/*current
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.platform.platform }}-py${{ matrix.python-version }}-${{ matrix.os }}
+          path: ./unit_tests/dsd_temp.zip
