@@ -233,6 +233,12 @@ class Command(BaseCommand):
             self.write_output(msg, skip_logging=skip_logging)
             return True
 
+        if self.unit_testing:
+            self.write_output(prompt, skip_logging=skip_logging)
+            msg = "  Confirmed for unit testing..."
+            self.write_output(msg, skip_logging=skip_logging)
+            return True
+
         while True:
             self.write_output(prompt, skip_logging=skip_logging)
             confirmed = input()
