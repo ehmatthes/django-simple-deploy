@@ -42,6 +42,8 @@ nav:
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'
     - 'Strengths and Limitations': 'design_docs/strengths_limitations.md'
+  - 'Testing':
+    - 'testing/index.md'
   - 'Unit Tests':
     - 'unit_tests/index.md'
     - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'
