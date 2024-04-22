@@ -39,14 +39,16 @@ pymdown-extensions==9.5
 pyparsing==2.4.7
 pytest==7.0.1
 python-dateutil==2.8.2
-PyYAML==6.0
+PyYAML==6.0.1
 pyyaml_env_tag==0.1
 readme-renderer==30.0
 requests==2.26.0
 requests-toolbelt==0.9.1
 rfc3986==1.5.0
+setuptools==69.5.1
 six==1.16.0
 sqlparse==0.4.4
+toml==0.10.2
 tomli==1.2.1
 tqdm==4.62.3
 twine==3.4.2

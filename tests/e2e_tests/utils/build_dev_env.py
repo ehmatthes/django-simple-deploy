@@ -94,7 +94,7 @@ def add_simple_deploy(tmp_dir):
 
 # --- Build development environment. ---
 
-sd_root_dir = Path(__file__).parents[2]
+sd_root_dir = Path(__file__).parents[3]
 
 random_id = ''.join(random.choices(string.ascii_letters + string.digits, k=5)).lower()
 project_dir = Path.home() / f"projects/dsd-dev-project_{random_id}"

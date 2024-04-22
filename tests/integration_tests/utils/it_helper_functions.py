@@ -1,7 +1,7 @@
-"""Helper functions for unit tests of different platforms.
+"""Helper functions for integration tests of different platforms.
 
 The functions in this module are not specific to any one platform. If a function
-  starts to be used by unit tests for more than one platform, it should be moved here.
+  starts to be used by integration tests for more than one platform, it should be moved here.
 """
 
 from pathlib import Path
@@ -43,7 +43,7 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
 
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[2]
-    fp_reference = sd_root_dir / f'unit_tests/platforms/{platform}/reference_files/{filename}'
+    fp_reference = sd_root_dir / f'integration_tests/platforms/{platform}/reference_files/{filename}'
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
@@ -52,7 +52,7 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
 
 def check_package_manager_available(pkg_manager):
     """Check that the user has required package managers installed before
-    running unit tests. For example, we need Poetry installed in order to 
+    running integration tests. For example, we need Poetry installed in order to 
     test configuration when the end user uses Poetry for their Django projects.
     """
 
@@ -67,7 +67,7 @@ def check_package_manager_available(pkg_manager):
     else:
 
         msg = dedent(f"""
-        --- You must have {pkg_manager.title()} installed in order to run unit tests. ---
+        --- You must have {pkg_manager.title()} installed in order to run integration tests. ---
 
         If you have a strong reason not to install {pkg_manager.title()}, please open an issue
         and share your reasoning. We can look at installing {pkg_manager.title()} to the test

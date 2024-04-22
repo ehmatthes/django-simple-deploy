@@ -101,7 +101,7 @@ class SimpleDeployCLI:
             "--unit-testing", action="store_true", help=argparse.SUPPRESS
         )
 
-        # Used for integration testing, to avoid confirmations.
+        # Used for e2e testing, to avoid confirmations.
         parser.add_argument(
-            "--integration-testing", action="store_true", help=argparse.SUPPRESS
+            "--e2e-testing", action="store_true", help=argparse.SUPPRESS
         )

@@ -1,10 +1,10 @@
-"""Unit tests for django-simple-deploy, targeting Heroku."""
+"""Integration tests for django-simple-deploy, targeting Heroku."""
 
 from pathlib import Path
 
 import pytest
 
-import unit_tests.utils.ut_helper_functions as hf
+import integration_tests.utils.it_helper_functions as hf
 
 # --- Fixtures ---
 

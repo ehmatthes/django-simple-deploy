@@ -226,10 +226,16 @@ class Command(BaseCommand):
         prompt = f"\n{msg} (yes|no) "
         confirmed = ""
 
-        # If doing integration testing, always return True.
-        if self.integration_testing:
+        # If doing e2e testing, always return True.
+        if self.e2e_testing:
             self.write_output(prompt, skip_logging=skip_logging)
-            msg = "  Confirmed for integration testing..."
+            msg = "  Confirmed for e2e testing..."
+            self.write_output(msg, skip_logging=skip_logging)
+            return True
+
+        if self.unit_testing:
+            self.write_output(prompt, skip_logging=skip_logging)
+            msg = "  Confirmed for unit testing..."
             self.write_output(msg, skip_logging=skip_logging)
             return True
 
@@ -326,7 +332,7 @@ class Command(BaseCommand):
 
         # Developer arguments.
         self.unit_testing = options["unit_testing"]
-        self.integration_testing = options["integration_testing"]
+        self.e2e_testing = options["e2e_testing"]
 
     def _start_logging(self):
         """Set up for logging.

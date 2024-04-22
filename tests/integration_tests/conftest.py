@@ -1,3 +1,5 @@
+"""Configuration for integration_tests/."""
+
 import subprocess, re, sys, os, tempfile
 from pathlib import Path
 from time import sleep
@@ -5,7 +7,7 @@ from time import sleep
 import pytest
 
 from .utils import manage_sample_project as msp
-from .utils import ut_helper_functions as uhf
+from .utils import it_helper_functions as ihf
 
 
 # --- Plugins ---
@@ -14,10 +16,10 @@ from .utils import ut_helper_functions as uhf
 #   See: https://github.com/ehmatthes/django-simple-deploy/issues/240
 #   Currently works: `pytest -x --open-test-project`
 # 
-# I tried putting this in a unit_tests/plugins/ dir, but could not get it to load.
+# I tried putting this in an integration_tests/plugins/ dir, but could not get it to load.
 #   The only thing that worked was:
 #   $ PYTHONPATH=../ pytest -x --open-test-project
-# I tried setting pythonpath in pytest.ini, and unit_tests/ was added to the path,
+# I tried setting pythonpath in pytest.ini, and integration_tests/ was added to the path,
 #   but it still couldn't find the plugin.
 
 def pytest_addoption(parser):
@@ -25,7 +27,7 @@ def pytest_addoption(parser):
         help="Open the test project in an active terminal window at the end of the test run")
 
 def pytest_sessionfinish(session, exitstatus):
-    if session.config.getoption("--open-test-project"):
+    if session.config.getoption("--open-test-project", None):
         # DEV: How can we identify the terminal environment where
         #   pytest is currently running?
 
@@ -47,7 +49,7 @@ def pytest_sessionfinish(session, exitstatus):
         # Write a script containing all the commands we need to set up
         #   a terminal environment for exploring the test project in its
         #   final state.
-        shell_script = f"""
+        shell_script = rf"""
         #!/bin/bash
         cd {tmp_proj_dir}
         export PS1="\W$ "
@@ -74,12 +76,12 @@ def pytest_sessionfinish(session, exitstatus):
 # --- /Plugins ---
 
 
-# Check prerequisites before running unit tests.
+# Check prerequisites before running integration tests.
 @pytest.fixture(scope='session', autouse=True)
 def check_prerequisites():
-    """Make sure dev environment supports unit tests."""
-    uhf.check_package_manager_available('poetry')
-    uhf.check_package_manager_available('pipenv')
+    """Make sure dev environment supports integration tests."""
+    ihf.check_package_manager_available('poetry')
+    ihf.check_package_manager_available('pipenv')
 
 
 @pytest.fixture(scope='session')
@@ -94,7 +96,7 @@ def tmp_project(tmp_path_factory, pytestconfig):
     sleep(0.2)
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parent.parent
+    sd_root_dir = Path(__file__).parents[2]
     tmp_proj_dir = tmp_path_factory.mktemp('blog_project')
 
     # To see where pytest creates the tmp_proj_dir, uncomment the following line.
@@ -123,23 +125,23 @@ def reset_test_project(request, tmp_project):
 @pytest.fixture(scope='module', autouse=True)
 def run_simple_deploy(reset_test_project, tmp_project, request):
     """Call simple deploy, targeting the platform that's currently being tested.
-    This auto-runs for all test modules in the /unit_tests/platforms/ directory.
+    This auto-runs for all test modules in the /integration_tests/platforms/ directory.
     """
 
     # Identify the platform that's being tested. We're looking for the element
-    #   in the test module path immediately after /unit_tests/platforms/.
+    #   in the test module path immediately after /integration_tests/platforms/.
     # Note that we can use `{re.escape(os.sep)}` and avoid the if block, but it's less readable.
     if sys.platform == 'win32':
-        re_platform = r".*\\unit_tests\\platforms\\(.*?)\\.*"
+        re_platform = r".*\\integration_tests\\platforms\\(.*?)\\.*"
     else:
-        re_platform = r".*/unit_tests/platforms/(.*?)/.*"
+        re_platform = r".*/integration_tests/platforms/(.*?)/.*"
     test_module_path = request.path
     m = re.match(re_platform, str(test_module_path))
 
     if m:
         platform = m.group(1)
     else:
-        # The currently running test module is not in /unit_tests/platforms/, so it
+        # The currently running test module is not in /integration_tests/platforms/, so it
         #   doesn't need to run simple_deploy.
         return
 

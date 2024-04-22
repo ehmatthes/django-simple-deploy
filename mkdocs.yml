@@ -42,13 +42,11 @@ nav:
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'
     - 'Strengths and Limitations': 'design_docs/strengths_limitations.md'
-  - 'Unit Tests':
-    - 'unit_tests/index.md'
-    - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'
-    - 'Understanding the Unit Tests': 'unit_tests/understanding_unit_tests.md'
-  - 'Integration Tests':
-    - 'integration_tests/index.md'
-    - 'Running Integration Tests': 'integration_tests/running_integration_tests.md'
+  - 'Testing':
+    - 'testing/index.md'
+    - 'Unit Tests': 'testing/unit_tests.md'
+    - 'Integration Tests': 'testing/integration_tests.md'
+    - 'End-to-end Tests': 'testing/e2e_tests.md'
   - 'Maintaining':
     - 'maintaining/index.md'
     - 'Merging PRs': 'maintaining/merging_prs.md'
