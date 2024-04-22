@@ -81,3 +81,25 @@ On macOS, you can run the following command:
 ```
 
 This will stop at the first failed test, and open a new terminal tab at the test project's location. It runs `git status` and `git log --pretty=oneline` automatically, and invites you to poke around the project. This is a really helpful feature, that I'd like to refine.
+
+Maintaining integration tests
+---
+
+### Updating reference files
+
+Examining the test project is an efficient way to update reference files. Say you've just updated the code for generating a Dockerfile for a specific package management system, ie Poetry. You can run the test suite with `pytest -x`, and it will fail at the test that checks the Dockerfile for that platform when Poetry is in use. You can examine the test project, open the Dockerfile, and verify that it was generated correctly for the sample project. If it is, copy this file into the `reference_files/` directory, and the tests should pass.
+
+### Updating packages in `vendor/`
+
+The main purpose of the `vendor/` directory is to facilitate integration testing. To add a new package to the directory:
+
+```sh
+(dsd_env) $ pip download --dest vendor/ package_name
+```
+
+To upgrade all packages in `vendor/`:
+
+```sh
+$ rm -rf vendor/
+$ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
+```
