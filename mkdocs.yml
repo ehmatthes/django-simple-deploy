@@ -46,6 +46,7 @@ nav:
     - 'testing/index.md'
     - 'Unit Tests': 'testing/unit_tests.md'
     - 'Integration Tests': 'testing/integration_tests.md'
+    - 'End-to-end Tests': 'testing/e2e_tests.md'
   - 'Unit Tests':
     - 'unit_tests/index.md'
     - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'
