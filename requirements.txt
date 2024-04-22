@@ -48,6 +48,7 @@ rfc3986==1.5.0
 setuptools==69.5.1
 six==1.16.0
 sqlparse==0.4.4
+toml==0.10.2
 tomli==1.2.1
 tqdm==4.62.3
 twine==3.4.2
