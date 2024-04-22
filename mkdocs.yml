@@ -45,6 +45,7 @@ nav:
   - 'Testing':
     - 'testing/index.md'
     - 'Unit Tests': 'testing/unit_tests.md'
+    - 'Integration Tests': 'testing/integration_tests.md'
   - 'Unit Tests':
     - 'unit_tests/index.md'
     - 'Running Unit Tests': 'unit_tests/running_unit_tests.md'
