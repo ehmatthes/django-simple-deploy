@@ -67,3 +67,17 @@ This will create a temp project that uses requirements.txt to manage dependencie
 The `-s` flag will show you exactly where that temp project is. You can open a terminal, cd to that directory, activate the project's virtual environment, and poke around as much as you need to. You can modify simple_deploy, and run the command again. You can run `git status` and `git log`, and reset the projet to an earlier state, and run simple_deploy as many times as you want.
 
 This is often *much* easier than just working in a test project that you set up manually.
+
+### Look at the logs
+
+If you're troubleshooting a failed test, run `pytest tests/integration_tests -lf -s` to rerun the last failed test. Go to the temp project directory, and look at th log that was generated in `simple_deploy_logs/`. That log file will often tell you exactly where the command failed. Again, you can use Git to reset the test project, and run `simple_deploy` again to recreate the issue manually.
+
+### Experimental feature
+
+On macOS, you can run the following command:
+
+```sh
+(dsd_env)django-simple-deploy$ pytest tests/integration_tests -x --open-test-project
+```
+
+This will stop at the first failed test, and open a new terminal tab at the test project's location. It runs `git status` and `git log --pretty=oneline` automatically, and invites you to poke around the project. This is a really helpful feature, that I'd like to refine.
