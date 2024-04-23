@@ -796,7 +796,9 @@ class PlatformDeployer:
         # Show full output, then scrub for logging.
         self.sd.write_output(output_str, skip_logging=True)
 
-        output_scrubbed = [l for l in output_str.splitlines() if "DATABASE_URL" not in l]
+        output_scrubbed = [
+            l for l in output_str.splitlines() if "DATABASE_URL" not in l
+        ]
         output_scrubbed = "\n".join(output_scrubbed)
         self.sd.log_info(output_scrubbed)
 
