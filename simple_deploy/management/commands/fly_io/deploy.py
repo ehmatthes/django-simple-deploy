@@ -61,21 +61,6 @@ class PlatformDeployer:
 
     # --- Helper methods for deploy() ---
 
-    def _confirm_automate_all(self):
-        """Confirm the user understands what --automate-all does.
-
-        If confirmation not granted, exit with a message, but no error.
-        """
-        self.sd.write_output(flyio_msgs.confirm_automate_all)
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.sd.write_output("Automating all steps...")
-        else:
-            # Quit with a message, but don't raise an error.
-            self.sd.write_output(d_msgs.cancel_automate_all)
-            sys.exit()
-
     def _confirm_preliminary(self):
         """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
         self.sd.write_output(flyio_msgs.confirm_preliminary)
@@ -90,6 +75,21 @@ class PlatformDeployer:
             # Quit and invite the user to try another platform. We are happily exiting
             # the script; there's no need to raise an error.
             self.sd.write_output(flyio_msgs.cancel_flyio)
+            sys.exit()
+
+    def _confirm_automate_all(self):
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
+        """
+        self.sd.write_output(flyio_msgs.confirm_automate_all)
+        confirmed = self.sd.get_confirmation()
+
+        if confirmed:
+            self.sd.write_output("Automating all steps...")
+        else:
+            # Quit with a message, but don't raise an error.
+            self.sd.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
     def _validate_platform(self):

@@ -55,6 +55,22 @@ class PlatformDeployer:
 
     # --- Methods used in this class ---
 
+    def _confirm_preliminary(self):
+        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
+        self.sd.write_output(plsh_msgs.confirm_preliminary)
+
+        # Unit test check is here, so message is logged.
+        if self.sd.unit_testing:
+            return
+
+        if self.sd.get_confirmation():
+            self.sd.write_output("  Continuing with platform.sh deployment...")
+        else:
+            # Quit and invite the user to try another platform. We are happily exiting
+            # the script; there's no need to raise an error.
+            self.sd.write_output(plsh_msgs.cancel_plsh)
+            sys.exit()
+
     def _confirm_automate_all(self):
         """Confirm the user understands what --automate-all does.
 
@@ -265,27 +281,6 @@ class PlatformDeployer:
 
 
     # --- Methods called from simple_deploy.py ---
-
-    def _confirm_preliminary(self):
-        """Deployment to platform.sh is in a preliminary state, and we need to be
-        explicit about that.
-        """
-        self.sd.write_output(plsh_msgs.confirm_preliminary)
-
-        # Unit test check is here, so message is logged.
-        if self.sd.unit_testing:
-            return
-
-        confirmed = self.sd.get_confirmation()
-        if confirmed:
-            self.sd.write_output("  Continuing with platform.sh deployment...")
-        else:
-            # Quit and invite the user to try another platform.
-            # We are happily exiting the script; there's no need to raise a
-            #   CommandError.
-            self.sd.write_output(plsh_msgs.cancel_plsh)
-            sys.exit()
-
 
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
