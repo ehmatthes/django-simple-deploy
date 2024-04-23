@@ -18,9 +18,6 @@ Overview:
     - Validate the set of arguments that were passed.
     - Inspect the user's system.
     - Inspect the project.
-    - Get confirmation for an automated run, if appropriate.
-    - Call the platform's `validate_platform()` method.
-    - In automated mode, call the platform's `prep_automate_all()` method.
     - Add django-simple-deploy to project requirements.
     - Call the platform's `deploy()` method.
 

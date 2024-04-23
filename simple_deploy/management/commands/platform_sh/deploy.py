@@ -89,8 +89,6 @@ class PlatformDeployer:
             self.sd.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
-    # fmt:off
-
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""
         # The only project-specific setting is the ALLOWED_HOSTS; that makes
@@ -120,6 +118,14 @@ class PlatformDeployer:
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
 
+
+
+
+
+
+
+
+    # fmt:off
 
     def _get_platformsh_settings(self):
         """Get any platformsh-specific settings that are already in place.
