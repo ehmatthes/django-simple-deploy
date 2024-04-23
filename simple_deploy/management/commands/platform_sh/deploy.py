@@ -15,7 +15,10 @@ from django.utils.safestring import mark_safe
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
+from simple_deploy.management.commands.utils import (
+    write_file_from_template,
+    SimpleDeployCommandError,
+)
 import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
@@ -85,6 +88,8 @@ class PlatformDeployer:
             # Quit with a message, but don't raise an error.
             self.sd.write_output(d_msgs.cancel_automate_all)
             sys.exit()
+
+    # fmt:off
 
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""
