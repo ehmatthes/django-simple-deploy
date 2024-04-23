@@ -301,7 +301,7 @@ class PlatformDeployer:
 
         secrets_keys = [secret["Name"] for secret in secrets_json]
 
-        if needle in secret_keys:
+        if needle in secrets_keys:
             msg = f"  Found {needle} in existing secrets."
             self.sd.write_output(msg)
             return
@@ -689,16 +689,23 @@ class PlatformDeployer:
             users and a user corresponding to this app, we raise an error.
         """
         # Get users of this db.
-        #   `fly postgres users list` does not accept `--json` flag. :/
-        cmd = f"fly postgres users list -a {self.db_name}"
+        cmd = f"fly postgres users list -a {self.db_name} --json"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
+
         self.sd.log_info(output_str)
 
-        # Strip extra whitespace, split into lines, remove header. Split each line on
-        # tabs, and strip the first element.
-        lines = output_str.strip().split("\n")[1:]
-        self.db_users = [line.split("\t")[0].strip() for line in lines]
+        # import pdb
+        # breakpoint()
+
+        pg_users_json = json.loads(output_str)
+        self.db_users = [user_dict["Username"] for user_dict in pg_users_json]
+
+
+        # # Strip extra whitespace, split into lines, remove header. Split each line on
+        # # tabs, and strip the first element.
+        # lines = output_str.strip().split("\n")[1:]
+        # self.db_users = [line.split("\t")[0].strip() for line in lines]
 
         self.sd.log_info(f"DB users: {self.db_users}")
 
