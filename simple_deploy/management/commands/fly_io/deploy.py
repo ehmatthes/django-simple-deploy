@@ -295,11 +295,13 @@ class PlatformDeployer:
 
         # First check if secret has already been set.
         #   Don't log output of `fly secrets list`!
-        cmd = f"fly secrets list -a {self.deployed_project_name}"
+        cmd = f"fly secrets list -a {self.deployed_project_name} --json"
         output_obj = self.sd.run_quick_command(cmd)
-        output_str = output_obj.stdout.decode()
+        secrets_json = json.loads(output_obj.stdout.decode())
 
-        if needle in output_str:
+        secrets_keys = [secret["Name"] for secret in secrets_json]
+
+        if needle in secret_keys:
             msg = f"  Found {needle} in existing secrets."
             self.sd.write_output(msg)
             return
