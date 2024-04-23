@@ -20,8 +20,11 @@ import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
 class PlatformDeployer:
-    """Perform the initial deployment of a simple project.
-    Configure as much as possible automatically.
+    """Perform the initial deployment to Platform.sh.
+
+    If --automate-all is used, carry out an actual deployment.
+    If not, do all configuration work so the user only has to commit changes, and call
+    `platform push`.
     """
 
     def __init__(self, command):
@@ -29,8 +32,8 @@ class PlatformDeployer:
         self.sd = command
         self.stdout = self.sd.stdout
 
-
     def deploy(self, *args, **options):
+        """Coordinate the overall configuration and deployment."""
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
