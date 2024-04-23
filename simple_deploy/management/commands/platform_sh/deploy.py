@@ -46,20 +46,12 @@ class PlatformDeployer:
             self._prep_automate_all()
 
         self._add_platformsh_settings()
-
-        # DEV: Group this with later yaml generation methods.
-        self._generate_platform_app_yaml()
-
         self._add_requirements()
-
-        # DEV: These could be refactored.
+        self._generate_platform_app_yaml()
         self._make_platform_dir()
         self._generate_services_yaml()
-
         self._conclude_automate_all()
-
         self._show_success_message()
-
 
     # --- Methods used in this class ---
 
