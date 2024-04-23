@@ -692,21 +692,10 @@ class PlatformDeployer:
         cmd = f"fly postgres users list -a {self.db_name} --json"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
-
         self.sd.log_info(output_str)
-
-        # import pdb
-        # breakpoint()
 
         pg_users_json = json.loads(output_str)
         self.db_users = [user_dict["Username"] for user_dict in pg_users_json]
-
-
-        # # Strip extra whitespace, split into lines, remove header. Split each line on
-        # # tabs, and strip the first element.
-        # lines = output_str.strip().split("\n")[1:]
-        # self.db_users = [line.split("\t")[0].strip() for line in lines]
-
         self.sd.log_info(f"DB users: {self.db_users}")
 
         default_users = {"flypgadmin", "postgres", "repmgr"}
