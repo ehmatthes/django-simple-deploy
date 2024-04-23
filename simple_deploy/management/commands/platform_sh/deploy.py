@@ -35,6 +35,8 @@ class PlatformDeployer:
         self.sd = command
         self.stdout = self.sd.stdout
 
+    # --- Public methods ---
+
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
@@ -56,7 +58,7 @@ class PlatformDeployer:
         self._conclude_automate_all()
         self._show_success_message()
 
-    # --- Methods used in this class ---
+    # --- Helper methods for deploy() ---
 
     def _confirm_preliminary(self):
         """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
@@ -89,6 +91,38 @@ class PlatformDeployer:
             self.sd.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
+    def _validate_platform(self):
+        """Make sure the local environment and project supports deployment to
+        Platform.sh.
+        
+        The returncode for a successful command is 0, so anything truthy means
+          a command errored out.
+        """
+
+        # When running unit tests, will not be logged into CLI.
+        if not self.sd.unit_testing:
+            self._validate_cli()
+            
+            self.deployed_project_name = self._get_platformsh_project_name()
+            self.org_name = self._get_org_name()
+
+            # Log org name here, because it doesn't apply to unit testing.
+            self.sd.log_info(f"\nOrg name: {self.org_name}")
+        else:
+            self.deployed_project_name = self.sd.deployed_project_name
+
+        self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
+
+
+
+
+
+
+
+
+
+    # fmt:off
+
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings."""
         # The only project-specific setting is the ALLOWED_HOSTS; that makes
@@ -118,14 +152,6 @@ class PlatformDeployer:
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
 
-
-
-
-
-
-
-
-    # fmt:off
 
     def _get_platformsh_settings(self):
         """Get any platformsh-specific settings that are already in place.
@@ -291,30 +317,7 @@ class PlatformDeployer:
             self.sd.write_output(msg)
 
 
-    # --- Methods called from simple_deploy.py ---
-
-    def _validate_platform(self):
-        """Make sure the local environment and project supports deployment to
-        Platform.sh.
-        
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
-        """
-
-        # When running unit tests, will not be logged into CLI.
-        if not self.sd.unit_testing:
-            self._validate_cli()
-            
-            self.deployed_project_name = self._get_platformsh_project_name()
-            self.org_name = self._get_org_name()
-
-            # Log org name here, because it doesn't apply to unit testing.
-            self.sd.log_info(f"\nOrg name: {self.org_name}")
-        else:
-            self.deployed_project_name = self.sd.deployed_project_name
-
-        self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
-
+    # --- Other helper methods ---
 
     def _prep_automate_all(self):
         """Do intial work for automating entire process.
