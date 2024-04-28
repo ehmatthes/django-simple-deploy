@@ -94,7 +94,7 @@ class PlatformDeployer:
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
         Platform.sh.
-        
+
         Make sure CLI is installed, and user is authenticated. Make sure necessary
         resources have been created and identified, and that we have the user's
         permission to use those resources.
@@ -114,12 +114,14 @@ class PlatformDeployer:
             return
 
         self._validate_cli()
-        
+
         self.deployed_project_name = self._get_platformsh_project_name()
         self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
 
         self.org_name = self._get_org_name()
         self.sd.log_info(f"\nOrg name: {self.org_name}")
+
+
 
 
 
@@ -358,23 +360,21 @@ class PlatformDeployer:
 
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed, and user is authenticated."""
-        cmd = 'platform --version'
+        cmd = "platform --version"
 
+        # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
-        else:
-            # Log the version output.
-            self.sd.log_info(output_obj)
+
+        self.sd.log_info(output_obj)
             
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
         output_obj = self.sd.run_quick_command(cmd)
-        output_str = output_obj.stdout.decode()
-        output_err = output_obj.stderr.decode()
-        
-        if "Authentication is required." in output_err:
+
+        if "Authentication is required." in output_obj.stderr.decode():
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_logged_out)
 
 
