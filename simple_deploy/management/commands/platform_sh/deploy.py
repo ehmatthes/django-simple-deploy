@@ -20,6 +20,7 @@ from simple_deploy.management.commands.utils import (
     SimpleDeployCommandError,
 )
 import simple_deploy.management.commands.deploy_messages as d_msgs
+import simple_deploy.management.commands.platform_sh.utils as plsh_utils
 
 
 class PlatformDeployer:
@@ -433,6 +434,7 @@ class PlatformDeployer:
         title_line = [line for line in lines if "title," in line][0]
         # Assume first project is one to use.
         project_name = title_line.split(",")[1].strip()
+        project_name = plsh_utils.get_project_name(output_str)
         if project_name:
             return project_name
         
