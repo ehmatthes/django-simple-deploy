@@ -380,11 +380,18 @@ class PlatformDeployer:
 
     def _get_platformsh_project_name(self):
         """Get the deployed project name.
-        This is the name that was given in the `platform create` command.
+
+        If using automate_all, we'll set this. Otherwise, we're looking for the name
+        that was given in the `platform create` command.
         - Try to get this from `project:info`.
         - If can't get project name:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
+
+        Retuns:
+            str: The deployed project name.
+        Raises:
+            SimpleDeployCommandError: If deployed project name can't be found.
         """
         # If we're creating the project, we'll just use the startproject name.
         if self.sd.automate_all:
@@ -396,7 +403,7 @@ class PlatformDeployer:
 
         # Use --yes flag to avoid interactive prompt hanging in background
         #   if the user is not currently logged in to the CLI.
-        cmd = "platform project:info --yes"
+        cmd = "platform project:info --yes --format csv"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
 
@@ -422,13 +429,14 @@ class PlatformDeployer:
                 raise SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
-        deployed_project_name_re = r'(\| title\s+?\|\s*?)(.*?)(\s*?\|)'
-        match = re.search(deployed_project_name_re, output_str)
-        if match:
-            return match.group(2).strip()
+        lines = output_str.splitlines()
+        title_line = [line for line in lines if "title," in line][0]
+        # Assume first project is one to use.
+        project_name = title_line.split(",")[1].strip()
+        if project_name:
+            return project_name
         
-        # Couldn't find a project name. Warn user, and let them know
-        #   about override flag.
+        # Couldn't find a project name. Warn user, and tell them about override flag.
         raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
 
 
