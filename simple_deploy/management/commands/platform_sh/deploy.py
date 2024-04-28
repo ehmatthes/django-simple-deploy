@@ -459,7 +459,7 @@ class PlatformDeployer:
         if not self.sd.automate_all:
             return
 
-        cmd = "platform organization:list --yes"
+        cmd = "platform organization:list --yes --format csv"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
@@ -473,25 +473,19 @@ class PlatformDeployer:
                 error_msg += plsh_msgs.cli_not_installed
                 raise SimpleDeployCommandError(self.sd, error_msg)
 
-        # Pull org name from output. Start by removing line containing lables.
-        output_str_lines = [line for line in output_str.split("\n") if "Owner email" not in line]
-        modified_output_str = '\n'.join(output_str_lines)
-        org_name_re = r'(\|\s*)([a-zA-Z_]*)(.*)'
-        match = re.search(org_name_re, modified_output_str)
-        if match:
-            org_name = match.group(2).strip()
-            if self._confirm_use_org_name(org_name):
-                return org_name
-        else:
-            # Got stdout, but can't find org id. Unknown error.
+        org_name = plsh_utils.get_org_name(output_str)
+        if not org_name:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.org_not_found)
 
+        if self._confirm_use_org_name(org_name):
+            return org_name
 
     def _confirm_use_org_name(self, org_name):
         """Confirm that it's okay to use the org name that was found.
+
         Returns:
-        - True if confirmed.
-        - sys.exit() if not confirmed.
+            True: if confirmed
+            SimpleDeployCommandError: if not confirmed
         """
 
         self.stdout.write(plsh_msgs.confirm_use_org_name(org_name))
