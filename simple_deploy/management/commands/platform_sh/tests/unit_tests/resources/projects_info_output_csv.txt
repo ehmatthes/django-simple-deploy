@@ -1,0 +1,27 @@
+Property,Value
+id,<project-id>
+created_at,2024-04-28T04:56:53+00:00
+updated_at,2024-04-28T04:58:27+00:00
+attributes,{  }
+title,my_blog_project
+description,
+owner,<owner-hash>
+namespace,platformsh
+organization,<org-id>
+default_branch,main
+status,"code: provisioned
+message: ok"
+timezone,America/Denver
+region,us-3.platform.sh
+repository,"url: '<id>@git.us-3.platform.sh:<id>.git'
+client_ssh_key: <redacted>
+default_domain,
+subscription,"<redacted>
+plan: development
+environments: 3
+storage: 5120
+included_users: 1
+subscription_management_uri: 'https://console.platform.sh/-/users/<id>/...
+restricted: false
+suspended: false
+user_licenses: 1"
