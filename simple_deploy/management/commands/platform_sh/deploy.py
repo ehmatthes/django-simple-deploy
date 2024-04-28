@@ -441,22 +441,22 @@ class PlatformDeployer:
 
 
     def _get_org_name(self):
-        """Get the organization name associated with the user's Platform.sh
-        account. This is needed for creating a project using automate_all.
-
+        """Get the organization name associated with the user's Platform.sh account.
+        
+        This is needed for creating a project using automate_all.
         Confirm that it's okay to use this org.
 
         Returns:
-        - None if not using automate-all.
-        - String containing org name if found, and confirmed.
-        - Raises CommandError if org name found, but not confirmed.
-        - Raises CommandError with msg if CLI login required.
-        - Raises CommandError with msg if org name not found.
+            str: org name
+            None: if not using automate-all
+        Raises:
+            SimpleDeployCommandError:
+            - if org name found, but not confirmed.
+            - if org name not found
         """
         if not self.sd.automate_all:
             return
 
-        # Use --yes to suppress hanging at login prompt.
         cmd = "platform organization:list --yes"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
