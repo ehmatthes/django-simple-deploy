@@ -95,23 +95,32 @@ class PlatformDeployer:
         """Make sure the local environment and project supports deployment to
         Platform.sh.
         
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
+        Make sure CLI is installed, and user is authenticated. Make sure necessary
+        resources have been created and identified, and that we have the user's
+        permission to use those resources.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If we find any reason deployment to this platform
+            won't succeed.
         """
-
-        # When running unit tests, will not be logged into CLI.
-        if not self.sd.unit_testing:
-            self._validate_cli()
-            
-            self.deployed_project_name = self._get_platformsh_project_name()
-            self.org_name = self._get_org_name()
-
-            # Log org name here, because it doesn't apply to unit testing.
-            self.sd.log_info(f"\nOrg name: {self.org_name}")
-        else:
+        if self.sd.unit_testing:
+            # Unit tests don't use the CLI. Use the deployed project name that was
+            # passed to the simple_deploy CLI.
             self.deployed_project_name = self.sd.deployed_project_name
+            self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
+            return
 
+        self._validate_cli()
+        
+        self.deployed_project_name = self._get_platformsh_project_name()
         self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
+
+        self.org_name = self._get_org_name()
+        self.sd.log_info(f"\nOrg name: {self.org_name}")
+
 
 
 
