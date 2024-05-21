@@ -133,9 +133,7 @@ class PlatformDeployer:
         """
         self.sd.write_output("\n  Checking if platform.sh-specific settings present in settings.py...")
 
-        with open(self.sd.settings_path) as f:
-            settings_string = f.read()
-
+        settings_string = self.sd.settings_path.read_text()
         if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in settings_string:
             self.sd.write_output("\n    Found platform.sh settings block in settings.py.")
             return
