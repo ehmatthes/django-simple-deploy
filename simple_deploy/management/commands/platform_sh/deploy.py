@@ -122,28 +122,15 @@ class PlatformDeployer:
         self.org_name = self._get_org_name()
         self.sd.log_info(f"\nOrg name: {self.org_name}")
 
-
-
-
-
-
-
-
-
-
-
-
-    # fmt:off
-
     def _add_platformsh_settings(self):
-        """Add platformsh-specific settings."""
-        # The only project-specific setting is the ALLOWED_HOSTS; that makes
-        #   modifying settings *much* easier than for other platforms.
-        #   Just check if the settings are present, and if not, dump them in.
+        """Add platformsh-specific settings.
 
-        # DEV: Modify this to make a more specific ALLOWED_HOSTS entry.
-        #   For now, at proof of concept stage, it's just '*'.
+        The only project-specific setting is ALLOWED_HOSTS. That makes modifying
+        settings *much* easier than for other platforms. Just check if the settings are
+        present, and if not, dump them in.
 
+        DEV: Modify this to make a more specific ALLOWED_HOSTS entry instead of "*".
+        """
         self.sd.write_output("\n  Checking if platform.sh-specific settings present in settings.py...")
 
         with open(self.sd.settings_path) as f:
@@ -163,6 +150,10 @@ class PlatformDeployer:
 
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
+
+
+
+# fmt: off
 
 
     def _get_platformsh_settings(self):
