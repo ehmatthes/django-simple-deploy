@@ -133,6 +133,9 @@ class PlatformDeployer:
         """
         self.sd.write_output("\n  Checking if platform.sh-specific settings present in settings.py...")
 
+        # PLATFORM_APPLICATION_NAME is an env var that's reliably set in the Platform.sh
+        # environment.
+        # See: https://docs.platform.sh/development/variables/use-variables.html#use-provided-variables
         settings_string = self.sd.settings_path.read_text()
         if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in settings_string:
             self.sd.write_output("\n    Found platform.sh settings block in settings.py.")
