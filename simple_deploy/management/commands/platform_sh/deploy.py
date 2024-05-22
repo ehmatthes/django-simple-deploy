@@ -4,7 +4,7 @@
 #  underscore, ie platform_sh.
 #  Internally, we won't use a space, ie platformsh or plsh.
 
-import sys, os, re, subprocess, time
+import sys, os, subprocess, time
 from pathlib import Path
 
 from django.conf import settings
