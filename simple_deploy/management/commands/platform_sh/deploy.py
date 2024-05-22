@@ -158,27 +158,8 @@ class PlatformDeployer:
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
 
+
     # fmt: off
-
-
-    def _get_platformsh_settings(self):
-        """Get any platformsh-specific settings that are already in place.
-        """
-        # If any platformsh settings have already been written, we don't want to
-        #  add them again. This assumes a section at the end, starting with a
-        #  check for `if config.is_valid_platform():`
-
-        with open(self.sd.settings_path) as f:
-            settings_lines = f.readlines()
-
-        self.found_platformsh_settings = False
-        self.current_platformsh_settings_lines = []
-        for line in settings_lines:
-            if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in line:
-                self.found_platformsh_settings = True
-            if self.found_platformsh_settings:
-                self.current_platformsh_settings_lines.append(line)
-
 
     def _generate_platform_app_yaml(self):
         """Create .platform.app.yaml file, if not present."""
