@@ -132,7 +132,7 @@ class PlatformDeployer:
         DEV: Modify this to make a more specific ALLOWED_HOSTS entry instead of "*".
         """
         self.sd.write_output(
-            "\n  Checking if platform.sh-specific settings present in settings.py..."
+            "\n  Checking if Platform.sh-specific settings present in settings.py..."
         )
 
         # PLATFORM_APPLICATION_NAME is an env var that's reliably set in the Platform.sh
@@ -152,21 +152,17 @@ class PlatformDeployer:
 
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
-        path = Path(self.sd.settings_path)
-        write_file_from_template(path, "settings.py", context)
+        write_file_from_template(self.sd.settings_path, "settings.py", context)
 
-        msg = f"    Modified settings.py file: {path}"
+        msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
 
     def _generate_platform_app_yaml(self):
         """Create .platform.app.yaml file, if not present."""
 
-        # File should be in project root, if present.
-        self.sd.write_output(
-            f"\n  Looking in {self.sd.project_root} for .platform.app.yaml file..."
-        )
-
         path = self.sd.project_root / ".platform.app.yaml"
+        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
+
         if path.exists():
             self.sd.write_output("    Found existing .platform.app.yaml file.")
         else:
@@ -188,7 +184,7 @@ class PlatformDeployer:
                 template_path = "platform.app.yaml"
             write_file_from_template(path, template_path, context)
 
-            msg = f"\n    Generated .platform.app.yaml file: {path}"
+            msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
             return path
 
