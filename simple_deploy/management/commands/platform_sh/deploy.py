@@ -214,27 +214,23 @@ class PlatformDeployer:
                 f"    Made .platform directory: {self.platform_dir_path}"
             )
 
-    # fmt: off
     def _generate_services_yaml(self):
         """Generate the .platform/services.yaml file, if not present."""
-        
-        # File should be in self.platform_dir_path, if present.
-        self.sd.write_output(f"\n  Looking in {self.platform_dir_path} for services.yaml file...")
-        services_yaml_present = 'services.yaml' in os.listdir(self.platform_dir_path)
 
-        if services_yaml_present:
+        path = self.platform_dir_path / "services.yaml"
+        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
+
+        if path.exists():
             self.sd.write_output("    Found existing services.yaml file.")
         else:
-            # Generate file from template.
             self.sd.write_output("    No services.yaml file found. Generating file...")
-            path = self.platform_dir_path / 'services.yaml'
-            write_file_from_template(path, 'services.yaml')
+            write_file_from_template(path, "services.yaml")
 
-            msg = f"\n    Generated services.yaml file: {path}"
+            msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
             return path
 
-
+    # fmt: off
     def _conclude_automate_all(self):
         """Finish automating the push to Platform.sh.
         - Commit all changes.
