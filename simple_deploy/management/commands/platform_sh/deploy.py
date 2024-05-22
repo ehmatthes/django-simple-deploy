@@ -162,26 +162,30 @@ class PlatformDeployer:
         """Create .platform.app.yaml file, if not present."""
 
         # File should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.project_root} for .platform.app.yaml file...")
+        self.sd.write_output(
+            f"\n  Looking in {self.sd.project_root} for .platform.app.yaml file..."
+        )
 
-        path = self.sd.project_root / '.platform.app.yaml'
+        path = self.sd.project_root / ".platform.app.yaml"
         if path.exists():
             self.sd.write_output("    Found existing .platform.app.yaml file.")
         else:
             # Generate file from template.
-            self.sd.write_output("    No .platform.app.yaml file found. Generating file...")
+            self.sd.write_output(
+                "    No .platform.app.yaml file found. Generating file..."
+            )
 
             context = {
-                'project_name': self.sd.local_project_name, 
-                'deployed_project_name': self.deployed_project_name
-                }
+                "project_name": self.sd.local_project_name,
+                "deployed_project_name": self.deployed_project_name,
+            }
 
-            if self.sd.pkg_manager == 'poetry':
-                template_path = 'poetry.platform.app.yaml'
+            if self.sd.pkg_manager == "poetry":
+                template_path = "poetry.platform.app.yaml"
             elif self.sd.pkg_manager == "pipenv":
-                template_path = 'pipenv.platform.app.yaml'
+                template_path = "pipenv.platform.app.yaml"
             else:
-                template_path = 'platform.app.yaml'
+                template_path = "platform.app.yaml"
             write_file_from_template(path, template_path, context)
 
             msg = f"\n    Generated .platform.app.yaml file: {path}"
