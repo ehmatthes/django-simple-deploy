@@ -196,19 +196,14 @@ class PlatformDeployer:
     def _make_platform_dir(self):
         """Add a .platform directory, if it doesn't already exist."""
 
-        # Directory should be in project root, if present.
-        self.sd.write_output(
-            f"\n  Looking in {self.sd.project_root} for .platform/ directory..."
-        )
-
         self.platform_dir_path = self.sd.project_root / ".platform"
+        self.sd.write_output(f"\n  Looking for {self.platform_dir_path.as_posix()}...")
+
         if self.platform_dir_path.exists():
-            self.sd.write_output("    Found existing .platform/ directory.")
+            self.sd.write_output(f"    Found {self.platform_dir_path.as_posix()}")
         else:
             self.platform_dir_path.mkdir()
-            self.sd.write_output(
-                f"    Made .platform directory: {self.platform_dir_path}"
-            )
+            self.sd.write_output(f"    Generated {self.platform_dir_path.as_posix()}")
 
     def _generate_services_yaml(self):
         """Generate the .platform/services.yaml file, if not present."""
