@@ -40,9 +40,11 @@ class PlatformDeployer:
 
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
+
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
+
         if self.sd.automate_all:
             self._confirm_automate_all()
 
