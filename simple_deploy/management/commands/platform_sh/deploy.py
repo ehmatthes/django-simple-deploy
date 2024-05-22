@@ -230,9 +230,9 @@ class PlatformDeployer:
             self.sd.write_output(msg)
             return path
 
-    # fmt: off
     def _conclude_automate_all(self):
         """Finish automating the push to Platform.sh.
+
         - Commit all changes.
         - Call `platform push`.
         - Open project.
@@ -244,13 +244,13 @@ class PlatformDeployer:
         self.sd.commit_changes()
 
         # Push project.
-        # Use run_slow_command(), to stream the output as it runs.
         self.sd.write_output("  Pushing to Platform.sh...")
 
-        # Pause to make sure project that was created can be used.
+        # Pause to make sure project that was just created can be used.
         self.sd.write_output("    Pausing 10s to make sure project is ready to use...")
         time.sleep(10)
 
+        # Use run_slow_command(), to stream output as it runs.
         cmd = "platform push --yes"
         self.sd.run_slow_command(cmd)
 
@@ -263,12 +263,14 @@ class PlatformDeployer:
         # Get url of deployed project.
         #   This can be done with an re, but there's one line of output with
         #   a url, so finding that line is simpler.
-        self.deployed_url = ''
-        for line in output.stdout.decode().split('\n'):
-            if 'https' in line:
+        # DEV: Move this to a utility, and write a test against standard Platform.sh
+        # output.
+        self.deployed_url = ""
+        for line in output.stdout.decode().split("\n"):
+            if "https" in line:
                 self.deployed_url = line.strip()
 
-
+    # fmt: off
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
 
