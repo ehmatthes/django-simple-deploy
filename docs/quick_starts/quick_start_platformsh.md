@@ -8,7 +8,7 @@ hide:
 
 ## Overview
 
-Support for Platform.sh is in a very preliminary phase. For example, it may not work when deploying from Windows. It should work if you're using `requirements.txt`, but may not work if you're using Poetry or Pipenv. `django-simple-deploy` should only be used on test projects at this point.
+Support for Platform.sh is in a preliminary phase. For example, it won't work if you already have a project deployed to Platform.sh, or if you have more than one org.
 
 Deployment to Platform.sh can be fully automated, but the configuration-only approach is recommended. This allows you to review the changes that are made to your project before committing them and making the initial push. The fully automated approach configures your project, commits these changes, and pushes the project to Platform.sh' servers.
 
@@ -17,7 +17,7 @@ Deployment to Platform.sh can be fully automated, but the configuration-only app
 Deployment to Platform.sh requires three things:
 
 - You must be using Git to track your project.
-- You need to have a `requirements.txt` file at the root of your project.
+- You need to be tracking your dependencies with a `requirements.txt` file, or be using Poetry or Pipenv.
 - The [Platform.sh CLI](https://docs.platform.sh/development/cli.html) must be installed on your system.
 
 ## Configuration-only deployment
@@ -75,6 +75,6 @@ $ platform push
 
 ## Troubleshooting
 
-If deployment does not work, please feel free to open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues). Please share the OS you're  using locally, and the specific error message or unexpected behavior you saw. If the project you're deploying is hosted in a public repository, please share that as well.
+If deployment doesn't work, please feel free to open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues). Please share the OS you're  using locally, and the specific error message or unexpected behavior you saw. If the project you're deploying is hosted in a public repository, please share that as well.
 
 Please remember that `django-simple-deploy` is in a preliminary state. That said, I'd love to know the specific issues people are running into so we can reach a 1.0 state in a reasonable time frame.
