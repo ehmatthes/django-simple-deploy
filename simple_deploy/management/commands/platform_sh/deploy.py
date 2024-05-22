@@ -286,16 +286,16 @@ class PlatformDeployer:
             msg = plsh_msgs.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
 
-    # fmt: off
     # --- Other helper methods ---
 
     def _prep_automate_all(self):
-        """Do intial work for automating entire process.
-        We know from validate_project() that user is logged into CLI.
-        
+        """Intial work for automating entire process.
+
         Returns:
-        - None if creation was successful.
-        - Should raise CommandError if create command fails.
+            None: If creation of new project was successful.
+
+        Raises:
+            SimpleDeployCommandError: If create command fails.
 
         Note: create command outputs project id to stdout if known, all other
           output goes to stderr.
@@ -303,18 +303,20 @@ class PlatformDeployer:
 
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
-        cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
+        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.
             #   This may affect whether a CompletedProcess is returned, or an Exception
             # is raised.
+            # Also, create command outputs project id to stdout if known, all other
+            # output goes to stderr.
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = plsh_msgs.unknown_create_error(e)
             raise SimpleDeployCommandError(self.sd, error_msg)
 
-
+    # fmt: off
     # --- Helper methods for methods called from simple_deploy.py ---
 
     def _validate_cli(self):
