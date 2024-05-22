@@ -158,17 +158,14 @@ class PlatformDeployer:
         msg = f"    Modified settings.py file: {path}"
         self.sd.write_output(msg)
 
-
-    # fmt: off
-
     def _generate_platform_app_yaml(self):
         """Create .platform.app.yaml file, if not present."""
 
         # File should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for .platform.app.yaml file...")
-        p_app_yaml_present = '.platform.app.yaml' in os.listdir(self.sd.git_path)
+        self.sd.write_output(f"\n  Looking in {self.sd.project_root} for .platform.app.yaml file...")
 
-        if p_app_yaml_present:
+        path = self.sd.project_root / '.platform.app.yaml'
+        if path.exists():
             self.sd.write_output("    Found existing .platform.app.yaml file.")
         else:
             # Generate file from template.
@@ -178,7 +175,7 @@ class PlatformDeployer:
                 'project_name': self.sd.local_project_name, 
                 'deployed_project_name': self.deployed_project_name
                 }
-            path = self.sd.project_root / '.platform.app.yaml'
+
             if self.sd.pkg_manager == 'poetry':
                 template_path = 'poetry.platform.app.yaml'
             elif self.sd.pkg_manager == "pipenv":
@@ -191,6 +188,7 @@ class PlatformDeployer:
             self.sd.write_output(msg)
             return path
 
+    # fmt: off
 
     def _add_requirements(self):
         """Add requirements for serving on Platform.sh."""
