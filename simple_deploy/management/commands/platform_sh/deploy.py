@@ -316,7 +316,6 @@ class PlatformDeployer:
             error_msg = plsh_msgs.unknown_create_error(e)
             raise SimpleDeployCommandError(self.sd, error_msg)
 
-    # fmt: off
     # --- Helper methods for methods called from simple_deploy.py ---
 
     def _validate_cli(self):
@@ -330,14 +329,13 @@ class PlatformDeployer:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
 
         self.sd.log_info(output_obj)
-            
+
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
         output_obj = self.sd.run_quick_command(cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_logged_out)
-
 
     def _get_platformsh_project_name(self):
         """Get the deployed project name.
@@ -378,11 +376,11 @@ class PlatformDeployer:
         #   raised when no project has been created.
         if not output_str:
             output_str = output_obj.stderr.decode()
-            if 'LoginRequiredException' in output_str:
+            if "LoginRequiredException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
-            elif 'ProjectNotFoundException' in output_str:
+            elif "ProjectNotFoundException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
-            elif 'RootNotFoundException' in output_str:
+            elif "RootNotFoundException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
             else:
                 error_msg = plsh_msgs.unknown_error
@@ -397,14 +395,13 @@ class PlatformDeployer:
         project_name = plsh_utils.get_project_name(output_str)
         if project_name:
             return project_name
-        
+
         # Couldn't find a project name. Warn user, and tell them about override flag.
         raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
 
-
     def _get_org_name(self):
         """Get the organization name associated with the user's Platform.sh account.
-        
+
         This is needed for creating a project using automate_all.
         Confirm that it's okay to use this org.
 
@@ -426,7 +423,7 @@ class PlatformDeployer:
 
         if not output_str:
             output_str = output_obj.stderr.decode()
-            if 'LoginRequiredException' in output_str:
+            if "LoginRequiredException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
             else:
                 error_msg = plsh_msgs.unknown_error
