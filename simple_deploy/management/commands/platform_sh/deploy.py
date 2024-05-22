@@ -270,15 +270,14 @@ class PlatformDeployer:
             if "https" in line:
                 self.deployed_url = line.strip()
 
-    # fmt: off
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
 
         # DEV:
-        # - Mention that this script should not need to be run again, unless
-        #   creating a new deployment.
-        #   - Describe ongoing approach of commit, push, migrate. Lots to consider
-        #     when doing this on production app with users, make sure you learn.
+        # - Mention that this script should not need to be run again unless creating
+        #   a new deployment.
+        # - Describe ongoing approach of commit, push, migrate. Lots to consider
+        #   when doing this on production app with users, make sure you learn.
 
         if self.sd.automate_all:
             msg = plsh_msgs.success_msg_automate_all(self.deployed_url)
@@ -287,7 +286,7 @@ class PlatformDeployer:
             msg = plsh_msgs.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
 
-
+    # fmt: off
     # --- Other helper methods ---
 
     def _prep_automate_all(self):
