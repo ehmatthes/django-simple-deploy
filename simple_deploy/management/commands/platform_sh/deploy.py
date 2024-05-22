@@ -192,32 +192,10 @@ class PlatformDeployer:
             self.sd.write_output(msg)
             return path
 
-    # fmt: off
-
     def _add_requirements(self):
-        """Add requirements for serving on Platform.sh."""
+        """Add requirements for Platform.sh."""
         requirements = ["platformshconfig", "gunicorn", "psycopg2"]
         self.sd.add_packages(requirements)
-
-
-    def _check_allowed_hosts(self):
-        """Make sure project can be served from platformsh."""
-        # This method is specific to platformsh.
-
-        self.sd.write_output("\n  Making sure project can be served from platform.sh...")
-
-        # DEV: Configure an ALLOWED_HOSTS entry that's specific to this deployment.
-        # Use '*' for now, to focus on more specific aspects of platformsh deployment.
-        platformsh_host = '*'
-
-        if platformsh_host in settings.ALLOWED_HOSTS:
-            self.sd.write_output(f"    Found {platformsh_host} in ALLOWED_HOSTS.")
-        else:
-            new_setting = f"ALLOWED_HOSTS.append('{platformsh_host}')"
-            msg_added = f"    Added {platformsh_host} to ALLOWED_HOSTS for the deployed project."
-            msg_already_set = f"    Found {platformsh_host} in ALLOWED_HOSTS for the deployed project."
-            self._add_platformsh_setting(new_setting, msg_added, msg_already_set)
-
 
     def _make_platform_dir(self):
         """Add a .platform directory, if it doesn't already exist."""
@@ -233,6 +211,7 @@ class PlatformDeployer:
             self.sd.write_output(f"    Made .platform directory: {self.platform_dir_path}")
 
 
+    # fmt: off
     def _generate_services_yaml(self):
         """Generate the .platform/services.yaml file, if not present."""
         
