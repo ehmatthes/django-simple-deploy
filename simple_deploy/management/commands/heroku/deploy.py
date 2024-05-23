@@ -78,7 +78,9 @@ class PlatformDeployer:
 
             # If output_str is emtpy, there is no heroku app.
             if not output_str:
-                raise SimpleDeployCommandError(self.sd, self.messages.no_heroku_app_detected)
+                raise SimpleDeployCommandError(
+                    self.sd, self.messages.no_heroku_app_detected
+                )
 
             # Parse output for app_name.
             apps_list = json.loads(output_str)
