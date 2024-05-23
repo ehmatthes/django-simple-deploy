@@ -37,17 +37,19 @@ After installing the CLI, you can run simple_deploy again.
 
 
 # --- Dynamic strings ---
-# These need to be generated in functions, to display information that's 
+# These need to be generated in functions, to display information that's
 #   determined as the script runs.
+
 
 def success_msg(pkg_manager, heroku_app_name):
     """Success message, when not using --automate-all flag."""
 
     # You can't use backslashes in f-strings, so this is the cleanest way I
     #   can add a pipenv line when needed.
-    newline = '\n'
+    newline = "\n"
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
 
         --- Your project is now configured for deployment on Heroku. ---
         
@@ -65,7 +67,8 @@ def success_msg(pkg_manager, heroku_app_name):
         After this, you can see your project by running 'heroku open'.
         Or, you can visit https://{heroku_app_name}.herokuapp.com.
 
-    """)
+    """
+    )
     return msg
 
 
@@ -73,12 +76,13 @@ def success_msg_automate_all(heroku_app_name, current_branch):
     """Success message, when using --automate-all."""
 
     # Set correct command for pushing to heroku.
-    if current_branch in ('main', 'master'):
+    if current_branch in ("main", "master"):
         push_command = f"$ git push heroku {current_branch}"
     else:
         push_command = f"$ git push heroku {current_branch}:main"
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
 
         --- Your project should now be deployed on Heroku. ---
 
@@ -99,5 +103,6 @@ def success_msg_automate_all(heroku_app_name, current_branch):
         - This documentation will help you understand how to maintain
           your deployment.
 
-    """)
+    """
+    )
     return msg

@@ -15,10 +15,11 @@ from django.utils.safestring import mark_safe
 
 import requests
 
+from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
+
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
-import simple_deploy.management.commands.utils as sd_utils
-import simple_deploy.management.commands.deploy_messages as d_msgs
+from simple_deploy.management.commands import utils as sd_utils
 
 
 class PlatformDeployer:

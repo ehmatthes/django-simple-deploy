@@ -19,8 +19,7 @@ from simple_deploy.management.commands.utils import (
     write_file_from_template,
     SimpleDeployCommandError,
 )
-import simple_deploy.management.commands.deploy_messages as d_msgs
-import simple_deploy.management.commands.platform_sh.utils as plsh_utils
+from simple_deploy.management.commands.platform_sh import utils as plsh_utils
 
 
 class PlatformDeployer:
