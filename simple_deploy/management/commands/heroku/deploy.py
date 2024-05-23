@@ -25,6 +25,7 @@ class PlatformDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
+        self.messages = heroku_msgs
 
     # --- Public methods ---
 
@@ -60,7 +61,7 @@ class PlatformDeployer:
 
         If confirmation not granted, exit with a message, but no error.
         """
-        self.sd.write_output(heroku_msgs.confirm_automate_all)
+        self.sd.write_output(self.messages.confirm_automate_all)
         confirmed = self.sd.get_confirmation()
 
         if confirmed:
@@ -96,7 +97,7 @@ class PlatformDeployer:
 
             # If output_str is emtpy, there is no heroku app.
             if not output_str:
-                raise SimpleDeployCommandError(self.sd, heroku_msgs.no_heroku_app_detected)
+                raise SimpleDeployCommandError(self.sd, self.messages.no_heroku_app_detected)
 
             # Parse output for app_name.
             apps_list = json.loads(output_str)
@@ -440,12 +441,12 @@ class PlatformDeployer:
 
         if self.sd.automate_all:
             # Show how to make future deployments.
-            msg = heroku_msgs.success_msg_automate_all(
+            msg = self.messages.success_msg_automate_all(
                 self.heroku_app_name, self.current_branch
             )
         else:
             # Show steps to finish the deployment process.
-            msg = heroku_msgs.success_msg(self.sd.pkg_manager, self.heroku_app_name)
+            msg = self.messages.success_msg(self.sd.pkg_manager, self.heroku_app_name)
 
         self.sd.write_output(msg)
 
@@ -529,11 +530,11 @@ class PlatformDeployer:
             try:
                 output_obj = self.sd.run_quick_command(cmd)
             except FileNotFoundError:
-                raise SimpleDeployCommandError(self.sd, heroku_msgs.cli_not_installed)
+                raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
             self.sd.log_info(output_obj)
             if output_obj.returncode:
-                raise SimpleDeployCommandError(self.sd, heroku_msgs.cli_not_installed)
+                raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
         # Respond appropriately if the local project uses Poetry.
         if self.sd.pkg_manager == "poetry":
