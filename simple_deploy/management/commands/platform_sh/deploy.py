@@ -4,7 +4,7 @@
 #  underscore, ie platform_sh.
 #  Internally, we won't use a space, ie platformsh or plsh.
 
-import sys, os, re, subprocess, time
+import sys, os, subprocess, time
 from pathlib import Path
 
 from django.conf import settings
@@ -15,13 +15,20 @@ from django.utils.safestring import mark_safe
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
 
-from simple_deploy.management.commands.utils import write_file_from_template, SimpleDeployCommandError
+from simple_deploy.management.commands.utils import (
+    write_file_from_template,
+    SimpleDeployCommandError,
+)
 import simple_deploy.management.commands.deploy_messages as d_msgs
+import simple_deploy.management.commands.platform_sh.utils as plsh_utils
 
 
 class PlatformDeployer:
-    """Perform the initial deployment of a simple project.
-    Configure as much as possible automatically.
+    """Perform the initial deployment to Platform.sh.
+
+    If --automate-all is used, carry out an actual deployment.
+    If not, do all configuration work so the user only has to commit changes, and call
+    `platform push`.
     """
 
     def __init__(self, command):
@@ -29,11 +36,15 @@ class PlatformDeployer:
         self.sd = command
         self.stdout = self.sd.stdout
 
+    # --- Public methods ---
 
     def deploy(self, *args, **options):
+        """Coordinate the overall configuration and deployment."""
+
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
+
         if self.sd.automate_all:
             self._confirm_automate_all()
 
@@ -43,22 +54,30 @@ class PlatformDeployer:
             self._prep_automate_all()
 
         self._add_platformsh_settings()
-
-        # DEV: Group this with later yaml generation methods.
-        self._generate_platform_app_yaml()
-
         self._add_requirements()
-
-        # DEV: These could be refactored.
+        self._generate_platform_app_yaml()
         self._make_platform_dir()
         self._generate_services_yaml()
-
         self._conclude_automate_all()
-
         self._show_success_message()
 
+    # --- Helper methods for deploy() ---
 
-    # --- Methods used in this class ---
+    def _confirm_preliminary(self):
+        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
+        self.sd.write_output(plsh_msgs.confirm_preliminary)
+
+        # Unit test check is here, so message is logged.
+        if self.sd.unit_testing:
+            return
+
+        if self.sd.get_confirmation():
+            self.sd.write_output("  Continuing with platform.sh deployment...")
+        else:
+            # Quit and invite the user to try another platform. We are happily exiting
+            # the script; there's no need to raise an error.
+            self.sd.write_output(plsh_msgs.cancel_plsh)
+            sys.exit()
 
     def _confirm_automate_all(self):
         """Confirm the user understands what --automate-all does.
@@ -75,147 +94,138 @@ class PlatformDeployer:
             self.sd.write_output(d_msgs.cancel_automate_all)
             sys.exit()
 
+    def _validate_platform(self):
+        """Make sure the local environment and project supports deployment to
+        Platform.sh.
+
+        Make sure CLI is installed, and user is authenticated. Make sure necessary
+        resources have been created and identified, and that we have the user's
+        permission to use those resources.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If we find any reason deployment to this platform
+            won't succeed.
+        """
+        if self.sd.unit_testing:
+            # Unit tests don't use the CLI. Use the deployed project name that was
+            # passed to the simple_deploy CLI.
+            self.deployed_project_name = self.sd.deployed_project_name
+            self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
+            return
+
+        self._validate_cli()
+
+        self.deployed_project_name = self._get_platformsh_project_name()
+        self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
+
+        self.org_name = self._get_org_name()
+        self.sd.log_info(f"\nOrg name: {self.org_name}")
+
     def _add_platformsh_settings(self):
-        """Add platformsh-specific settings."""
-        # The only project-specific setting is the ALLOWED_HOSTS; that makes
-        #   modifying settings *much* easier than for other platforms.
-        #   Just check if the settings are present, and if not, dump them in.
+        """Add platformsh-specific settings.
 
-        # DEV: Modify this to make a more specific ALLOWED_HOSTS entry.
-        #   For now, at proof of concept stage, it's just '*'.
+        The only project-specific setting is ALLOWED_HOSTS. That makes modifying
+        settings *much* easier than for other platforms. Just check if the settings are
+        present, and if not, dump them in.
 
-        self.sd.write_output("\n  Checking if platform.sh-specific settings present in settings.py...")
+        DEV: Modify this to make a more specific ALLOWED_HOSTS entry instead of "*".
+        """
+        self.sd.write_output(
+            "\n  Checking if Platform.sh-specific settings present in settings.py..."
+        )
 
-        with open(self.sd.settings_path) as f:
-            settings_string = f.read()
-
+        # PLATFORM_APPLICATION_NAME is an env var that's reliably set in the Platform.sh
+        # environment.
+        # See: https://docs.platform.sh/development/variables/use-variables.html#use-provided-variables
+        settings_string = self.sd.settings_path.read_text()
         if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in settings_string:
-            self.sd.write_output("\n    Found platform.sh settings block in settings.py.")
+            self.sd.write_output(
+                "\n    Found platform.sh settings block in settings.py."
+            )
             return
 
         # Add platformsh settings block.
-        self.sd.write_output("    No platform.sh settings found in settings.py; adding settings...")
+        self.sd.write_output(
+            "    No platform.sh settings found in settings.py; adding settings..."
+        )
 
         safe_settings_string = mark_safe(settings_string)
-        context = {'current_settings': safe_settings_string}
-        path = Path(self.sd.settings_path)
-        write_file_from_template(path, 'settings.py', context)
+        context = {"current_settings": safe_settings_string}
+        write_file_from_template(self.sd.settings_path, "settings.py", context)
 
-        msg = f"    Modified settings.py file: {path}"
+        msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
-
-
-    def _get_platformsh_settings(self):
-        """Get any platformsh-specific settings that are already in place.
-        """
-        # If any platformsh settings have already been written, we don't want to
-        #  add them again. This assumes a section at the end, starting with a
-        #  check for `if config.is_valid_platform():`
-
-        with open(self.sd.settings_path) as f:
-            settings_lines = f.readlines()
-
-        self.found_platformsh_settings = False
-        self.current_platformsh_settings_lines = []
-        for line in settings_lines:
-            if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in line:
-                self.found_platformsh_settings = True
-            if self.found_platformsh_settings:
-                self.current_platformsh_settings_lines.append(line)
-
 
     def _generate_platform_app_yaml(self):
         """Create .platform.app.yaml file, if not present."""
 
-        # File should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for .platform.app.yaml file...")
-        p_app_yaml_present = '.platform.app.yaml' in os.listdir(self.sd.git_path)
+        path = self.sd.project_root / ".platform.app.yaml"
+        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
 
-        if p_app_yaml_present:
+        if path.exists():
             self.sd.write_output("    Found existing .platform.app.yaml file.")
         else:
             # Generate file from template.
-            self.sd.write_output("    No .platform.app.yaml file found. Generating file...")
+            self.sd.write_output(
+                "    No .platform.app.yaml file found. Generating file..."
+            )
 
             context = {
-                'project_name': self.sd.local_project_name, 
-                'deployed_project_name': self.deployed_project_name
-                }
-            path = self.sd.project_root / '.platform.app.yaml'
-            if self.sd.pkg_manager == 'poetry':
-                template_path = 'poetry.platform.app.yaml'
+                "project_name": self.sd.local_project_name,
+                "deployed_project_name": self.deployed_project_name,
+            }
+
+            if self.sd.pkg_manager == "poetry":
+                template_path = "poetry.platform.app.yaml"
             elif self.sd.pkg_manager == "pipenv":
-                template_path = 'pipenv.platform.app.yaml'
+                template_path = "pipenv.platform.app.yaml"
             else:
-                template_path = 'platform.app.yaml'
+                template_path = "platform.app.yaml"
             write_file_from_template(path, template_path, context)
 
-            msg = f"\n    Generated .platform.app.yaml file: {path}"
+            msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
             return path
 
-
     def _add_requirements(self):
-        """Add requirements for serving on Platform.sh."""
+        """Add requirements for Platform.sh."""
         requirements = ["platformshconfig", "gunicorn", "psycopg2"]
         self.sd.add_packages(requirements)
-
-
-    def _check_allowed_hosts(self):
-        """Make sure project can be served from platformsh."""
-        # This method is specific to platformsh.
-
-        self.sd.write_output("\n  Making sure project can be served from platform.sh...")
-
-        # DEV: Configure an ALLOWED_HOSTS entry that's specific to this deployment.
-        # Use '*' for now, to focus on more specific aspects of platformsh deployment.
-        platformsh_host = '*'
-
-        if platformsh_host in settings.ALLOWED_HOSTS:
-            self.sd.write_output(f"    Found {platformsh_host} in ALLOWED_HOSTS.")
-        else:
-            new_setting = f"ALLOWED_HOSTS.append('{platformsh_host}')"
-            msg_added = f"    Added {platformsh_host} to ALLOWED_HOSTS for the deployed project."
-            msg_already_set = f"    Found {platformsh_host} in ALLOWED_HOSTS for the deployed project."
-            self._add_platformsh_setting(new_setting, msg_added, msg_already_set)
-
 
     def _make_platform_dir(self):
         """Add a .platform directory, if it doesn't already exist."""
 
-        # Directory should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for .platform/ directory...")
+        self.platform_dir_path = self.sd.project_root / ".platform"
+        self.sd.write_output(f"\n  Looking for {self.platform_dir_path.as_posix()}...")
 
-        self.platform_dir_path = self.sd.git_path / '.platform'
         if self.platform_dir_path.exists():
-            self.sd.write_output("    Found existing .platform/ directory.")
+            self.sd.write_output(f"    Found {self.platform_dir_path.as_posix()}")
         else:
             self.platform_dir_path.mkdir()
-            self.sd.write_output(f"    Made .platform directory: {self.platform_dir_path}")
-
+            self.sd.write_output(f"    Generated {self.platform_dir_path.as_posix()}")
 
     def _generate_services_yaml(self):
         """Generate the .platform/services.yaml file, if not present."""
-        
-        # File should be in self.platform_dir_path, if present.
-        self.sd.write_output(f"\n  Looking in {self.platform_dir_path} for services.yaml file...")
-        services_yaml_present = 'services.yaml' in os.listdir(self.platform_dir_path)
 
-        if services_yaml_present:
+        path = self.platform_dir_path / "services.yaml"
+        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
+
+        if path.exists():
             self.sd.write_output("    Found existing services.yaml file.")
         else:
-            # Generate file from template.
             self.sd.write_output("    No services.yaml file found. Generating file...")
-            path = self.platform_dir_path / 'services.yaml'
-            write_file_from_template(path, 'services.yaml')
+            write_file_from_template(path, "services.yaml")
 
-            msg = f"\n    Generated services.yaml file: {path}"
+            msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
             return path
 
-
     def _conclude_automate_all(self):
         """Finish automating the push to Platform.sh.
+
         - Commit all changes.
         - Call `platform push`.
         - Open project.
@@ -227,13 +237,13 @@ class PlatformDeployer:
         self.sd.commit_changes()
 
         # Push project.
-        # Use run_slow_command(), to stream the output as it runs.
         self.sd.write_output("  Pushing to Platform.sh...")
 
-        # Pause to make sure project that was created can be used.
+        # Pause to make sure project that was just created can be used.
         self.sd.write_output("    Pausing 10s to make sure project is ready to use...")
         time.sleep(10)
 
+        # Use run_slow_command(), to stream output as it runs.
         cmd = "platform push --yes"
         self.sd.run_slow_command(cmd)
 
@@ -246,20 +256,21 @@ class PlatformDeployer:
         # Get url of deployed project.
         #   This can be done with an re, but there's one line of output with
         #   a url, so finding that line is simpler.
-        self.deployed_url = ''
-        for line in output.stdout.decode().split('\n'):
-            if 'https' in line:
+        # DEV: Move this to a utility, and write a test against standard Platform.sh
+        # output.
+        self.deployed_url = ""
+        for line in output.stdout.decode().split("\n"):
+            if "https" in line:
                 self.deployed_url = line.strip()
-
 
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
 
         # DEV:
-        # - Mention that this script should not need to be run again, unless
-        #   creating a new deployment.
-        #   - Describe ongoing approach of commit, push, migrate. Lots to consider
-        #     when doing this on production app with users, make sure you learn.
+        # - Mention that this script should not need to be run again unless creating
+        #   a new deployment.
+        # - Describe ongoing approach of commit, push, migrate. Lots to consider
+        #   when doing this on production app with users, make sure you learn.
 
         if self.sd.automate_all:
             msg = plsh_msgs.success_msg_automate_all(self.deployed_url)
@@ -268,60 +279,16 @@ class PlatformDeployer:
             msg = plsh_msgs.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
 
-
-    # --- Methods called from simple_deploy.py ---
-
-    def _confirm_preliminary(self):
-        """Deployment to platform.sh is in a preliminary state, and we need to be
-        explicit about that.
-        """
-        self.sd.write_output(plsh_msgs.confirm_preliminary)
-
-        # Unit test check is here, so message is logged.
-        if self.sd.unit_testing:
-            return
-
-        confirmed = self.sd.get_confirmation()
-        if confirmed:
-            self.sd.write_output("  Continuing with platform.sh deployment...")
-        else:
-            # Quit and invite the user to try another platform.
-            # We are happily exiting the script; there's no need to raise a
-            #   CommandError.
-            self.sd.write_output(plsh_msgs.cancel_plsh)
-            sys.exit()
-
-
-    def _validate_platform(self):
-        """Make sure the local environment and project supports deployment to
-        Platform.sh.
-        
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
-        """
-
-        # When running unit tests, will not be logged into CLI.
-        if not self.sd.unit_testing:
-            self._validate_cli()
-            
-            self.deployed_project_name = self._get_platformsh_project_name()
-            self.org_name = self._get_org_name()
-
-            # Log org name here, because it doesn't apply to unit testing.
-            self.sd.log_info(f"\nOrg name: {self.org_name}")
-        else:
-            self.deployed_project_name = self.sd.deployed_project_name
-
-        self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
-
+    # --- Other helper methods ---
 
     def _prep_automate_all(self):
-        """Do intial work for automating entire process.
-        We know from validate_project() that user is logged into CLI.
-        
+        """Intial work for automating entire process.
+
         Returns:
-        - None if creation was successful.
-        - Should raise CommandError if create command fails.
+            None: If creation of new project was successful.
+
+        Raises:
+            SimpleDeployCommandError: If create command fails.
 
         Note: create command outputs project id to stdout if known, all other
           output goes to stderr.
@@ -329,49 +296,54 @@ class PlatformDeployer:
 
         self.sd.write_output("  Running `platform create`...")
         self.sd.write_output("    (Please be patient, this can take a few minutes.")
-        cmd = f'platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes'
+        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.
             #   This may affect whether a CompletedProcess is returned, or an Exception
             # is raised.
+            # Also, create command outputs project id to stdout if known, all other
+            # output goes to stderr.
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = plsh_msgs.unknown_create_error(e)
             raise SimpleDeployCommandError(self.sd, error_msg)
 
-
     # --- Helper methods for methods called from simple_deploy.py ---
 
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed, and user is authenticated."""
-        cmd = 'platform --version'
+        cmd = "platform --version"
 
+        # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
-        else:
-            # Log the version output.
-            self.sd.log_info(output_obj)
-            
+
+        self.sd.log_info(output_obj)
+
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
         output_obj = self.sd.run_quick_command(cmd)
-        output_str = output_obj.stdout.decode()
-        output_err = output_obj.stderr.decode()
-        
-        if "Authentication is required." in output_err:
-            raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_logged_out)
 
+        if "Authentication is required." in output_obj.stderr.decode():
+            raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_logged_out)
 
     def _get_platformsh_project_name(self):
         """Get the deployed project name.
-        This is the name that was given in the `platform create` command.
+
+        If using automate_all, we'll set this. Otherwise, we're looking for the name
+        that was given in the `platform create` command.
         - Try to get this from `project:info`.
         - If can't get project name:
           - Exit with warning, and inform user of --deployed-project-name
             flag to override this error.
+
+        Retuns:
+            str: The deployed project name.
+        Raises:
+            SimpleDeployCommandError: If deployed project name can't be found.
         """
         # If we're creating the project, we'll just use the startproject name.
         if self.sd.automate_all:
@@ -383,7 +355,7 @@ class PlatformDeployer:
 
         # Use --yes flag to avoid interactive prompt hanging in background
         #   if the user is not currently logged in to the CLI.
-        cmd = "platform project:info --yes"
+        cmd = "platform project:info --yes --format csv"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
 
@@ -397,11 +369,11 @@ class PlatformDeployer:
         #   raised when no project has been created.
         if not output_str:
             output_str = output_obj.stderr.decode()
-            if 'LoginRequiredException' in output_str:
+            if "LoginRequiredException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
-            elif 'ProjectNotFoundException' in output_str:
+            elif "ProjectNotFoundException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
-            elif 'RootNotFoundException' in output_str:
+            elif "RootNotFoundException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
             else:
                 error_msg = plsh_msgs.unknown_error
@@ -409,66 +381,61 @@ class PlatformDeployer:
                 raise SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
-        deployed_project_name_re = r'(\| title\s+?\|\s*?)(.*?)(\s*?\|)'
-        match = re.search(deployed_project_name_re, output_str)
-        if match:
-            return match.group(2).strip()
-        
-        # Couldn't find a project name. Warn user, and let them know
-        #   about override flag.
+        lines = output_str.splitlines()
+        title_line = [line for line in lines if "title," in line][0]
+        # Assume first project is one to use.
+        project_name = title_line.split(",")[1].strip()
+        project_name = plsh_utils.get_project_name(output_str)
+        if project_name:
+            return project_name
+
+        # Couldn't find a project name. Warn user, and tell them about override flag.
         raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
 
-
     def _get_org_name(self):
-        """Get the organization name associated with the user's Platform.sh
-        account. This is needed for creating a project using automate_all.
+        """Get the organization name associated with the user's Platform.sh account.
 
+        This is needed for creating a project using automate_all.
         Confirm that it's okay to use this org.
 
         Returns:
-        - None if not using automate-all.
-        - String containing org name if found, and confirmed.
-        - Raises CommandError if org name found, but not confirmed.
-        - Raises CommandError with msg if CLI login required.
-        - Raises CommandError with msg if org name not found.
+            str: org name
+            None: if not using automate-all
+        Raises:
+            SimpleDeployCommandError:
+            - if org name found, but not confirmed.
+            - if org name not found
         """
         if not self.sd.automate_all:
             return
 
-        # Use --yes to suppress hanging at login prompt.
-        cmd = "platform organization:list --yes"
+        cmd = "platform organization:list --yes --format csv"
         output_obj = self.sd.run_quick_command(cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
         if not output_str:
             output_str = output_obj.stderr.decode()
-            if 'LoginRequiredException' in output_str:
+            if "LoginRequiredException" in output_str:
                 raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
             else:
                 error_msg = plsh_msgs.unknown_error
                 error_msg += plsh_msgs.cli_not_installed
                 raise SimpleDeployCommandError(self.sd, error_msg)
 
-        # Pull org name from output. Start by removing line containing lables.
-        output_str_lines = [line for line in output_str.split("\n") if "Owner email" not in line]
-        modified_output_str = '\n'.join(output_str_lines)
-        org_name_re = r'(\|\s*)([a-zA-Z_]*)(.*)'
-        match = re.search(org_name_re, modified_output_str)
-        if match:
-            org_name = match.group(2).strip()
-            if self._confirm_use_org_name(org_name):
-                return org_name
-        else:
-            # Got stdout, but can't find org id. Unknown error.
+        org_name = plsh_utils.get_org_name(output_str)
+        if not org_name:
             raise SimpleDeployCommandError(self.sd, plsh_msgs.org_not_found)
 
+        if self._confirm_use_org_name(org_name):
+            return org_name
 
     def _confirm_use_org_name(self, org_name):
         """Confirm that it's okay to use the org name that was found.
+
         Returns:
-        - True if confirmed.
-        - sys.exit() if not confirmed.
+            True: if confirmed
+            SimpleDeployCommandError: if not confirmed
         """
 
         self.stdout.write(plsh_msgs.confirm_use_org_name(org_name))

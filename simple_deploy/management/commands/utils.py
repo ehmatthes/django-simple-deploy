@@ -1,7 +1,6 @@
 """Utility functions and classes for simple_deploy.py.
 
-Also contains resources useful to multiple platform-specific deployment 
-scripts.
+Also contains resources useful to platform-specific deployment scripts.
 """
 
 from pathlib import Path
