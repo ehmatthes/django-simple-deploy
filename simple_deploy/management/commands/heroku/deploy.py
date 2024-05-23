@@ -33,6 +33,7 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
 
         self._validate_platform()
+        self._handle_poetry()
 
         if self.sd.automate_all:
             self._prep_automate_all()
@@ -58,7 +59,7 @@ class PlatformDeployer:
 
         Make sure CLI is installed, and user is authenticated.
 
-        
+
 
         Returns:
             None
@@ -83,9 +84,49 @@ class PlatformDeployer:
         if output_obj.returncode:
             raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
-        # Respond appropriately if the local project uses Poetry.
-        if self.sd.pkg_manager == "poetry":
-            self._handle_poetry()
+    def _handle_poetry(self):
+        """Respond appropriately if the local project uses Poetry.
+
+        If the project uses Poetry, generate a requirements.txt file, and
+          override the initial value of self.sd.pkg_manager.
+
+        Heroku does not work directly with Poetry, so we need to generate
+          a requirements.txt file for the user, which we can then add requirements
+          to. We should inform the user about this, as they may be used to
+          just working with Poetry's requirements specification files.
+
+        This should probably be addressed in the success message as well,
+          and in the summary file. They will need to update the requirements.txt
+          file whenever they install additional packages.
+
+        Returns:
+        - None
+        """
+        # Making this check here keeps deploy() cleaner.
+        if self.sd.pkg_manager != "poetry":
+            return
+
+        msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
+        self.sd.write_output(msg)
+
+        cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+
+        msg = "    Wrote requirements.txt file."
+        self.sd.write_output(msg)
+
+        # From this point forward, we'll treat this user the same as anyone
+        #   who's using a bare requirements.txt file.
+        self.sd.pkg_manager = "req_txt"
+        self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
+        self.sd.log_info("    Package manager set to req_txt.")
+        self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
+
+        # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
+        # Optional deploy group dependencies aren't added to requirements.txt.
+        self.sd._get_current_requirements()
+        self.sd._add_simple_deploy_req()
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to.
@@ -469,46 +510,6 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
     # --- Utility methods ---
-
-    def _handle_poetry(self):
-        """Respond appropriately if the local project uses Poetry.
-
-        If the project uses Poetry, generate a requirements.txt file, and
-          override the initial value of self.sd.pkg_manager.
-
-        Heroku does not work directly with Poetry, so we need to generate
-          a requirements.txt file for the user, which we can then add requirements
-          to. We should inform the user about this, as they may be used to
-          just working with Poetry's requirements specification files.
-
-        This should probably be addressed in the success message as well,
-          and in the summary file. They will need to update the requirements.txt
-          file whenever they install additional packages.
-
-        Returns:
-        - None
-        """
-        msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
-        self.sd.write_output(msg)
-
-        cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-
-        msg = "    Wrote requirements.txt file."
-        self.sd.write_output(msg)
-
-        # From this point forward, we'll treat this user the same as anyone
-        #   who's using a bare requirements.txt file.
-        self.sd.pkg_manager = "req_txt"
-        self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
-        self.sd.log_info("    Package manager set to req_txt.")
-        self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
-
-        # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
-        # Optional deploy group dependencies aren't added to requirements.txt.
-        self.sd._get_current_requirements()
-        self.sd._add_simple_deploy_req()
 
     def _check_current_heroku_settings(self, heroku_setting):
         """Check if a setting has already been defined in the heroku-specific
