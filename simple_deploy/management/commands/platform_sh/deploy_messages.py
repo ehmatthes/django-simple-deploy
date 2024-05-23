@@ -86,32 +86,36 @@ will do all of the necessary configuration for deployment.
 
 
 # --- Dynamic strings ---
-# These need to be generated in functions, to display information that's 
+# These need to be generated in functions, to display information that's
 #   determined as the script runs.
+
 
 def confirm_use_org_name(org_name):
     """Confirm use of this org name to create a new project."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         --- The Platform.sh CLI requires an organization name when creating a new project. ---
         When using --automate-all, a project will be created on your behalf. The following
         organization name was found: {org_name}
 
         This organization will be used to create a new project. If this is not okay,
         enter n to cancel this operation.
-    """)
+    """
+    )
 
     return msg
 
 
 def unknown_create_error(e):
-    """Process a non-specific error when running `platform create` 
+    """Process a non-specific error when running `platform create`
     while using automate_all. This is most likely an issue with the user
     not having permission to create a new project, for example because they
     are on a trial plan and have already created too many projects.
     """
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         --- An error has occurred when trying to create a new Platform.sh project. ---
 
         While running `platform create`, an error has occurred. You should check
@@ -130,15 +134,17 @@ def unknown_create_error(e):
         {e.stderr.decode()}
 
         ***** end output *****
-    """)
+    """
+    )
 
     return msg
 
 
-def success_msg(log_output=''):
+def success_msg(log_output=""):
     """Success message, for configuration-only run."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
         --- Your project is now configured for deployment on Platform.sh. ---
 
         To deploy your project, you will need to:
@@ -154,12 +160,15 @@ def success_msg(log_output=''):
             - Make local changes
             - Commit your local changes
             - Run `platform push`
-    """)
+    """
+    )
 
     if log_output:
-        msg += dedent(f"""
+        msg += dedent(
+            f"""
         - You can find a full record of this configuration in the simple_deploy_logs directory.
-        """)
+        """
+        )
 
     return msg
 
@@ -167,7 +176,8 @@ def success_msg(log_output=''):
 def success_msg_automate_all(deployed_url):
     """Success message, when using --automate-all."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
 
         --- Your project should now be deployed on Platform.sh. ---
 
@@ -183,5 +193,6 @@ def success_msg_automate_all(deployed_url):
         - This documentation will help you understand how to maintain
           your deployment.
 
-    """)
+    """
+    )
     return msg
