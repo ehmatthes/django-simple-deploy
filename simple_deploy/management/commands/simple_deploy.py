@@ -673,5 +673,3 @@ class Command(BaseCommand):
             f".{self.platform}.deploy", package="simple_deploy.management.commands"
         )
         self.platform_deployer = deployer_module.PlatformDeployer(self)
-
-    
