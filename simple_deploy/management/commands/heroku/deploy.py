@@ -71,11 +71,14 @@ class PlatformDeployer:
             sys.exit()
 
     def _get_heroku_app_info(self):
-        """Get info about the Heroku app we're pushing to."""
-        # We assume the user has already run 'heroku create', or --automate-all
-        #   has run it. If it hasn't been run, we'll quit and tell them to do so.
+        """Get info about the Heroku app we're pushing to.
 
-        # We'll also look for a Postgres db. If we don't find one, we'll create one.
+        Assume `heroku create` has already been run, either by the user or through
+        the `--automate-all` flag.
+        If it hasn't been run, quit and direct the user to do so.
+
+        Also, look for a Postgres db. If none found, create one.
+        """
 
         # DEV: The testing approach here should be improved. We should be able
         #   to easily test for a failed apps:info call. Also, probably want

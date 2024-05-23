@@ -23,8 +23,7 @@ no_heroku_app_detected = """No Heroku app name has been detected.
 
 - The simple_deploy command assumes you have already run 'heroku create'
   to start the deployment process.
-- Please run 'heroku create', and then run
-  'python manage.py simple_deploy' again.
+- Please run 'heroku create', and then run 'python manage.py simple_deploy' again.
 - If you haven't already done so, you will need to install the Heroku CLI:
   https://devcenter.heroku.com/articles/heroku-cli
 """
