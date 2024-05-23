@@ -15,10 +15,11 @@ from django.utils.safestring import mark_safe
 
 import requests
 
+from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.fly_io import deploy_messages as flyio_msgs
+
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
-import simple_deploy.management.commands.utils as sd_utils
-import simple_deploy.management.commands.deploy_messages as d_msgs
+from simple_deploy.management.commands import utils as sd_utils
 
 
 class PlatformDeployer:
@@ -33,6 +34,7 @@ class PlatformDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
+        self.messages = flyio_msgs
 
     # --- Public methods ---
 
@@ -41,8 +43,6 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Fly.io...")
 
         self._confirm_preliminary()
-        if self.sd.automate_all:
-            self._confirm_automate_all()
 
         self._validate_platform()
 
@@ -63,7 +63,7 @@ class PlatformDeployer:
 
     def _confirm_preliminary(self):
         """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
-        self.sd.write_output(flyio_msgs.confirm_preliminary)
+        self.sd.write_output(self.messages.confirm_preliminary)
 
         # Unit test check is here, so message is logged.
         if self.sd.unit_testing:
@@ -74,22 +74,7 @@ class PlatformDeployer:
         else:
             # Quit and invite the user to try another platform. We are happily exiting
             # the script; there's no need to raise an error.
-            self.sd.write_output(flyio_msgs.cancel_flyio)
-            sys.exit()
-
-    def _confirm_automate_all(self):
-        """Confirm the user understands what --automate-all does.
-
-        If confirmation not granted, exit with a message, but no error.
-        """
-        self.sd.write_output(flyio_msgs.confirm_automate_all)
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.sd.write_output("Automating all steps...")
-        else:
-            # Quit with a message, but don't raise an error.
-            self.sd.write_output(d_msgs.cancel_automate_all)
+            self.sd.write_output(self.messages.cancel_flyio)
             sys.exit()
 
     def _validate_platform(self):
@@ -281,9 +266,9 @@ class PlatformDeployer:
         Describe ongoing approach of commit, push, migrate.
         """
         if self.sd.automate_all:
-            msg = flyio_msgs.success_msg_automate_all(self.deployed_url)
+            msg = self.messages.success_msg_automate_all(self.deployed_url)
         else:
-            msg = flyio_msgs.success_msg(log_output=self.sd.log_output)
+            msg = self.messages.success_msg(log_output=self.sd.log_output)
         self.sd.write_output(msg)
 
     def _set_secret(self, needle, secret):
@@ -351,13 +336,13 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
         self.sd.log_info(output_obj)
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
@@ -365,7 +350,7 @@ class PlatformDeployer:
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cli_logged_out)
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_logged_out)
 
         # Show current authenticated fly user.
         whoami_json = json.loads(output_obj.stdout.decode())
@@ -441,7 +426,7 @@ class PlatformDeployer:
             if self.sd.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
         elif len(project_names) == 1:
             # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
@@ -454,7 +439,7 @@ class PlatformDeployer:
             elif self.sd.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise SimpleDeployCommandError(self.sd, flyio_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
         else:
             # More than one undeployed app found. `apps list` doesn't show
             # much specific information for undeployed apps. For exmaple we
@@ -479,7 +464,7 @@ class PlatformDeployer:
             confirmed = False
             while not confirmed:
                 selection = sd_utils.get_numbered_choice(
-                    self.sd, prompt, valid_choices, flyio_msgs.no_project_name
+                    self.sd, prompt, valid_choices, self.messages.no_project_name
                 )
                 selected_name = project_names[selection]
 
@@ -521,7 +506,7 @@ class PlatformDeployer:
         try:
             self.app_name = app_dict["Name"]
         except KeyError:
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.create_app_failed)
+            raise SimpleDeployCommandError(self.sd, self.messages.create_app_failed)
         else:
             msg = f"  Created new app: {self.app_name}"
             self.sd.write_output(msg)
@@ -714,7 +699,7 @@ class PlatformDeployer:
             # we'll revisit this block.
             # Note: This path has only been tested once, by manually adding
             # "dummy-user" to the list of db users."
-            msg = flyio_msgs.cant_use_db(self.db_name, self.db_users)
+            msg = self.messages.cant_use_db(self.db_name, self.db_users)
             raise SimpleDeployCommandError(self.sd, msg)
 
     def _confirm_use_attached_db(self):
@@ -726,14 +711,14 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If confirmation denied.
         """
-        msg = flyio_msgs.use_attached_db(self.db_name, self.db_users)
+        msg = self.messages.use_attached_db(self.db_name, self.db_users)
         self.sd.write_output(msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
         if not self.sd.get_confirmation(msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+            raise SimpleDeployCommandError(self.sd, self.messages.cancel_no_db)
 
     def _confirm_use_unattached_db(self):
         """Confirm it's okay to use db whose name matches this app, but hasn't
@@ -750,7 +735,7 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If confirmation denied.
         """
-        msg = flyio_msgs.use_unattached_db(self.db_name, self.db_users)
+        msg = self.messages.use_unattached_db(self.db_name, self.db_users)
         self.sd.write_output(msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
@@ -761,7 +746,7 @@ class PlatformDeployer:
             # Permission to use this db denied.
             # Can't simply create a new db, because the name we'd use is
             # already taken.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+            raise SimpleDeployCommandError(self.sd, self.messages.cancel_no_db)
 
     def _confirm_create_db(self, db_cmd):
         """Confirm the user wants a database created on their behalf.
@@ -777,12 +762,12 @@ class PlatformDeployer:
             return
 
         # Show the command that will be run on the user's behalf.
-        self.stdout.write(flyio_msgs.confirm_create_db(db_cmd))
+        self.stdout.write(self.messages.confirm_create_db(db_cmd))
         if self.sd.get_confirmation():
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
-            raise SimpleDeployCommandError(self.sd, flyio_msgs.cancel_no_db)
+            raise SimpleDeployCommandError(self.sd, self.messages.cancel_no_db)
 
     def _attach_db(self):
         """Attach the database to the app."""

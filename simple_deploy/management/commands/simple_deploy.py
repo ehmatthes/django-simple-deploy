@@ -113,6 +113,7 @@ class Command(BaseCommand):
         self._add_simple_deploy_req()
 
         self._create_deployer()
+        self._confirm_automate_all()
         self.platform_deployer.deploy()
 
     # --- Methods used here, and also by platform-specific modules ---
@@ -674,4 +675,24 @@ class Command(BaseCommand):
         )
         self.platform_deployer = deployer_module.PlatformDeployer(self)
 
-    
+    def _confirm_automate_all(self):
+        """Confirm the user understands what --automate-all does.
+
+        If confirmation not granted, exit with a message, but no error.
+
+        This must be called after the platform-specific deployer object is instantiated,
+        because we need a platform-specific confirmation message.
+        """
+        # Placing this check here keeps the handle() method cleaner.
+        if not self.automate_all:
+            return
+
+        self.write_output(self.platform_deployer.messages.confirm_automate_all)
+        confirmed = self.get_confirmation()
+
+        if confirmed:
+            self.write_output("Automating all steps...")
+        else:
+            # Quit with a message, but don't raise an error.
+            self.write_output(d_msgs.cancel_automate_all)
+            sys.exit()

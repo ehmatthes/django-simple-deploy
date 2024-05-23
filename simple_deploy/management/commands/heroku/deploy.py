@@ -8,29 +8,29 @@ from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 
 from simple_deploy.management.commands import deploy_messages as d_msgs
-from simple_deploy.management.commands.heroku import deploy_messages as dh_msgs
+from simple_deploy.management.commands.heroku import deploy_messages as heroku_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
-import simple_deploy.management.commands.deploy_messages as d_msgs
 
 
 class PlatformDeployer:
-    """Perform the initial deployment of a simple project.
-    Configure as much as possible automatically.
+    """Perform the initial deployment to Heroku.
+
+    If --automate-all is used, carry out an actual deployment.
+    If not, do all configuration work so the user only has to commit changes, and run
+    `git push heroku main`.
     """
 
     def __init__(self, command):
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
+        self.messages = heroku_msgs
 
+    # --- Public methods ---
 
     def deploy(self, *args, **options):
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
-
-        if self.sd.automate_all:
-            self._confirm_automate_all()
-
         self._validate_platform()
 
         if self.sd.automate_all:
@@ -50,41 +50,27 @@ class PlatformDeployer:
         self._summarize_deployment()
         self._show_success_message()
 
-
-    # --- Methods used in this class ---
-
-    def _confirm_automate_all(self):
-        """Confirm the user understands what --automate-all does.
-
-        If confirmation not granted, exit with a message, but no error.
-        """
-        self.sd.write_output(plsh_msgs.confirm_automate_all)
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.sd.write_output("Automating all steps...")
-        else:
-            # Quit with a message, but don't raise an error.
-            self.sd.write_output(d_msgs.cancel_automate_all)
-            sys.exit()
-
+    # --- Helper methods for deploy() ---
 
     def _get_heroku_app_info(self):
-        """Get info about the Heroku app we're pushing to."""
-        # We assume the user has already run 'heroku create', or --automate-all
-        #   has run it. If it hasn't been run, we'll quit and tell them to do so.
+        """Get info about the Heroku app we're pushing to.
 
-        # We'll also look for a Postgres db. If we don't find one, we'll create one.
+        Assume `heroku create` has already been run, either by the user or through
+        the `--automate-all` flag.
+        If it hasn't been run, quit and direct the user to do so.
+
+        Also, look for a Postgres db. If none found, create one.
+        """
 
         # DEV: The testing approach here should be improved. We should be able
         #   to easily test for a failed apps:info call. Also, probably want
         #   to mock the output of apps:info rather than directly setting
         #   heroku_app_name.
         if self.sd.unit_testing:
-            self.heroku_app_name = 'sample-name-11894'
+            self.heroku_app_name = "sample-name-11894"
         else:
             self.sd.write_output("  Inspecting Heroku app...")
-            cmd = 'heroku apps:info --json'
+            cmd = "heroku apps:info --json"
             output_obj = self.sd.run_quick_command(cmd)
             self.sd.write_output(output_obj)
 
@@ -92,7 +78,9 @@ class PlatformDeployer:
 
             # If output_str is emtpy, there is no heroku app.
             if not output_str:
-                raise SimpleDeployCommandError(self.sd, dh_msgs.no_heroku_app_detected)
+                raise SimpleDeployCommandError(
+                    self.sd, self.messages.no_heroku_app_detected
+                )
 
             # Parse output for app_name.
             apps_list = json.loads(output_str)
@@ -125,10 +113,9 @@ class PlatformDeployer:
             #   New method should be called from here and _prep_automate_all().
             msg = f"  Could not find an existing database. Creating one now..."
             self.sd.write_output(msg)
-            cmd = 'heroku addons:create heroku-postgresql:mini'
+            cmd = "heroku addons:create heroku-postgresql:mini"
             output_obj = self.sd.run_quick_command(cmd)
             self.sd.write_output(output_obj)
-
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
@@ -140,16 +127,14 @@ class PlatformDeployer:
             return
 
         self.sd.write_output("  Setting Heroku environment variable...")
-        cmd = 'heroku config:set ON_HEROKU=1'
+        cmd = "heroku config:set ON_HEROKU=1"
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
 
-
     def _get_heroku_settings(self):
-        """Get any heroku-specific settings that are already in place.
-        """
+        """Get any heroku-specific settings that are already in place."""
         # If any heroku settings have already been written, we don't want to
         #  add them again. This assumes a section at the end, starting with a
         #  check for 'ON_HEROKU' in os.environ.
@@ -166,15 +151,14 @@ class PlatformDeployer:
                 self.current_heroku_settings_lines.append(line)
 
         self.sd.log_info("\nExisting Heroku settings found:")
-        self.sd.log_info('\n'.join(self.current_heroku_settings_lines))
-
+        self.sd.log_info("\n".join(self.current_heroku_settings_lines))
 
     def _generate_procfile(self):
         """Create Procfile, if none present."""
 
         #   Procfile should be in project root, if present.
         self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Procfile...")
-        procfile_present = 'Procfile' in os.listdir(self.sd.git_path)
+        procfile_present = "Procfile" in os.listdir(self.sd.git_path)
 
         if procfile_present:
             self.sd.write_output("    Found existing Procfile.")
@@ -183,19 +167,19 @@ class PlatformDeployer:
             if self.sd.nested_project:
                 proc_command = f"web: gunicorn {self.sd.local_project_name}.{self.sd.local_project_name}.wsgi --log-file -"
             else:
-                proc_command = f"web: gunicorn {self.sd.local_project_name}.wsgi --log-file -"
+                proc_command = (
+                    f"web: gunicorn {self.sd.local_project_name}.wsgi --log-file -"
+                )
 
-            with open(f"{self.sd.git_path}/Procfile", 'w') as f:
+            with open(f"{self.sd.git_path}/Procfile", "w") as f:
                 f.write(proc_command)
 
             self.sd.write_output("    Generated Procfile with following process:")
             self.sd.write_output(f"      {proc_command}")
 
-
     def _add_gunicorn(self):
         """Add gunicorn to project requirements."""
         self.sd.add_package("gunicorn")
-
 
     def _check_allowed_hosts(self):
         """Make sure project can be served from heroku."""
@@ -206,7 +190,7 @@ class PlatformDeployer:
 
         if heroku_host in settings.ALLOWED_HOSTS:
             self.sd.write_output(f"    Found {heroku_host} in ALLOWED_HOSTS.")
-        elif 'herokuapp.com' in settings.ALLOWED_HOSTS:
+        elif "herokuapp.com" in settings.ALLOWED_HOSTS:
             # This is a generic entry that allows serving from any heroku URL.
             self.sd.write_output("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
         else:
@@ -214,18 +198,19 @@ class PlatformDeployer:
             #   See: https://github.com/ehmatthes/django-simple-deploy/issues/242
             # new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
             new_setting = "ALLOWED_HOSTS.append('*')"
-            msg_added = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
-            msg_already_set = f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
+            msg_added = (
+                f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
+            )
+            msg_already_set = (
+                f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
+            )
             self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-
     def _configure_db(self):
-        """Add required db-related packages, and modify settings for Heroku db.
-        """
+        """Add required db-related packages, and modify settings for Heroku db."""
         self.sd.write_output("\n  Configuring project for Heroku database...")
         self._add_db_packages()
         self._add_db_settings()
-
 
     def _add_db_packages(self):
         """Add packages required for the Heroku db."""
@@ -235,7 +220,6 @@ class PlatformDeployer:
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
         self.sd.add_package("psycopg2")
         self.sd.add_package("dj-database-url")
-
 
     def _add_db_settings(self):
         """Add settings for Heroku db."""
@@ -253,7 +237,6 @@ class PlatformDeployer:
         msg_already_set = "    Found setting to configure Postgres on Heroku."
         self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-
     def _configure_static_files(self):
         """Configure static files for Heroku deployment."""
 
@@ -266,7 +249,6 @@ class PlatformDeployer:
         # Modify settings, and add a directory for static files.
         self._add_static_file_settings()
         self._add_static_file_directory()
-
 
     def _add_static_file_settings(self):
         """Add all settings needed to manage static files."""
@@ -287,16 +269,16 @@ class PlatformDeployer:
         msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
         self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-        new_setting = 'i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")'
+        new_setting = (
+            'i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")'
+        )
         new_setting += '\n    MIDDLEWARE.insert(i + 1, "whitenoise.middleware.WhiteNoiseMiddleware")'
         msg_added = "    Added Whitenoise to middleware."
         msg_already_set = "    Found Whitenoise in middleware."
         self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-
     def _add_static_file_directory(self):
-        """Create a folder for static files, if it doesn't already exist.
-        """
+        """Create a folder for static files, if it doesn't already exist."""
         self.sd.write_output("    Checking for static files directory...")
 
         # Make sure there's a static files directory.
@@ -311,10 +293,11 @@ class PlatformDeployer:
 
         # Add a placeholder file to the empty static files directory.
         placeholder_file = f"{static_files_dir}/placeholder.txt"
-        with open(placeholder_file, 'w') as f:
-            f.write("This is a placeholder file to make sure this folder is pushed to Heroku.")
+        with open(placeholder_file, "w") as f:
+            f.write(
+                "This is a placeholder file to make sure this folder is pushed to Heroku."
+            )
         self.sd.write_output("    Added placeholder file to static files directory.")
-
 
     def _configure_debug(self):
         """Use an env var to manage DEBUG setting, and set to False."""
@@ -332,7 +315,7 @@ class PlatformDeployer:
         #   the change to settings.
         if not self.sd.unit_testing:
             self.sd.write_output("  Setting DEBUG env var...")
-            cmd = 'heroku config:set DEBUG=FALSE'
+            cmd = "heroku config:set DEBUG=FALSE"
             output = self.sd.run_quick_command(cmd)
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
@@ -343,14 +326,14 @@ class PlatformDeployer:
         msg_already_set = "    Found DEBUG setting for Heroku."
         self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-
     def _configure_secret_key(self):
         """Use an env var to manage the secret key."""
         # Generate a new key.
         if self.sd.on_windows:
             # Non-alphanumeric keys have been problematic on Windows.
-            new_secret_key = get_random_string(length=50,
-                    allowed_chars='abcdefghijklmnopqrstuvwxyz0123456789')
+            new_secret_key = get_random_string(
+                length=50, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789"
+            )
         else:
             new_secret_key = get_random_secret_key()
 
@@ -369,7 +352,6 @@ class PlatformDeployer:
         msg_already_set = "    Found SECRET_KEY setting for Heroku."
         self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
         # Making this check here lets deploy() be cleaner.
@@ -382,11 +364,11 @@ class PlatformDeployer:
 
         # Get the current branch name. Get the first line of status output,
         #   and keep everything after "On branch ".
-        cmd = 'git status'
+        cmd = "git status"
         git_status = self.sd.run_quick_command(cmd)
         self.sd.write_output(git_status)
         status_str = git_status.stdout.decode()
-        self.current_branch = status_str.split('\n')[0][10:]
+        self.current_branch = status_str.split("\n")[0][10:]
 
         # Push current local branch to Heroku main branch.
         # This process usually takes a minute or two, which is longer than we
@@ -394,7 +376,7 @@ class PlatformDeployer:
         #   output with subprocess.run(), we use Popen and stream while logging.
         # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
-        if self.current_branch in ('main', 'master'):
+        if self.current_branch in ("main", "master"):
             cmd = f"git push heroku {self.current_branch}"
         else:
             cmd = f"git push heroku {self.current_branch}:main"
@@ -405,17 +387,16 @@ class PlatformDeployer:
         if self.sd.nested_project:
             cmd = f"heroku run python {self.sd.local_project_name}/manage.py migrate"
         else:
-            cmd = 'heroku run python manage.py migrate'
+            cmd = "heroku run python manage.py migrate"
         output = self.sd.run_quick_command(cmd)
 
         self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
-        cmd = 'heroku open'
+        cmd = "heroku open"
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
-
 
     def _summarize_deployment(self):
         """Manage all tasks related to generating and showing the friendly
@@ -428,7 +409,6 @@ class PlatformDeployer:
           changing the URL of the deployed app.
         """
         self._generate_summary()
-
 
     def _show_success_message(self):
         """After a successful run, show a message about what to do next."""
@@ -444,14 +424,14 @@ class PlatformDeployer:
 
         if self.sd.automate_all:
             # Show how to make future deployments.
-            msg = dh_msgs.success_msg_automate_all(self.heroku_app_name,
-                    self.current_branch)
+            msg = self.messages.success_msg_automate_all(
+                self.heroku_app_name, self.current_branch
+            )
         else:
             # Show steps to finish the deployment process.
-            msg = dh_msgs.success_msg(self.sd.pkg_manager, self.heroku_app_name)
+            msg = self.messages.success_msg(self.sd.pkg_manager, self.heroku_app_name)
 
         self.sd.write_output(msg)
-
 
     # --- Utility methods ---
 
@@ -459,23 +439,22 @@ class PlatformDeployer:
         """Check if a setting has already been defined in the heroku-specific
         settings section.
         """
-        return any(heroku_setting in line for line in self.current_heroku_settings_lines)
+        return any(
+            heroku_setting in line for line in self.current_heroku_settings_lines
+        )
 
-
-    def _add_heroku_setting(self, new_setting, msg_added='',
-            msg_already_set=''):
+    def _add_heroku_setting(self, new_setting, msg_added="", msg_already_set=""):
         """Add a new setting to the heroku-specific settings, if not already
         present.
         """
         already_set = self._check_current_heroku_settings(new_setting)
         if not already_set:
-            with open(self.sd.settings_path, 'a') as f:
+            with open(self.sd.settings_path, "a") as f:
                 self._prep_heroku_setting(f)
                 f.write(f"\n    {new_setting}")
                 self.sd.write_output(msg_added)
         else:
             self.sd.write_output(msg_already_set)
-
 
     def _prep_heroku_setting(self, f_settings):
         """Add a block for Heroku-specific settings, if it doesn't already
@@ -492,14 +471,13 @@ class PlatformDeployer:
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
         # Generate the summary file.
-        path = self.sd.log_dir_path / 'deployment_summary.html'
+        path = self.sd.log_dir_path / "deployment_summary.html"
 
         summary_str = "<h2>Understanding your deployment</h2>"
-        path.write_text(summary_str, encoding='utf-8')
+        path.write_text(summary_str, encoding="utf-8")
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)
-
 
     def _prep_automate_all(self):
         """Do intial work for automating entire process.
@@ -511,15 +489,14 @@ class PlatformDeployer:
         """
 
         self.sd.write_output("  Running `heroku create`...")
-        cmd = 'heroku create'
+        cmd = "heroku create"
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
         self.sd.write_output("  Creating Postgres database...")
-        cmd = 'heroku addons:create heroku-postgresql-mini'
+        cmd = "heroku addons:create heroku-postgresql-mini"
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
-
 
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
@@ -530,32 +507,31 @@ class PlatformDeployer:
         """
         # Make sure Heroku CLI is installed, if we're not unit testing.
         if not self.sd.unit_testing:
-            cmd = 'heroku --version'
-            
+            cmd = "heroku --version"
+
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
             try:
-            	output_obj = self.sd.run_quick_command(cmd)
+                output_obj = self.sd.run_quick_command(cmd)
             except FileNotFoundError:
-                raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
-            
+                raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+
             self.sd.log_info(output_obj)
             if output_obj.returncode:
-                raise SimpleDeployCommandError(self.sd, dh_msgs.cli_not_installed)
+                raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
         # Respond appropriately if the local project uses Poetry.
         if self.sd.pkg_manager == "poetry":
             self.handle_poetry()
 
-
     def handle_poetry(self):
         """Respond appropriately if the local project uses Poetry.
 
-        If the project uses Poetry, generate a requirements.txt file, and 
+        If the project uses Poetry, generate a requirements.txt file, and
           override the initial value of self.sd.pkg_manager.
-        
+
         Heroku does not work directly with Poetry, so we need to generate
           a requirements.txt file for the user, which we can then add requirements
-          to. We should inform the user about this, as they may be used to 
+          to. We should inform the user about this, as they may be used to
           just working with Poetry's requirements specification files.
 
         This should probably be addressed in the success message as well,
@@ -583,7 +559,6 @@ class PlatformDeployer:
         self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
 
         # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
-        # Optional deploy group dependencies aren't added to requirements.txt.        
+        # Optional deploy group dependencies aren't added to requirements.txt.
         self.sd._get_current_requirements()
         self.sd._add_simple_deploy_req()
-    

@@ -136,6 +136,7 @@ LOGIN_URL = 'users:login'
 
 # Platform.sh settings.
 import os
+
 if os.environ.get("PLATFORM_APPLICATION_NAME"):
     # Import some Platform.sh settings from the environment.
     from platformshconfig import Config
@@ -166,5 +167,5 @@ if os.environ.get("PLATFORM_APPLICATION_NAME"):
             "sqlite": {
                 "ENGINE": "django.db.backends.sqlite3",
                 "NAME": os.path.join(BASE_DIR, "db.sqlite3"),
-            }
+            },
         }

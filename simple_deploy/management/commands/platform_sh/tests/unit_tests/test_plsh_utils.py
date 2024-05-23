@@ -12,8 +12,11 @@ def test_get_project_name():
 
     assert project_name == "my_blog_project"
 
+
 def test_get_org_name():
     """Make sure we get the org name, not label or email."""
-    output_str = "Name,Label,Owner email\nusername-name,username-label,username@example.com"
+    output_str = (
+        "Name,Label,Owner email\nusername-name,username-label,username@example.com"
+    )
     org_name = plsh_utils.get_org_name(output_str)
     assert org_name == "username-name"

@@ -1,5 +1,6 @@
 """Utilities specific to Platform.sh deployments."""
 
+
 def get_project_name(output_str):
     """Get the project name from the output of `platform project:info`.
 
@@ -14,6 +15,7 @@ def get_project_name(output_str):
     project_name = title_line.split(",")[1].strip()
 
     return project_name
+
 
 def get_org_name(output_str):
     """Get org name from output of `platfrom organizations:list`.
