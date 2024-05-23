@@ -375,7 +375,7 @@ class Command(BaseCommand):
         Returns:
             bool: True if created directory, False if already one present.
         """
-        self.log_dir_path = settings.BASE_DIR / Path("simple_deploy_logs")
+        self.log_dir_path = settings.BASE_DIR / "simple_deploy_logs"
         if not self.log_dir_path.exists():
             self.log_dir_path.mkdir()
             return True
