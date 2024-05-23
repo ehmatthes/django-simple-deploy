@@ -87,20 +87,28 @@ class PlatformDeployer:
     def _handle_poetry(self):
         """Respond appropriately if the local project uses Poetry.
 
-        If the project uses Poetry, generate a requirements.txt file, and
-          override the initial value of self.sd.pkg_manager.
+        If the project uses Poetry, generate a requirements.txt file, and override the
+        initial value of self.sd.pkg_manager.
 
-        Heroku does not work directly with Poetry, so we need to generate
-          a requirements.txt file for the user, which we can then add requirements
-          to. We should inform the user about this, as they may be used to
-          just working with Poetry's requirements specification files.
+        Heroku doesn't work directly with Poetry, so we need to generate a
+        requirements.txt file for the user, which we can then add requirements to. We
+        should inform the user about this, as they may be used to just working with
+        Poetry's requirements specification files.
 
-        This should probably be addressed in the success message as well,
-          and in the summary file. They will need to update the requirements.txt
-          file whenever they install additional packages.
+        This should probably be addressed in the success message as well, and in the
+        summary file. They will need to update the requirements.txt file whenever they
+        install additional packages.
+
+        Note that there may be a better way to approach this, such as adding
+        requirements to Poetry files before generating the requirements.txt file for
+        Heroku. It's not good to have a requirements.txt file that doesn't match what
+        Poetry sees in the project.
+
+        See Issue 31:
+        https://github.com/ehmatthes/django-simple-deploy/issues/31#issuecomment-973147728
 
         Returns:
-        - None
+            None
         """
         # Making this check here keeps deploy() cleaner.
         if self.sd.pkg_manager != "poetry":
@@ -116,8 +124,8 @@ class PlatformDeployer:
         msg = "    Wrote requirements.txt file."
         self.sd.write_output(msg)
 
-        # From this point forward, we'll treat this user the same as anyone
-        #   who's using a bare requirements.txt file.
+        # From this point forward, treat this user the same as anyone who's using a bare
+        # requirements.txt file.
         self.sd.pkg_manager = "req_txt"
         self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
         self.sd.log_info("    Package manager set to req_txt.")
