@@ -89,8 +89,7 @@ class PlatformDeployer:
             None
 
         Raises:
-            SimpleDeployCommandError: If we find any reason deployment to this platform
-            won't succeed.
+            SimpleDeployCommandError: If we find any reason deployment won't work.
         """
         if self.sd.unit_testing:
             # Unit tests don't use the CLI. Use the deployed project name that was
