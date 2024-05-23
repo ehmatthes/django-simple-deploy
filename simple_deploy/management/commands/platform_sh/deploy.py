@@ -32,6 +32,7 @@ class PlatformDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
+        self.messages = plsh_msgs
 
     # --- Public methods ---
 
@@ -62,7 +63,7 @@ class PlatformDeployer:
 
     def _confirm_preliminary(self):
         """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
-        self.sd.write_output(plsh_msgs.confirm_preliminary)
+        self.sd.write_output(self.messages.confirm_preliminary)
 
         # Unit test check is here, so message is logged.
         if self.sd.unit_testing:
@@ -73,22 +74,7 @@ class PlatformDeployer:
         else:
             # Quit and invite the user to try another platform. We are happily exiting
             # the script; there's no need to raise an error.
-            self.sd.write_output(plsh_msgs.cancel_plsh)
-            sys.exit()
-
-    def _confirm_automate_all(self):
-        """Confirm the user understands what --automate-all does.
-
-        If confirmation not granted, exit with a message, but no error.
-        """
-        self.sd.write_output(plsh_msgs.confirm_automate_all)
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.sd.write_output("Automating all steps...")
-        else:
-            # Quit with a message, but don't raise an error.
-            self.sd.write_output(d_msgs.cancel_automate_all)
+            self.sd.write_output(self.messages.cancel_plsh)
             sys.exit()
 
     def _validate_platform(self):
@@ -270,10 +256,10 @@ class PlatformDeployer:
         #   when doing this on production app with users, make sure you learn.
 
         if self.sd.automate_all:
-            msg = plsh_msgs.success_msg_automate_all(self.deployed_url)
+            msg = self.messages.success_msg_automate_all(self.deployed_url)
             self.sd.write_output(msg)
         else:
-            msg = plsh_msgs.success_msg(self.sd.log_output)
+            msg = self.messages.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
 
     # --- Other helper methods ---
@@ -303,7 +289,7 @@ class PlatformDeployer:
             # output goes to stderr.
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
-            error_msg = plsh_msgs.unknown_create_error(e)
+            error_msg = self.messages.unknown_create_error(e)
             raise SimpleDeployCommandError(self.sd, error_msg)
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -316,7 +302,7 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
         self.sd.log_info(output_obj)
 
@@ -325,7 +311,7 @@ class PlatformDeployer:
         output_obj = self.sd.run_quick_command(cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
-            raise SimpleDeployCommandError(self.sd, plsh_msgs.cli_logged_out)
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_logged_out)
 
     def _get_platformsh_project_name(self):
         """Get the deployed project name.
@@ -367,14 +353,14 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
-                raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
+                raise SimpleDeployCommandError(self.sd, self.messages.login_required)
             elif "ProjectNotFoundException" in output_str:
-                raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
             elif "RootNotFoundException" in output_str:
-                raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
+                raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
             else:
-                error_msg = plsh_msgs.unknown_error
-                error_msg += plsh_msgs.cli_not_installed
+                error_msg = self.messages.unknown_error
+                error_msg += self.messages.cli_not_installed
                 raise SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
@@ -387,7 +373,7 @@ class PlatformDeployer:
             return project_name
 
         # Couldn't find a project name. Warn user, and tell them about override flag.
-        raise SimpleDeployCommandError(self.sd, plsh_msgs.no_project_name)
+        raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
 
     def _get_org_name(self):
         """Get the organization name associated with the user's Platform.sh account.
@@ -414,15 +400,15 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
-                raise SimpleDeployCommandError(self.sd, plsh_msgs.login_required)
+                raise SimpleDeployCommandError(self.sd, self.messages.login_required)
             else:
-                error_msg = plsh_msgs.unknown_error
-                error_msg += plsh_msgs.cli_not_installed
+                error_msg = self.messages.unknown_error
+                error_msg += self.messages.cli_not_installed
                 raise SimpleDeployCommandError(self.sd, error_msg)
 
         org_name = plsh_utils.get_org_name(output_str)
         if not org_name:
-            raise SimpleDeployCommandError(self.sd, plsh_msgs.org_not_found)
+            raise SimpleDeployCommandError(self.sd, self.messages.org_not_found)
 
         if self._confirm_use_org_name(org_name):
             return org_name
@@ -435,7 +421,7 @@ class PlatformDeployer:
             SimpleDeployCommandError: if not confirmed
         """
 
-        self.stdout.write(plsh_msgs.confirm_use_org_name(org_name))
+        self.stdout.write(self.messages.confirm_use_org_name(org_name))
         confirmed = self.sd.get_confirmation(skip_logging=True)
 
         if confirmed:
@@ -443,6 +429,6 @@ class PlatformDeployer:
             return True
         else:
             # Exit, with a message that configuration is still an option.
-            msg = plsh_msgs.cancel_plsh
-            msg += plsh_msgs.may_configure
+            msg = self.messages.cancel_plsh
+            msg += self.messages.may_configure
             raise SimpleDeployCommandError(self.sd, msg)
