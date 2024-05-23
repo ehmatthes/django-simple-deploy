@@ -15,10 +15,8 @@ from django.utils.safestring import mark_safe
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.platform_sh import deploy_messages as plsh_msgs
 
-from simple_deploy.management.commands.utils import (
-    write_file_from_template,
-    SimpleDeployCommandError,
-)
+from simple_deploy.management.commands.utils import SimpleDeployCommandError
+from simple_deploy.management.commands import utils as sd_utils
 from simple_deploy.management.commands.platform_sh import utils as plsh_utils
 
 
@@ -153,7 +151,7 @@ class PlatformDeployer:
 
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
-        write_file_from_template(self.sd.settings_path, "settings.py", context)
+        sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
@@ -183,7 +181,7 @@ class PlatformDeployer:
                 template_path = "pipenv.platform.app.yaml"
             else:
                 template_path = "platform.app.yaml"
-            write_file_from_template(path, template_path, context)
+            sd_utils.write_file_from_template(path, template_path, context)
 
             msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
@@ -216,7 +214,7 @@ class PlatformDeployer:
             self.sd.write_output("    Found existing services.yaml file.")
         else:
             self.sd.write_output("    No services.yaml file found. Generating file...")
-            write_file_from_template(path, "services.yaml")
+            sd_utils.write_file_from_template(path, "services.yaml")
 
             msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
