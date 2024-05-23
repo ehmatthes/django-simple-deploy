@@ -31,10 +31,6 @@ class PlatformDeployer:
 
     def deploy(self, *args, **options):
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
-
-        if self.sd.automate_all:
-            self._confirm_automate_all()
-
         self._validate_platform()
 
         if self.sd.automate_all:
@@ -55,21 +51,6 @@ class PlatformDeployer:
         self._show_success_message()
 
     # --- Helper methods for deploy() ---
-
-    def _confirm_automate_all(self):
-        """Confirm the user understands what --automate-all does.
-
-        If confirmation not granted, exit with a message, but no error.
-        """
-        self.sd.write_output(self.messages.confirm_automate_all)
-        confirmed = self.sd.get_confirmation()
-
-        if confirmed:
-            self.sd.write_output("Automating all steps...")
-        else:
-            # Quit with a message, but don't raise an error.
-            self.sd.write_output(d_msgs.cancel_automate_all)
-            sys.exit()
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to.
