@@ -71,6 +71,7 @@ class PlatformDeployer:
             return
 
         self._check_cli_installed()
+        self._check_cli_authenticated()
 
     def _handle_poetry(self):
         """Respond appropriately if the local project uses Poetry.
@@ -550,6 +551,24 @@ class PlatformDeployer:
         # command errored out.
         if output_obj.returncode:
             raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+
+    def _check_cli_authenticated(self):
+        """Verify the user has authenticated with the CLI.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If the user has not been authenticated.
+        """
+        cmd = "heroku auth:whoami"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.log_info(output_obj)
+
+        output_str = output_obj.stderr.decode()
+        if "Error: Invalid credentials provided" in output_str:
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_authenticated)
+
 
     def _check_current_heroku_settings(self, heroku_setting):
         """Check if a setting has already been defined in the heroku-specific

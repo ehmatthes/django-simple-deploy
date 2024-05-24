@@ -34,6 +34,11 @@ In order to deploy to Heroku, you need to install the Heroku CLI.
 After installing the CLI, you can run simple_deploy again.
 """
 
+cli_not_authenticated = """
+In order to deploy to Heroku, you must be authenticated through the Heroku CLI.
+Please run `heroku login`, and then run simple_deploy again.
+"""
+
 
 # --- Dynamic strings ---
 # These need to be generated in functions, to display information that's
