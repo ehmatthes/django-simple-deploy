@@ -72,6 +72,7 @@ class PlatformDeployer:
 
         self._check_cli_installed()
         self._check_cli_authenticated()
+        self._check_heroku_project_available()
 
     def _handle_poetry(self):
         """Respond appropriately if the local project uses Poetry.
@@ -170,22 +171,22 @@ class PlatformDeployer:
 
         output_str = output_obj.stdout.decode()
 
-        # If output_str is emtpy, there is no heroku app.
-        if not output_str:
-            raise SimpleDeployCommandError(
-                self.sd, self.messages.no_heroku_app_detected
-            )
+        # # If output_str is emtpy, there is no heroku app.
+        # if not output_str:
+        #     raise SimpleDeployCommandError(
+        #         self.sd, self.messages.no_heroku_app_detected
+        #     )
 
-        # Parse output for app_name.
-        apps_list = json.loads(output_str)
+        # # Parse output for app_name.
+        # apps_list = json.loads(output_str)
 
-        # Find app name.
-        app_dict = apps_list["app"]
-        self.heroku_app_name = app_dict["name"]
-        self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+        # # Find app name.
+        # app_dict = apps_list["app"]
+        # self.heroku_app_name = app_dict["name"]
+        # self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
 
         # Look for a Postgres database.
-        addons_list = apps_list["addons"]
+        addons_list = self.apps_list["addons"]
         db_exists = False
         for addon_dict in addons_list:
             # Look for a plan name indicating a postgres db.
@@ -202,6 +203,9 @@ class PlatformDeployer:
             msg = f"  Found a {plan_name} database."
             self.sd.write_output(msg)
             return
+
+        print("------- bye --------")
+        sys.exit()
 
         # DEV: This should be moved to a separate method.
         #   New method should be called from here and _prep_automate_all().
@@ -569,6 +573,37 @@ class PlatformDeployer:
         if "Error: Invalid credentials provided" in output_str:
             raise SimpleDeployCommandError(self.sd, self.messages.cli_not_authenticated)
 
+    def _check_heroku_project_available(self):
+        """Verify that a Heroku project is available to push to.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If there's no app to push to.
+
+        Sets:
+            dict: self.apps_list
+            str: self.heroku_app_name
+        """
+        self.sd.write_output("  Looking for Heroku app to push to...")
+        cmd = "heroku apps:info --json"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
+
+        output_str = output_obj.stdout.decode()
+
+        # If output_str is emtpy, there is no heroku app.
+        if not output_str:
+            raise SimpleDeployCommandError(
+                self.sd, self.messages.no_heroku_app_detected
+            )
+
+        # Parse output for app_name.
+        self.apps_list = json.loads(output_str)
+        app_dict = self.apps_list["app"]
+        self.heroku_app_name = app_dict["name"]
+        self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
 
     def _check_current_heroku_settings(self, heroku_setting):
         """Check if a setting has already been defined in the heroku-specific
