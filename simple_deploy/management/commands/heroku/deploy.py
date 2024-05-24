@@ -70,19 +70,7 @@ class PlatformDeployer:
         if self.sd.unit_testing:
             return
 
-        cmd = "heroku --version"
-        try:
-            output_obj = self.sd.run_quick_command(cmd)
-        except FileNotFoundError:
-            # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
-
-        self.sd.log_info(output_obj)
-
-        # The returncode for a successful command is 0, so anything truthy means the
-        # command errored out.
-        if output_obj.returncode:
-            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+        self._check_cli_installed()
 
     def _handle_poetry(self):
         """Respond appropriately if the local project uses Poetry.
@@ -539,6 +527,29 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
     # --- Utility methods ---
+
+    def _check_cli_installed(self):
+        """Verify the Heroku CLI is installed on the user's system.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If CLI not installed.
+        """
+        cmd = "heroku --version"
+        try:
+            output_obj = self.sd.run_quick_command(cmd)
+        except FileNotFoundError:
+            # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+
+        self.sd.log_info(output_obj)
+
+        # The returncode for a successful command is 0, so anything truthy means the
+        # command errored out.
+        if output_obj.returncode:
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
     def _check_current_heroku_settings(self, heroku_setting):
         """Check if a setting has already been defined in the heroku-specific
