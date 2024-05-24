@@ -172,54 +172,55 @@ class PlatformDeployer:
         #   heroku_app_name.
         if self.sd.unit_testing:
             self.heroku_app_name = "sample-name-11894"
-        else:
-            self.sd.write_output("  Inspecting Heroku app...")
-            cmd = "heroku apps:info --json"
-            output_obj = self.sd.run_quick_command(cmd)
-            self.sd.write_output(output_obj)
+            return
 
-            output_str = output_obj.stdout.decode()
+        self.sd.write_output("  Inspecting Heroku app...")
+        cmd = "heroku apps:info --json"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
 
-            # If output_str is emtpy, there is no heroku app.
-            if not output_str:
-                raise SimpleDeployCommandError(
-                    self.sd, self.messages.no_heroku_app_detected
-                )
+        output_str = output_obj.stdout.decode()
 
-            # Parse output for app_name.
-            apps_list = json.loads(output_str)
+        # If output_str is emtpy, there is no heroku app.
+        if not output_str:
+            raise SimpleDeployCommandError(
+                self.sd, self.messages.no_heroku_app_detected
+            )
 
-            # Find app name.
-            app_dict = apps_list["app"]
-            self.heroku_app_name = app_dict["name"]
-            self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+        # Parse output for app_name.
+        apps_list = json.loads(output_str)
 
-            # Look for a Postgres database.
-            addons_list = apps_list["addons"]
-            db_exists = False
-            for addon_dict in addons_list:
-                # Look for a plan name indicating a postgres db.
-                try:
-                    plan_name = addon_dict["plan"]["name"]
-                except KeyError:
-                    pass
-                else:
-                    if "heroku-postgresql" in plan_name:
-                        db_exists = True
-                        break
+        # Find app name.
+        app_dict = apps_list["app"]
+        self.heroku_app_name = app_dict["name"]
+        self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
 
-            if db_exists:
-                msg = f"  Found a {plan_name} database."
-                self.sd.write_output(msg)
-                return
+        # Look for a Postgres database.
+        addons_list = apps_list["addons"]
+        db_exists = False
+        for addon_dict in addons_list:
+            # Look for a plan name indicating a postgres db.
+            try:
+                plan_name = addon_dict["plan"]["name"]
+            except KeyError:
+                pass
+            else:
+                if "heroku-postgresql" in plan_name:
+                    db_exists = True
+                    break
 
-            # DEV: This should be moved to a separate method.
-            #   New method should be called from here and _prep_automate_all().
-            msg = f"  Could not find an existing database. Creating one now..."
+        if db_exists:
+            msg = f"  Found a {plan_name} database."
             self.sd.write_output(msg)
-            cmd = "heroku addons:create heroku-postgresql:mini"
-            output_obj = self.sd.run_quick_command(cmd)
-            self.sd.write_output(output_obj)
+            return
+
+        # DEV: This should be moved to a separate method.
+        #   New method should be called from here and _prep_automate_all().
+        msg = f"  Could not find an existing database. Creating one now..."
+        self.sd.write_output(msg)
+        cmd = "heroku addons:create heroku-postgresql:mini"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
