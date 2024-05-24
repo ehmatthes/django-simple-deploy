@@ -58,8 +58,8 @@ class PlatformDeployer:
         """Make sure the local environment and project supports deployment to Heroku.
 
         Make sure CLI is installed, and user is authenticated.
-
-
+        Make sure a project exists on Heroku that we can push to. (Make sure user
+        already ran `heroku create`.)
 
         Returns:
             None
@@ -135,6 +135,26 @@ class PlatformDeployer:
         # Optional deploy group dependencies aren't added to requirements.txt.
         self.sd._get_current_requirements()
         self.sd._add_simple_deploy_req()
+
+    def _prep_automate_all(self):
+        """Do intial work for automating entire process.
+        - Create a heroku app to deploy to.
+        - Create a Heroku Postgres database.
+
+        Returns:
+        - None if successful.
+        """
+
+        self.sd.write_output("  Running `heroku create`...")
+        cmd = "heroku create"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+
+        self.sd.write_output("  Creating Postgres database...")
+        cmd = "heroku addons:create heroku-postgresql-mini"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to.
@@ -562,22 +582,3 @@ class PlatformDeployer:
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)
-
-    def _prep_automate_all(self):
-        """Do intial work for automating entire process.
-        - Create a heroku app to deploy to.
-        - Create a Heroku Postgres database.
-
-        Returns:
-        - None if successful.
-        """
-
-        self.sd.write_output("  Running `heroku create`...")
-        cmd = "heroku create"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-
-        self.sd.write_output("  Creating Postgres database...")
-        cmd = "heroku addons:create heroku-postgresql-mini"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
