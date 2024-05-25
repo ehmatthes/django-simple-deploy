@@ -69,6 +69,7 @@ class PlatformDeployer:
             SimpleDeployCommandError: If we find any reason deployment won't work.
         """
         if self.sd.unit_testing:
+            self.heroku_app_name = "sample-name-11894"
             return
 
         self._check_cli_installed()
@@ -190,8 +191,6 @@ class PlatformDeployer:
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
-
-        # Skip this entirely when unit testing.
         if self.sd.unit_testing:
             return
 
@@ -210,6 +209,7 @@ class PlatformDeployer:
 
         with open(self.sd.settings_path) as f:
             settings_lines = f.readlines()
+        # settings_lines = self.sd.settings_path.read_text.splitlines()
 
         self.found_heroku_settings = False
         self.current_heroku_settings_lines = []
