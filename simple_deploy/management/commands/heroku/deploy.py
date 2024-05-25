@@ -229,9 +229,9 @@ class PlatformDeployer:
             lambda line: line!=heroku_settings_start, settings_lines))
 
         if self.current_heroku_settings_lines:
-            self.heroku_settings_exists = True
+            self.heroku_settings_exist = True
         else:
-            self.heroku_settings_exists = False
+            self.heroku_settings_exist = False
 
         # DEV: Try with re?
 
@@ -645,7 +645,7 @@ class PlatformDeployer:
 
             # Won't need to add these lines anymore.
             # self.found_heroku_settings = True
-            self.heroku_settings_exists = True
+            self.heroku_settings_exist = True
 
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
