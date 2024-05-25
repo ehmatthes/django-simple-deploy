@@ -33,7 +33,7 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
 
         self._validate_platform()
-        
+
         self._handle_poetry()
 
         if self.sd.automate_all:
@@ -132,20 +132,26 @@ class PlatformDeployer:
         - Create a heroku app to deploy to.
         - Create a Heroku Postgres database.
 
-        Returns:
-        - None if successful.
-        """
+        Sets:
+            str: self.heroku_app_name
 
+        Returns:
+            None
+        """
+        # Create heroku app.
         self.sd.write_output("  Running `heroku create`...")
-        cmd = "heroku create"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
+        cmd = "heroku create --json"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
+
+        # Get name of app.
+        output_json = json.loads(output_obj.stdout.decode())
+        self.heroku_app_name = output_json["name"]
 
         self.sd.write_output("  Creating Postgres database...")
-        cmd = "heroku addons:create heroku-postgresql-mini"
+        cmd = "heroku addons:create heroku-postgresql:essential-0"
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
-
 
     def _get_heroku_app_info(self):
         """Get info about the Heroku app we're pushing to.
