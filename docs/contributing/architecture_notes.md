@@ -18,6 +18,11 @@ The `simple_deploy.py` script needs access to some platform-specific messages. T
 
 This is a parking lot for notes about implementing the plugin model.
 
+### What does the host provide the plugin?
+
+- Host inspects project, and makes relevant information about the project available, such as path to root directory, os, package manager in use, etc. (List all that's provided.)
+- Utility functions for common operations, ie writing to log and writing to console, running fast and slow commands.
+
 ### What must the plugin provide to the host?
 
 - A `PlatformDeployer` class that can be instantiated.
