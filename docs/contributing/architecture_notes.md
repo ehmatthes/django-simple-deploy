@@ -31,3 +31,4 @@ These are not hard requirements, but should probably be done by every deploy scr
 
 - Verify that the platform's CLI is installed.
 - Verify that the user has authenticated through the CLI.
+- Verify that any pre-requisite resources have already been created.

@@ -33,6 +33,7 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
 
         self._validate_platform()
+        
         self._handle_poetry()
 
         if self.sd.automate_all:
@@ -203,9 +204,6 @@ class PlatformDeployer:
             msg = f"  Found a {plan_name} database."
             self.sd.write_output(msg)
             return
-
-        print("------- bye --------")
-        sys.exit()
 
         # DEV: This should be moved to a separate method.
         #   New method should be called from here and _prep_automate_all().
@@ -586,6 +584,10 @@ class PlatformDeployer:
             dict: self.apps_list
             str: self.heroku_app_name
         """
+        # automate-all does the work we're checking for here.
+        if self.sd.automate_all:
+            return
+
         self.sd.write_output("  Looking for Heroku app to push to...")
         cmd = "heroku apps:info --json"
         output_obj = self.sd.run_quick_command(cmd)
