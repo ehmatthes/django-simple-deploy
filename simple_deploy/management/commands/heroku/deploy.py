@@ -228,9 +228,12 @@ class PlatformDeployer:
         self.current_heroku_settings_lines = list(dropwhile(
             lambda line: line!=heroku_settings_start, settings_lines))
 
-        self.found_heroku_settings = False
         if self.current_heroku_settings_lines:
-            self.found_heroku_settings = True
+            self.heroku_settings_exists = True
+        else:
+            self.heroku_settings_exists = False
+
+        # DEV: Try with re?
 
         # import pdb
         # breakpoint()
@@ -634,13 +637,15 @@ class PlatformDeployer:
         """Add a block for Heroku-specific settings, if it doesn't already
         exist.
         """
-        if not self.found_heroku_settings:
+        # if not self.found_heroku_settings:
+        if not self.heroku_settings_exists:
             # DEV: Should check if `import os` already exists in settings file.
             f_settings.write("\nimport os")
             f_settings.write("\nif 'ON_HEROKU' in os.environ:")
 
             # Won't need to add these lines anymore.
-            self.found_heroku_settings = True
+            # self.found_heroku_settings = True
+            self.heroku_settings_exists = True
 
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
