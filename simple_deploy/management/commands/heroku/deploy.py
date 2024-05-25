@@ -213,16 +213,6 @@ class PlatformDeployer:
         """
         settings_lines = self.sd.settings_path.read_text().splitlines()
 
-        # self.found_heroku_settings = False
-        # self.current_heroku_settings_lines = []
-        # for line in settings_lines:
-        #     if "if 'ON_HEROKU' in os.environ:" in line:
-        #         self.found_heroku_settings = True
-        #     if self.found_heroku_settings:
-        #         self.current_heroku_settings_lines.append(line)
-
-
-
         heroku_settings_start = "if 'ON_HEROKU' in os.environ:"
         from itertools import dropwhile
         self.current_heroku_settings_lines = list(dropwhile(
@@ -232,13 +222,6 @@ class PlatformDeployer:
             self.heroku_settings_exist = True
         else:
             self.heroku_settings_exist = False
-
-        # DEV: Try with re?
-
-        # import pdb
-        # breakpoint()
-
-
 
         self.sd.log_info("\nExisting Heroku settings found:")
         self.sd.log_info("\n".join(self.current_heroku_settings_lines))
