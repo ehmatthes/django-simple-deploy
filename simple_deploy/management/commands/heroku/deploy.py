@@ -1,6 +1,7 @@
 """Manages all Heroku-specific aspects of the deployment process."""
 
 import sys, os, re, json, subprocess
+from itertools import takewhile
 
 from django.conf import settings
 from django.core.management.base import CommandError
@@ -41,7 +42,6 @@ class PlatformDeployer:
 
         self._ensure_db()
         self._set_heroku_env_var()
-        self._get_heroku_settings()
         self._generate_procfile()
         self._add_gunicorn()
         self._check_allowed_hosts()
@@ -74,6 +74,7 @@ class PlatformDeployer:
 
         self._check_cli_installed()
         self._check_cli_authenticated()
+        self._check_heroku_settings()
         self._check_heroku_project_available()
 
     def _handle_poetry(self):
@@ -201,30 +202,36 @@ class PlatformDeployer:
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
 
-    def _get_heroku_settings(self):
-        """Get any heroku-specific settings already in place.
+    def _check_heroku_settings(self):
+        """Check to see if a Heroku settings block already exists.
 
-        If any heroku settings have already been written, we don't want to add them
-        again. This assumes a section at the end, starting with a check for
-        'ON_HEROKU' in os.environ.
+        If so, ask if we can overwrite that block. This is much simpler than trying to
+        keep track of individual settings.
+
+        Sets:
+            list: self.settings_lines
 
         Returns:
             None
+
+        Raises:
+            SimpleDeployCommandError: If we can't overwrite existing Heroku-specific
+            settings block.
         """
-        settings_lines = self.sd.settings_path.read_text().splitlines()
+        self.settings_lines = self.sd.settings_path.read_text().splitlines()
 
         heroku_settings_start = "if 'ON_HEROKU' in os.environ:"
-        from itertools import dropwhile
-        self.current_heroku_settings_lines = list(dropwhile(
+        if not heroku_settings_start in settings_lines:
+            self.sd.log_info("No Heroku-specific settings block found.")
+            return
+
+        # A Heroku-specific settings block exists. Get permission to overwrite it.
+        if not self.sd.get_confirmation(self.messages.heroku_settings_found):
+            raise SimpleDeployCommandError(self.sd, self.messages.cant_overwrite_settings)
+
+        # Heroku-specific settings exist, but we can remove them and start fresh.
+        self.settings_lines = list(takewhile(
             lambda line: line!=heroku_settings_start, settings_lines))
-
-        if self.current_heroku_settings_lines:
-            self.heroku_settings_exist = True
-        else:
-            self.heroku_settings_exist = False
-
-        self.sd.log_info("\nExisting Heroku settings found:")
-        self.sd.log_info("\n".join(self.current_heroku_settings_lines))
 
     def _generate_procfile(self):
         """Create Procfile, if none present."""
