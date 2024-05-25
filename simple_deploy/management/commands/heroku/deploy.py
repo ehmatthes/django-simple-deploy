@@ -207,9 +207,7 @@ class PlatformDeployer:
         #  add them again. This assumes a section at the end, starting with a
         #  check for 'ON_HEROKU' in os.environ.
 
-        with open(self.sd.settings_path) as f:
-            settings_lines = f.readlines()
-        # settings_lines = self.sd.settings_path.read_text.splitlines()
+        settings_lines = self.sd.settings_path.read_text().splitlines()
 
         self.found_heroku_settings = False
         self.current_heroku_settings_lines = []
