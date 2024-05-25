@@ -638,7 +638,7 @@ class PlatformDeployer:
         exist.
         """
         # if not self.found_heroku_settings:
-        if not self.heroku_settings_exists:
+        if not self.heroku_settings_exist:
             # DEV: Should check if `import os` already exists in settings file.
             f_settings.write("\nimport os")
             f_settings.write("\nif 'ON_HEROKU' in os.environ:")
