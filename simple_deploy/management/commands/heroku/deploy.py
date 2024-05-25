@@ -202,20 +202,40 @@ class PlatformDeployer:
         self.sd.write_output("    This is used to define Heroku-specific settings.")
 
     def _get_heroku_settings(self):
-        """Get any heroku-specific settings that are already in place."""
-        # If any heroku settings have already been written, we don't want to
-        #  add them again. This assumes a section at the end, starting with a
-        #  check for 'ON_HEROKU' in os.environ.
+        """Get any heroku-specific settings already in place.
 
+        If any heroku settings have already been written, we don't want to add them
+        again. This assumes a section at the end, starting with a check for
+        'ON_HEROKU' in os.environ.
+
+        Returns:
+            None
+        """
         settings_lines = self.sd.settings_path.read_text().splitlines()
 
+        # self.found_heroku_settings = False
+        # self.current_heroku_settings_lines = []
+        # for line in settings_lines:
+        #     if "if 'ON_HEROKU' in os.environ:" in line:
+        #         self.found_heroku_settings = True
+        #     if self.found_heroku_settings:
+        #         self.current_heroku_settings_lines.append(line)
+
+
+
+        heroku_settings_start = "if 'ON_HEROKU' in os.environ:"
+        from itertools import dropwhile
+        self.current_heroku_settings_lines = list(dropwhile(
+            lambda line: line!=heroku_settings_start, settings_lines))
+
         self.found_heroku_settings = False
-        self.current_heroku_settings_lines = []
-        for line in settings_lines:
-            if "if 'ON_HEROKU' in os.environ:" in line:
-                self.found_heroku_settings = True
-            if self.found_heroku_settings:
-                self.current_heroku_settings_lines.append(line)
+        if self.current_heroku_settings_lines:
+            self.found_heroku_settings = True
+
+        # import pdb
+        # breakpoint()
+
+
 
         self.sd.log_info("\nExisting Heroku settings found:")
         self.sd.log_info("\n".join(self.current_heroku_settings_lines))
