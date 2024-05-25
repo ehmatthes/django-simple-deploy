@@ -39,7 +39,7 @@ class PlatformDeployer:
         if self.sd.automate_all:
             self._prep_automate_all()
 
-        self._get_heroku_app_info()
+        self._ensure_db()
         self._set_heroku_env_var()
         self._get_heroku_settings()
         self._generate_procfile()
@@ -148,49 +148,20 @@ class PlatformDeployer:
         output_json = json.loads(output_obj.stdout.decode())
         self.heroku_app_name = output_json["name"]
 
-        self.sd.write_output("  Creating Postgres database...")
-        cmd = "heroku addons:create heroku-postgresql:essential-0"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
+        self._create_postgres_db()
 
-    def _get_heroku_app_info(self):
-        """Get info about the Heroku app we're pushing to.
+    def _ensure_db(self):
+        """Ensure a db is available, or create one.
 
-        Assume `heroku create` has already been run, either by the user or through
-        the `--automate-all` flag.
-        If it hasn't been run, quit and direct the user to do so.
-
-        Also, look for a Postgres db. If none found, create one.
+        Returns:
+            None
         """
-
-        # DEV: The testing approach here should be improved. We should be able
-        #   to easily test for a failed apps:info call. Also, probably want
-        #   to mock the output of apps:info rather than directly setting
-        #   heroku_app_name.
+        # DB not needed for unit testing.
         if self.sd.unit_testing:
-            self.heroku_app_name = "sample-name-11894"
             return
-
-        self.sd.write_output("  Inspecting Heroku app...")
-        cmd = "heroku apps:info --json"
-        output_obj = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output_obj)
-
-        output_str = output_obj.stdout.decode()
-
-        # # If output_str is emtpy, there is no heroku app.
-        # if not output_str:
-        #     raise SimpleDeployCommandError(
-        #         self.sd, self.messages.no_heroku_app_detected
-        #     )
-
-        # # Parse output for app_name.
-        # apps_list = json.loads(output_str)
-
-        # # Find app name.
-        # app_dict = apps_list["app"]
-        # self.heroku_app_name = app_dict["name"]
-        # self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+        # DB already created for automate-all.
+        if self.sd.automate_all:
+            return
 
         # Look for a Postgres database.
         addons_list = self.apps_list["addons"]
@@ -211,13 +182,9 @@ class PlatformDeployer:
             self.sd.write_output(msg)
             return
 
-        # DEV: This should be moved to a separate method.
-        #   New method should be called from here and _prep_automate_all().
         msg = f"  Could not find an existing database. Creating one now..."
         self.sd.write_output(msg)
-        cmd = "heroku addons:create heroku-postgresql:mini"
-        output_obj = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output_obj)
+        self._create_postgres_db()
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
@@ -612,6 +579,17 @@ class PlatformDeployer:
         app_dict = self.apps_list["app"]
         self.heroku_app_name = app_dict["name"]
         self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+
+    def _create_postgres_db(self):
+        """Create a Heroku Postgres database.
+
+        Returns:
+            None
+        """
+        self.sd.write_output("  Creating Postgres database...")
+        cmd = "heroku addons:create heroku-postgresql:essential-0"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
 
     def _check_current_heroku_settings(self, heroku_setting):
         """Check if a setting has already been defined in the heroku-specific
