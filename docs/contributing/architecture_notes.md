@@ -23,3 +23,12 @@ This is a parking lot for notes about implementing the plugin model.
 - A `PlatformDeployer` class that can be instantiated.
 - The `platform_deployer` object must have a `messages` attribute, for platform-specific messages.
     - The host must provide a `confirm_automate_all` message.
+
+    
+### What *should* the plugin do?
+
+These are not hard requirements, but should probably be done by every deploy script. This may separate out into CLI-based workflows, API-based workflows, and GH-based workflows.
+
+- Verify that the platform's CLI is installed.
+- Verify that the user has authenticated through the CLI.
+- Verify that any pre-requisite resources have already been created.

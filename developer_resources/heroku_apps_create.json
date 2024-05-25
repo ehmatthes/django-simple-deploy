@@ -1,0 +1,35 @@
+{
+  "acm": false,
+  "archived_at": null,
+  "buildpack_provided_description": null,
+  "build_stack": {
+    "id": "5fc4e202-3efa-40a9-9789-3e104b74cf89",
+    "name": "heroku-22"
+  },
+  "created_at": "2024-05-25T03:59:42Z",
+  "id": "ef79d66d-a992-49ec-b6e1-eb66875826e7",
+  "git_url": "https://git.heroku.com/serene-scrubland-80799.git",
+  "maintenance": false,
+  "name": "serene-scrubland-80799",
+  "owner": {
+    "email": "ehmatthes@gmail.com",
+    "id": "dummy-id"
+  },
+  "region": {
+    "id": "59accabd-516d-4f0e-83e6-6e3757701145",
+    "name": "us"
+  },
+  "organization": null,
+  "team": null,
+  "space": null,
+  "internal_routing": null,
+  "released_at": "2024-05-25T03:59:42Z",
+  "repo_size": null,
+  "slug_size": null,
+  "stack": {
+    "id": "5fc4e202-3efa-40a9-9789-3e104b74cf89",
+    "name": "heroku-22"
+  },
+  "updated_at": "2024-05-25T03:59:42Z",
+  "web_url": "https://serene-scrubland-80799-6832f41752c9.herokuapp.com/"
+}

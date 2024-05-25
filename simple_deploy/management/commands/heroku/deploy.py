@@ -31,12 +31,15 @@ class PlatformDeployer:
 
     def deploy(self, *args, **options):
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
+
         self._validate_platform()
+
+        self._handle_poetry()
 
         if self.sd.automate_all:
             self._prep_automate_all()
 
-        self._get_heroku_app_info()
+        self._ensure_db()
         self._set_heroku_env_var()
         self._get_heroku_settings()
         self._generate_procfile()
@@ -52,77 +55,142 @@ class PlatformDeployer:
 
     # --- Helper methods for deploy() ---
 
-    def _get_heroku_app_info(self):
-        """Get info about the Heroku app we're pushing to.
+    def _validate_platform(self):
+        """Make sure the local environment and project supports deployment to Heroku.
 
-        Assume `heroku create` has already been run, either by the user or through
-        the `--automate-all` flag.
-        If it hasn't been run, quit and direct the user to do so.
+        Make sure CLI is installed, and user is authenticated.
+        Make sure a project exists on Heroku that we can push to. (Make sure user
+        already ran `heroku create`.)
 
-        Also, look for a Postgres db. If none found, create one.
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If we find any reason deployment won't work.
         """
-
-        # DEV: The testing approach here should be improved. We should be able
-        #   to easily test for a failed apps:info call. Also, probably want
-        #   to mock the output of apps:info rather than directly setting
-        #   heroku_app_name.
         if self.sd.unit_testing:
             self.heroku_app_name = "sample-name-11894"
-        else:
-            self.sd.write_output("  Inspecting Heroku app...")
-            cmd = "heroku apps:info --json"
-            output_obj = self.sd.run_quick_command(cmd)
-            self.sd.write_output(output_obj)
+            return
 
-            output_str = output_obj.stdout.decode()
+        self._check_cli_installed()
+        self._check_cli_authenticated()
+        self._check_heroku_project_available()
 
-            # If output_str is emtpy, there is no heroku app.
-            if not output_str:
-                raise SimpleDeployCommandError(
-                    self.sd, self.messages.no_heroku_app_detected
-                )
+    def _handle_poetry(self):
+        """Respond appropriately if the local project uses Poetry.
 
-            # Parse output for app_name.
-            apps_list = json.loads(output_str)
+        If the project uses Poetry, generate a requirements.txt file, and override the
+        initial value of self.sd.pkg_manager.
 
-            # Find app name.
-            app_dict = apps_list["app"]
-            self.heroku_app_name = app_dict["name"]
-            self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+        Heroku doesn't work directly with Poetry, so we need to generate a
+        requirements.txt file for the user, which we can then add requirements to. We
+        should inform the user about this, as they may be used to just working with
+        Poetry's requirements specification files.
 
-            # Look for a Postgres database.
-            addons_list = apps_list["addons"]
-            db_exists = False
-            for addon_dict in addons_list:
-                # Look for a plan name indicating a postgres db.
-                try:
-                    plan_name = addon_dict["plan"]["name"]
-                except KeyError:
-                    pass
-                else:
-                    if "heroku-postgresql" in plan_name:
-                        db_exists = True
-                        break
+        This should probably be addressed in the success message as well, and in the
+        summary file. They will need to update the requirements.txt file whenever they
+        install additional packages.
 
-            if db_exists:
-                msg = f"  Found a {plan_name} database."
-                self.sd.write_output(msg)
-                return
+        Note that there may be a better way to approach this, such as adding
+        requirements to Poetry files before generating the requirements.txt file for
+        Heroku. It's not good to have a requirements.txt file that doesn't match what
+        Poetry sees in the project.
 
-            # DEV: This should be moved to a separate method.
-            #   New method should be called from here and _prep_automate_all().
-            msg = f"  Could not find an existing database. Creating one now..."
+        See Issue 31:
+        https://github.com/ehmatthes/django-simple-deploy/issues/31#issuecomment-973147728
+
+        Returns:
+            None
+        """
+        # Making this check here keeps deploy() cleaner.
+        if self.sd.pkg_manager != "poetry":
+            return
+
+        msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
+        self.sd.write_output(msg)
+
+        cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+
+        msg = "    Wrote requirements.txt file."
+        self.sd.write_output(msg)
+
+        # From this point forward, treat this user the same as anyone who's using a bare
+        # requirements.txt file.
+        self.sd.pkg_manager = "req_txt"
+        self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
+        self.sd.log_info("    Package manager set to req_txt.")
+        self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
+
+        # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
+        # Optional deploy group dependencies aren't added to requirements.txt.
+        self.sd._get_current_requirements()
+        self.sd._add_simple_deploy_req()
+
+    def _prep_automate_all(self):
+        """Do intial work for automating entire process.
+        - Create a heroku app to deploy to.
+        - Create a Heroku Postgres database.
+
+        Sets:
+            str: self.heroku_app_name
+
+        Returns:
+            None
+        """
+        # Create heroku app.
+        self.sd.write_output("  Running `heroku create`...")
+        cmd = "heroku create --json"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
+
+        # Get name of app.
+        output_json = json.loads(output_obj.stdout.decode())
+        self.heroku_app_name = output_json["name"]
+
+        self._create_postgres_db()
+
+    def _ensure_db(self):
+        """Ensure a db is available, or create one.
+
+        Returns:
+            None
+        """
+        # DB not needed for unit testing.
+        if self.sd.unit_testing:
+            return
+        # DB already created for automate-all.
+        if self.sd.automate_all:
+            return
+
+        # Look for a Postgres database.
+        addons_list = self.apps_list["addons"]
+        db_exists = False
+        for addon_dict in addons_list:
+            # Look for a plan name indicating a postgres db.
+            try:
+                plan_name = addon_dict["plan"]["name"]
+            except KeyError:
+                pass
+            else:
+                if "heroku-postgresql" in plan_name:
+                    db_exists = True
+                    break
+
+        if db_exists:
+            msg = f"  Found a {plan_name} database."
             self.sd.write_output(msg)
-            cmd = "heroku addons:create heroku-postgresql:mini"
-            output_obj = self.sd.run_quick_command(cmd)
-            self.sd.write_output(output_obj)
+            return
+
+        msg = f"  Could not find an existing database. Creating one now..."
+        self.sd.write_output(msg)
+        self._create_postgres_db()
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
-
-        # Skip this entirely when unit testing.
         if self.sd.unit_testing:
             return
 
@@ -134,21 +202,26 @@ class PlatformDeployer:
         self.sd.write_output("    This is used to define Heroku-specific settings.")
 
     def _get_heroku_settings(self):
-        """Get any heroku-specific settings that are already in place."""
-        # If any heroku settings have already been written, we don't want to
-        #  add them again. This assumes a section at the end, starting with a
-        #  check for 'ON_HEROKU' in os.environ.
+        """Get any heroku-specific settings already in place.
 
-        with open(self.sd.settings_path) as f:
-            settings_lines = f.readlines()
+        If any heroku settings have already been written, we don't want to add them
+        again. This assumes a section at the end, starting with a check for
+        'ON_HEROKU' in os.environ.
 
-        self.found_heroku_settings = False
-        self.current_heroku_settings_lines = []
-        for line in settings_lines:
-            if "if 'ON_HEROKU' in os.environ:" in line:
-                self.found_heroku_settings = True
-            if self.found_heroku_settings:
-                self.current_heroku_settings_lines.append(line)
+        Returns:
+            None
+        """
+        settings_lines = self.sd.settings_path.read_text().splitlines()
+
+        heroku_settings_start = "if 'ON_HEROKU' in os.environ:"
+        from itertools import dropwhile
+        self.current_heroku_settings_lines = list(dropwhile(
+            lambda line: line!=heroku_settings_start, settings_lines))
+
+        if self.current_heroku_settings_lines:
+            self.heroku_settings_exist = True
+        else:
+            self.heroku_settings_exist = False
 
         self.sd.log_info("\nExisting Heroku settings found:")
         self.sd.log_info("\n".join(self.current_heroku_settings_lines))
@@ -435,6 +508,93 @@ class PlatformDeployer:
 
     # --- Utility methods ---
 
+    def _check_cli_installed(self):
+        """Verify the Heroku CLI is installed on the user's system.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If CLI not installed.
+        """
+        cmd = "heroku --version"
+        try:
+            output_obj = self.sd.run_quick_command(cmd)
+        except FileNotFoundError:
+            # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+
+        self.sd.log_info(output_obj)
+
+        # The returncode for a successful command is 0, so anything truthy means the
+        # command errored out.
+        if output_obj.returncode:
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+
+    def _check_cli_authenticated(self):
+        """Verify the user has authenticated with the CLI.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If the user has not been authenticated.
+        """
+        cmd = "heroku auth:whoami"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.log_info(output_obj)
+
+        output_str = output_obj.stderr.decode()
+        if "Error: Invalid credentials provided" in output_str:
+            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_authenticated)
+
+    def _check_heroku_project_available(self):
+        """Verify that a Heroku project is available to push to.
+
+        Returns:
+            None
+
+        Raises:
+            SimpleDeployCommandError: If there's no app to push to.
+
+        Sets:
+            dict: self.apps_list
+            str: self.heroku_app_name
+        """
+        # automate-all does the work we're checking for here.
+        if self.sd.automate_all:
+            return
+
+        self.sd.write_output("  Looking for Heroku app to push to...")
+        cmd = "heroku apps:info --json"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
+
+        output_str = output_obj.stdout.decode()
+
+        # If output_str is emtpy, there is no heroku app.
+        if not output_str:
+            raise SimpleDeployCommandError(
+                self.sd, self.messages.no_heroku_app_detected
+            )
+
+        # Parse output for app_name.
+        self.apps_list = json.loads(output_str)
+        app_dict = self.apps_list["app"]
+        self.heroku_app_name = app_dict["name"]
+        self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+
+    def _create_postgres_db(self):
+        """Create a Heroku Postgres database.
+
+        Returns:
+            None
+        """
+        self.sd.write_output("  Creating Postgres database...")
+        cmd = "heroku addons:create heroku-postgresql:essential-0"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+
     def _check_current_heroku_settings(self, heroku_setting):
         """Check if a setting has already been defined in the heroku-specific
         settings section.
@@ -460,13 +620,15 @@ class PlatformDeployer:
         """Add a block for Heroku-specific settings, if it doesn't already
         exist.
         """
-        if not self.found_heroku_settings:
+        # if not self.found_heroku_settings:
+        if not self.heroku_settings_exist:
             # DEV: Should check if `import os` already exists in settings file.
             f_settings.write("\nimport os")
             f_settings.write("\nif 'ON_HEROKU' in os.environ:")
 
             # Won't need to add these lines anymore.
-            self.found_heroku_settings = True
+            # self.found_heroku_settings = True
+            self.heroku_settings_exist = True
 
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
@@ -478,87 +640,3 @@ class PlatformDeployer:
 
         msg = f"\n  Generated friendly summary: {path}"
         self.sd.write_output(msg)
-
-    def _prep_automate_all(self):
-        """Do intial work for automating entire process.
-        - Create a heroku app to deploy to.
-        - Create a Heroku Postgres database.
-
-        Returns:
-        - None if successful.
-        """
-
-        self.sd.write_output("  Running `heroku create`...")
-        cmd = "heroku create"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-
-        self.sd.write_output("  Creating Postgres database...")
-        cmd = "heroku addons:create heroku-postgresql-mini"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-
-    def _validate_platform(self):
-        """Make sure the local environment and project supports deployment to
-        Heroku.
-
-        The returncode for a successful command is 0, so anything truthy means
-          a command errored out.
-        """
-        # Make sure Heroku CLI is installed, if we're not unit testing.
-        if not self.sd.unit_testing:
-            cmd = "heroku --version"
-
-            # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            try:
-                output_obj = self.sd.run_quick_command(cmd)
-            except FileNotFoundError:
-                raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
-
-            self.sd.log_info(output_obj)
-            if output_obj.returncode:
-                raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
-
-        # Respond appropriately if the local project uses Poetry.
-        if self.sd.pkg_manager == "poetry":
-            self.handle_poetry()
-
-    def handle_poetry(self):
-        """Respond appropriately if the local project uses Poetry.
-
-        If the project uses Poetry, generate a requirements.txt file, and
-          override the initial value of self.sd.pkg_manager.
-
-        Heroku does not work directly with Poetry, so we need to generate
-          a requirements.txt file for the user, which we can then add requirements
-          to. We should inform the user about this, as they may be used to
-          just working with Poetry's requirements specification files.
-
-        This should probably be addressed in the success message as well,
-          and in the summary file. They will need to update the requirements.txt
-          file whenever they install additional packages.
-
-        Returns:
-        - None
-        """
-        msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
-        self.sd.write_output(msg)
-
-        cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-
-        msg = "    Wrote requirements.txt file."
-        self.sd.write_output(msg)
-
-        # From this point forward, we'll treat this user the same as anyone
-        #   who's using a bare requirements.txt file.
-        self.sd.pkg_manager = "req_txt"
-        self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
-        self.sd.log_info("    Package manager set to req_txt.")
-        self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
-
-        # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
-        # Optional deploy group dependencies aren't added to requirements.txt.
-        self.sd._get_current_requirements()
-        self.sd._add_simple_deploy_req()
