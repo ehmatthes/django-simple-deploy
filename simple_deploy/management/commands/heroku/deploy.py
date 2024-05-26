@@ -275,18 +275,13 @@ class PlatformDeployer:
 
         self.sd.write_output("  Pushing to heroku...")
 
-        # Get the current branch name. Get the first line of status output,
-        #   and keep everything after "On branch ".
-        cmd = "git status"
-        git_status = self.sd.run_quick_command(cmd)
-        self.sd.write_output(git_status)
-        status_str = git_status.stdout.decode()
-        self.current_branch = status_str.split("\n")[0][10:]
+        # Get the current branch name.
+        cmd = "git branch --show-current"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
+        self.current_branch = output_obj.stdout.decode().strip()
 
         # Push current local branch to Heroku main branch.
-        # This process usually takes a minute or two, which is longer than we
-        #   want users to wait for console output. So rather than capturing
-        #   output with subprocess.run(), we use Popen and stream while logging.
         # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ("main", "master"):
