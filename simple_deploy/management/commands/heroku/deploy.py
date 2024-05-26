@@ -1,16 +1,19 @@
 """Manages all Heroku-specific aspects of the deployment process."""
 
 import sys, os, re, json, subprocess
+from itertools import takewhile
 
 from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
+from django.utils.safestring import mark_safe
 
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.heroku import deploy_messages as heroku_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
+from simple_deploy.management.commands import utils as sd_utils
 
 
 class PlatformDeployer:
@@ -35,20 +38,14 @@ class PlatformDeployer:
         self._validate_platform()
 
         self._handle_poetry()
-
-        if self.sd.automate_all:
-            self._prep_automate_all()
-
+        self._prep_automate_all()
         self._ensure_db()
-        self._set_heroku_env_var()
-        self._get_heroku_settings()
+        self._add_requirements()
+        self._set_env_vars()
         self._generate_procfile()
-        self._add_gunicorn()
-        self._check_allowed_hosts()
-        self._configure_db()
-        self._configure_static_files()
-        self._configure_debug()
-        self._configure_secret_key()
+        self._add_static_file_directory()
+        self._modify_settings()
+
         self._conclude_automate_all()
         self._summarize_deployment()
         self._show_success_message()
@@ -58,20 +55,13 @@ class PlatformDeployer:
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to Heroku.
 
-        Make sure CLI is installed, and user is authenticated.
-        Make sure a project exists on Heroku that we can push to. (Make sure user
-        already ran `heroku create`.)
-
         Returns:
             None
 
         Raises:
             SimpleDeployCommandError: If we find any reason deployment won't work.
         """
-        if self.sd.unit_testing:
-            self.heroku_app_name = "sample-name-11894"
-            return
-
+        self._check_heroku_settings()
         self._check_cli_installed()
         self._check_cli_authenticated()
         self._check_heroku_project_available()
@@ -139,6 +129,9 @@ class PlatformDeployer:
         Returns:
             None
         """
+        if not self.sd.automate_all:
+            return
+
         # Create heroku app.
         self.sd.write_output("  Running `heroku create`...")
         cmd = "heroku create --json"
@@ -187,247 +180,95 @@ class PlatformDeployer:
         self.sd.write_output(msg)
         self._create_postgres_db()
 
-    def _set_heroku_env_var(self):
-        """Set a config var to indicate when we're in the Heroku environment.
-        This is mostly used to modify settings for the deployed project.
-        """
+    def _add_requirements(self):
+        """Add Heroku-specific requirements."""
+        # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
+        #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
+        packages = ["gunicorn", "psycopg2", "dj-database-url", "whitenoise"]
+        self.sd.add_packages(packages)
+
+    def _set_env_vars(self):
+        """Set Heroku-specific environment variables."""
         if self.sd.unit_testing:
             return
 
-        self.sd.write_output("  Setting Heroku environment variable...")
-        cmd = "heroku config:set ON_HEROKU=1"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set ON_HEROKU=1.")
-        self.sd.write_output("    This is used to define Heroku-specific settings.")
+        self._set_heroku_env_var()
+        self._set_debug_env_var()
+        self._set_secret_key_env_var()
 
-    def _get_heroku_settings(self):
-        """Get any heroku-specific settings already in place.
-
-        If any heroku settings have already been written, we don't want to add them
-        again. This assumes a section at the end, starting with a check for
-        'ON_HEROKU' in os.environ.
+    def _generate_procfile(self):
+        """Create Procfile, if none present.
 
         Returns:
             None
+
+        Raises:
+            SimpleDeployCommandError: If Procfile exists, and can't be overwritten.
         """
-        settings_lines = self.sd.settings_path.read_text().splitlines()
+        # Procfile should be in project root, if present.
+        path = self.sd.project_root / "Procfile"
+        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
 
-        heroku_settings_start = "if 'ON_HEROKU' in os.environ:"
-        from itertools import dropwhile
-        self.current_heroku_settings_lines = list(dropwhile(
-            lambda line: line!=heroku_settings_start, settings_lines))
-
-        if self.current_heroku_settings_lines:
-            self.heroku_settings_exist = True
-        else:
-            self.heroku_settings_exist = False
-
-        self.sd.log_info("\nExisting Heroku settings found:")
-        self.sd.log_info("\n".join(self.current_heroku_settings_lines))
-
-    def _generate_procfile(self):
-        """Create Procfile, if none present."""
-
-        #   Procfile should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Procfile...")
-        procfile_present = "Procfile" in os.listdir(self.sd.git_path)
-
-        if procfile_present:
+        if path.exists():
             self.sd.write_output("    Found existing Procfile.")
-        else:
-            self.sd.write_output("    No Procfile found. Generating Procfile...")
-            if self.sd.nested_project:
-                proc_command = f"web: gunicorn {self.sd.local_project_name}.{self.sd.local_project_name}.wsgi --log-file -"
-            else:
-                proc_command = (
-                    f"web: gunicorn {self.sd.local_project_name}.wsgi --log-file -"
-                )
+            proceed = self.sd.get_confirmation(self.messages.procfile_found)
+            if not proceed:
+                raise SimpleDeployCommandError(self.messages.cant_overwrite_procfile)
 
-            with open(f"{self.sd.git_path}/Procfile", "w") as f:
-                f.write(proc_command)
+        # No Procfile exists, or we're free to write over existing one.
+        self.sd.write_output("    Generating Procfile...")
 
-            self.sd.write_output("    Generated Procfile with following process:")
-            self.sd.write_output(f"      {proc_command}")
+        wsgi_path = f"{self.sd.local_project_name}.wsgi"
+        if self.sd.nested_project:
+            wsgi_path = f"{self.sd.local_project_name}.{wsgi_path}"
 
-    def _add_gunicorn(self):
-        """Add gunicorn to project requirements."""
-        self.sd.add_package("gunicorn")
+        proc_command = f"web: gunicorn {wsgi_path} --log-file -"
+        path.write_text(proc_command)
 
-    def _check_allowed_hosts(self):
-        """Make sure project can be served from heroku."""
-        # This method is specific to Heroku.
-
-        self.sd.write_output("\n  Making sure project can be served from Heroku...")
-        heroku_host = f"{self.heroku_app_name}.herokuapp.com"
-
-        if heroku_host in settings.ALLOWED_HOSTS:
-            self.sd.write_output(f"    Found {heroku_host} in ALLOWED_HOSTS.")
-        elif "herokuapp.com" in settings.ALLOWED_HOSTS:
-            # This is a generic entry that allows serving from any heroku URL.
-            self.sd.write_output("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
-        else:
-            # DEV: This is not currently working; Heroku is adding a hash after the heroku_host.
-            #   See: https://github.com/ehmatthes/django-simple-deploy/issues/242
-            # new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
-            new_setting = "ALLOWED_HOSTS.append('*')"
-            msg_added = (
-                f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
-            )
-            msg_already_set = (
-                f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
-            )
-            self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-    def _configure_db(self):
-        """Add required db-related packages, and modify settings for Heroku db."""
-        self.sd.write_output("\n  Configuring project for Heroku database...")
-        self._add_db_packages()
-        self._add_db_settings()
-
-    def _add_db_packages(self):
-        """Add packages required for the Heroku db."""
-        self.sd.write_output("    Adding db-related packages...")
-
-        # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
-        #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        self.sd.add_package("psycopg2")
-        self.sd.add_package("dj-database-url")
-
-    def _add_db_settings(self):
-        """Add settings for Heroku db."""
-        self.sd.write_output("   Checking Heroku db settings...")
-
-        # Import dj-database-url.
-        new_setting = "import dj_database_url"
-        msg_added = "    Added import statement for dj-database-url."
-        msg_already_set = "    Found import statement for dj-database-url."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-        # Configure db.
-        new_setting = "DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}"
-        msg_added = "    Added setting to configure Postgres on Heroku."
-        msg_already_set = "    Found setting to configure Postgres on Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-    def _configure_static_files(self):
-        """Configure static files for Heroku deployment."""
-
-        self.sd.write_output("\n  Configuring static files for Heroku deployment...")
-
-        # Add whitenoise to requirements.
-        self.sd.write_output("    Adding staticfiles-related packages...")
-        self.sd.add_package("whitenoise")
-
-        # Modify settings, and add a directory for static files.
-        self._add_static_file_settings()
-        self._add_static_file_directory()
-
-    def _add_static_file_settings(self):
-        """Add all settings needed to manage static files."""
-        self.sd.write_output("    Configuring static files settings...")
-
-        new_setting = "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')"
-        msg_added = "    Added STATIC_ROOT setting for Heroku."
-        msg_already_set = "    Found STATIC_ROOT setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-        new_setting = "STATIC_URL = '/static/'"
-        msg_added = "    Added STATIC_URL setting for Heroku."
-        msg_already_set = "    Found STATIC_URL setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-        new_setting = "STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)"
-        msg_added = "    Added STATICFILES_DIRS setting for Heroku."
-        msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-        new_setting = (
-            'i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")'
-        )
-        new_setting += '\n    MIDDLEWARE.insert(i + 1, "whitenoise.middleware.WhiteNoiseMiddleware")'
-        msg_added = "    Added Whitenoise to middleware."
-        msg_already_set = "    Found Whitenoise in middleware."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        self.sd.write_output("    Generated Procfile with following process:")
+        self.sd.write_output(f"      {proc_command}")
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist."""
         self.sd.write_output("    Checking for static files directory...")
 
-        # Make sure there's a static files directory.
-        static_files_dir = f"{self.sd.project_root}/static"
-        if os.path.exists(static_files_dir):
-            if os.listdir(static_files_dir):
-                self.sd.write_output("    Found non-empty static files directory.")
-                return
-        else:
-            os.makedirs(static_files_dir)
+        path_static = self.sd.project_root / "static"
+
+        # If static/ exists and is not empty, we don't need to do anything.
+        if path_static.exists() and any(path_static.iterdir()):
+            self.sd.write_output("    Found non-empty static files directory.")
+            return
+
+        # If path doesn't exist, create it.
+        if not path_static.exists():
+            path_static.mkdir()
             self.sd.write_output("    Created empty static files directory.")
 
         # Add a placeholder file to the empty static files directory.
-        placeholder_file = f"{static_files_dir}/placeholder.txt"
-        with open(placeholder_file, "w") as f:
-            f.write(
-                "This is a placeholder file to make sure this folder is pushed to Heroku."
-            )
+        path_placeholder = path_static / "placeholder.txt"
+        msg = "This is a placeholder file to make sure this folder is pushed to Heroku."
+        path_placeholder.write_text(msg)
+
         self.sd.write_output("    Added placeholder file to static files directory.")
 
-    def _configure_debug(self):
-        """Use an env var to manage DEBUG setting, and set to False."""
+    def _modify_settings(self):
+        """Add Heroku-specific settings.
 
-        # Config variables are strings, which always causes confusion for people
-        #   when setting boolean env vars. A good habit is to use something other than
-        #   True or False, so it's clear we're not trying to use Python's default
-        #   boolean values.
-        # Here we use 'TRUE' and 'FALSE'. Then a simple test:
-        #    os.environ.get('DEBUG') == 'TRUE'
-        # returns the bool value True for 'TRUE', and False for 'FALSE'.
-        # Taken from: https://stackoverflow.com/a/56828137/748891
+        This settings block is currently the same for all users. The ALLOWED_HOSTS
+        setting should be customized.
+        """
+        self.sd.write_output("\n  Adding a Heroku-specific settings block...")
 
-        # When unit testing, don't set the heroku config var, but do make
-        #   the change to settings.
-        if not self.sd.unit_testing:
-            self.sd.write_output("  Setting DEBUG env var...")
-            cmd = "heroku config:set DEBUG=FALSE"
-            output = self.sd.run_quick_command(cmd)
-            self.sd.write_output(output)
-            self.sd.write_output("    Set DEBUG config variable to FALSE.")
+        settings_string = self.sd.settings_path.read_text()
+        safe_settings_string = mark_safe(settings_string)
+        context = {"current_settings": safe_settings_string}
+        sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
 
-        # Modify settings to use the DEBUG config variable.
-        new_setting = "DEBUG = os.getenv('DEBUG') == 'TRUE'"
-        msg_added = "    Added DEBUG setting for Heroku."
-        msg_already_set = "    Found DEBUG setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
-
-    def _configure_secret_key(self):
-        """Use an env var to manage the secret key."""
-        # Generate a new key.
-        if self.sd.on_windows:
-            # Non-alphanumeric keys have been problematic on Windows.
-            new_secret_key = get_random_string(
-                length=50, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789"
-            )
-        else:
-            new_secret_key = get_random_secret_key()
-
-        # Set the new key as an env var on Heroku.
-        #   Skip when unit testing.
-        if not self.sd.unit_testing:
-            self.sd.write_output("  Setting new secret key for Heroku...")
-            cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
-            output = self.sd.run_quick_command(cmd, skip_logging=True)
-            self.sd.write_output(output)
-            self.sd.write_output("    Set SECRET_KEY config variable.")
-
-        # Modify settings to use the env var's value as the secret key.
-        new_setting = "SECRET_KEY = os.getenv('SECRET_KEY')"
-        msg_added = "    Added SECRET_KEY setting for Heroku."
-        msg_already_set = "    Found SECRET_KEY setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        msg = f"    Modified settings.py file: {self.sd.settings_path}"
+        self.sd.write_output(msg)
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
-        # Making this check here lets deploy() be cleaner.
         if not self.sd.automate_all:
             return
 
@@ -435,18 +276,13 @@ class PlatformDeployer:
 
         self.sd.write_output("  Pushing to heroku...")
 
-        # Get the current branch name. Get the first line of status output,
-        #   and keep everything after "On branch ".
-        cmd = "git status"
-        git_status = self.sd.run_quick_command(cmd)
-        self.sd.write_output(git_status)
-        status_str = git_status.stdout.decode()
-        self.current_branch = status_str.split("\n")[0][10:]
+        # Get the current branch name.
+        cmd = "git branch --show-current"
+        output_obj = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output_obj)
+        self.current_branch = output_obj.stdout.decode().strip()
 
         # Push current local branch to Heroku main branch.
-        # This process usually takes a minute or two, which is longer than we
-        #   want users to wait for console output. So rather than capturing
-        #   output with subprocess.run(), we use Popen and stream while logging.
         # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
         self.sd.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ("main", "master"):
@@ -508,6 +344,16 @@ class PlatformDeployer:
 
     # --- Utility methods ---
 
+    def _check_heroku_settings(self):
+        """Check to see if a Heroku settings block already exists."""
+        start_line = "# Heroku settings."
+        self.sd.check_settings(
+            "heroku",
+            start_line,
+            self.messages.heroku_settings_found,
+            self.messages.cant_overwrite_settings,
+        )
+
     def _check_cli_installed(self):
         """Verify the Heroku CLI is installed on the user's system.
 
@@ -517,6 +363,9 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If CLI not installed.
         """
+        if self.sd.unit_testing:
+            return
+
         cmd = "heroku --version"
         try:
             output_obj = self.sd.run_quick_command(cmd)
@@ -540,6 +389,9 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If the user has not been authenticated.
         """
+        if self.sd.unit_testing:
+            return
+
         cmd = "heroku auth:whoami"
         output_obj = self.sd.run_quick_command(cmd)
         self.sd.log_info(output_obj)
@@ -551,6 +403,8 @@ class PlatformDeployer:
     def _check_heroku_project_available(self):
         """Verify that a Heroku project is available to push to.
 
+        Assume the user has already run `heroku create.`
+
         Returns:
             None
 
@@ -561,6 +415,10 @@ class PlatformDeployer:
             dict: self.apps_list
             str: self.heroku_app_name
         """
+        if self.sd.unit_testing:
+            self.heroku_app_name = "sample-name-11894"
+            return
+
         # automate-all does the work we're checking for here.
         if self.sd.automate_all:
             return
@@ -595,40 +453,51 @@ class PlatformDeployer:
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
-    def _check_current_heroku_settings(self, heroku_setting):
-        """Check if a setting has already been defined in the heroku-specific
-        settings section.
+    def _set_heroku_env_var(self):
+        """Set a config var to indicate when we're in the Heroku environment.
+        This is mostly used to modify settings for the deployed project.
         """
-        return any(
-            heroku_setting in line for line in self.current_heroku_settings_lines
-        )
+        self.sd.write_output("  Setting Heroku environment variable...")
+        cmd = "heroku config:set ON_HEROKU=1"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set ON_HEROKU=1.")
+        self.sd.write_output("    This is used to define Heroku-specific settings.")
 
-    def _add_heroku_setting(self, new_setting, msg_added="", msg_already_set=""):
-        """Add a new setting to the heroku-specific settings, if not already
-        present.
-        """
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.sd.settings_path, "a") as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-                self.sd.write_output(msg_added)
+    def _set_debug_env_var(self):
+        """Use an env var to manage DEBUG setting, and set to False."""
+
+        # Config variables are strings, which always causes confusion for people
+        #   when setting boolean env vars. A good habit is to use something other than
+        #   True or False, so it's clear we're not trying to use Python's default
+        #   boolean values.
+        # Here we use 'TRUE' and 'FALSE'. Then a simple test:
+        #    os.environ.get('DEBUG') == 'TRUE'
+        # returns the bool value True for 'TRUE', and False for 'FALSE'.
+        # Taken from: https://stackoverflow.com/a/56828137/748891
+        self.sd.write_output("  Setting DEBUG env var...")
+        cmd = "heroku config:set DEBUG=FALSE"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set DEBUG config variable to FALSE.")
+
+    def _set_secret_key_env_var(self):
+        """Use an env var to manage the secret key."""
+        # Generate a new key.
+        if self.sd.on_windows:
+            # Non-alphanumeric keys have been problematic on Windows.
+            new_secret_key = get_random_string(
+                length=50, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789"
+            )
         else:
-            self.sd.write_output(msg_already_set)
+            new_secret_key = get_random_secret_key()
 
-    def _prep_heroku_setting(self, f_settings):
-        """Add a block for Heroku-specific settings, if it doesn't already
-        exist.
-        """
-        # if not self.found_heroku_settings:
-        if not self.heroku_settings_exist:
-            # DEV: Should check if `import os` already exists in settings file.
-            f_settings.write("\nimport os")
-            f_settings.write("\nif 'ON_HEROKU' in os.environ:")
-
-            # Won't need to add these lines anymore.
-            # self.found_heroku_settings = True
-            self.heroku_settings_exist = True
+        # Set the new key as an env var on Heroku.
+        self.sd.write_output("  Setting new secret key for Heroku...")
+        cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
+        output = self.sd.run_quick_command(cmd, skip_logging=True)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set SECRET_KEY config variable.")
 
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""

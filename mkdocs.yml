@@ -40,6 +40,7 @@ nav:
     - 'Setting Up a Development Environment': 'contributing/development_environment.md'
     - 'Coding Guide': 'contributing/coding_guide.md'
     - 'Architecture Notes': 'contributing/architecture_notes.md'
+    - 'Parking Lot': 'contributing/parking_lot.md'
   - 'Design Documentation':
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'
