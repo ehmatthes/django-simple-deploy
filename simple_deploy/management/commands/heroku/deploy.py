@@ -37,9 +37,6 @@ class PlatformDeployer:
 
         self._validate_platform()
 
-        # DEV: Need to sort out interaction of this with unit testing.
-        self._check_heroku_settings()
-
         self._handle_poetry()
 
         if self.sd.automate_all:
@@ -49,7 +46,6 @@ class PlatformDeployer:
         self._set_heroku_env_var()
         self._generate_procfile()
         self._add_gunicorn()
-        # self._set_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
         self._configure_debug()
@@ -74,6 +70,9 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If we find any reason deployment won't work.
         """
+        self._check_heroku_settings()
+
+        # Rest of validation does not apply to unit testing.
         if self.sd.unit_testing:
             self.heroku_app_name = "sample-name-11894"
             return
@@ -221,8 +220,6 @@ class PlatformDeployer:
             settings block.
         """
         settings_lines = self.sd.settings_path.read_text().splitlines()
-        # import pdb
-        # breakpoint()
 
         heroku_settings_start = "# Heroku settings."
         if not heroku_settings_start in settings_lines:
