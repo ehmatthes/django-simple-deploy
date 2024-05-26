@@ -41,8 +41,6 @@ class PlatformDeployer:
         self._ensure_db()
         self._add_requirements()
         self._set_env_vars()
-
-
         self._generate_procfile()
         self._add_static_file_directory()
 
@@ -233,22 +231,23 @@ class PlatformDeployer:
         """Create a folder for static files, if it doesn't already exist."""
         self.sd.write_output("    Checking for static files directory...")
 
-        # Make sure there's a static files directory.
-        static_files_dir = f"{self.sd.project_root}/static"
-        if os.path.exists(static_files_dir):
-            if os.listdir(static_files_dir):
-                self.sd.write_output("    Found non-empty static files directory.")
-                return
-        else:
-            os.makedirs(static_files_dir)
+        path_static = self.sd.project_root / "static"
+
+        # If static/ exists and is not empty, we don't need to do anything.
+        if path_static.exists() and any(path_static.iterdir()):
+            self.sd.write_output("    Found non-empty static files directory.")
+            return
+
+        # If path doesn't exist, create it.
+        if not path_static.exists():
+            path_static.mkdir()
             self.sd.write_output("    Created empty static files directory.")
 
         # Add a placeholder file to the empty static files directory.
-        placeholder_file = f"{static_files_dir}/placeholder.txt"
-        with open(placeholder_file, "w") as f:
-            f.write(
-                "This is a placeholder file to make sure this folder is pushed to Heroku."
-            )
+        path_placeholder = path_static / "placeholder.txt"
+        msg = "This is a placeholder file to make sure this folder is pushed to Heroku."
+        path_placeholder.write_text(msg)
+
         self.sd.write_output("    Added placeholder file to static files directory.")
 
     def _modify_settings(self):
