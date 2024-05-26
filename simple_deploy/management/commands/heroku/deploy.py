@@ -38,19 +38,19 @@ class PlatformDeployer:
         self._validate_platform()
         self._handle_poetry()
         self._prep_automate_all()
-
         self._ensure_db()
+        self._add_requirements()
 
 
 
 
         self._set_heroku_env_var()
         self._generate_procfile()
-        self._add_gunicorn()
-        self._configure_db()
-        self._configure_static_files()
+        # self._configure_static_files()
+        self._add_static_file_directory()
         self._configure_debug()
         self._configure_secret_key()
+
         self._modify_settings()
         self._conclude_automate_all()
         self._summarize_deployment()
@@ -137,7 +137,7 @@ class PlatformDeployer:
         """
         if not self.sd.automate_all:
             return
-            
+
         # Create heroku app.
         self.sd.write_output("  Running `heroku create`...")
         cmd = "heroku create --json"
@@ -186,6 +186,15 @@ class PlatformDeployer:
         self.sd.write_output(msg)
         self._create_postgres_db()
 
+    def _add_requirements(self):
+        """Add Heroku-specific requirements."""
+        self.sd.add_package("gunicorn")
+        # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
+        #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
+        self.sd.add_package("psycopg2")
+        self.sd.add_package("dj-database-url")
+        self.sd.add_package("whitenoise")
+
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
@@ -223,38 +232,6 @@ class PlatformDeployer:
 
             self.sd.write_output("    Generated Procfile with following process:")
             self.sd.write_output(f"      {proc_command}")
-
-    def _add_gunicorn(self):
-        """Add gunicorn to project requirements."""
-        self.sd.add_package("gunicorn")
-
-    def _configure_db(self):
-        """Add required db-related packages, and modify settings for Heroku db."""
-        self.sd.write_output("\n  Configuring project for Heroku database...")
-        self._add_db_packages()
-        # self._add_db_settings()
-
-    def _add_db_packages(self):
-        """Add packages required for the Heroku db."""
-        self.sd.write_output("    Adding db-related packages...")
-
-        # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
-        #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        self.sd.add_package("psycopg2")
-        self.sd.add_package("dj-database-url")
-
-    def _configure_static_files(self):
-        """Configure static files for Heroku deployment."""
-
-        self.sd.write_output("\n  Configuring static files for Heroku deployment...")
-
-        # Add whitenoise to requirements.
-        self.sd.write_output("    Adding staticfiles-related packages...")
-        self.sd.add_package("whitenoise")
-
-        # Modify settings, and add a directory for static files.
-        # self._add_static_file_settings()
-        self._add_static_file_directory()
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist."""
