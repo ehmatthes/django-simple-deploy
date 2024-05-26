@@ -16,6 +16,10 @@ The `simple_deploy.py` script needs access to some platform-specific messages. T
 
 There are many network calls that don't need to be made when unit testing. These checks are typically placed at the lowest level possible, to keep the workflows in higher level methods simple and readable.
 
+## Checking for `--automate-all`
+
+Likewise, checks for automate-all are usually in lower-level functions, to keep higher-level functions simpler.
+
 ---
 
 ## Contract between host and plugin

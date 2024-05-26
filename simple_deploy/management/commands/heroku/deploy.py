@@ -268,7 +268,6 @@ class PlatformDeployer:
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
-        # Making this check here lets deploy() be cleaner.
         if not self.sd.automate_all:
             return
 
