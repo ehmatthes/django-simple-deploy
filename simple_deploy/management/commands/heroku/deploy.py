@@ -218,15 +218,12 @@ class PlatformDeployer:
 
         # No Procfile exists, or we're free to write over existing one.
         self.sd.write_output("    Generating Procfile...")
-        if self.sd.nested_project:
-            proc_command = f"web: gunicorn {self.sd.local_project_name}.{self.sd.local_project_name}.wsgi --log-file -"
-        else:
-            proc_command = (
-                f"web: gunicorn {self.sd.local_project_name}.wsgi --log-file -"
-            )
 
-        # with open(f"{self.sd.git_path}/Procfile", "w") as f:
-        #     f.write(proc_command)
+        wsgi_path = f"{self.sd.local_project_name}.wsgi"
+        if self.sd.nested_project:
+            wsgi_path = f"{self.sd.local_project_name}.{wsgi_path}"
+
+        proc_command = f"web: gunicorn {wsgi_path} --log-file -"
         path.write_text(proc_command)
 
         self.sd.write_output("    Generated Procfile with following process:")
