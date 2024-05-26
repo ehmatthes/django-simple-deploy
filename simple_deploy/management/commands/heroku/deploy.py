@@ -36,6 +36,7 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
 
         self._validate_platform()
+
         self._handle_poetry()
         self._prep_automate_all()
         self._ensure_db()
@@ -43,8 +44,8 @@ class PlatformDeployer:
         self._set_env_vars()
         self._generate_procfile()
         self._add_static_file_directory()
-
         self._modify_settings()
+
         self._conclude_automate_all()
         self._summarize_deployment()
         self._show_success_message()
