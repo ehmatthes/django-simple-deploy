@@ -40,16 +40,11 @@ class PlatformDeployer:
         self._prep_automate_all()
         self._ensure_db()
         self._add_requirements()
+        self._set_env_vars()
 
 
-
-
-        self._set_heroku_env_var()
         self._generate_procfile()
-        # self._configure_static_files()
         self._add_static_file_directory()
-        self._configure_debug()
-        self._configure_secret_key()
 
         self._modify_settings()
         self._conclude_automate_all()
@@ -193,19 +188,14 @@ class PlatformDeployer:
         packages = ["gunicorn", "psycopg2", "dj-database-url", "whitenoise"]
         self.sd.add_packages(packages)
 
-    def _set_heroku_env_var(self):
-        """Set a config var to indicate when we're in the Heroku environment.
-        This is mostly used to modify settings for the deployed project.
-        """
+    def _set_env_vars(self):
+        """Set Heroku-specific environment variables."""
         if self.sd.unit_testing:
             return
 
-        self.sd.write_output("  Setting Heroku environment variable...")
-        cmd = "heroku config:set ON_HEROKU=1"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set ON_HEROKU=1.")
-        self.sd.write_output("    This is used to define Heroku-specific settings.")
+        self._set_heroku_env_var()
+        self._set_debug_env_var()
+        self._set_secret_key_env_var()
 
     def _generate_procfile(self):
         """Create Procfile, if none present."""
@@ -252,48 +242,6 @@ class PlatformDeployer:
                 "This is a placeholder file to make sure this folder is pushed to Heroku."
             )
         self.sd.write_output("    Added placeholder file to static files directory.")
-
-    def _configure_debug(self):
-        """Use an env var to manage DEBUG setting, and set to False."""
-
-        # Config variables are strings, which always causes confusion for people
-        #   when setting boolean env vars. A good habit is to use something other than
-        #   True or False, so it's clear we're not trying to use Python's default
-        #   boolean values.
-        # Here we use 'TRUE' and 'FALSE'. Then a simple test:
-        #    os.environ.get('DEBUG') == 'TRUE'
-        # returns the bool value True for 'TRUE', and False for 'FALSE'.
-        # Taken from: https://stackoverflow.com/a/56828137/748891
-
-        if self.sd.unit_testing:
-            return
-
-        self.sd.write_output("  Setting DEBUG env var...")
-        cmd = "heroku config:set DEBUG=FALSE"
-        output = self.sd.run_quick_command(cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set DEBUG config variable to FALSE.")
-
-    def _configure_secret_key(self):
-        """Use an env var to manage the secret key."""
-        if self.sd.unit_testing:
-            return
-
-        # Generate a new key.
-        if self.sd.on_windows:
-            # Non-alphanumeric keys have been problematic on Windows.
-            new_secret_key = get_random_string(
-                length=50, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789"
-            )
-        else:
-            new_secret_key = get_random_secret_key()
-
-        # Set the new key as an env var on Heroku.
-        self.sd.write_output("  Setting new secret key for Heroku...")
-        cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
-        output = self.sd.run_quick_command(cmd, skip_logging=True)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set SECRET_KEY config variable.")
 
     def _modify_settings(self):
         """Add Heroku-specific settings.
@@ -502,6 +450,52 @@ class PlatformDeployer:
         cmd = "heroku addons:create heroku-postgresql:essential-0"
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
+
+    def _set_heroku_env_var(self):
+        """Set a config var to indicate when we're in the Heroku environment.
+        This is mostly used to modify settings for the deployed project.
+        """
+        self.sd.write_output("  Setting Heroku environment variable...")
+        cmd = "heroku config:set ON_HEROKU=1"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set ON_HEROKU=1.")
+        self.sd.write_output("    This is used to define Heroku-specific settings.")
+
+    def _set_debug_env_var(self):
+        """Use an env var to manage DEBUG setting, and set to False."""
+
+        # Config variables are strings, which always causes confusion for people
+        #   when setting boolean env vars. A good habit is to use something other than
+        #   True or False, so it's clear we're not trying to use Python's default
+        #   boolean values.
+        # Here we use 'TRUE' and 'FALSE'. Then a simple test:
+        #    os.environ.get('DEBUG') == 'TRUE'
+        # returns the bool value True for 'TRUE', and False for 'FALSE'.
+        # Taken from: https://stackoverflow.com/a/56828137/748891
+        self.sd.write_output("  Setting DEBUG env var...")
+        cmd = "heroku config:set DEBUG=FALSE"
+        output = self.sd.run_quick_command(cmd)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set DEBUG config variable to FALSE.")
+
+    def _set_secret_key_env_var(self):
+        """Use an env var to manage the secret key."""
+        # Generate a new key.
+        if self.sd.on_windows:
+            # Non-alphanumeric keys have been problematic on Windows.
+            new_secret_key = get_random_string(
+                length=50, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789"
+            )
+        else:
+            new_secret_key = get_random_secret_key()
+
+        # Set the new key as an env var on Heroku.
+        self.sd.write_output("  Setting new secret key for Heroku...")
+        cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
+        output = self.sd.run_quick_command(cmd, skip_logging=True)
+        self.sd.write_output(output)
+        self.sd.write_output("    Set SECRET_KEY config variable.")
 
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
