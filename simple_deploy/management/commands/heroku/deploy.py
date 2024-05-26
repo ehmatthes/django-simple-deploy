@@ -43,6 +43,10 @@ class PlatformDeployer:
             self._prep_automate_all()
 
         self._ensure_db()
+
+
+
+
         self._set_heroku_env_var()
         self._generate_procfile()
         self._add_gunicorn()
@@ -60,10 +64,6 @@ class PlatformDeployer:
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to Heroku.
 
-        Make sure CLI is installed, and user is authenticated.
-        Make sure a project exists on Heroku that we can push to. (Make sure user
-        already ran `heroku create`.)
-
         Returns:
             None
 
@@ -71,12 +71,6 @@ class PlatformDeployer:
             SimpleDeployCommandError: If we find any reason deployment won't work.
         """
         self._check_heroku_settings()
-
-        # Rest of validation does not apply to unit testing.
-        if self.sd.unit_testing:
-            self.heroku_app_name = "sample-name-11894"
-            return
-
         self._check_cli_installed()
         self._check_cli_authenticated()
         self._check_heroku_project_available()
@@ -444,6 +438,9 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If CLI not installed.
         """
+        if self.sd.unit_testing:
+            return
+
         cmd = "heroku --version"
         try:
             output_obj = self.sd.run_quick_command(cmd)
@@ -467,6 +464,9 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If the user has not been authenticated.
         """
+        if self.sd.unit_testing:
+            return
+
         cmd = "heroku auth:whoami"
         output_obj = self.sd.run_quick_command(cmd)
         self.sd.log_info(output_obj)
@@ -478,6 +478,8 @@ class PlatformDeployer:
     def _check_heroku_project_available(self):
         """Verify that a Heroku project is available to push to.
 
+        Assume the user has already run `heroku create.`
+
         Returns:
             None
 
@@ -488,6 +490,10 @@ class PlatformDeployer:
             dict: self.apps_list
             str: self.heroku_app_name
         """
+        if self.sd.unit_testing:
+            self.heroku_app_name = "sample-name-11894"
+            return
+
         # automate-all does the work we're checking for here.
         if self.sd.automate_all:
             return

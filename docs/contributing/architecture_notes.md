@@ -12,6 +12,10 @@ This page describes some aspects of the structure of the project.
 
 The `simple_deploy.py` script needs access to some platform-specific messages. The platform deployer object should provide access to those messages.
 
+## Checking for unit testing
+
+There are many network calls that don't need to be made when unit testing. These checks are typically placed at the lowest level possible, to keep the workflows in higher level methods simple and readable.
+
 ---
 
 ## Contract between host and plugin
