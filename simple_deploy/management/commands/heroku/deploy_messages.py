@@ -50,6 +50,15 @@ settings block. Please remove the current Heroku-specific settings, and then run
 simple_deploy again.
 """
 
+procfile_found = """
+A Procfile already exists. Is it okay to overwrite this file?
+"""
+
+cant_overwrite_procfile = """
+In order to configure the project for deployment, we need to write a Procfile. Please
+remove the current Procfile, and then run simple_deploy again.
+"""
+
 
 # --- Dynamic strings ---
 # These need to be generated in functions, to display information that's
