@@ -440,8 +440,29 @@ class PlatformDeployer:
         """
         settings_lines = self.sd.settings_path.read_text().splitlines()
 
-        heroku_settings_start = "# Heroku settings."
-        if not heroku_settings_start in settings_lines:
+        # heroku_settings_start = "# Heroku settings."
+        # if not heroku_settings_start in settings_lines:
+        #     self.sd.log_info("No Heroku-specific settings block found.")
+        #     return
+
+        # # A Heroku-specific settings block exists. Get permission to overwrite it.
+        # if not self.sd.get_confirmation(self.messages.heroku_settings_found):
+        #     raise SimpleDeployCommandError(self.sd, self.messages.cant_overwrite_settings)
+
+        # # Heroku-specific settings exist, but we can remove them and start fresh.
+        # settings_lines = list(takewhile(
+        #     lambda line: line!=heroku_settings_start, settings_lines))
+        # settings_text = "\n".join(settings_lines)
+        # self.sd.settings_path.write_text(settings_text)
+
+        
+
+        # Try regex approach.
+        settings_text = self.sd.settings_path.read_text()
+        re_heroku_settings = r"(.*)(# Heroku settings.)(.*)"
+        m = re.match(re_heroku_settings, settings_text, re.DOTALL)
+        
+        if not m:
             self.sd.log_info("No Heroku-specific settings block found.")
             return
 
@@ -450,10 +471,9 @@ class PlatformDeployer:
             raise SimpleDeployCommandError(self.sd, self.messages.cant_overwrite_settings)
 
         # Heroku-specific settings exist, but we can remove them and start fresh.
-        settings_lines = list(takewhile(
-            lambda line: line!=heroku_settings_start, settings_lines))
-        settings_text = "\n".join(settings_lines)
-        self.sd.settings_path.write_text(settings_text)
+        self.sd.settings_path.write_text(m.group(1))
+
+
 
         self.sd.write_output("  Removed existing Heroku-specific settings block.")
 
