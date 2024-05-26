@@ -7,11 +7,13 @@ from django.conf import settings
 from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
+from django.utils.safestring import mark_safe
 
 from simple_deploy.management.commands import deploy_messages as d_msgs
 from simple_deploy.management.commands.heroku import deploy_messages as heroku_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
+from simple_deploy.management.commands import utils as sd_utils
 
 
 class PlatformDeployer:
@@ -35,6 +37,9 @@ class PlatformDeployer:
 
         self._validate_platform()
 
+        # DEV: Need to sort out interaction of this with unit testing.
+        self._check_heroku_settings()
+
         self._handle_poetry()
 
         if self.sd.automate_all:
@@ -44,11 +49,12 @@ class PlatformDeployer:
         self._set_heroku_env_var()
         self._generate_procfile()
         self._add_gunicorn()
-        self._set_allowed_hosts()
+        # self._set_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
         self._configure_debug()
         self._configure_secret_key()
+        self._modify_settings()
         self._conclude_automate_all()
         self._summarize_deployment()
         self._show_success_message()
@@ -74,7 +80,6 @@ class PlatformDeployer:
 
         self._check_cli_installed()
         self._check_cli_authenticated()
-        self._check_heroku_settings()
         self._check_heroku_project_available()
 
     def _handle_poetry(self):
@@ -208,10 +213,6 @@ class PlatformDeployer:
         If so, ask if we can overwrite that block. This is much simpler than trying to
         keep track of individual settings.
 
-        Sets:
-            list: self.settings_lines
-            list: self.heroku_settings, initialized to empty settings block.
-
         Returns:
             None
 
@@ -219,13 +220,11 @@ class PlatformDeployer:
             SimpleDeployCommandError: If we can't overwrite existing Heroku-specific
             settings block.
         """
-        self.settings_lines = self.sd.settings_path.read_text().splitlines()
+        settings_lines = self.sd.settings_path.read_text().splitlines()
+        import pdb
+        breakpoint()
 
-        heroku_settings_start = "if 'ON_HEROKU' in os.environ:"
-
-        # Start a Heroku-specific settings block.
-        self.heroku_settings = [heroku_settings_start]
-
+        heroku_settings_start = "# Heroku settings."
         if not heroku_settings_start in settings_lines:
             self.sd.log_info("No Heroku-specific settings block found.")
             return
@@ -235,8 +234,10 @@ class PlatformDeployer:
             raise SimpleDeployCommandError(self.sd, self.messages.cant_overwrite_settings)
 
         # Heroku-specific settings exist, but we can remove them and start fresh.
-        self.settings_lines = list(takewhile(
+        settings_lines = list(takewhile(
             lambda line: line!=heroku_settings_start, settings_lines))
+        settings_text = "\n".join(settings_lines)
+        self.sd.settings_path.write_text(settings_text)
 
         self.sd.write_output("  Removed existing Heroku-specific settings block.")
 
@@ -268,43 +269,43 @@ class PlatformDeployer:
         """Add gunicorn to project requirements."""
         self.sd.add_package("gunicorn")
 
-    def _set_allowed_hosts(self):
-        """Make sure project can be served from heroku.
+    # def _set_allowed_hosts(self):
+    #     """Make sure project can be served from heroku.
 
-        Sets:
-            list: self.heroku_settings; adds ALLOWED_HOSTS setting if needed.
+    #     Sets:
+    #         list: self.heroku_settings; adds ALLOWED_HOSTS setting if needed.
 
-        Returns:
-            None
-        """
-        self.sd.write_output("\n  Making sure project can be served from Heroku...")
+    #     Returns:
+    #         None
+    #     """
+    #     self.sd.write_output("\n  Making sure project can be served from Heroku...")
 
-        # DEV: This is not currently working; Heroku is adding a hash after heroku_host.
-        #   See: https://github.com/ehmatthes/django-simple-deploy/issues/242
-        # heroku_host = f"{self.heroku_app_name}.herokuapp.com"
-        # new_setting = f"    ALLOWED_HOSTS.append('{heroku_host}')"
+    #     # DEV: This is not currently working; Heroku is adding a hash after heroku_host.
+    #     #   See: https://github.com/ehmatthes/django-simple-deploy/issues/242
+    #     # heroku_host = f"{self.heroku_app_name}.herokuapp.com"
+    #     # new_setting = f"    ALLOWED_HOSTS.append('{heroku_host}')"
 
-        # We can skip this for now if "*" is already in ALLOWED_HOSTS.
-        if "*" in settings.ALLOWED_HOSTS:
-            self.sd.write_output('    Found "*" in ALLOWED_HOSTS.')
-            return
+    #     # We can skip this for now if "*" is already in ALLOWED_HOSTS.
+    #     if "*" in settings.ALLOWED_HOSTS:
+    #         self.sd.write_output('    Found "*" in ALLOWED_HOSTS.')
+    #         return
 
-        new_setting = "    ALLOWED_HOSTS.append('*')"
-        self.heroku_settings.append(new_setting)
+    #     new_setting = "    ALLOWED_HOSTS.append('*')"
+    #     self.heroku_settings.append(new_setting)
 
-        msg = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
-        self.sd.write_output(msg)
-
-
+    #     msg = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
+    #     self.sd.write_output(msg)
 
 
-        
+
+
+
 
     def _configure_db(self):
         """Add required db-related packages, and modify settings for Heroku db."""
         self.sd.write_output("\n  Configuring project for Heroku database...")
         self._add_db_packages()
-        self._add_db_settings()
+        # self._add_db_settings()
 
     def _add_db_packages(self):
         """Add packages required for the Heroku db."""
@@ -315,21 +316,21 @@ class PlatformDeployer:
         self.sd.add_package("psycopg2")
         self.sd.add_package("dj-database-url")
 
-    def _add_db_settings(self):
-        """Add settings for Heroku db."""
-        self.sd.write_output("   Checking Heroku db settings...")
+    # def _add_db_settings(self):
+    #     """Add settings for Heroku db."""
+    #     self.sd.write_output("   Checking Heroku db settings...")
 
-        # Import dj-database-url.
-        new_setting = "import dj_database_url"
-        msg_added = "    Added import statement for dj-database-url."
-        msg_already_set = "    Found import statement for dj-database-url."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+    #     # Import dj-database-url.
+    #     new_setting = "import dj_database_url"
+    #     msg_added = "    Added import statement for dj-database-url."
+    #     msg_already_set = "    Found import statement for dj-database-url."
+    #     self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-        # Configure db.
-        new_setting = "DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}"
-        msg_added = "    Added setting to configure Postgres on Heroku."
-        msg_already_set = "    Found setting to configure Postgres on Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+    #     # Configure db.
+    #     new_setting = "DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}"
+    #     msg_added = "    Added setting to configure Postgres on Heroku."
+    #     msg_already_set = "    Found setting to configure Postgres on Heroku."
+    #     self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
     def _configure_static_files(self):
         """Configure static files for Heroku deployment."""
@@ -341,35 +342,35 @@ class PlatformDeployer:
         self.sd.add_package("whitenoise")
 
         # Modify settings, and add a directory for static files.
-        self._add_static_file_settings()
+        # self._add_static_file_settings()
         self._add_static_file_directory()
 
-    def _add_static_file_settings(self):
-        """Add all settings needed to manage static files."""
-        self.sd.write_output("    Configuring static files settings...")
+    # def _add_static_file_settings(self):
+    #     """Add all settings needed to manage static files."""
+    #     self.sd.write_output("    Configuring static files settings...")
 
-        new_setting = "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')"
-        msg_added = "    Added STATIC_ROOT setting for Heroku."
-        msg_already_set = "    Found STATIC_ROOT setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+    #     new_setting = "STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')"
+    #     msg_added = "    Added STATIC_ROOT setting for Heroku."
+    #     msg_already_set = "    Found STATIC_ROOT setting for Heroku."
+    #     self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-        new_setting = "STATIC_URL = '/static/'"
-        msg_added = "    Added STATIC_URL setting for Heroku."
-        msg_already_set = "    Found STATIC_URL setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+    #     new_setting = "STATIC_URL = '/static/'"
+    #     msg_added = "    Added STATIC_URL setting for Heroku."
+    #     msg_already_set = "    Found STATIC_URL setting for Heroku."
+    #     self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-        new_setting = "STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)"
-        msg_added = "    Added STATICFILES_DIRS setting for Heroku."
-        msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+    #     new_setting = "STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)"
+    #     msg_added = "    Added STATICFILES_DIRS setting for Heroku."
+    #     msg_already_set = "    Found STATICFILES_DIRS setting for Heroku."
+    #     self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
-        new_setting = (
-            'i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")'
-        )
-        new_setting += '\n    MIDDLEWARE.insert(i + 1, "whitenoise.middleware.WhiteNoiseMiddleware")'
-        msg_added = "    Added Whitenoise to middleware."
-        msg_already_set = "    Found Whitenoise in middleware."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+    #     new_setting = (
+    #         'i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")'
+    #     )
+    #     new_setting += '\n    MIDDLEWARE.insert(i + 1, "whitenoise.middleware.WhiteNoiseMiddleware")'
+    #     msg_added = "    Added Whitenoise to middleware."
+    #     msg_already_set = "    Found Whitenoise in middleware."
+    #     self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist."""
@@ -414,11 +415,11 @@ class PlatformDeployer:
             self.sd.write_output(output)
             self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
-        # Modify settings to use the DEBUG config variable.
-        new_setting = "DEBUG = os.getenv('DEBUG') == 'TRUE'"
-        msg_added = "    Added DEBUG setting for Heroku."
-        msg_already_set = "    Found DEBUG setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        # # Modify settings to use the DEBUG config variable.
+        # new_setting = "DEBUG = os.getenv('DEBUG') == 'TRUE'"
+        # msg_added = "    Added DEBUG setting for Heroku."
+        # msg_already_set = "    Found DEBUG setting for Heroku."
+        # self._add_heroku_setting(new_setting, msg_added, msg_already_set)
 
     def _configure_secret_key(self):
         """Use an env var to manage the secret key."""
@@ -440,11 +441,27 @@ class PlatformDeployer:
             self.sd.write_output(output)
             self.sd.write_output("    Set SECRET_KEY config variable.")
 
-        # Modify settings to use the env var's value as the secret key.
-        new_setting = "SECRET_KEY = os.getenv('SECRET_KEY')"
-        msg_added = "    Added SECRET_KEY setting for Heroku."
-        msg_already_set = "    Found SECRET_KEY setting for Heroku."
-        self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        # # Modify settings to use the env var's value as the secret key.
+        # new_setting = "SECRET_KEY = os.getenv('SECRET_KEY')"
+        # msg_added = "    Added SECRET_KEY setting for Heroku."
+        # msg_already_set = "    Found SECRET_KEY setting for Heroku."
+        # self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+
+    def _modify_settings(self):
+        """Add Heroku-specific settings.
+
+        This settings block is currently the same for all users. The ALLOWED_HOSTS
+        setting should be customized.
+        """
+        self.sd.write_output("\n  Adding a Heroku-specific settings block...")
+
+        settings_string = self.sd.settings_path.read_text()
+        safe_settings_string = mark_safe(settings_string)
+        context = {"current_settings": safe_settings_string}
+        sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
+
+        msg = f"    Modified settings.py file: {self.sd.settings_path}"
+        self.sd.write_output(msg)
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
@@ -616,40 +633,40 @@ class PlatformDeployer:
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
-    def _check_current_heroku_settings(self, heroku_setting):
-        """Check if a setting has already been defined in the heroku-specific
-        settings section.
-        """
-        return any(
-            heroku_setting in line for line in self.current_heroku_settings_lines
-        )
+    # def _check_current_heroku_settings(self, heroku_setting):
+    #     """Check if a setting has already been defined in the heroku-specific
+    #     settings section.
+    #     """
+    #     return any(
+    #         heroku_setting in line for line in self.current_heroku_settings_lines
+    #     )
 
-    def _add_heroku_setting(self, new_setting, msg_added="", msg_already_set=""):
-        """Add a new setting to the heroku-specific settings, if not already
-        present.
-        """
-        already_set = self._check_current_heroku_settings(new_setting)
-        if not already_set:
-            with open(self.sd.settings_path, "a") as f:
-                self._prep_heroku_setting(f)
-                f.write(f"\n    {new_setting}")
-                self.sd.write_output(msg_added)
-        else:
-            self.sd.write_output(msg_already_set)
+    # def _add_heroku_setting(self, new_setting, msg_added="", msg_already_set=""):
+    #     """Add a new setting to the heroku-specific settings, if not already
+    #     present.
+    #     """
+    #     already_set = self._check_current_heroku_settings(new_setting)
+    #     if not already_set:
+    #         with open(self.sd.settings_path, "a") as f:
+    #             self._prep_heroku_setting(f)
+    #             f.write(f"\n    {new_setting}")
+    #             self.sd.write_output(msg_added)
+    #     else:
+    #         self.sd.write_output(msg_already_set)
 
-    def _prep_heroku_setting(self, f_settings):
-        """Add a block for Heroku-specific settings, if it doesn't already
-        exist.
-        """
-        # if not self.found_heroku_settings:
-        if not self.heroku_settings_exist:
-            # DEV: Should check if `import os` already exists in settings file.
-            f_settings.write("\nimport os")
-            f_settings.write("\nif 'ON_HEROKU' in os.environ:")
+    # def _prep_heroku_setting(self, f_settings):
+    #     """Add a block for Heroku-specific settings, if it doesn't already
+    #     exist.
+    #     """
+    #     # if not self.found_heroku_settings:
+    #     if not self.heroku_settings_exist:
+    #         # DEV: Should check if `import os` already exists in settings file.
+    #         f_settings.write("\nimport os")
+    #         f_settings.write("\nif 'ON_HEROKU' in os.environ:")
 
-            # Won't need to add these lines anymore.
-            # self.found_heroku_settings = True
-            self.heroku_settings_exist = True
+    #         # Won't need to add these lines anymore.
+    #         # self.found_heroku_settings = True
+    #         self.heroku_settings_exist = True
 
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
