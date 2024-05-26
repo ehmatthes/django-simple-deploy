@@ -37,3 +37,22 @@ These are not hard requirements, but should probably be done by every deploy scr
 - Verify that the platform's CLI is installed.
 - Verify that the user has authenticated through the CLI.
 - Verify that any pre-requisite resources have already been created.
+
+### What structure should the plugin have?
+
+Something roughly like this:
+
+```sh
+$ tree -L 2
+├── deploy.py
+├── deploy_messages.py
+├── templates
+│   ├── pipenv.platform.app.yaml
+│   ├── platform.app.yaml
+│   ├── poetry.platform.app.yaml
+│   ├── services.yaml
+│   └── settings.py
+├── tests
+│   └── unit_tests
+└── utils.py
+```

@@ -44,7 +44,7 @@ class PlatformDeployer:
         self._set_heroku_env_var()
         self._generate_procfile()
         self._add_gunicorn()
-        self._check_allowed_hosts()
+        self._set_allowed_hosts()
         self._configure_db()
         self._configure_static_files()
         self._configure_debug()
@@ -210,6 +210,7 @@ class PlatformDeployer:
 
         Sets:
             list: self.settings_lines
+            list: self.heroku_settings, initialized to empty settings block.
 
         Returns:
             None
@@ -221,6 +222,10 @@ class PlatformDeployer:
         self.settings_lines = self.sd.settings_path.read_text().splitlines()
 
         heroku_settings_start = "if 'ON_HEROKU' in os.environ:"
+
+        # Start a Heroku-specific settings block.
+        self.heroku_settings = [heroku_settings_start]
+
         if not heroku_settings_start in settings_lines:
             self.sd.log_info("No Heroku-specific settings block found.")
             return
@@ -232,6 +237,8 @@ class PlatformDeployer:
         # Heroku-specific settings exist, but we can remove them and start fresh.
         self.settings_lines = list(takewhile(
             lambda line: line!=heroku_settings_start, settings_lines))
+
+        self.sd.write_output("  Removed existing Heroku-specific settings block.")
 
     def _generate_procfile(self):
         """Create Procfile, if none present."""
@@ -261,30 +268,37 @@ class PlatformDeployer:
         """Add gunicorn to project requirements."""
         self.sd.add_package("gunicorn")
 
-    def _check_allowed_hosts(self):
-        """Make sure project can be served from heroku."""
-        # This method is specific to Heroku.
+    def _set_allowed_hosts(self):
+        """Make sure project can be served from heroku.
 
+        Sets:
+            list: self.heroku_settings; adds ALLOWED_HOSTS setting if needed.
+
+        Returns:
+            None
+        """
         self.sd.write_output("\n  Making sure project can be served from Heroku...")
-        heroku_host = f"{self.heroku_app_name}.herokuapp.com"
 
-        if heroku_host in settings.ALLOWED_HOSTS:
-            self.sd.write_output(f"    Found {heroku_host} in ALLOWED_HOSTS.")
-        elif "herokuapp.com" in settings.ALLOWED_HOSTS:
-            # This is a generic entry that allows serving from any heroku URL.
-            self.sd.write_output("    Found 'herokuapp.com' in ALLOWED_HOSTS.")
-        else:
-            # DEV: This is not currently working; Heroku is adding a hash after the heroku_host.
-            #   See: https://github.com/ehmatthes/django-simple-deploy/issues/242
-            # new_setting = f"ALLOWED_HOSTS.append('{heroku_host}')"
-            new_setting = "ALLOWED_HOSTS.append('*')"
-            msg_added = (
-                f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
-            )
-            msg_already_set = (
-                f"    Found {heroku_host} in ALLOWED_HOSTS for the deployed project."
-            )
-            self._add_heroku_setting(new_setting, msg_added, msg_already_set)
+        # DEV: This is not currently working; Heroku is adding a hash after heroku_host.
+        #   See: https://github.com/ehmatthes/django-simple-deploy/issues/242
+        # heroku_host = f"{self.heroku_app_name}.herokuapp.com"
+        # new_setting = f"    ALLOWED_HOSTS.append('{heroku_host}')"
+
+        # We can skip this for now if "*" is already in ALLOWED_HOSTS.
+        if "*" in settings.ALLOWED_HOSTS:
+            self.sd.write_output('    Found "*" in ALLOWED_HOSTS.')
+            return
+
+        new_setting = "    ALLOWED_HOSTS.append('*')"
+        self.heroku_settings.append(new_setting)
+
+        msg = f"    Added {heroku_host} to ALLOWED_HOSTS for the deployed project."
+        self.sd.write_output(msg)
+
+
+
+
+        
 
     def _configure_db(self):
         """Add required db-related packages, and modify settings for Heroku db."""
