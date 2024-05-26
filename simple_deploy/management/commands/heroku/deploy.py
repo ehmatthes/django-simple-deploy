@@ -36,11 +36,8 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Heroku...")
 
         self._validate_platform()
-
         self._handle_poetry()
-
-        if self.sd.automate_all:
-            self._prep_automate_all()
+        self._prep_automate_all()
 
         self._ensure_db()
 
@@ -138,6 +135,9 @@ class PlatformDeployer:
         Returns:
             None
         """
+        if not self.sd.automate_all:
+            return
+            
         # Create heroku app.
         self.sd.write_output("  Running `heroku create`...")
         cmd = "heroku create --json"
