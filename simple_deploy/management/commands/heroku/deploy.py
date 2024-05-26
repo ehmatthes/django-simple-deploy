@@ -221,8 +221,8 @@ class PlatformDeployer:
             settings block.
         """
         settings_lines = self.sd.settings_path.read_text().splitlines()
-        import pdb
-        breakpoint()
+        # import pdb
+        # breakpoint()
 
         heroku_settings_start = "# Heroku settings."
         if not heroku_settings_start in settings_lines:

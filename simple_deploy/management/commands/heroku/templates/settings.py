@@ -7,7 +7,7 @@ if 'ON_HEROKU' in os.environ:
 
     DEBUG = os.getenv('DEBUG') == 'TRUE'
     SECRET_KEY = os.getenv('SECRET_KEY')
-    
+
     ALLOWED_HOSTS.append('*')
 
     DATABASES = {'default': dj_database_url.config(default='postgres://localhost')}
@@ -18,4 +18,3 @@ if 'ON_HEROKU' in os.environ:
     
     i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
     MIDDLEWARE.insert(i + 1, "whitenoise.middleware.WhiteNoiseMiddleware")
-    
