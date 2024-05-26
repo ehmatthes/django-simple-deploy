@@ -188,12 +188,10 @@ class PlatformDeployer:
 
     def _add_requirements(self):
         """Add Heroku-specific requirements."""
-        self.sd.add_package("gunicorn")
         # psycopg2 2.9 causes "database connection isn't set to UTC" issue.
         #   See: https://github.com/ehmatthes/heroku-buildpack-python/issues/31
-        self.sd.add_package("psycopg2")
-        self.sd.add_package("dj-database-url")
-        self.sd.add_package("whitenoise")
+        packages = ["gunicorn", "psycopg2", "dj-database-url", "whitenoise"]
+        self.sd.add_packages(packages)
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
