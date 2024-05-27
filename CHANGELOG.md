@@ -6,9 +6,35 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.6 - Stable deployments on all three platforms
 ---
 
-### 0.6.1
+### 0.6.2
+
+Many changes to update the project and work toward a plugin-based model. Most of this work is around simplifying workflows, and making them consistent across platforms.
 
 ### External changes
+
+- Fly deployment works for multiple deployments.
+    - Previously, Fly deployments would fail if you already had a project deployed to Fly, because it wasn't clear which resources to use for the current deployment.
+    - Now, if it's not obvious which resources to use, user is presented with a numbered list of resources so they can choose the appropriate one.
+- Heroku configuration updated to match current process in Heroku docs.
+    - Use Heroku Postgres `essential-0` instead of deprecated `mini`.
+    - Update database configuration, and static file configuration.
+
+### Internal changes
+
+- Refactor deploy scripts for all three platforms.
+- Restructure tests to make a clear distinction between unit, integration, and end-to-end tests.
+- Use numbered choices to let user select appropriate remote resources when not obvious which one to use.
+- More small utility functions, with better unit tests.
+- More specific CLI calls for each platform, to make parsing output easier. For example, use `--json` flags whenever they're available.
+- Docstrings are more consistent.
+- Started Coding Guide and Architecture Notes. Started documenting the contract between host and plugins.
+- Core simple_deploy.py confirms `--automate-all` usage, using platform-specific confirmation message.
+- Simpler approach to managing settings. Write as a block, and get permission to overwrite if existing platform-specific settings block found in settings.py (Heroku).
+- Sample project updated to use POST-based logout.
+
+### 0.6.1
+
+#### External changes
 
 - Fixes some issues managing Fly and Platform.sh CLI usage on Ubuntu and macOS.
 
