@@ -6,11 +6,17 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.6 - Stable deployments on all three platforms
 ---
 
+### Unreleased
+
+#### External changes
+
+#### Internal changes
+
 ### 0.6.2
 
 Many changes to update the project and work toward a plugin-based model. Most of this work is around simplifying workflows, and making them consistent across platforms.
 
-### External changes
+#### External changes
 
 - Fly deployment works for multiple deployments.
     - Previously, Fly deployments would fail if you already had a project deployed to Fly, because it wasn't clear which resources to use for the current deployment.
@@ -19,7 +25,7 @@ Many changes to update the project and work toward a plugin-based model. Most of
     - Use Heroku Postgres `essential-0` instead of deprecated `mini`.
     - Update database configuration, and static file configuration.
 
-### Internal changes
+#### Internal changes
 
 - Refactor deploy scripts for all three platforms.
 - Restructure tests to make a clear distinction between unit, integration, and end-to-end tests.
