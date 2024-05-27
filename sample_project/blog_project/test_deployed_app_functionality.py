@@ -322,11 +322,20 @@ except AssertionError:
 
 # --- Test logout page ---
 # Log out, then test anonymous views of the data that was just created.
-
 print("  Checking that the logout process works...")
-url = f"{app_url}users/logout/"
-r = s.get(url)
 
+csrftoken = s.cookies['csrftoken']
+post_data = {
+    'csrfmiddlewaretoken': csrftoken,
+}
+headers = {
+    "referer": f"{app_url}users/logout"
+}
+
+logout_url = f"{app_url}users/logout/"
+r = s.post(logout_url, data=post_data, headers=headers)
+
+print(r.status_code)
 assert r.status_code == 200
 assert "Logged out" in r.text
 assert "You have been logged out. Thank you for visiting!" in r.text
