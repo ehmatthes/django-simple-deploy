@@ -449,7 +449,8 @@ class PlatformDeployer:
             None
         """
         self.sd.write_output("  Creating Postgres database...")
-        cmd = "heroku addons:create heroku-postgresql:essential-0"
+        self.sd.write_output("  (This may take several minutes.)")
+        cmd = "heroku addons:create heroku-postgresql:essential-0 --wait"
         output = self.sd.run_quick_command(cmd)
         self.sd.write_output(output)
 
