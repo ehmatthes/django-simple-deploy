@@ -26,13 +26,23 @@ General ideas
 - Note talks, articles, discussion etc related to this project. See [#208](https://github.com/ehmatthes/django-simple-deploy/issues/208).
 - Consider a stability policy. See [#214](https://github.com/ehmatthes/django-simple-deploy/issues/214).
 - Consider a `--dry-run` feature. See [#247](https://github.com/ehmatthes/django-simple-deploy/issues/247).
+- Revisit `git status` check in simple_deploy.py. See [#261](https://github.com/ehmatthes/django-simple-deploy/issues/261).
+- Document use of development tools such as reset_project.py. See [#264](https://github.com/ehmatthes/django-simple-deploy/issues/264).
+- Look at consistency of platform messages. See [#270](https://github.com/ehmatthes/django-simple-deploy/issues/264).
+- Consider a tagline. [#284](https://github.com/ehmatthes/django-simple-deploy/issues/284).
+- Consider pyupgrade for finding old Python idioms that are no longer needed. See [#299](https://github.com/ehmatthes/django-simple-deploy/issues/299).
+- Try simple_deploy with a micro framework such as [django-singlefile](https://github.com/andrewgodwin/django-singlefile) or [nanodjango](https://github.com/radiac/nanodjango).
 
 Testing
 ---
 
 - Check for each platform's CLI when needed before running tests that depend on it.
 - Check for poetry, and any other package manager, before running any tests that depend on it.
-- Allow tests to be run for one specific package manager. Or exclude a package manager? See [#210](https://github.com/ehmatthes/django-simple-deploy/issues/210).
+- Allow tests to be run for one specific package manager. Or exclude a package manager? See [#270](https://github.com/ehmatthes/django-simple-deploy/issues/270).
+- Add a `--show-diff` argument to unit tests/ integration tests. See [#271](https://github.com/ehmatthes/django-simple-deploy/issues/271).
+- Consider using `uv` in place of `pip`, at least when testing. See [#291](https://github.com/ehmatthes/django-simple-deploy/issues/291).
+- Refine testing. See [#296](https://github.com/ehmatthes/django-simple-deploy/issues/296), and any open tasks in [#285](https://github.com/ehmatthes/django-simple-deploy/issues/285).
+- Move `build_dev_env.py` from `e2e_tests/utils/` to `developer_resources/`. See [#245](https://github.com/ehmatthes/django-simple-deploy/issues/245).
 
 Documentation
 ---
@@ -49,6 +59,7 @@ New platforms
 Fly.io
 ---
 
+- Simplify approach to checking for db. See [#297](https://github.com/ehmatthes/django-simple-deploy/issues/297).
 
 Platform.sh
 ---
