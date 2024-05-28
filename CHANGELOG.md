@@ -6,7 +6,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.6 - Stable deployments on all three platforms
 ---
 
-### Unreleased
+### 0.6.3
 
 #### External changes
 
