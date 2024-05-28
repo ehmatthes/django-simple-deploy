@@ -46,8 +46,7 @@ class PlatformDeployer:
         self._validate_platform()
 
         self._prep_automate_all()
-        self._set_on_flyio()
-        self._set_debug()
+        self._set_env_vars()
         self._add_dockerfile()
         self._add_dockerignore()
         self._add_flytoml()
@@ -109,6 +108,14 @@ class PlatformDeployer:
         """Take any further actions needed if using automate_all."""
         # All necessary resources have been created earlier, during validation.
         pass
+
+    def _set_env_vars(self):
+        """Set Fly.io-specific environment variables."""
+        if self.sd.unit_testing:
+            return
+
+        self._set_on_flyio()
+        self.set_debug()
 
     def _set_on_flyio(self):
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
@@ -263,11 +270,11 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
     def _set_secret(self, needle, secret):
-        """Set a secret on Fly, if it's not already set."""
-        if self.sd.unit_testing:
-            msg = "  Skipping for unit testing."
-            self.sd.write_output(msg)
-            return
+        """Set a secret on Fly, if it's not already set.
+
+        DEV: Do we need to say that it's already set, and get confirmation to change
+        value? (Only needed if it's not set to same value.)
+        """
 
         # First check if secret has already been set.
         #   Don't log output of `fly secrets list`!
