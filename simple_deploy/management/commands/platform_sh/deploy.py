@@ -92,6 +92,7 @@ class PlatformDeployer:
             self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
             return
 
+        self._check_plsh_settings()
         self._validate_cli()
 
         self.deployed_project_name = self._get_platformsh_project_name()
@@ -286,6 +287,16 @@ class PlatformDeployer:
             self.sd.write_output(msg)
 
     # --- Helper methods for methods called from simple_deploy.py ---
+
+    def _check_plsh_settings(self):
+        """Check to see if a Platform.sh settings block already exists."""
+        start_line = "# Platform.sh settings."
+        self.sd.check_settings(
+            "Platform.sh",
+            start_line,
+            self.messages.plsh_settings_found,
+            self.messages.cant_overwrite_settings,
+        )
 
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed, and user is authenticated."""

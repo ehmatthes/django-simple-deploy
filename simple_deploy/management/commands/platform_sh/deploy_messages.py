@@ -42,6 +42,17 @@ You can log in from  the command line:
   $ platform login
 """
 
+plsh_settings_found = """
+There is already a Platform.sh-specific settings block in settings.py. Is it okay to
+overwrite this block, and everything that follows in settings.py?
+"""
+
+cant_overwrite_settings = """
+In order to configure the project for deployment, we need to write a Platform.sh-specific
+settings block. Please remove the current Platform.sh-specific settings, and then run
+simple_deploy again.
+"""
+
 no_project_name = """
 A Platform.sh project name could not be found.
 
