@@ -50,6 +50,7 @@ class PlatformDeployer:
         self._generate_platform_app_yaml()
         self._make_platform_dir()
         self._generate_services_yaml()
+        
         self._conclude_automate_all()
         self._show_success_message()
 
