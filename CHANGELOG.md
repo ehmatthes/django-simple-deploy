@@ -12,6 +12,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 #### Internal changes
 
+- Move stale issues and tasks to [Parking Lot](https://django-simple-deploy.readthedocs.io/en/latest/contributing/parking_lot/).
+
 ### 0.6.2
 
 Many changes to update the project and work toward a plugin-based model. Most of this work is around simplifying workflows, and making them consistent across platforms.
