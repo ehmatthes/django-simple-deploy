@@ -45,7 +45,7 @@ class PlatformDeployer:
         self._validate_platform()
 
         self._prep_automate_all()
-        self._add_platformsh_settings()
+        self._modify_settings()
         self._add_requirements()
         self._generate_platform_app_yaml()
         self._make_platform_dir()
@@ -131,34 +131,15 @@ class PlatformDeployer:
             error_msg = self.messages.unknown_create_error(e)
             raise SimpleDeployCommandError(self.sd, error_msg)
 
-    def _add_platformsh_settings(self):
+    def _modify_settings(self):
         """Add platformsh-specific settings.
 
-        The only project-specific setting is ALLOWED_HOSTS. That makes modifying
-        settings *much* easier than for other platforms. Just check if the settings are
-        present, and if not, dump them in.
-
-        DEV: Modify this to make a more specific ALLOWED_HOSTS entry instead of "*".
+        This settings block is currently the same for all users. The ALLOWED_HOSTS
+        setting should be customized.
         """
-        self.sd.write_output(
-            "\n  Checking if Platform.sh-specific settings present in settings.py..."
-        )
+        self.sd.write_output("\n  Adding a Platform.sh-specific settings block...")
 
-        # PLATFORM_APPLICATION_NAME is an env var that's reliably set in the Platform.sh
-        # environment.
-        # See: https://docs.platform.sh/development/variables/use-variables.html#use-provided-variables
         settings_string = self.sd.settings_path.read_text()
-        if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in settings_string:
-            self.sd.write_output(
-                "\n    Found platform.sh settings block in settings.py."
-            )
-            return
-
-        # Add platformsh settings block.
-        self.sd.write_output(
-            "    No platform.sh settings found in settings.py; adding settings..."
-        )
-
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
         sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
