@@ -42,12 +42,9 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
-
         self._validate_platform()
 
-        if self.sd.automate_all:
-            self._prep_automate_all()
-
+        self._prep_automate_all()
         self._add_platformsh_settings()
         self._add_requirements()
         self._generate_platform_app_yaml()
@@ -102,6 +99,36 @@ class PlatformDeployer:
 
         self.org_name = self._get_org_name()
         self.sd.log_info(f"\nOrg name: {self.org_name}")
+
+    def _prep_automate_all(self):
+        """Intial work for automating entire process.
+
+        Returns:
+            None: If creation of new project was successful.
+
+        Raises:
+            SimpleDeployCommandError: If create command fails.
+
+        Note: create command outputs project id to stdout if known, all other
+          output goes to stderr.
+        """
+        if not self.sd.automate_all:
+            return
+
+        self.sd.write_output("  Running `platform create`...")
+        self.sd.write_output("    (Please be patient, this can take a few minutes.")
+        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
+
+        try:
+            # Note: if user can't create a project the returncode will be 6, not 1.
+            #   This may affect whether a CompletedProcess is returned, or an Exception
+            # is raised.
+            # Also, create command outputs project id to stdout if known, all other
+            # output goes to stderr.
+            self.sd.run_slow_command(cmd)
+        except subprocess.CalledProcessError as e:
+            error_msg = self.messages.unknown_create_error(e)
+            raise SimpleDeployCommandError(self.sd, error_msg)
 
     def _add_platformsh_settings(self):
         """Add platformsh-specific settings.
@@ -257,36 +284,6 @@ class PlatformDeployer:
         else:
             msg = self.messages.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
-
-    # --- Other helper methods ---
-
-    def _prep_automate_all(self):
-        """Intial work for automating entire process.
-
-        Returns:
-            None: If creation of new project was successful.
-
-        Raises:
-            SimpleDeployCommandError: If create command fails.
-
-        Note: create command outputs project id to stdout if known, all other
-          output goes to stderr.
-        """
-
-        self.sd.write_output("  Running `platform create`...")
-        self.sd.write_output("    (Please be patient, this can take a few minutes.")
-        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
-
-        try:
-            # Note: if user can't create a project the returncode will be 6, not 1.
-            #   This may affect whether a CompletedProcess is returned, or an Exception
-            # is raised.
-            # Also, create command outputs project id to stdout if known, all other
-            # output goes to stderr.
-            self.sd.run_slow_command(cmd)
-        except subprocess.CalledProcessError as e:
-            error_msg = self.messages.unknown_create_error(e)
-            raise SimpleDeployCommandError(self.sd, error_msg)
 
     # --- Helper methods for methods called from simple_deploy.py ---
 
