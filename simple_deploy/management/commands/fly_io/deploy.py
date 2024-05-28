@@ -201,17 +201,10 @@ class PlatformDeployer:
             self.sd.write_output(msg)
 
     def _modify_settings(self):
-        """Add settings specific to Fly.io, if not already present."""
-        self.sd.write_output("\n  Checking for Fly.io-specific settings...")
+        """Add platformsh-specific settings."""
+        self.sd.write_output("\n  Adding a Fly.io-specific settings block...")
 
         settings_string = self.sd.settings_path.read_text()
-        if 'if os.environ.get("ON_FLYIO"):' in settings_string:
-            self.sd.write_output("\n    Found Fly.io settings block in settings.py.")
-            return
-
-        # No Fly-specific settings found; add Fly.io settings block.
-        self.sd.write_output("    No Fly.io settings found; adding settings...")
-
         safe_settings_string = mark_safe(settings_string)
         context = {
             "current_settings": safe_settings_string,
