@@ -43,12 +43,9 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Fly.io...")
 
         self._confirm_preliminary()
-
         self._validate_platform()
 
-        if self.sd.automate_all:
-            self._prep_automate_all()
-
+        self._prep_automate_all()
         self._set_on_flyio()
         self._set_debug()
         self._add_dockerfile()
@@ -56,6 +53,7 @@ class PlatformDeployer:
         self._add_flytoml()
         self._modify_settings()
         self._add_requirements()
+
         self._conclude_automate_all()
         self._show_success_message()
 
@@ -96,6 +94,7 @@ class PlatformDeployer:
             self.deployed_project_name = self.sd.deployed_project_name
             return
 
+        self._check_flyio_settings()
         self._validate_cli()
 
         # Make sure a Fly.io app has been created, or create one if  using
@@ -326,6 +325,16 @@ class PlatformDeployer:
         return dockerignore_str
 
     # --- Helper methods for _validate_platform() ---
+
+    def _check_flyio_settings(self):
+        """Check to see if a Fly.io settings block already exists."""
+        start_line = "# --- Settings for Fly.io. ---"
+        self.sd.check_settings(
+            "Fly.io",
+            start_line,
+            self.messages.flyio_settings_found,
+            self.messages.cant_overwrite_settings,
+        )
 
     def _validate_cli(self):
         """Make sure the Fly.io CLI is installed, and user is authenticated."""
