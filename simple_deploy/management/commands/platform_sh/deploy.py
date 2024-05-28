@@ -43,9 +43,6 @@ class PlatformDeployer:
 
         self._confirm_preliminary()
 
-        if self.sd.automate_all:
-            self._confirm_automate_all()
-
         self._validate_platform()
 
         if self.sd.automate_all:
