@@ -48,6 +48,17 @@ You can log in from  the command line:
   $ fly auth login
 """
 
+flyio_settings_found = """
+There is already a Fly.io-specific settings block in settings.py. Is it okay to
+overwrite this block, and everything that follows in settings.py?
+"""
+
+cant_overwrite_settings = """
+In order to configure the project for deployment, we need to write a Fly.io-specific
+settings block. Please remove the current Fly.io-specific settings, and then run
+simple_deploy again.
+"""
+
 no_project_name = """
 A suitable Fly.io app to deploy against could not be found.
 

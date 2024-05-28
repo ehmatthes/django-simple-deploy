@@ -348,7 +348,7 @@ class PlatformDeployer:
         """Check to see if a Heroku settings block already exists."""
         start_line = "# Heroku settings."
         self.sd.check_settings(
-            "heroku",
+            "Heroku",
             start_line,
             self.messages.heroku_settings_found,
             self.messages.cant_overwrite_settings,

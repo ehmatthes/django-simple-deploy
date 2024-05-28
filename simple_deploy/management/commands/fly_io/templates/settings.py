@@ -1,7 +1,7 @@
 {{current_settings}}
 
 
-# --- Settings for Fly.io. ---
+# Fly.io settings.
 import os
 
 if os.environ.get("ON_FLYIO_SETUP") or os.environ.get("ON_FLYIO"):

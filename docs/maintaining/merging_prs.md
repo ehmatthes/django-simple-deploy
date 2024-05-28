@@ -22,4 +22,5 @@ Merging PRs
 - When appropriate, a maintainer will merge the PR, using `squash and merge` through the GitHub interface.
     - In the comment box for the `Confirm squash and merge` step, write a one-line commit message summarizing the PR, appropriate for one-line `git log` output.
     - For more significant PRs, write a longer message summarizing the major points of what was done. When you're finished writing the message, please delete the bullet points from the individual commits in the PR.
+    - Update the changelog after merging a PR. Use an "Unreleased" section if a new release is not being made. This can be a direct commit to main.
 - Everyone pulls changes to their local `main` branch: `git pull origin main`

@@ -255,7 +255,7 @@ class Command(BaseCommand):
                     "  Please answer yes or no.", skip_logging=skip_logging
                 )
 
-    def check_settings(self, platform, start_line, msg_found, msg_cant_overwrite):
+    def check_settings(self, platform_name, start_line, msg_found, msg_cant_overwrite):
         """Check if a platform-specific settings block already exists.
 
         If so, ask if we can overwrite that block. This is much simpler than trying to
@@ -274,7 +274,7 @@ class Command(BaseCommand):
         m = re.match(re_platform_settings, settings_text, re.DOTALL)
         
         if not m:
-            self.log_info(f"No {platform.title()}-specific settings block found.")
+            self.log_info(f"No {platform_name}-specific settings block found.")
             return
 
         # A platform-specific settings block exists. Get permission to overwrite it.
@@ -284,7 +284,7 @@ class Command(BaseCommand):
         # Platform-specific settings exist, but we can remove them and start fresh.
         self.settings_path.write_text(m.group(1))
 
-        msg = f"  Removed existing {platform.title()}-specific settings block."
+        msg = f"  Removed existing {platform_name}-specific settings block."
         self.write_output(msg)
 
 

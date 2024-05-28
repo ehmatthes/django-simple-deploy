@@ -42,20 +42,15 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
         self._confirm_preliminary()
-
-        if self.sd.automate_all:
-            self._confirm_automate_all()
-
         self._validate_platform()
 
-        if self.sd.automate_all:
-            self._prep_automate_all()
-
-        self._add_platformsh_settings()
+        self._prep_automate_all()
+        self._modify_settings()
         self._add_requirements()
         self._generate_platform_app_yaml()
         self._make_platform_dir()
         self._generate_services_yaml()
+
         self._conclude_automate_all()
         self._show_success_message()
 
@@ -98,6 +93,7 @@ class PlatformDeployer:
             self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
             return
 
+        self._check_plsh_settings()
         self._validate_cli()
 
         self.deployed_project_name = self._get_platformsh_project_name()
@@ -106,34 +102,45 @@ class PlatformDeployer:
         self.org_name = self._get_org_name()
         self.sd.log_info(f"\nOrg name: {self.org_name}")
 
-    def _add_platformsh_settings(self):
-        """Add platformsh-specific settings.
+    def _prep_automate_all(self):
+        """Intial work for automating entire process.
 
-        The only project-specific setting is ALLOWED_HOSTS. That makes modifying
-        settings *much* easier than for other platforms. Just check if the settings are
-        present, and if not, dump them in.
+        Returns:
+            None: If creation of new project was successful.
 
-        DEV: Modify this to make a more specific ALLOWED_HOSTS entry instead of "*".
+        Raises:
+            SimpleDeployCommandError: If create command fails.
+
+        Note: create command outputs project id to stdout if known, all other
+          output goes to stderr.
         """
-        self.sd.write_output(
-            "\n  Checking if Platform.sh-specific settings present in settings.py..."
-        )
-
-        # PLATFORM_APPLICATION_NAME is an env var that's reliably set in the Platform.sh
-        # environment.
-        # See: https://docs.platform.sh/development/variables/use-variables.html#use-provided-variables
-        settings_string = self.sd.settings_path.read_text()
-        if 'if os.environ.get("PLATFORM_APPLICATION_NAME"):' in settings_string:
-            self.sd.write_output(
-                "\n    Found platform.sh settings block in settings.py."
-            )
+        if not self.sd.automate_all:
             return
 
-        # Add platformsh settings block.
-        self.sd.write_output(
-            "    No platform.sh settings found in settings.py; adding settings..."
-        )
+        self.sd.write_output("  Running `platform create`...")
+        self.sd.write_output("    (Please be patient, this can take a few minutes.")
+        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
 
+        try:
+            # Note: if user can't create a project the returncode will be 6, not 1.
+            #   This may affect whether a CompletedProcess is returned, or an Exception
+            # is raised.
+            # Also, create command outputs project id to stdout if known, all other
+            # output goes to stderr.
+            self.sd.run_slow_command(cmd)
+        except subprocess.CalledProcessError as e:
+            error_msg = self.messages.unknown_create_error(e)
+            raise SimpleDeployCommandError(self.sd, error_msg)
+
+    def _modify_settings(self):
+        """Add platformsh-specific settings.
+
+        This settings block is currently the same for all users. The ALLOWED_HOSTS
+        setting should be customized.
+        """
+        self.sd.write_output("\n  Adding a Platform.sh-specific settings block...")
+
+        settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
         sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
@@ -261,37 +268,17 @@ class PlatformDeployer:
             msg = self.messages.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
 
-    # --- Other helper methods ---
-
-    def _prep_automate_all(self):
-        """Intial work for automating entire process.
-
-        Returns:
-            None: If creation of new project was successful.
-
-        Raises:
-            SimpleDeployCommandError: If create command fails.
-
-        Note: create command outputs project id to stdout if known, all other
-          output goes to stderr.
-        """
-
-        self.sd.write_output("  Running `platform create`...")
-        self.sd.write_output("    (Please be patient, this can take a few minutes.")
-        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
-
-        try:
-            # Note: if user can't create a project the returncode will be 6, not 1.
-            #   This may affect whether a CompletedProcess is returned, or an Exception
-            # is raised.
-            # Also, create command outputs project id to stdout if known, all other
-            # output goes to stderr.
-            self.sd.run_slow_command(cmd)
-        except subprocess.CalledProcessError as e:
-            error_msg = self.messages.unknown_create_error(e)
-            raise SimpleDeployCommandError(self.sd, error_msg)
-
     # --- Helper methods for methods called from simple_deploy.py ---
+
+    def _check_plsh_settings(self):
+        """Check to see if a Platform.sh settings block already exists."""
+        start_line = "# Platform.sh settings."
+        self.sd.check_settings(
+            "Platform.sh",
+            start_line,
+            self.messages.plsh_settings_found,
+            self.messages.cant_overwrite_settings,
+        )
 
     def _validate_cli(self):
         """Make sure the Platform.sh CLI is installed, and user is authenticated."""

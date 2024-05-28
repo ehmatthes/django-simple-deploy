@@ -43,19 +43,16 @@ class PlatformDeployer:
         self.sd.write_output("\nConfiguring project for deployment to Fly.io...")
 
         self._confirm_preliminary()
-
         self._validate_platform()
 
-        if self.sd.automate_all:
-            self._prep_automate_all()
-
-        self._set_on_flyio()
-        self._set_debug()
+        self._prep_automate_all()
+        self._set_env_vars()
         self._add_dockerfile()
         self._add_dockerignore()
         self._add_flytoml()
         self._modify_settings()
         self._add_requirements()
+
         self._conclude_automate_all()
         self._show_success_message()
 
@@ -96,6 +93,7 @@ class PlatformDeployer:
             self.deployed_project_name = self.sd.deployed_project_name
             return
 
+        self._check_flyio_settings()
         self._validate_cli()
 
         # Make sure a Fly.io app has been created, or create one if  using
@@ -110,6 +108,14 @@ class PlatformDeployer:
         """Take any further actions needed if using automate_all."""
         # All necessary resources have been created earlier, during validation.
         pass
+
+    def _set_env_vars(self):
+        """Set Fly.io-specific environment variables."""
+        if self.sd.unit_testing:
+            return
+
+        self._set_on_flyio()
+        self._set_debug()
 
     def _set_on_flyio(self):
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
@@ -202,17 +208,10 @@ class PlatformDeployer:
             self.sd.write_output(msg)
 
     def _modify_settings(self):
-        """Add settings specific to Fly.io, if not already present."""
-        self.sd.write_output("\n  Checking for Fly.io-specific settings...")
+        """Add platformsh-specific settings."""
+        self.sd.write_output("\n  Adding a Fly.io-specific settings block...")
 
         settings_string = self.sd.settings_path.read_text()
-        if 'if os.environ.get("ON_FLYIO"):' in settings_string:
-            self.sd.write_output("\n    Found Fly.io settings block in settings.py.")
-            return
-
-        # No Fly-specific settings found; add Fly.io settings block.
-        self.sd.write_output("    No Fly.io settings found; adding settings...")
-
         safe_settings_string = mark_safe(settings_string)
         context = {
             "current_settings": safe_settings_string,
@@ -271,11 +270,11 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
     def _set_secret(self, needle, secret):
-        """Set a secret on Fly, if it's not already set."""
-        if self.sd.unit_testing:
-            msg = "  Skipping for unit testing."
-            self.sd.write_output(msg)
-            return
+        """Set a secret on Fly, if it's not already set.
+
+        DEV: Do we need to say that it's already set, and get confirmation to change
+        value? (Only needed if it's not set to same value.)
+        """
 
         # First check if secret has already been set.
         #   Don't log output of `fly secrets list`!
@@ -326,6 +325,16 @@ class PlatformDeployer:
         return dockerignore_str
 
     # --- Helper methods for _validate_platform() ---
+
+    def _check_flyio_settings(self):
+        """Check to see if a Fly.io settings block already exists."""
+        start_line = "# Fly.io settings."
+        self.sd.check_settings(
+            "Fly.io",
+            start_line,
+            self.messages.flyio_settings_found,
+            self.messages.cant_overwrite_settings,
+        )
 
     def _validate_cli(self):
         """Make sure the Fly.io CLI is installed, and user is authenticated."""
