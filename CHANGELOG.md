@@ -10,9 +10,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 #### External changes
 
+- Platform.sh deployments were broken. Fixed redundant, broken check for confirming automate_all.
+
 #### Internal changes
 
 - Move stale issues and tasks to [Parking Lot](https://django-simple-deploy.readthedocs.io/en/latest/contributing/parking_lot/).
+- Consistent approach to managing settings and env vars across all platforms.
 
 ### 0.6.2
 

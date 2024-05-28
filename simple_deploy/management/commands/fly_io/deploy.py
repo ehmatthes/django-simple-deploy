@@ -115,7 +115,7 @@ class PlatformDeployer:
             return
 
         self._set_on_flyio()
-        self.set_debug()
+        self._set_debug()
 
     def _set_on_flyio(self):
         """Set a secret, ON_FLYIO. This is used in settings.py to apply
