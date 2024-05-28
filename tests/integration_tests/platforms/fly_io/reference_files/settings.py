@@ -135,7 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'users:login'
 
 
-# --- Settings for Fly.io. ---
+# Fly.io settings.
 import os
 
 if os.environ.get("ON_FLYIO_SETUP") or os.environ.get("ON_FLYIO"):

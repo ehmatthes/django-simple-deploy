@@ -321,7 +321,7 @@ class PlatformDeployer:
 
     def _check_flyio_settings(self):
         """Check to see if a Fly.io settings block already exists."""
-        start_line = "# --- Settings for Fly.io. ---"
+        start_line = "# Fly.io settings."
         self.sd.check_settings(
             "Fly.io",
             start_line,
