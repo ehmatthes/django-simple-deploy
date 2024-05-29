@@ -8,7 +8,7 @@ hide:
 
 ## Overview
 
-Support for Platform.sh is in a preliminary phase. For example, it won't work if you already have a project deployed to Platform.sh, or if you have more than one org.
+Support for Platform.sh is in a preliminary phase. For example, it won't work if you have more than one Platform.sh org.
 
 Deployment to Platform.sh can be fully automated, but the configuration-only approach is recommended. This allows you to review the changes that are made to your project before committing them and making the initial push. The fully automated approach configures your project, commits these changes, and pushes the project to Platform.sh' servers.
 
