@@ -10,7 +10,6 @@ from django.conf import settings
 confirm_preliminary = """
 ***** Deployment to platform.sh is under active development at this point ***
 
-- If you already have a project deployed on Platform.sh, configuration will fail.
 - If you have more than one org on Platform.sh, configuration will fail.
 """
 
