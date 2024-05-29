@@ -10,6 +10,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 #### External changes
 
+- Removed warnings about not supporting multiple projects on Platform.sh.
+
 #### Internal changes
 
 ### 0.6.3
