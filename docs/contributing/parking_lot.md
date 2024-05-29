@@ -64,6 +64,8 @@ Fly.io
 Platform.sh
 ---
 
+- Update runtime to Python 3.12.
+
 
 Heroku
 ---
