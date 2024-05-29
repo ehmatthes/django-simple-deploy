@@ -383,22 +383,46 @@ class PlatformDeployer:
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
-        org_name = plsh_utils.get_org_name(output_str)
-        if not org_name:
+        org_names = plsh_utils.get_org_names(output_str)
+        if not org_names:
             raise SimpleDeployCommandError(self.sd, self.messages.org_not_found)
 
-        if self._confirm_use_org_name(org_name):
-            return org_name
+        if len(org_names) == 1:
+            # Get permission to use this org.
+            if self._confirm_use_org(org_name):
+                return org_name
 
-    def _confirm_use_org_name(self, org_name):
-        """Confirm that it's okay to use the org name that was found.
+        # Show all orgs, ask user to make selection.
+        prompt = "\n*** Found multiple orgs on Platform.sh. ***"
+        for index, name in enumerate(org_names):
+            prompt += f"\n  {index}: {name}"
+        prompt += "\nWhich org would you like to use? "
+
+        valid_choices = [i for i in range(len(org_names))]
+
+        # Confirm selection, because we do *not* want to deploy using the wrong org.
+        confirmed = False
+        while not confirmed:
+            selection = sd_utils.get_numbered_choice(
+                self.sd, prompt, valid_choices, self.messages.no_org_available
+            )
+            selected_org = org_names[selection]
+
+            confirm_prompt = f"You have selected {selected_org}."
+            confirm_prompt += " Is that correct?"
+            confirmed = self.sd.get_confirmation(confirm_prompt)
+
+            return selected_org
+
+    def _confirm_use_org(self, org_name):
+        """Confirm that it's okay to use the org that was found.
 
         Returns:
             True: if confirmed
             SimpleDeployCommandError: if not confirmed
         """
 
-        self.stdout.write(self.messages.confirm_use_org_name(org_name))
+        self.stdout.write(self.messages.confirm_use_org(org_name))
         confirmed = self.sd.get_confirmation(skip_logging=True)
 
         if confirmed:

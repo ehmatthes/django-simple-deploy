@@ -43,4 +43,4 @@ def get_org_names(output_str):
         list: [str]
     """
     lines = output_str.split("\n")[1:]
-    return [line.split(",")[0] for line in lines]
+    return [line.split(",")[0] for line in lines if line]
