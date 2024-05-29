@@ -65,6 +65,7 @@ Platform.sh
 ---
 
 - Update runtime to Python 3.12.
+- The method `_validate_platform()` makes sure the user is authenticated through the CLI. I believe we can remove some checks for authentication in subsequent CLI calls, as in `_get_org_name()`.
 
 
 Heroku
