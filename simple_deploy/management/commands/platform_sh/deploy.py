@@ -383,15 +383,6 @@ class PlatformDeployer:
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
-        if not output_str:
-            output_str = output_obj.stderr.decode()
-            if "LoginRequiredException" in output_str:
-                raise SimpleDeployCommandError(self.sd, self.messages.login_required)
-            else:
-                error_msg = self.messages.unknown_error
-                error_msg += self.messages.cli_not_installed
-                raise SimpleDeployCommandError(self.sd, error_msg)
-
         org_name = plsh_utils.get_org_name(output_str)
         if not org_name:
             raise SimpleDeployCommandError(self.sd, self.messages.org_not_found)
