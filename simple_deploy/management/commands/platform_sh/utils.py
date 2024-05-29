@@ -30,3 +30,17 @@ def get_org_name(output_str):
     org_name = target_line.split(",")[0].strip()
 
     return org_name
+
+def get_org_names(output_str):
+    """Get org names from output of `platform organization:list --yes --format csv`.
+
+    Sample input:
+        Name,Label,Owner email
+        <org-name>,<org-label>,<org-owner@example.com>
+        <org-name-2>,<org-label-2>,<org-owner-2@example.com>
+
+    Returns:
+        list: [str]
+    """
+    lines = output_str.split("\n")[1:]
+    return [line.split(",")[0] for line in lines]
