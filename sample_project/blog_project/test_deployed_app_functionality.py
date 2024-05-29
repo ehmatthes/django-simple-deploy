@@ -335,7 +335,6 @@ headers = {
 logout_url = f"{app_url}users/logout/"
 r = s.post(logout_url, data=post_data, headers=headers)
 
-print(r.status_code)
 assert r.status_code == 200
 assert "Logged out" in r.text
 assert "You have been logged out. Thank you for visiting!" in r.text
