@@ -69,7 +69,7 @@ Support for a new platform starts out as a proof-of-concept, showing that deploy
 
 | Fly.io | Platform.sh | Heroku |
 | :--------------------------: | :----: | :----: |
-| :fontawesome-regular-square-check: | :fontawesome-regular-square-check: | :fontawesome-regular-square-check: |
+| :fontawesome-solid-square-check: | :fontawesome-solid-square-check: | :fontawesome-solid-square-check: |
 
 ## Other notes
 

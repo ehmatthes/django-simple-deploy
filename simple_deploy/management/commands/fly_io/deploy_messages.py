@@ -7,19 +7,6 @@ from textwrap import dedent
 from django.conf import settings
 
 
-confirm_preliminary = """
-***** Support for Fly.io is in the preliminary phase ***
-
-- Support for deploying to Fly.io is in the preliminary phase at this point.
-- You should only be using this project to deploy to Fly.io at this point if
-  you are interested in helping to develop or test the simple_deploy project.
-- You should look at the deploy_flyio.py script before running this command,
-  so you know what kinds of changes will be made to your project.
-- You should understand the Fly.io console, and be comfortable deleting resources
-  that are created during this deployment.
-- You may want to cancel this run and deploy to a different platform.
-"""
-
 confirm_automate_all = """
 The --automate-all flag means simple_deploy will:
 - Run `fly apps create` for you, to create an empty Fly.io project.

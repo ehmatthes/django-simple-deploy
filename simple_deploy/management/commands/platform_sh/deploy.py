@@ -41,7 +41,6 @@ class PlatformDeployer:
 
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
-        self._confirm_preliminary()
         self._validate_platform()
 
         self._prep_automate_all()
@@ -55,22 +54,6 @@ class PlatformDeployer:
         self._show_success_message()
 
     # --- Helper methods for deploy() ---
-
-    def _confirm_preliminary(self):
-        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
-        self.sd.write_output(self.messages.confirm_preliminary)
-
-        # Unit test check is here, so message is logged.
-        if self.sd.unit_testing:
-            return
-
-        if self.sd.get_confirmation():
-            self.sd.write_output("  Continuing with platform.sh deployment...")
-        else:
-            # Quit and invite the user to try another platform. We are happily exiting
-            # the script; there's no need to raise an error.
-            self.sd.write_output(self.messages.cancel_plsh)
-            sys.exit()
 
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to
@@ -383,31 +366,47 @@ class PlatformDeployer:
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
-        if not output_str:
-            output_str = output_obj.stderr.decode()
-            if "LoginRequiredException" in output_str:
-                raise SimpleDeployCommandError(self.sd, self.messages.login_required)
-            else:
-                error_msg = self.messages.unknown_error
-                error_msg += self.messages.cli_not_installed
-                raise SimpleDeployCommandError(self.sd, error_msg)
-
-        org_name = plsh_utils.get_org_name(output_str)
-        if not org_name:
+        org_names = plsh_utils.get_org_names(output_str)
+        if not org_names:
             raise SimpleDeployCommandError(self.sd, self.messages.org_not_found)
 
-        if self._confirm_use_org_name(org_name):
-            return org_name
+        if len(org_names) == 1:
+            # Get permission to use this org.
+            org_name = org_names[0]
+            if self._confirm_use_org(org_name):
+                return org_name
 
-    def _confirm_use_org_name(self, org_name):
-        """Confirm that it's okay to use the org name that was found.
+        # Show all orgs, ask user to make selection.
+        prompt = "\n*** Found multiple orgs on Platform.sh. ***"
+        for index, name in enumerate(org_names):
+            prompt += f"\n  {index}: {name}"
+        prompt += "\nWhich org would you like to use? "
+
+        valid_choices = [i for i in range(len(org_names))]
+
+        # Confirm selection, because we do *not* want to deploy using the wrong org.
+        confirmed = False
+        while not confirmed:
+            selection = sd_utils.get_numbered_choice(
+                self.sd, prompt, valid_choices, self.messages.no_org_available
+            )
+            selected_org = org_names[selection]
+
+            confirm_prompt = f"You have selected {selected_org}."
+            confirm_prompt += " Is that correct?"
+            confirmed = self.sd.get_confirmation(confirm_prompt)
+
+            return selected_org
+
+    def _confirm_use_org(self, org_name):
+        """Confirm that it's okay to use the org that was found.
 
         Returns:
             True: if confirmed
             SimpleDeployCommandError: if not confirmed
         """
 
-        self.stdout.write(self.messages.confirm_use_org_name(org_name))
+        self.stdout.write(self.messages.confirm_use_org(org_name))
         confirmed = self.sd.get_confirmation(skip_logging=True)
 
         if confirmed:

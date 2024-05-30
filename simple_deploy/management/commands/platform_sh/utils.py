@@ -17,16 +17,20 @@ def get_project_name(output_str):
     return project_name
 
 
-def get_org_name(output_str):
-    """Get org name from output of `platfrom organizations:list`.
+def get_org_names(output_str):
+    """Get org names from output of `platform organization:list --yes --format csv`.
 
-    Run with `--format csv` flag.
+    Sample input:
+        Name,Label,Owner email
+        <org-name>,<org-label>,<org-owner@example.com>
+        <org-name-2>,<org-label-2>,<org-owner-2@example.com>
 
     Returns:
-        str: org name
+        list: [str]
+        None: If user has no organizations.
     """
-    # Assume one org.
-    target_line = output_str.split("\n")[1]
-    org_name = target_line.split(",")[0].strip()
+    if "No organizations found." in output_str:
+        return None
 
-    return org_name
+    lines = output_str.split("\n")[1:]
+    return [line.split(",")[0] for line in lines if line]

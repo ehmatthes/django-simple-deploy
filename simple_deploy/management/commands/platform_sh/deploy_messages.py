@@ -7,12 +7,6 @@ from textwrap import dedent
 from django.conf import settings
 
 
-confirm_preliminary = """
-***** Deployment to platform.sh is under active development at this point ***
-
-- If you have more than one org on Platform.sh, configuration will fail.
-"""
-
 confirm_automate_all = """
 The --automate-all flag means simple_deploy will:
 - Run `platform create` for you, to create an empty Platform.sh project.
@@ -75,6 +69,11 @@ You can also do this through the CLI using the `platform organization:create` co
 For help, run `platform help organization:create`.
 """
 
+no_org_available = """
+A Platform.sh org must be used to make a deployment. Please identify or create the org
+you'd like to use, and then try again.
+"""
+
 login_required = """
 You appear to be logged out of the Platform.sh CLI. Please run the 
 command `platform login`, and then run simple_deploy again.
@@ -100,14 +99,14 @@ will do all of the necessary configuration for deployment.
 #   determined as the script runs.
 
 
-def confirm_use_org_name(org_name):
-    """Confirm use of this org name to create a new project."""
+def confirm_use_org(org_name):
+    """Confirm use of this org to create a new project."""
 
     msg = dedent(
         f"""
         --- The Platform.sh CLI requires an organization name when creating a new project. ---
         When using --automate-all, a project will be created on your behalf. The following
-        organization name was found: {org_name}
+        organization was found: {org_name}
 
         This organization will be used to create a new project. If this is not okay,
         enter n to cancel this operation.

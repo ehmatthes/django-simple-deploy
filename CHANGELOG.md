@@ -10,7 +10,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 #### External changes
 
-- Removed warnings about not supporting multiple projects on Platform.sh.
+- Platform.sh now works for users with multiple orgs, and multiple projects already deployed.
+- Removed warnings about preliminary status of Fly.io and Platform.sh.
 
 #### Internal changes
 
