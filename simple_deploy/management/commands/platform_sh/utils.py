@@ -41,6 +41,10 @@ def get_org_names(output_str):
 
     Returns:
         list: [str]
+        None: If user has no organizations.
     """
+    if "No organizations found." in output_str:
+        return None
+
     lines = output_str.split("\n")[1:]
     return [line.split(",")[0] for line in lines if line]
