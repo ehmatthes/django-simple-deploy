@@ -105,7 +105,6 @@ def test_log_dir(tmp_project):
     # DEV: Update these for more platform-specific log messages.
     # Spot check for opening log messages.
     assert "INFO: Logging run of `manage.py simple_deploy`..." in log_file_text
-    assert "INFO: ***** Support for Fly.io is in the preliminary phase ***" in log_file_text
     assert "INFO: Configuring project for deployment to Fly.io..." in log_file_text
 
     assert "INFO: CLI args:" in log_file_text

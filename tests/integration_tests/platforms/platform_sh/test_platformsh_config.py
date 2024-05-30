@@ -86,7 +86,6 @@ def test_log_dir(tmp_project):
     # DEV: Update these for more platform-specific log messages.
     # Spot check for opening log messages.
     assert "INFO: Logging run of `manage.py simple_deploy`..." in log_file_text
-    assert "INFO: ***** Deployments to platform.sh are experimental at this point ***"
     assert "INFO: Configuring project for deployment to Platform.sh..." in log_file_text
 
     assert "INFO: CLI args:" in log_file_text
