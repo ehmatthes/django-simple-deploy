@@ -17,20 +17,6 @@ def get_project_name(output_str):
     return project_name
 
 
-def get_org_name(output_str):
-    """Get org name from output of `platfrom organizations:list`.
-
-    Run with `--format csv` flag.
-
-    Returns:
-        str: org name
-    """
-    # Assume one org.
-    target_line = output_str.split("\n")[1]
-    org_name = target_line.split(",")[0].strip()
-
-    return org_name
-
 def get_org_names(output_str):
     """Get org names from output of `platform organization:list --yes --format csv`.
 
