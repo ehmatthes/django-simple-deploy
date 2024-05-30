@@ -16,12 +16,24 @@ def test_get_project_name():
 
 def test_get_org_names():
     """Make sure we get the org names, not label or email."""
-    output_str = (
-        "Name,Label,Owner email\nusername-name,username-label,username@example.com"
-    )
+    # Zero orgs.
+    output_str = dedent("""\
+        No organizations found.
+
+        To create a new organization, run: platform org:create""")
+
+    org_names = plsh_utils.get_org_names(output_str)
+    assert org_names is None
+
+    # One org.
+    output_str = dedent("""\
+        Name,Label,Owner email
+        username-name,username-label,username@example.com""")
+
     org_names = plsh_utils.get_org_names(output_str)
     assert org_names == ["username-name"]
 
+    # Two orgs.
     output_str = dedent("""\
         Name,Label,Owner email
         org_name,org_label,org_owner@example.com
