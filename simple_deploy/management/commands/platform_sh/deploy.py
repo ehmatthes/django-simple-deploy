@@ -389,6 +389,7 @@ class PlatformDeployer:
 
         if len(org_names) == 1:
             # Get permission to use this org.
+            org_name = org_names[0]
             if self._confirm_use_org(org_name):
                 return org_name
 
