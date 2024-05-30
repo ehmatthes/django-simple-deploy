@@ -41,7 +41,6 @@ class PlatformDeployer:
 
         self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
 
-        self._confirm_preliminary()
         self._validate_platform()
 
         self._prep_automate_all()
@@ -55,22 +54,6 @@ class PlatformDeployer:
         self._show_success_message()
 
     # --- Helper methods for deploy() ---
-
-    def _confirm_preliminary(self):
-        """Confirm acknwledgement of preliminary (pre-1.0) state of project."""
-        self.sd.write_output(self.messages.confirm_preliminary)
-
-        # Unit test check is here, so message is logged.
-        if self.sd.unit_testing:
-            return
-
-        if self.sd.get_confirmation():
-            self.sd.write_output("  Continuing with platform.sh deployment...")
-        else:
-            # Quit and invite the user to try another platform. We are happily exiting
-            # the script; there's no need to raise an error.
-            self.sd.write_output(self.messages.cancel_plsh)
-            sys.exit()
 
     def _validate_platform(self):
         """Make sure the local environment and project supports deployment to

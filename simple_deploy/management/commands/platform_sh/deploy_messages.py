@@ -7,12 +7,6 @@ from textwrap import dedent
 from django.conf import settings
 
 
-confirm_preliminary = """
-***** Deployment to platform.sh is under active development at this point ***
-
-- If you have more than one org on Platform.sh, configuration will fail.
-"""
-
 confirm_automate_all = """
 The --automate-all flag means simple_deploy will:
 - Run `platform create` for you, to create an empty Platform.sh project.
