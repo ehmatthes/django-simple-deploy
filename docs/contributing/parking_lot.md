@@ -32,6 +32,10 @@ General ideas
 - Consider a tagline. [#284](https://github.com/ehmatthes/django-simple-deploy/issues/284).
 - Consider pyupgrade for finding old Python idioms that are no longer needed. See [#299](https://github.com/ehmatthes/django-simple-deploy/issues/299).
 - Try simple_deploy with a micro framework such as [django-singlefile](https://github.com/andrewgodwin/django-singlefile) or [nanodjango](https://github.com/radiac/nanodjango).
+- Should the project support Poetry?
+    - Poetry seems to be well-respected for developing libraries, but I don't know that anyone is really using it to manage dependencies for Django projects. If not, there's no reason to support it in this project.
+    - Perhaps support it, but dial back some of the specificity of tests? Poetry is resolving at a finer grain size than we need to pay attention to?
+    - I believe poetry does not conform to emerging standards for specifying Python dependencies. How much of a burden is it to support poetry? Perhaps moderate support, in the sense of exporting to requirements.txt?
 
 Testing
 ---
@@ -73,3 +77,30 @@ Heroku
 
 - If not pushing from the main branch, state that explicitly. Consider confirming that's what user wants. State the branch name explicitly in the summary message. See [#5](https://github.com/ehmatthes/django-simple-deploy/issues/5).
 - Reconsider Heroku support. People have lost confidence in Heroku in recent years, but it still keeps largely working. See [#91](https://github.com/ehmatthes/django-simple-deploy/issues/91).
+
+
+Windows
+---
+
+- Cloning to a Windows VM automatically started a development server for the sample project?!
+
+```cmd
+C:\Users\eric>git clone https://github.com/ehmatthes/django-simple-deploy.git
+Cloning into 'django-simple-deploy'...
+remote: Enumerating objects: 4832, done.
+remote: Counting objects: 100% (1000/1000), done.
+remote: Compressing objects: 100% (528/528), done.
+remote: Total 4832 (delta 635), reused 683 (delta 440), pack-reused 3832
+Receiving objects: 100% (4832/4832), 17.16 MiB | 17.14 MiB/s, done.
+Resolving deltas: 100% (2781/2781), done.
+
+C:\Users\eric>C:\Users\eric\django-simple-deploy\simple_deploy\apps.py changed, reloading.
+Watching for file changes with StatReloader
+Performing system checks...
+
+System check identified no issues (0 silenced).
+May 31, 2024 - 06:32:02
+Django version 5.0.6, using settings 'blog.settings'
+Starting development server at http://127.0.0.1:8008/
+Quit the server with CTRL-BREAK.
+```
