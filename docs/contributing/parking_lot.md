@@ -36,6 +36,7 @@ General ideas
     - Poetry seems to be well-respected for developing libraries, but I don't know that anyone is really using it to manage dependencies for Django projects. If not, there's no reason to support it in this project.
     - Perhaps support it, but dial back some of the specificity of tests? Poetry is resolving at a finer grain size than we need to pay attention to?
     - I believe poetry does not conform to emerging standards for specifying Python dependencies. How much of a burden is it to support poetry? Perhaps moderate support, in the sense of exporting to requirements.txt?
+- There are some interesting notes in [#238](https://github.com/ehmatthes/django-simple-deploy/issues/238).
 
 Testing
 ---
