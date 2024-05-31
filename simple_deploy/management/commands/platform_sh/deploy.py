@@ -338,7 +338,8 @@ class PlatformDeployer:
         # Assume first project is one to use.
         project_name = title_line.split(",")[1].strip()
         project_name = plsh_utils.get_project_name(output_str)
-        # Project names can't have spaces; replace with underscores.
+
+        # Project names can only have lowercase alphanumeric characters.
         # See: https://github.com/ehmatthes/django-simple-deploy/issues/323
         if " " in project_name:
             project_name = project_name.replace(" ", "_").lower()

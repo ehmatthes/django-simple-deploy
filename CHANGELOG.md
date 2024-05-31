@@ -6,6 +6,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.6 - Stable deployments on all three platforms
 ---
 
+### 0.6.5
+
+#### External changes
+
+- Platform.sh deployments work with project names including spaces and capital letters. These names are converted to lowercase with underscores during configuration.
+
 ### 0.6.4
 
 #### External changes
