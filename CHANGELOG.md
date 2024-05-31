@@ -6,6 +6,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.6 - Stable deployments on all three platforms
 ---
 
+### Unreleased
+
+#### External changes
+
+#### Internal changes
+
 ### 0.6.5
 
 #### External changes
