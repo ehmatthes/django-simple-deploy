@@ -112,7 +112,12 @@ class Command(BaseCommand):
         self._inspect_project()
         self._add_simple_deploy_req()
 
-        self._create_deployer()
+        # Call out to platform-specific deployer plugin here.
+        deployer_module = import_module(
+            f".{self.platform}.deploy", package="simple_deploy.management.commands"
+        )
+
+        self.platform_deployer = deployer_module.PlatformDeployer(self)
         self._confirm_automate_all()
         self.platform_deployer.deploy()
 
@@ -701,12 +706,12 @@ class Command(BaseCommand):
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
-    def _create_deployer(self):
-        """Instantiate the PlatformDeployer object."""
-        deployer_module = import_module(
-            f".{self.platform}.deploy", package="simple_deploy.management.commands"
-        )
-        self.platform_deployer = deployer_module.PlatformDeployer(self)
+    # def _create_deployer(self):
+    #     """Instantiate the PlatformDeployer object."""
+    #     deployer_module = import_module(
+    #         f".{self.platform}.deploy", package="simple_deploy.management.commands"
+    #     )
+    #     self.platform_deployer = deployer_module.PlatformDeployer(self)
 
     def _confirm_automate_all(self):
         """Confirm the user understands what --automate-all does.
