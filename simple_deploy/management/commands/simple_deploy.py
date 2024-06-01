@@ -114,32 +114,17 @@ class Command(BaseCommand):
         self._inspect_project()
         self._add_simple_deploy_req()
 
-        # Call out to platform-specific deployer plugin here.
+        # Get the platform-specific deployer module.
         platform_module = import_module(
             f".{self.platform}.deploy", package="simple_deploy.management.commands"
         )
-
         pm.register(platform_module, self.platform)
+
         # Hook caller returns a list of returned args; it's a one-item list here.
         automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
-
-        # plugin_module = f"simple_deploy_{self.platform}"
-        # module = import_module(plugin_module)
-
-
-        # Old approach
-        # deployer_module = import_module(
-        #     f".{self.platform}.deploy", package="simple_deploy.management.commands"
-        # )
-
-        # self.platform_deployer = deployer_module.PlatformDeployer(self)
         self._confirm_automate_all(automate_all_msg)
 
-        # import pdb
-        # breakpoint()
         pm.hook.simple_deploy_deploy(sd=self)
-
-        # self.platform_deployer.deploy()
 
     # --- Methods used here, and also by platform-specific modules ---
 
