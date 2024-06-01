@@ -21,7 +21,7 @@ import simple_deploy
 @simple_deploy.hookimpl
 def simple_deploy_get_automate_all_msg():
     """Get platform-specific confirmation message for --automate-all flag."""
-    return plsh_msgs.confirm_automate_all
+    return heroku_msgs.confirm_automate_all
 
 @simple_deploy.hookimpl
 def simple_deploy_deploy(sd):
