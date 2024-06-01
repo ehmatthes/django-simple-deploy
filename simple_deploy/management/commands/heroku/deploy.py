@@ -4,6 +4,10 @@ import simple_deploy
 from .platform_deployer import PlatformDeployer
 from simple_deploy.management.commands.heroku import deploy_messages as platform_msgs
 
+@simple_deploy.hookimpl
+def simple_deploy_automate_all_supported():
+    """Specify whether --automate-all is supported on the specified platform."""
+    return True
 
 @simple_deploy.hookimpl
 def simple_deploy_get_automate_all_msg():

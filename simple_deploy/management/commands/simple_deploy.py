@@ -120,9 +120,17 @@ class Command(BaseCommand):
         )
         pm.register(platform_module, self.platform)
 
-        # Hook caller returns a list of returned args; it's a one-item list here.
-        automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
-        self._confirm_automate_all(automate_all_msg)
+        if self.automate_all:
+            # Make sure this platform supports automate-all.
+            supported = pm.hook.simple_deploy_automate_all_supported()[0]
+            if not supported:
+                msg = "\nThis platform does not support automated deployments."
+                msg += "\nYou may want to try again without the --automate-all flag."
+                raise sd_utils.SimpleDeployCommandError(self, msg)
+
+            # Confirm the user wants to automate all steps.
+            automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
+            self._confirm_automate_all(automate_all_msg)
 
         pm.hook.simple_deploy_deploy(sd=self)
 
