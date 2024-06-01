@@ -10,10 +10,24 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 from simple_deploy.management.commands import deploy_messages as d_msgs
-from simple_deploy.management.commands.heroku import deploy_messages as heroku_msgs
+from simple_deploy.management.commands.heroku import deploy_messages as platform_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
 from simple_deploy.management.commands import utils as sd_utils
+
+import simple_deploy
+
+
+@simple_deploy.hookimpl
+def simple_deploy_get_automate_all_msg():
+    """Get platform-specific confirmation message for --automate-all flag."""
+    return platform_msgs.confirm_automate_all
+
+@simple_deploy.hookimpl
+def simple_deploy_deploy(sd):
+    """Carry out platform-specific deployment steps."""
+    platform_deployer = PlatformDeployer(sd)
+    platform_deployer.deploy()
 
 
 class PlatformDeployer:
@@ -28,7 +42,7 @@ class PlatformDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
-        self.messages = heroku_msgs
+        self.messages = platform_msgs
 
     # --- Public methods ---
 
