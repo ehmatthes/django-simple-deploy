@@ -29,6 +29,12 @@ def simple_deploy_get_automate_all_msg():
     print("*** generating automate all msg")
     return "Automate all msg fly_io"
 
+@simple_deploy.hookimpl
+def simple_deploy_deploy(sd):
+    # print("here in deploy")
+    platform_deployer = PlatformDeployer(sd)
+    platform_deployer.deploy()
+
 
 class PlatformDeployer:
     """Perform the initial deployment to Fly.io
@@ -788,10 +794,3 @@ class PlatformDeployer:
 
         msg = "  Attached database to app."
         self.sd.write_output(msg)
-
-
-@simple_deploy.hookimpl
-def simple_deploy_deploy(sd):
-    # print("here in deploy")
-    platform_deployer = PlatformDeployer(sd)
-    platform_deployer.deploy()
