@@ -39,7 +39,7 @@ from . import deploy_messages as d_msgs
 from . import utils as sd_utils
 from . import cli
 
-import simple_deploy
+from simple_deploy.plugins import pm
 
 
 class Command(BaseCommand):
@@ -115,9 +115,23 @@ class Command(BaseCommand):
         self._add_simple_deploy_req()
 
         # Call out to platform-specific deployer plugin here.
-        deployer_module = import_module(
-            f".{self.platform}.deploy", package="simple_deploy.management.commands"
+        platform_module = import_module(
+            f".{self.platform}.fly_io", package="simple_deploy.management.commands"
         )
+
+        pm.register(platform_module, self.platform)
+        automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()
+
+        # plugin_module = f"simple_deploy_{self.platform}"
+        # module = import_module(plugin_module)
+
+        import pdb
+        breakpoint()
+
+        # Old approach
+        # deployer_module = import_module(
+        #     f".{self.platform}.deploy", package="simple_deploy.management.commands"
+        # )
 
         self.platform_deployer = deployer_module.PlatformDeployer(self)
         self._confirm_automate_all()
