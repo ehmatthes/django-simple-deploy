@@ -120,21 +120,23 @@ class Command(BaseCommand):
         )
 
         pm.register(platform_module, self.platform)
-        automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()
+        # Hook caller returns a list of returned args; it's a one-item list here.
+        automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
 
         # plugin_module = f"simple_deploy_{self.platform}"
         # module = import_module(plugin_module)
 
-        import pdb
-        breakpoint()
 
         # Old approach
         # deployer_module = import_module(
         #     f".{self.platform}.deploy", package="simple_deploy.management.commands"
         # )
 
-        self.platform_deployer = deployer_module.PlatformDeployer(self)
-        self._confirm_automate_all()
+        # self.platform_deployer = deployer_module.PlatformDeployer(self)
+        self._confirm_automate_all(automate_all_msg)
+        import pdb
+        breakpoint()
+        
         self.platform_deployer.deploy()
 
     # --- Methods used here, and also by platform-specific modules ---
@@ -722,19 +724,16 @@ class Command(BaseCommand):
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
-    def _confirm_automate_all(self):
+    def _confirm_automate_all(self, msg):
         """Confirm the user understands what --automate-all does.
 
         If confirmation not granted, exit with a message, but no error.
-
-        This must be called after the platform-specific deployer object is instantiated,
-        because we need a platform-specific confirmation message.
         """
         # Placing this check here keeps the handle() method cleaner.
         if not self.automate_all:
             return
 
-        self.write_output(self.platform_deployer.messages.confirm_automate_all)
+        self.write_output(msg)
         confirmed = self.get_confirmation()
 
         if confirmed:
