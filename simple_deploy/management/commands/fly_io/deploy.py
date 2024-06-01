@@ -788,3 +788,10 @@ class PlatformDeployer:
 
         msg = "  Attached database to app."
         self.sd.write_output(msg)
+
+
+@simple_deploy.hookimpl
+def simple_deploy_deploy():
+    print("here in deploy")
+    # platform_deployer = PlatformDeployer(sd)
+    # platform_deployer.deploy()
