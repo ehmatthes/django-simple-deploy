@@ -1,3 +1,3 @@
 import pluggy
 
-hookimpl = pluggy.HookimplMarker("django-simple-deploy")
+hookimpl = pluggy.HookimplMarker("simple_deploy")
