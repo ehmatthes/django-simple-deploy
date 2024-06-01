@@ -27,9 +27,9 @@ def write_file_from_template(path, template, context=None):
     #   from different places.
     caller = inspect.stack()[1].filename
     if sys.platform == "win32":
-        platform_re = r"\\simple_deploy\\management\\commands\\(.*)\\deploy.py"
+        platform_re = r"\\simple_deploy\\management\\commands\\(.*)\\platform_deployer.py"
     else:
-        platform_re = r"/simple_deploy/management/commands/(.*)/deploy.py"
+        platform_re = r"/simple_deploy/management/commands/(.*)/platform_deployer.py"
     m = re.search(platform_re, caller)
     platform = m.group(1)
 
