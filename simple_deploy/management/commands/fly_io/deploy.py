@@ -23,5 +23,3 @@ def simple_deploy_deploy(sd):
     """Carry out platform-specific deployment steps."""
     platform_deployer = PlatformDeployer(sd)
     platform_deployer.deploy()
-
-
