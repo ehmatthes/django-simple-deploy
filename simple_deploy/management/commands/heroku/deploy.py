@@ -15,6 +15,20 @@ from simple_deploy.management.commands.heroku import deploy_messages as heroku_m
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
 from simple_deploy.management.commands import utils as sd_utils
 
+import simple_deploy
+
+
+@simple_deploy.hookimpl
+def simple_deploy_get_automate_all_msg():
+    """Get platform-specific confirmation message for --automate-all flag."""
+    return plsh_msgs.confirm_automate_all
+
+@simple_deploy.hookimpl
+def simple_deploy_deploy(sd):
+    """Carry out platform-specific deployment steps."""
+    platform_deployer = PlatformDeployer(sd)
+    platform_deployer.deploy()
+
 
 class PlatformDeployer:
     """Perform the initial deployment to Heroku.

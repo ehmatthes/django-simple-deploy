@@ -26,11 +26,12 @@ import simple_deploy
 
 @simple_deploy.hookimpl
 def simple_deploy_get_automate_all_msg():
+    """Get platform-specific confirmation message for --automate-all flag."""
     return flyio_msgs.confirm_automate_all
 
 @simple_deploy.hookimpl
 def simple_deploy_deploy(sd):
-    # print("here in deploy")
+    """Carry out platform-specific deployment steps."""
     platform_deployer = PlatformDeployer(sd)
     platform_deployer.deploy()
 
