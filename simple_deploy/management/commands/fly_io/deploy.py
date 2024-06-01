@@ -791,7 +791,7 @@ class PlatformDeployer:
 
 
 @simple_deploy.hookimpl
-def simple_deploy_deploy():
-    print("here in deploy")
-    # platform_deployer = PlatformDeployer(sd)
-    # platform_deployer.deploy()
+def simple_deploy_deploy(sd):
+    # print("here in deploy")
+    platform_deployer = PlatformDeployer(sd)
+    platform_deployer.deploy()

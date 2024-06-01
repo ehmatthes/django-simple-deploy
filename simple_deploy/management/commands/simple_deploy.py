@@ -135,9 +135,9 @@ class Command(BaseCommand):
         # self.platform_deployer = deployer_module.PlatformDeployer(self)
         self._confirm_automate_all(automate_all_msg)
 
-        pm.hook.simple_deploy_deploy()
         # import pdb
         # breakpoint()
+        pm.hook.simple_deploy_deploy(sd=self)
 
         # self.platform_deployer.deploy()
 
