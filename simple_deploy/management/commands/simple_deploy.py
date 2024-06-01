@@ -39,6 +39,8 @@ from . import deploy_messages as d_msgs
 from . import utils as sd_utils
 from . import cli
 
+import simple_deploy
+
 
 class Command(BaseCommand):
     """Configure a project for deployment to a specific platform.
@@ -705,13 +707,6 @@ class Command(BaseCommand):
             sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
-
-    # def _create_deployer(self):
-    #     """Instantiate the PlatformDeployer object."""
-    #     deployer_module = import_module(
-    #         f".{self.platform}.deploy", package="simple_deploy.management.commands"
-    #     )
-    #     self.platform_deployer = deployer_module.PlatformDeployer(self)
 
     def _confirm_automate_all(self):
         """Confirm the user understands what --automate-all does.
