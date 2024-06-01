@@ -116,7 +116,7 @@ class Command(BaseCommand):
 
         # Call out to platform-specific deployer plugin here.
         platform_module = import_module(
-            f".{self.platform}.fly_io", package="simple_deploy.management.commands"
+            f".{self.platform}.deploy", package="simple_deploy.management.commands"
         )
 
         pm.register(platform_module, self.platform)

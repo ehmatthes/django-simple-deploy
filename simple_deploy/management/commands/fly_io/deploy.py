@@ -21,6 +21,14 @@ from simple_deploy.management.commands.fly_io import deploy_messages as flyio_ms
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
 from simple_deploy.management.commands import utils as sd_utils
 
+import simple_deploy
+
+
+@simple_deploy.hookimpl
+def simple_deploy_get_automate_all_msg():
+    print("*** generating automate all msg")
+    return "Automate all msg fly_io"
+
 
 class PlatformDeployer:
     """Perform the initial deployment to Fly.io
