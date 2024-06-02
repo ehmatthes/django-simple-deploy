@@ -10,7 +10,7 @@ Notes:
 
 import simple_deploy
 from .platform_deployer import PlatformDeployer
-from simple_deploy.management.commands.fly_io import deploy_messages as platform_msgs
+from . import deploy_messages as platform_msgs
 
 
 @simple_deploy.hookimpl
