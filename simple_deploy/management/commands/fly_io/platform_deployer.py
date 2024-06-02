@@ -18,7 +18,6 @@ import requests
 from . import deploy_messages as platform_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
-from simple_deploy.management.commands import utils as sd_utils
 
 
 class PlatformDeployer:
@@ -147,7 +146,7 @@ class PlatformDeployer:
             dockerfile_template = "dockerfile_pipenv"
         else:
             dockerfile_template = "dockerfile"
-        sd_utils.write_file_from_template(path, dockerfile_template, context)
+        self.sd.utils.write_file_from_template(path, dockerfile_template, context)
 
         msg = f"\n    Generated Dockerfile: {path}"
         self.sd.write_output(msg)
@@ -184,7 +183,7 @@ class PlatformDeployer:
                 "deployed_project_name": self.deployed_project_name,
                 "using_pipenv": (self.sd.pkg_manager == "pipenv"),
             }
-            sd_utils.write_file_from_template(path, "fly.toml", context)
+            self.sd.utils.write_file_from_template(path, "fly.toml", context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
@@ -199,7 +198,7 @@ class PlatformDeployer:
             "current_settings": safe_settings_string,
             "deployed_project_name": self.deployed_project_name,
         }
-        sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
+        self.sd.utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
@@ -453,7 +452,7 @@ class PlatformDeployer:
             # against the wrong app.
             confirmed = False
             while not confirmed:
-                selection = sd_utils.get_numbered_choice(
+                selection = self.sd.utils.get_numbered_choice(
                     self.sd, prompt, valid_choices, self.messages.no_project_name
                 )
                 selected_name = project_names[selection]

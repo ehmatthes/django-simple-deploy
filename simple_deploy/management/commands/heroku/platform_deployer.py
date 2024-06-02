@@ -12,7 +12,6 @@ from django.utils.safestring import mark_safe
 from . import deploy_messages as platform_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
-# from simple_deploy.management.commands import utils as sd_utils
 
 
 class PlatformDeployer:
@@ -261,7 +260,7 @@ class PlatformDeployer:
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
-        sd_utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
+        self.sd.utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
