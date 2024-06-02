@@ -120,18 +120,7 @@ class Command(BaseCommand):
         )
         pm.register(platform_module, self.platform)
 
-        if self.automate_all:
-            # Make sure this platform supports automate-all.
-            supported = pm.hook.simple_deploy_automate_all_supported()[0]
-            if not supported:
-                msg = "\nThis platform does not support automated deployments."
-                msg += "\nYou may want to try again without the --automate-all flag."
-                raise sd_utils.SimpleDeployCommandError(self, msg)
-
-            # Confirm the user wants to automate all steps.
-            automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
-            self._confirm_automate_all(automate_all_msg)
-
+        self._confirm_automate_all(pm)
         pm.hook.simple_deploy_deploy(sd=self)
 
     # --- Methods used here, and also by platform-specific modules ---
@@ -719,14 +708,27 @@ class Command(BaseCommand):
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
-    def _confirm_automate_all(self, msg):
+    def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
+
+        Also confirm that the selected platform/ plugin manager supports fully
+        automated deployments.
 
         If confirmation not granted, exit with a message, but no error.
         """
         # Placing this check here keeps the handle() method cleaner.
         if not self.automate_all:
             return
+
+        # Make sure this platform supports automate-all.
+        supported = pm.hook.simple_deploy_automate_all_supported()[0]
+        if not supported:
+            msg = "\nThis platform does not support automated deployments."
+            msg += "\nYou may want to try again without the --automate-all flag."
+            raise sd_utils.SimpleDeployCommandError(self, msg)
+
+        # Confirm the user wants to automate all steps.
+        msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
 
         self.write_output(msg)
         confirmed = self.get_confirmation()
