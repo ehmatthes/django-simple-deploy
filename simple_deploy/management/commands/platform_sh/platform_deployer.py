@@ -14,7 +14,6 @@ from django.utils.safestring import mark_safe
 
 from . import deploy_messages as platform_msgs
 
-from simple_deploy.management.commands.utils import SimpleDeployCommandError
 from simple_deploy.management.commands.platform_sh import utils as plsh_utils
 
 
@@ -111,7 +110,7 @@ class PlatformDeployer:
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = self.messages.unknown_create_error(e)
-            raise SimpleDeployCommandError(self.sd, error_msg)
+            raise self.sd.utils.SimpleDeployCommandError(self.sd, error_msg)
 
     def _modify_settings(self):
         """Add platformsh-specific settings.
@@ -269,7 +268,7 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
 
         self.sd.log_info(output_obj)
 
@@ -278,7 +277,7 @@ class PlatformDeployer:
         output_obj = self.sd.run_quick_command(cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
-            raise SimpleDeployCommandError(self.sd, self.messages.cli_logged_out)
+            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_logged_out)
 
     def _get_platformsh_project_name(self):
         """Get the deployed project name.
@@ -320,15 +319,15 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
-                raise SimpleDeployCommandError(self.sd, self.messages.login_required)
+                raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.login_required)
             elif "ProjectNotFoundException" in output_str:
-                raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
+                raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.no_project_name)
             elif "RootNotFoundException" in output_str:
-                raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
+                raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.no_project_name)
             else:
                 error_msg = self.messages.unknown_error
                 error_msg += self.messages.cli_not_installed
-                raise SimpleDeployCommandError(self.sd, error_msg)
+                raise self.sd.utils.SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
         lines = output_str.splitlines()
@@ -345,7 +344,7 @@ class PlatformDeployer:
             return project_name
 
         # Couldn't find a project name. Warn user, and tell them about override flag.
-        raise SimpleDeployCommandError(self.sd, self.messages.no_project_name)
+        raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.no_project_name)
 
     def _get_org_name(self):
         """Get the organization name associated with the user's Platform.sh account.
@@ -371,7 +370,7 @@ class PlatformDeployer:
 
         org_names = plsh_utils.get_org_names(output_str)
         if not org_names:
-            raise SimpleDeployCommandError(self.sd, self.messages.org_not_found)
+            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.org_not_found)
 
         if len(org_names) == 1:
             # Get permission to use this org.
@@ -419,4 +418,4 @@ class PlatformDeployer:
             # Exit, with a message that configuration is still an option.
             msg = self.messages.cancel_plsh
             msg += self.messages.may_configure
-            raise SimpleDeployCommandError(self.sd, msg)
+            raise self.sd.utils.SimpleDeployCommandError(self.sd, msg)
