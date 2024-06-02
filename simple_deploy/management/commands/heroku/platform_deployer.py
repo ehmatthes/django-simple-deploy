@@ -11,8 +11,8 @@ from django.utils.safestring import mark_safe
 
 from . import deploy_messages as platform_msgs
 
-# from simple_deploy.management.commands.utils import SimpleDeployCommandError
-from simple_deploy.management.commands import utils as sd_utils
+from simple_deploy.management.commands.utils import SimpleDeployCommandError
+# from simple_deploy.management.commands import utils as sd_utils
 
 
 class PlatformDeployer:
@@ -396,7 +396,8 @@ class PlatformDeployer:
         self.sd.log_info(output_obj)
 
         output_str = output_obj.stderr.decode()
-        if "Error: Invalid credentials provided" in output_str:
+        # I believe I've seen both of these messages when not logged in.
+        if ("Error: Invalid credentials provided" in output_str) or ("Error: not logged in" in output_str):
             raise SimpleDeployCommandError(self.sd, self.messages.cli_not_authenticated)
 
     def _check_heroku_project_available(self):
