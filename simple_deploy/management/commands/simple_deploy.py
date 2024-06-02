@@ -122,18 +122,7 @@ class Command(BaseCommand):
             f".{self.platform}.deploy", package="simple_deploy.management.commands"
         )
         pm.register(platform_module, self.platform)
-
-        # Make sure required hooks are implemented.
-        plugin = pm.list_name_plugin()[0][1]
-        callers = [caller.name for caller in pm.get_hookcallers(plugin)]
-        for required_hook in ["simple_deploy_automate_all_supported", "simple_deploy_deploy"]:
-            if required_hook not in callers:
-                msg = f"\nPlugin missing required hook implementation: {required_hook}()"
-                raise self.utils.SimpleDeployCommandError(self, msg)
-
-
-        # import pdb
-        # breakpoint()
+        self._check_required_hooks(pm)
 
         self._confirm_automate_all(pm)
         pm.hook.simple_deploy_deploy(sd=self)
@@ -722,6 +711,32 @@ class Command(BaseCommand):
             self.utils.create_poetry_deploy_group(self.pyprojecttoml_path)
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
+
+    def _check_required_hooks(self, pm):
+        """Check that all required hooks are implemeted by plugin.
+
+        Returns:
+            None
+        Raises:
+            SimpleDeployCommandError: If hook not found.
+        """
+        plugin = pm.list_name_plugin()[0][1]
+
+        callers = [caller.name for caller in pm.get_hookcallers(plugin)]
+        required_hooks = ["simple_deploy_automate_all_supported", "simple_deploy_deploy"]
+        for hook in required_hooks:
+            if hook not in callers:
+                msg = f"\nPlugin missing required hook implementation: {hook}()"
+                raise self.utils.SimpleDeployCommandError(self, msg)
+
+        # If plugin supports automate_all, make sure a confirmation message is provided.
+        if not pm.hook.simple_deploy_automate_all_supported()[0]:
+            return
+
+        hook = "simple_deploy_get_automate_all_msg"
+        if hook not in callers:
+            msg = f"\nPlugin missing required hook implementation: {hook}()"
+            raise self.utils.SimpleDeployCommandError(self, msg)
 
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
