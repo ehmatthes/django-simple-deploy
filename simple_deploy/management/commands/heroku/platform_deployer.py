@@ -10,7 +10,7 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 from simple_deploy.management.commands import deploy_messages as d_msgs
-from simple_deploy.management.commands.heroku import deploy_messages as platform_msgs
+from . import deploy_messages as platform_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError
 from simple_deploy.management.commands import utils as sd_utils
