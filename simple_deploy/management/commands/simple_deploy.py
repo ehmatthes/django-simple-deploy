@@ -123,6 +123,18 @@ class Command(BaseCommand):
         )
         pm.register(platform_module, self.platform)
 
+        # Make sure required hooks are implemented.
+        plugin = pm.list_name_plugin()[0][1]
+        callers = [caller.name for caller in pm.get_hookcallers(plugin)]
+        for required_hook in ["simple_deploy_automate_all_supported", "simple_deploy_deploy"]:
+            if required_hook not in callers:
+                msg = f"\nPlugin missing required hook implementation: {required_hook}()"
+                raise self.utils.SimpleDeployCommandError(self, msg)
+
+
+        # import pdb
+        # breakpoint()
+
         self._confirm_automate_all(pm)
         pm.hook.simple_deploy_deploy(sd=self)
 
