@@ -14,7 +14,7 @@ from django.utils.safestring import mark_safe
 
 from . import deploy_messages as platform_msgs
 
-from simple_deploy.management.commands.platform_sh import utils as plsh_utils
+from . import utils as plsh_utils
 
 
 class PlatformDeployer:
