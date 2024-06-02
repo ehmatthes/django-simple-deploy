@@ -144,7 +144,9 @@ class PlatformDeployer:
             dockerfile_template = "dockerfile_pipenv"
         else:
             dockerfile_template = "dockerfile"
-        self.sd.utils.write_file_from_template(path, dockerfile_template, context)
+        template_path = Path(__file__).parent / "templates" / dockerfile_template
+        # self.sd.utils.write_file_from_template(path, dockerfile_template, context)
+        self.sd.utils.write_file_from_template(path, template_path, context)
 
         msg = f"\n    Generated Dockerfile: {path}"
         self.sd.write_output(msg)
@@ -181,7 +183,9 @@ class PlatformDeployer:
                 "deployed_project_name": self.deployed_project_name,
                 "using_pipenv": (self.sd.pkg_manager == "pipenv"),
             }
-            self.sd.utils.write_file_from_template(path, "fly.toml", context)
+            # self.sd.utils.write_file_from_template(path, "fly.toml", context)
+            template_path = Path(__file__).parent / "templates" / "fly.toml"
+            self.sd.utils.write_file_from_template(path, template_path, context)
 
             msg = f"\n    Generated fly.toml: {path}"
             self.sd.write_output(msg)
@@ -196,7 +200,9 @@ class PlatformDeployer:
             "current_settings": safe_settings_string,
             "deployed_project_name": self.deployed_project_name,
         }
-        self.sd.utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
+        # self.sd.utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
+        template_path = Path(__file__).parent / "templates" / "settings.py"
+        self.sd.utils.write_file_from_template(self.sd.settings_path, template_path, context)
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
