@@ -15,7 +15,6 @@ from django.utils.safestring import mark_safe
 
 import requests
 
-from simple_deploy.management.commands import deploy_messages as d_msgs
 from . import deploy_messages as platform_msgs
 
 from simple_deploy.management.commands.utils import SimpleDeployCommandError

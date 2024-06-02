@@ -35,7 +35,7 @@ from django.conf import settings
 
 import toml
 
-from . import deploy_messages as d_msgs
+from . import deploy_messages
 from . import utils as sd_utils
 from . import cli
 
@@ -52,7 +52,7 @@ class Command(BaseCommand):
     help = "Configures your project for deployment to the specified platform."
 
     def __init__(self):
-        """Customize help output."""
+        """Customize help output, assign attributes."""
 
         # Keep default BaseCommand args out of help text.
         self.suppressed_base_arguments.update(
@@ -433,11 +433,11 @@ class Command(BaseCommand):
             SimpleDeployCommandError: If requested platform is supported.
         """
         if not self.platform:
-            raise sd_utils.SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
+            raise sd_utils.SimpleDeployCommandError(self, deploy_messages.requires_platform_flag)
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
             self.write_output(f"\nDeployment target: {self.platform}")
         else:
-            error_msg = d_msgs.invalid_platform_msg(self.platform)
+            error_msg = deploy_messages.invalid_platform_msg(self.platform)
             raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
     def _inspect_system(self):
@@ -584,9 +584,9 @@ class Command(BaseCommand):
 
     def _raise_unclean_error(self):
         """Raise unclean git status error."""
-        error_msg = d_msgs.unclean_git_status
+        error_msg = deploy_messages.unclean_git_status
         if self.automate_all:
-            error_msg += d_msgs.unclean_git_automate_all
+            error_msg += deploy_messages.unclean_git_automate_all
 
         raise sd_utils.SimpleDeployCommandError(self, error_msg)
 
@@ -737,5 +737,5 @@ class Command(BaseCommand):
             self.write_output("Automating all steps...")
         else:
             # Quit with a message, but don't raise an error.
-            self.write_output(d_msgs.cancel_automate_all)
+            self.write_output(deploy_messages.cancel_automate_all)
             sys.exit()
