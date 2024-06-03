@@ -1,6 +1,7 @@
 """Manages all Heroku-specific aspects of the deployment process."""
 
 import sys, os, re, json, subprocess
+from pathlib import Path
 from itertools import takewhile
 
 from django.conf import settings
@@ -25,6 +26,7 @@ class PlatformDeployer:
         self.sd = command
         self.stdout = self.sd.stdout
         self.messages = platform_msgs
+        self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
 
@@ -258,7 +260,9 @@ class PlatformDeployer:
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
-        self.sd.utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
+
+        template_path = self.templates_path / "settings.py"
+        self.sd.utils.write_file_from_template(self.sd.settings_path, template_path, context)
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
