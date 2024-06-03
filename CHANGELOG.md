@@ -3,19 +3,30 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
-0.6 - Stable deployments on all three platforms
----
+0.7 - Internal plugin model
 
-### Unreleased
+django-simple-deploy uses a plugin model internally. There shouldn't be many external changes due to this model, but this is an important enough step towards a 1.0 release that it warrants a bump in the minor version number. The 0.8.0 release should indicate preliminary support for external plugins.
+
+### 0.7.0
 
 #### External changes
 
 - Requires `pluggy`.
+- Fixes bug in validating authenticated Heroku CLI session.
 
 #### Internal changes
 
 - All platforms use a plugin model internally.
 - Developer resources moved to platform-specific subdirs.
+- All imports in plugins are relative to the plugin, rather than using simple_deploy paths.
+- Simpler implemenation of `write_file_from_template()` utility function.
+- `PlatformDeployer` class moved to separate file for all plugins.
+- Core simple_deploy verifies that selected plugin implements required hooks.
+    - All plugins must implement `simple_deploy_automate_all_supported()`, which returns a boolean indicating whether the plugin supports the `--automate-all` flag. If `--automate-all` is supported, the plugin must also implement `simple_deploy_get_automate_all_msg()`, which provides a platform-specific message for confirming the usage of `--automate-all`.
+    - All plugins must implement `simple_deploy_deploy()`.
+
+0.6 - Stable deployments on all three platforms
+---
 
 ### 0.6.5
 
