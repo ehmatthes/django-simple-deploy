@@ -30,6 +30,7 @@ class PlatformDeployer:
         self.sd = command
         self.stdout = self.sd.stdout
         self.messages = platform_msgs
+        self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
 
@@ -123,7 +124,9 @@ class PlatformDeployer:
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
-        self.sd.utils.write_file_from_template(self.sd.settings_path, "settings.py", context)
+
+        template_path = self.templates_path / "settings.py"
+        self.sd.utils.write_file_from_template(self.sd.settings_path, template_path, context)
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
@@ -153,6 +156,8 @@ class PlatformDeployer:
                 template_path = "pipenv.platform.app.yaml"
             else:
                 template_path = "platform.app.yaml"
+            template_path = self.templates_path / template_path
+
             self.sd.utils.write_file_from_template(path, template_path, context)
 
             msg = f"\n    Generated {path.as_posix()}"
@@ -186,7 +191,8 @@ class PlatformDeployer:
             self.sd.write_output("    Found existing services.yaml file.")
         else:
             self.sd.write_output("    No services.yaml file found. Generating file...")
-            self.sd.utils.write_file_from_template(path, "services.yaml")
+            template_path = self.templates_path / "services.yaml"
+            self.sd.utils.write_file_from_template(path, template_path)
 
             msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
