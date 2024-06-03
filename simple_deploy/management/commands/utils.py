@@ -6,41 +6,26 @@ Also contains resources useful to platform-specific deployment scripts.
 from pathlib import Path
 import inspect, re, sys, subprocess, logging
 
-from django.template.engine import Engine
+from django.template.engine import Engine, Context
 from django.template.utils import get_app_template_dirs
 from django.core.management.base import CommandError
 
 import toml
 
 
-def write_file_from_template(path, template, context=None):
+def write_file_from_template(dest_path, template_path, context=None):
     """Write a file based on a platform-specific template.
-    This may be a whole new file, such as a Dockerfile. Or, we may be
-    modifying an existing file such as settings.py.
+
+    This may be a whole new file, such as a Dockerfile. Or, we may be modifying an
+    existing file such as settings.py.
 
     Returns:
     - None
     """
-
-    # Get the platform name from the file that's importing this function.
-    #   This may need to be moved to its own file if it ends up being imported
-    #   from different places.
-    caller = inspect.stack()[1].filename
-    if sys.platform == "win32":
-        platform_re = r"\\simple_deploy\\management\\commands\\(.*)\\deploy.py"
-    else:
-        platform_re = r"/simple_deploy/management/commands/(.*)/deploy.py"
-    m = re.search(platform_re, caller)
-    platform = m.group(1)
-
-    # Make a template engine that can access the platform's templates.
-    my_dirs = get_app_template_dirs(f"management/commands/{platform}/templates")
-    my_engine = Engine(dirs=my_dirs)
-
-    # Generate the template string, and write it to the given path.
-    template_string = my_engine.render_to_string(template, context)
-    path.write_text(template_string)
-
+    my_engine = Engine()
+    template = my_engine.from_string(template_path.read_text())
+    rendered_template = template.render(Context(context))
+    dest_path.write_text(rendered_template)
 
 def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
     """Select from a numbered list of choices.

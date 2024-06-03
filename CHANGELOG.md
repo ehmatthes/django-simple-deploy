@@ -10,7 +10,12 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 #### External changes
 
+- Requires `pluggy`.
+
 #### Internal changes
+
+- All platforms use a plugin model internally.
+- Developer resources moved to platform-specific subdirs.
 
 ### 0.6.5
 

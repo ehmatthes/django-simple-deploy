@@ -35,8 +35,8 @@ from django.conf import settings
 
 import toml
 
-from . import deploy_messages as d_msgs
-from . import utils as sd_utils
+from . import deploy_messages
+from . import utils
 from . import cli
 
 from simple_deploy.plugins import pm
@@ -52,7 +52,7 @@ class Command(BaseCommand):
     help = "Configures your project for deployment to the specified platform."
 
     def __init__(self):
-        """Customize help output."""
+        """Customize help output, assign attributes."""
 
         # Keep default BaseCommand args out of help text.
         self.suppressed_base_arguments.update(
@@ -68,6 +68,9 @@ class Command(BaseCommand):
         )
         # Ensure that --skip-checks is not included in help output.
         self.requires_system_checks = []
+
+        # Made utils available to plugins.
+        self.utils = utils
 
         super().__init__()
 
@@ -119,11 +122,9 @@ class Command(BaseCommand):
             f".{self.platform}.deploy", package="simple_deploy.management.commands"
         )
         pm.register(platform_module, self.platform)
+        self._check_required_hooks(pm)
 
-        # Hook caller returns a list of returned args; it's a one-item list here.
-        automate_all_msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
-        self._confirm_automate_all(automate_all_msg)
-
+        self._confirm_automate_all(pm)
         pm.hook.simple_deploy_deploy(sd=self)
 
     # --- Methods used here, and also by platform-specific modules ---
@@ -142,7 +143,7 @@ class Command(BaseCommand):
         Returns:
             None
         """
-        output_str = sd_utils.get_string_from_output(output)
+        output_str = self.utils.get_string_from_output(output)
 
         if write_to_console:
             self.stdout.write(output_str)
@@ -153,8 +154,8 @@ class Command(BaseCommand):
     def log_info(self, output):
         """Log output, which may be a string or CompletedProcess instance."""
         if self.log_output:
-            output_str = sd_utils.get_string_from_output(output)
-            sd_utils.log_output_string(output_str)
+            output_str = self.utils.get_string_from_output(output)
+            self.utils.log_output_string(output_str)
 
     def run_quick_command(self, cmd, check=False, skip_logging=False):
         """Run a command that should finish quickly.
@@ -289,7 +290,7 @@ class Command(BaseCommand):
 
         # A platform-specific settings block exists. Get permission to overwrite it.
         if not self.get_confirmation(msg_found):
-            raise sd_utils.SimpleDeployCommandError(self, msg_cant_overwrite)
+            raise self.utils.SimpleDeployCommandError(self, msg_cant_overwrite)
 
         # Platform-specific settings exist, but we can remove them and start fresh.
         self.settings_path.write_text(m.group(1))
@@ -329,12 +330,12 @@ class Command(BaseCommand):
             return
 
         if self.pkg_manager == "pipenv":
-            sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
+            self.utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
         elif self.pkg_manager == "poetry":
             self._check_poetry_deploy_group()
-            sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
+            self.utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
         else:
-            sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
+            self.utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
 
         self.write_output(f"  Added {package_name} to requirements file.")
 
@@ -436,12 +437,12 @@ class Command(BaseCommand):
             SimpleDeployCommandError: If requested platform is supported.
         """
         if not self.platform:
-            raise sd_utils.SimpleDeployCommandError(self, d_msgs.requires_platform_flag)
+            raise self.utils.SimpleDeployCommandError(self, deploy_messages.requires_platform_flag)
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
             self.write_output(f"\nDeployment target: {self.platform}")
         else:
-            error_msg = d_msgs.invalid_platform_msg(self.platform)
-            raise sd_utils.SimpleDeployCommandError(self, error_msg)
+            error_msg = deploy_messages.invalid_platform_msg(self.platform)
+            raise self.utils.SimpleDeployCommandError(self, error_msg)
 
     def _inspect_system(self):
         """Inspect the user's local system for relevant information.
@@ -540,7 +541,7 @@ class Command(BaseCommand):
             error_msg += (
                 f"\n  Looked in {self.project_root} and in {self.project_root.parent}."
             )
-            raise sd_utils.SimpleDeployCommandError(self, error_msg)
+            raise self.utils.SimpleDeployCommandError(self, error_msg)
 
     def _check_git_status(self):
         """Make sure all non-simple_deploy changes have already been committed.
@@ -577,7 +578,7 @@ class Command(BaseCommand):
         diff_output = output_obj.stdout.decode()
         self.log_info(f"{diff_output}\n")
 
-        proceed = sd_utils.check_status_output(status_output, diff_output)
+        proceed = self.utils.check_status_output(status_output, diff_output)
 
         if proceed:
             msg = "No uncommitted changes, other than simple_deploy work."
@@ -587,11 +588,11 @@ class Command(BaseCommand):
 
     def _raise_unclean_error(self):
         """Raise unclean git status error."""
-        error_msg = d_msgs.unclean_git_status
+        error_msg = deploy_messages.unclean_git_status
         if self.automate_all:
-            error_msg += d_msgs.unclean_git_automate_all
+            error_msg += deploy_messages.unclean_git_automate_all
 
-        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+        raise self.utils.SimpleDeployCommandError(self, error_msg)
 
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
@@ -639,7 +640,7 @@ class Command(BaseCommand):
 
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+        raise self.utils.SimpleDeployCommandError(self, error_msg)
 
     def _check_using_poetry(self):
         """Check if the project appears to be using poetry.
@@ -674,13 +675,13 @@ class Command(BaseCommand):
 
         if self.pkg_manager == "req_txt":
             self.req_txt_path = self.git_path / "requirements.txt"
-            requirements = sd_utils.parse_req_txt(self.req_txt_path)
+            requirements = self.utils.parse_req_txt(self.req_txt_path)
         elif self.pkg_manager == "pipenv":
             self.pipfile_path = self.git_path / "Pipfile"
-            requirements = sd_utils.parse_pipfile(self.pipfile_path)
+            requirements = self.utils.parse_pipfile(self.pipfile_path)
         elif self.pkg_manager == "poetry":
             self.pyprojecttoml_path = self.git_path / "pyproject.toml"
-            requirements = sd_utils.parse_pyproject_toml(self.pyprojecttoml_path)
+            requirements = self.utils.parse_pyproject_toml(self.pyprojecttoml_path)
 
         # Report findings.
         msg = "  Found existing dependencies:"
@@ -707,18 +708,57 @@ class Command(BaseCommand):
         try:
             deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
         except KeyError:
-            sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
+            self.utils.create_poetry_deploy_group(self.pyprojecttoml_path)
             msg = "    Added optional deploy group to pyproject.toml."
             self.write_output(msg)
 
-    def _confirm_automate_all(self, msg):
+    def _check_required_hooks(self, pm):
+        """Check that all required hooks are implemeted by plugin.
+
+        Returns:
+            None
+        Raises:
+            SimpleDeployCommandError: If hook not found.
+        """
+        plugin = pm.list_name_plugin()[0][1]
+
+        callers = [caller.name for caller in pm.get_hookcallers(plugin)]
+        required_hooks = ["simple_deploy_automate_all_supported", "simple_deploy_deploy"]
+        for hook in required_hooks:
+            if hook not in callers:
+                msg = f"\nPlugin missing required hook implementation: {hook}()"
+                raise self.utils.SimpleDeployCommandError(self, msg)
+
+        # If plugin supports automate_all, make sure a confirmation message is provided.
+        if not pm.hook.simple_deploy_automate_all_supported()[0]:
+            return
+
+        hook = "simple_deploy_get_automate_all_msg"
+        if hook not in callers:
+            msg = f"\nPlugin missing required hook implementation: {hook}()"
+            raise self.utils.SimpleDeployCommandError(self, msg)
+
+    def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
+
+        Also confirm that the selected platform/ plugin manager supports fully
+        automated deployments.
 
         If confirmation not granted, exit with a message, but no error.
         """
         # Placing this check here keeps the handle() method cleaner.
         if not self.automate_all:
             return
+
+        # Make sure this platform supports automate-all.
+        supported = pm.hook.simple_deploy_automate_all_supported()[0]
+        if not supported:
+            msg = "\nThis platform does not support automated deployments."
+            msg += "\nYou may want to try again without the --automate-all flag."
+            raise self.utils.SimpleDeployCommandError(self, msg)
+
+        # Confirm the user wants to automate all steps.
+        msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
 
         self.write_output(msg)
         confirmed = self.get_confirmation()
@@ -727,5 +767,5 @@ class Command(BaseCommand):
             self.write_output("Automating all steps...")
         else:
             # Quit with a message, but don't raise an error.
-            self.write_output(d_msgs.cancel_automate_all)
+            self.write_output(deploy_messages.cancel_automate_all)
             sys.exit()
