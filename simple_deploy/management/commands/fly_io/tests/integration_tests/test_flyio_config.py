@@ -1,7 +1,4 @@
-"""Integration tests for django-simple-deploy, targeting Fly.io.
-
-Note: run_simple_deploy only needs to be included in the first test function?
-"""
+"""Integration tests for django-simple-deploy, targeting Fly.io."""
 
 import sys
 from pathlib import Path
@@ -20,7 +17,7 @@ from tests.integration_tests.conftest import tmp_project, run_simple_deploy, res
 
 # --- Test modifications to project files. ---
 
-def test_settings(tmp_project, run_simple_deploy):
+def test_settings(tmp_project):
     """Verify there's a Fly.io-specific settings section.
     This function only checks the entire settings file. It does not examine
       individual settings.
