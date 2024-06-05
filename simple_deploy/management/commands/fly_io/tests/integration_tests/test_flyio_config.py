@@ -1,4 +1,7 @@
-"""Integration tests for django-simple-deploy, targeting Fly.io."""
+"""Integration tests for django-simple-deploy, targeting Fly.io.
+
+Note: run_simple_deploy only needs to be included in the first test function?
+"""
 
 import sys
 from pathlib import Path
