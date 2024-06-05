@@ -5,6 +5,7 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
+
 def setup_project(tmp_proj_dir, sd_root_dir):
     """Set up the test project.
     - Copy the sample project to a temp dir.

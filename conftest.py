@@ -11,15 +11,10 @@ if "e2e_tests" not in sys.argv:
     collect_ignore.append("tests/e2e_tests")
 
 
-
-
-
-# Let plugins import test utilities.
+# Let plugins import utilities.
 from pathlib import Path
-print("\nHERE_2")
 path = Path(__file__).parent / "tests" / "integration_tests" / "utils"
-print("\n inserted path:", path)
-sys.path.insert(0, path.as_posix())
-print(sys.path)
-
-path = Path(__file__).parent / "tests" / "integration_tests"
+sys.path.insert(0, path)
+path = Path(__file__).parent
+sys.path.insert(0, path)
+print("\n\nIn root conftest:", sys.path)

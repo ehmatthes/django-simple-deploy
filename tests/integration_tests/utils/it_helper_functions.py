@@ -14,17 +14,7 @@ from textwrap import dedent
 
 import pytest
 
-import pluggy
 
-hookimpl = pluggy.HookimplMarker("simple_deploy")
-
-# # Let plugins import this module.
-# path = Path(__file__).parent / "utils"
-# print("\n inserted path:", path)
-# # sys.path.insert(0, path.as_posix())
-
-
-@hookimpl
 def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""):
     """Check that the test version of the file matches the reference version
     of the file.
@@ -43,7 +33,6 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
 
     # Path to the generated file is exactly as given, from tmp_proj_dir.
     fp_generated = tmp_proj_dir / filepath
-    assert Path(filepath).exists()
     assert fp_generated.exists()
 
     # There are no subdirectories in references/, so we only need to keep
@@ -55,39 +44,11 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
         filename = Path(filepath).name
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[2]
-    fp_reference = sd_root_dir / f'integration_tests/platforms/{platform}/reference_files/{filename}'
-
-    # Get path to plugin's reference files.
-
-
-
-
-
-
+    sd_root_dir = Path(__file__).parents[3]
+    print("sd_root_dir:", sd_root_dir)
+    # fp_reference = sd_root_dir / f'integration_tests/platforms/{platform}/reference_files/{filename}'
+    fp_reference = sd_root_dir / f"simple_deploy/management/commands/{platform}/tests/integration_tests/reference_files/{filename}"
     assert fp_reference.exists()
-
-    # The test file and reference file will always have different modified
-    #   timestamps, so no need to use default shallow=True.
-    assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
-
-
-def check_reference_file_direct(tmp_proj_dir, filepath, platform, fp_reference):
-    """Check that the test version of the file matches the reference file.
-
-    - filepath: relative path from tmp_proj_dir to test file
-    - fp_reference: full path to reference file.
-
-    Asserts:
-    - Asserts that the file at `filepath` matches the reference file of the 
-      same name, or the specific reference file given.
-
-    Returns:
-    - None
-    """
-
-    # Path to the generated file is exactly as given, from tmp_proj_dir.
-    fp_generated = tmp_proj_dir / filepath
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.

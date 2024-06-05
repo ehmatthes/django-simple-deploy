@@ -7,12 +7,10 @@ import subprocess
 import pytest
 
 # import integration_tests.utils.it_helper_functions as hf
-
-# import django_simple_deploy.integration_tests.utils.it_helper_functions as hf
-print("\nHERE")
-print(sys.path)
-import it_helper_functions as hf
-from tests.integration_tests.conftest import tmp_project, run_simple_deploy, reset_test_project
+print("\n\nIn flyio", sys.path)
+from tests.integration_tests.utils import it_helper_functions as hf
+from tests.integration_tests.conftest import tmp_project
+# import it_helper_functions as hf
 
 # --- Fixtures ---
 
@@ -24,8 +22,7 @@ def test_settings(tmp_project):
     This function only checks the entire settings file. It does not examine
       individual settings.
     """
-    fp_reference = Path(__file__).parent / "reference_files" / "settings.py"
-    hf.check_reference_file_direct(tmp_project, 'blog/settings.py', 'fly_io', fp_reference)
+    hf.check_reference_file(tmp_project, 'blog/settings.py', 'fly_io')
 
 def test_requirements_txt(tmp_project, pkg_manager):
     """Test that the requirements.txt file is correct."""

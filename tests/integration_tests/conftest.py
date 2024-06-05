@@ -9,12 +9,6 @@ import pytest
 from .utils import manage_sample_project as msp
 from .utils import it_helper_functions as ihf
 
-# Let plugins import test utilities.
-print("\nHERE_1")
-path = Path(__file__).parent / "utils"
-print("\n inserted path:", path)
-sys.path.insert(0, path.as_posix())
-
 
 # --- Plugins ---
 
