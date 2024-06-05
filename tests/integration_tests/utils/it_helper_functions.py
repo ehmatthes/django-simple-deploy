@@ -8,12 +8,23 @@ from pathlib import Path
 import filecmp
 import re
 import shutil
+import sys
 import subprocess
 from textwrap import dedent
 
 import pytest
 
+import pluggy
 
+hookimpl = pluggy.HookimplMarker("simple_deploy")
+
+# # Let plugins import this module.
+# path = Path(__file__).parent / "utils"
+# print("\n inserted path:", path)
+# # sys.path.insert(0, path.as_posix())
+
+
+@hookimpl
 def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""):
     """Check that the test version of the file matches the reference version
     of the file.

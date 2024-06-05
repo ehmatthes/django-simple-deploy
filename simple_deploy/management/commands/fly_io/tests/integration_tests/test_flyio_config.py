@@ -6,7 +6,13 @@ import subprocess
 
 import pytest
 
-import integration_tests.utils.it_helper_functions as hf
+# import integration_tests.utils.it_helper_functions as hf
+
+# import django_simple_deploy.integration_tests.utils.it_helper_functions as hf
+print("\nHERE")
+print(sys.path)
+import it_helper_functions as hf
+sys.exit()
 
 
 # --- Fixtures ---

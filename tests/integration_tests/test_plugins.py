@@ -2,6 +2,8 @@
 
 import pytest
 
+from simple_deploy.plugins import pm
+
 default_plugins = ["fly_io"]
 
 def test_default_plugins():
