@@ -9,7 +9,7 @@ import pytest
 # import integration_tests.utils.it_helper_functions as hf
 print("\n\nIn flyio", sys.path)
 from tests.integration_tests.utils import it_helper_functions as hf
-from tests.integration_tests.conftest import tmp_project
+from tests.integration_tests.conftest import tmp_project, run_simple_deploy, reset_test_project, pkg_manager
 # import it_helper_functions as hf
 
 # --- Fixtures ---
@@ -17,7 +17,7 @@ from tests.integration_tests.conftest import tmp_project
 
 # --- Test modifications to project files. ---
 
-def test_settings(tmp_project):
+def test_settings(tmp_project, run_simple_deploy):
     """Verify there's a Fly.io-specific settings section.
     This function only checks the entire settings file. It does not examine
       individual settings.
