@@ -6,8 +6,8 @@ from simple_deploy.plugins import pm
 
 default_plugins = ["fly_io"]
 
-def test_default_plugins():
-    """Test all default plugins."""
+# def test_default_plugins():
+#     """Test all default plugins."""
 
-    for plugin in default_plugins:
-        print(f"Testing plugin: {plugin}")
+#     for plugin in default_plugins:
+#         print(f"Testing plugin: {plugin}")

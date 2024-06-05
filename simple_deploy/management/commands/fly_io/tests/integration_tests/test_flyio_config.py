@@ -12,8 +12,7 @@ import pytest
 print("\nHERE")
 print(sys.path)
 import it_helper_functions as hf
-sys.exit()
-
+from tests.integration_tests.conftest import tmp_project, run_simple_deploy, reset_test_project
 
 # --- Fixtures ---
 
@@ -25,7 +24,8 @@ def test_settings(tmp_project):
     This function only checks the entire settings file. It does not examine
       individual settings.
     """
-    hf.check_reference_file(tmp_project, 'blog/settings.py', 'fly_io')
+    fp_reference = Path(__file__).parent / "reference_files" / "settings.py"
+    hf.check_reference_file_direct(tmp_project, 'blog/settings.py', 'fly_io', fp_reference)
 
 def test_requirements_txt(tmp_project, pkg_manager):
     """Test that the requirements.txt file is correct."""
