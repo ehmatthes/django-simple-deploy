@@ -20,7 +20,7 @@ def test_dummy(tmp_project, request):
 
 # Skip this test and enable test_dummy() to speed up testing of setup steps.
 # @pytest.mark.skip
-def test_flyio_deployment(tmp_project, cli_options, request):
+def test_deployment(tmp_project, cli_options, request):
     """Test the full, live deployment process to Fly.io."""
 
     # Cache the platform name for teardown work.
