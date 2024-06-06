@@ -1,8 +1,13 @@
 """Root conftest.py"""
 
 import sys
+from pathlib import Path
 
 import pytest
+
+# Let plugins import utilities.
+path = Path(__file__).parent / "tests" / "integration_tests" / "utils"
+sys.path.insert(0, path)
 
 
 # Don't look at any test files in the sample_project/ dir.
@@ -11,11 +16,6 @@ collect_ignore = ["sample_project"]
 # If not running an e2e test, completely ignore those tests.
 if "e2e_tests" not in sys.argv:
     collect_ignore.append("tests/e2e_tests")
-
-# Let plugins import utilities.
-from pathlib import Path
-path = Path(__file__).parent / "tests" / "integration_tests" / "utils"
-sys.path.insert(0, path)
 
 
 # If running a plugin's e2e tests, run the e2e_tests conftest?
