@@ -34,16 +34,6 @@ def check_valid_call(config):
         print(msg)
         return False
 
-    # # Verify that one specific platform has been requested.
-    # num_platforms = sum(
-    #     platform in " ".join(config.args)
-    #     for platform in ["platform_sh", "fly_io", "heroku"]
-    # )
-    # if num_platforms != 1:
-    #     msg = "For e2e testing, you must target one specific platform."
-    #     print(msg)
-    #     return False
-
     # No obvious reason not to run e2e tests.
     return True
 

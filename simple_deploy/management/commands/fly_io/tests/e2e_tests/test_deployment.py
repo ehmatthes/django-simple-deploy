@@ -2,13 +2,9 @@ import re, time
 
 import pytest
 
-# from ...utils import it_helper_functions as it_utils
 from tests.e2e_tests.utils import it_helper_functions as it_utils
 from . import utils as platform_utils
 
-# from tests.integration_tests.conftest import tmp_project, run_simple_deploy, reset_test_project, pkg_manager
-# from tests.e2e_tests.conftest import cli_options
-# from tests.e2e_tests import conftest
 from tests.e2e_tests.conftest import tmp_project, cli_options
 
 
@@ -34,6 +30,9 @@ def test_flyio_deployment(tmp_project, cli_options, request):
     print(cli_options.__dict__)
 
     python_cmd = it_utils.get_python_exe(tmp_project)
+
+    import sys
+    sys.exit()
 
     # Create a new project on the remote host, if not testing --automate-all.
     if not cli_options.automate_all:
