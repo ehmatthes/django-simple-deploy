@@ -31,9 +31,6 @@ def test_flyio_deployment(tmp_project, cli_options, request):
 
     python_cmd = it_utils.get_python_exe(tmp_project)
 
-    import sys
-    sys.exit()
-
     # Create a new project on the remote host, if not testing --automate-all.
     if not cli_options.automate_all:
         app_name = platform_utils.create_project()
