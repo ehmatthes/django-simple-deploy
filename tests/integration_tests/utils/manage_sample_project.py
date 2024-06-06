@@ -46,6 +46,8 @@ def setup_project(tmp_proj_dir, sd_root_dir):
 
     if uv_available:
         path_to_python = venv_dir / "bin" / "python"
+        if sys.platform == "win32":
+            path_to_python = venv_dir / "Scripts" / "python.exe"
         subprocess.run(["uv", "pip", "install", "--python", path_to_python, "--no-index", "--find-links", sd_root_dir / "vendor", "-r", requirements_path])
     else:
         pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
