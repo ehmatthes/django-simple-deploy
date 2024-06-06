@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pytest
 
-from .utils import manage_sample_project as msp
-from .utils.it_helper_functions import confirm_destroy_project
+from tests.e2e_tests.utils import manage_sample_project as msp
+from tests.e2e_tests.utils.it_helper_functions import confirm_destroy_project
 
 
 # --- Validity check ---
@@ -34,15 +34,15 @@ def check_valid_call(config):
         print(msg)
         return False
 
-    # Verify that one specific platform has been requested.
-    num_platforms = sum(
-        platform in " ".join(config.args)
-        for platform in ["platform_sh", "fly_io", "heroku"]
-    )
-    if num_platforms != 1:
-        msg = "For e2e testing, you must target one specific platform."
-        print(msg)
-        return False
+    # # Verify that one specific platform has been requested.
+    # num_platforms = sum(
+    #     platform in " ".join(config.args)
+    #     for platform in ["platform_sh", "fly_io", "heroku"]
+    # )
+    # if num_platforms != 1:
+    #     msg = "For e2e testing, you must target one specific platform."
+    #     print(msg)
+    #     return False
 
     # No obvious reason not to run e2e tests.
     return True
@@ -81,15 +81,22 @@ def pytest_addoption(parser):
         default=False,
         help="Skip all confirmations",
     )
+    parser.addoption(
+        "--platform",
+        action="store",
+        help="Which platform to run e2e tests for.",
+        required=True,
+        )
 
 
 # Bundle these options into a single object.
 class CLIOptions:
-    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations):
+    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations, platform):
         self.pkg_manager = pkg_manager
         self.pypi = pypi
         self.automate_all = automate_all
         self.skip_confirmations = skip_confirmations
+        self.platform = platform
 
 
 @pytest.fixture(scope="session")
@@ -99,6 +106,7 @@ def cli_options(request):
         pypi=request.config.getoption("--pypi"),
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations"),
+        platform=request.config.getoption("--platform"),
     )
 
 
