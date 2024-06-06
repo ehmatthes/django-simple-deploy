@@ -77,6 +77,8 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         requirements_path = tmp_proj_dir / "requirements.txt"
         if uv_available:
             path_to_python = venv_dir / "bin" / "python"
+            if sys.platform == "win32":
+                path_to_python = venv_dir / "Scripts" / "python.exe"
             cmd = f"uv pip install --python {path_to_python} --find-links {vendor_path} -r {requirements_path}"
         else:
             cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
