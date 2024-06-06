@@ -13,7 +13,7 @@ from pathlib import Path
 
 from django.utils.safestring import mark_safe
 
-import requests
+import httpx
 
 from . import deploy_messages as platform_msgs
 
@@ -589,7 +589,7 @@ class PlatformDeployer:
 
         # Get region output.
         url = "https://liveview-counter.fly.dev/"
-        r = requests.get(url)
+        r = httpx.get(url)
 
         re_region = r"Connected to ([a-z]{3})"
         m = re.search(re_region, r.text)
