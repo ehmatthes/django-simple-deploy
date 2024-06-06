@@ -149,6 +149,7 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     if confirm_destroy_project(cli_options):
         # Import the platform-specific utils module and call destroy_project().
         platform = request.config.cache.get("platform", None)
-        import_path = f"tests.e2e_tests.platforms.{platform}.utils"
+        # import_path = f"tests.e2e_tests.platforms.{platform}.utils"
+        import_path = f"simple_deploy.management.commands.{platform}.tests.e2e_tests.utils"
         platform_utils = importlib.import_module(import_path)
         platform_utils.destroy_project(request)

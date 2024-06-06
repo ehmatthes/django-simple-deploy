@@ -3,12 +3,13 @@ import re, time
 import pytest
 
 # from ...utils import it_helper_functions as it_utils
-from tests.integration_tests.utils import it_helper_functions as hf
+from tests.e2e_tests.utils import it_helper_functions as it_utils
 from . import utils as platform_utils
 
-from tests.integration_tests.conftest import tmp_project, run_simple_deploy, reset_test_project, pkg_manager
-from tests.e2e_tests.conftest import cli_options
-from tests.e2e_tests import conftest
+# from tests.integration_tests.conftest import tmp_project, run_simple_deploy, reset_test_project, pkg_manager
+# from tests.e2e_tests.conftest import cli_options
+# from tests.e2e_tests import conftest
+from tests.e2e_tests.conftest import tmp_project, cli_options
 
 
 # --- Test functions ---
