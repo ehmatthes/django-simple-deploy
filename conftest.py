@@ -14,10 +14,10 @@ sys.path.insert(0, path)
 collect_ignore = ["sample_project"]
 
 
-# If not running e2e tests, ignore entire e2e_tests as well.
-# DEV: This can be simplified with all e2e tests moved to plugin dirs.
+# If not running e2e tests, ignore entire e2e_tests directory.
 running_e2e = any(["e2e_tests" in arg for arg in sys.argv])
+print("\nRunning e2e:", running_e2e)
 if not running_e2e:
     collect_ignore.append("tests/e2e_tests")
-else:
-    collect_ignore.append("tests/e2e_tests/platforms")
+    for platform in ["fly_io", "platform_sh", "heroku"]:
+        collect_ignore.append(f"simple_deploy/management/commands/{platform}/tests/e2e_tests")
