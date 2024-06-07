@@ -44,6 +44,12 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     Returns:
     - None
     """
+    try:
+        subprocess.run(["uv", "--version"])
+    except FileNotFoundError:
+        uv_available = False
+    else:
+        uv_available = True
 
     # Copy sample project to temp dir.
     sample_project_dir = sd_root_dir / "sample_project/blog_project"
@@ -54,7 +60,11 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     #   activating it. It's easier to use the venv directly than to activate it,
     #   with all these separate subprocess.run() calls.
     venv_dir = tmp_proj_dir / "b_env"
-    make_sp_call(f"{sys.executable} -m venv {venv_dir}")
+    if uv_available:
+        cmd = f"uv venv {venv_dir}"
+    else:
+        cmd = f"{sys.executable} -m venv {venv_dir}"
+    make_sp_call(cmd)
 
     # Install requirements for sample project, from vendor/.
     # Do this using the same package manager that the end user has selected.
@@ -65,7 +75,13 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     if cli_options.pkg_manager == 'req_txt':
         #   Don't upgrade pip, unless it starts to cause problems.
         requirements_path = tmp_proj_dir / "requirements.txt"
-        cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
+        if uv_available:
+            path_to_python = venv_dir / "bin" / "python"
+            if sys.platform == "win32":
+                path_to_python = venv_dir / "Scripts" / "python.exe"
+            cmd = f"uv pip install --python {path_to_python} --find-links {vendor_path} -r {requirements_path}"
+        else:
+            cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
         make_sp_call(cmd)
 
     elif cli_options.pkg_manager == 'poetry':
@@ -87,12 +103,19 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
     # If `--pypi` flag has been passed, install from PyPI.
-    if cli_options.pkg_manager == 'req_txt':
+    if cli_options.pkg_manager == 'req_txt' and uv_available:
+        if cli_options.pypi:
+            make_sp_call("uv pip cache purge")
+            make_sp_call(f"uv pip install --python {path_to_python} django-simple-deploy")
+        else:
+            make_sp_call(f"uv pip install --python {path_to_python} -e {sd_root_dir}")
+    elif cli_options.pkg_manager == "req_txt":
         if cli_options.pypi:
             make_sp_call("pip cache purge")
             make_sp_call(f"{pip_path} install django-simple-deploy")
         else:
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
+
 
     elif cli_options.pkg_manager == 'poetry':
         # Use pip to install the local version.

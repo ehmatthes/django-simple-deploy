@@ -2,8 +2,10 @@ import re, time
 
 import pytest
 
-from ...utils import it_helper_functions as it_utils
+from tests.e2e_tests.utils import it_helper_functions as it_utils
 from . import utils as platform_utils
+
+from tests.e2e_tests.conftest import tmp_project, cli_options
 
 
 # --- Test functions ---
@@ -18,7 +20,7 @@ def test_dummy(tmp_project, request):
 
 # Skip this test and enable test_dummy() to speed up testing of setup steps.
 # @pytest.mark.skip
-def test_heroku_deployment(tmp_project, cli_options, request):
+def test_deployment(tmp_project, cli_options, request):
     """Test the full, live deployment process to Heroku."""
 
     # Cache the platform name for teardown work.

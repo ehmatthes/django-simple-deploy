@@ -4,7 +4,9 @@ from pathlib import Path
 
 import pytest
 
-import integration_tests.utils.it_helper_functions as hf
+from tests.integration_tests.utils import it_helper_functions as hf
+from tests.integration_tests.conftest import tmp_project, run_simple_deploy, reset_test_project, pkg_manager
+
 
 # --- Fixtures ---
 

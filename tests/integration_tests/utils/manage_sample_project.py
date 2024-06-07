@@ -5,6 +5,7 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
+
 def setup_project(tmp_proj_dir, sd_root_dir):
     """Set up the test project.
     - Copy the sample project to a temp dir.
@@ -17,6 +18,13 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     Returns:
     - None
     """
+    # Find out if uv is available.
+    try:
+        subprocess.run(["uv", "--version"])
+    except FileNotFoundError:
+        uv_available = False
+    else:
+        uv_available = True
 
     # Copy sample project to temp dir.
     sample_project_dir = sd_root_dir / "sample_project/blog_project"
@@ -26,19 +34,32 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     #   activating it. It's easier to use the venv directly than to activate it,
     #   with all these separate subprocess.run() calls.
     venv_dir = tmp_proj_dir / "b_env"
-    subprocess.run([sys.executable, "-m", "venv", venv_dir])
+    if uv_available:
+        subprocess.run(["uv", "venv", venv_dir])
+    else:
+        subprocess.run([sys.executable, "-m", "venv", venv_dir])
 
     # Install requirements for sample project, from vendor/.
     #   Don't upgrade pip, as that would involve a network call. When troubleshooting,
     #   keep in mind someone at some point might just need to upgrade their pip.
-    pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
     requirements_path = tmp_proj_dir / "requirements.txt"
-    subprocess.run([pip_path, "install", "--no-index", "--find-links", sd_root_dir / "vendor", "-r", requirements_path])
+
+    if uv_available:
+        path_to_python = venv_dir / "bin" / "python"
+        if sys.platform == "win32":
+            path_to_python = venv_dir / "Scripts" / "python.exe"
+        subprocess.run(["uv", "pip", "install", "--python", path_to_python, "--no-index", "--find-links", sd_root_dir / "vendor", "-r", requirements_path])
+    else:
+        pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
+        subprocess.run([pip_path, "install", "--no-index", "--find-links", sd_root_dir / "vendor", "-r", requirements_path])
 
     # Install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
-    subprocess.run([pip_path, "install", "-e", sd_root_dir])
+    if uv_available:
+        subprocess.run(["uv", "pip", "install", "--python", path_to_python, "-e", sd_root_dir])
+    else:
+        subprocess.run([pip_path, "install", "-e", sd_root_dir])
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than

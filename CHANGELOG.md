@@ -4,8 +4,15 @@ Changelog: django-simple-deploy
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
 0.7 - Internal plugin model
+---
 
 django-simple-deploy uses a plugin model internally. There shouldn't be many external changes due to this model, but this is an important enough step towards a 1.0 release that it warrants a bump in the minor version number. The 0.8.0 release should indicate preliminary support for external plugins.
+
+### 0.7.1
+
+#### External changes
+
+#### Internal changes
 
 ### 0.7.0
 

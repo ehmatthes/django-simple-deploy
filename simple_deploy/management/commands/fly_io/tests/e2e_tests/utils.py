@@ -2,7 +2,7 @@
 
 import re, time
 
-from ...utils.it_helper_functions import make_sp_call
+from tests.e2e_tests.utils.it_helper_functions import make_sp_call
 
 
 def create_project():

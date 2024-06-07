@@ -31,13 +31,13 @@ Making a new release
 
 - Test the released package:
 ```
-$ pytest tests/e2e_tests/platforms/<platform-name> --pypi -s
+$ pytest tests/e2e_tests --platform <platform-name> --pypi -s
 ```
 
     - Sometimes there's a stale cache that causes the previous release to be installed. If you don't check this version, you won't know whether the new release actually works. In the test output, verify that the new version was installed. Look for something like this:
 
 ```sh
-$ pytest tests/e2e_tests/platforms/fly_io --pypi -s
+$ pytest tests/e2e_tests --platform fly_io --pypi -s
 Temp project directory: ...
 ...
 Collecting django-simple-deploy

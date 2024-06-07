@@ -132,10 +132,11 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     #   in the test module path immediately after /integration_tests/platforms/.
     # Note that we can use `{re.escape(os.sep)}` and avoid the if block, but it's less readable.
     if sys.platform == 'win32':
-        re_platform = r".*\\integration_tests\\platforms\\(.*?)\\.*"
+        re_platform = r".*\\management\\commands\\(.*?)\\.*"
     else:
-        re_platform = r".*/integration_tests/platforms/(.*?)/.*"
+        re_platform = r".*/management/commands/(.*?)/.*"
     test_module_path = request.path
+    print("\n\ntest_module_path:", test_module_path, "\n\n")
     m = re.match(re_platform, str(test_module_path))
 
     if m:
