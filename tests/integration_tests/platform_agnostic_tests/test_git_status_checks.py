@@ -96,8 +96,10 @@ def add_sd_installed_apps(tmp_project):
         if "django_bootstrap5" in line:
             break
 
-    settings_lines.insert(index + 1, "    'simple_deploy',")
+    settings_lines.insert(index + 1, '    "simple_deploy",')
     settings_text = "\n".join(settings_lines)
+    # Add back the trailing newline that was lost in text processing.
+    settings_text += "\n"
     path.write_text(settings_text)
 
     cmd = "git status --porcelain"
