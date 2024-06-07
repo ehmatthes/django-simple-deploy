@@ -8,14 +8,19 @@ from tests.e2e_tests.utils.it_helper_functions import make_sp_call
 def create_project():
     """Create a project on Fly.io."""
     print("\n\nCreating a project on Fly.io...")
-    output = make_sp_call(f"fly apps create --generate-name", capture_output=True).stdout.decode().strip()
-    print('create_project output:', output)
+    output = (
+        make_sp_call(f"fly apps create --generate-name", capture_output=True)
+        .stdout.decode()
+        .strip()
+    )
+    print("create_project output:", output)
 
-    re_app_name = r'New app created: (.*)'
+    re_app_name = r"New app created: (.*)"
     app_name = re.search(re_app_name, output).group(1)
     print(f"  App name: {app_name}")
 
     return app_name
+
 
 def deploy_project(app_name):
     """Make a non-automated deployment."""
@@ -27,17 +32,22 @@ def deploy_project(app_name):
     make_sp_call("fly deploy")
 
     # Open project and get URL.
-    output = make_sp_call(f"fly apps open -a {app_name}", capture_output=True).stdout.decode().strip()
-    print('fly open output:', output)
+    output = (
+        make_sp_call(f"fly apps open -a {app_name}", capture_output=True)
+        .stdout.decode()
+        .strip()
+    )
+    print("fly open output:", output)
 
-    re_url = r'opening (http.*) \.\.\.'
+    re_url = r"opening (http.*) \.\.\."
     project_url = re.search(re_url, output).group(1)
-    if 'https' not in project_url:
-        project_url = project_url.replace('http', 'https')
+    if "https" not in project_url:
+        project_url = project_url.replace("http", "https")
 
     print(f"  Project URL: {project_url}")
 
     return project_url
+
 
 def get_project_url_name():
     """Get project URL and app name of a deployed project.
@@ -45,7 +55,7 @@ def get_project_url_name():
     """
     output = make_sp_call("fly info", capture_output=True).stdout.decode().strip()
 
-    re_app_name = r'.*Hostname = (.*)\.fly\.dev'
+    re_app_name = r".*Hostname = (.*)\.fly\.dev"
     app_name = re.search(re_app_name, output).group(1)
 
     print(f"  Found app name: {app_name}")
@@ -55,6 +65,7 @@ def get_project_url_name():
     print(f"  Project URL: {project_url}")
 
     return project_url, app_name
+
 
 def check_log(tmp_proj_dir):
     """Check the log that was generated during a full deployment.
@@ -68,12 +79,13 @@ def check_log(tmp_proj_dir):
     log_files = list(path.glob("simple_deploy_*.log"))
     if not log_files:
         return False
-        
+
     log_str = log_files[0].read_text()
     if "DATABASE_URL" in log_str:
         return False
 
     return True
+
 
 def destroy_project(request):
     """Destroy the deployed project, and all remote resources."""

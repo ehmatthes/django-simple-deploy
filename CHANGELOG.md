@@ -16,6 +16,7 @@ django-simple-deploy uses a plugin model internally. There shouldn't be many ext
 
 - All platform-specific tests moved to plugin directories.
 - Integration and e2e tests use `uv` for setup work, when available as a system command.
+- Ran Black against the entire repository.
 
 ### 0.7.0
 

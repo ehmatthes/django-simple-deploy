@@ -7,11 +7,14 @@ from .it_helper_functions import make_sp_call
 
 # --- Helper functions ---
 
+
 def add_simple_deploy(tmp_dir):
     """Add simple_deploy to INSTALLED_APPS in the test project."""
     settings_file_path = tmp_dir / "blog/settings.py"
     settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    new_settings_content = settings_content.replace(
+        "# Third party apps.", "# Third party apps.\n    'simple_deploy',"
+    )
     settings_file_path.write_text(new_settings_content)
 
 
@@ -31,6 +34,7 @@ def remove_unneeded_files(proj_dir, pkg_manager):
 
 
 # --- Main functions
+
 
 def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     """Set up the test project.
@@ -72,7 +76,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     vendor_path = sd_root_dir / "vendor"
     activate_path = venv_dir / "bin" / "activate"
 
-    if cli_options.pkg_manager == 'req_txt':
+    if cli_options.pkg_manager == "req_txt":
         #   Don't upgrade pip, unless it starts to cause problems.
         requirements_path = tmp_proj_dir / "requirements.txt"
         if uv_available:
@@ -84,29 +88,33 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
         make_sp_call(cmd)
 
-    elif cli_options.pkg_manager == 'poetry':
+    elif cli_options.pkg_manager == "poetry":
         cmd = f"cd {tmp_proj_dir} && . {activate_path} && poetry cache clear --all pypi -n"
         subprocess.run(cmd, shell=True, check=True)
 
         cmd = f"cd {tmp_proj_dir} && . {activate_path} && poetry install"
         subprocess.run(cmd, shell=True, check=True)
 
-    elif cli_options.pkg_manager == 'pipenv':
+    elif cli_options.pkg_manager == "pipenv":
         # Install pipenv.
         cmd = f"cd {tmp_proj_dir} && {pip_path} install pipenv"
         subprocess.run(cmd, shell=True, check=True)
 
-        cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install"# --skip-lock"
+        cmd = (
+            f"cd {tmp_proj_dir} && . {activate_path} && pipenv install"  # --skip-lock"
+        )
         subprocess.run(cmd, shell=True, check=True)
 
     # Usually, install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
     # If `--pypi` flag has been passed, install from PyPI.
-    if cli_options.pkg_manager == 'req_txt' and uv_available:
+    if cli_options.pkg_manager == "req_txt" and uv_available:
         if cli_options.pypi:
             make_sp_call("uv pip cache purge")
-            make_sp_call(f"uv pip install --python {path_to_python} django-simple-deploy")
+            make_sp_call(
+                f"uv pip install --python {path_to_python} django-simple-deploy"
+            )
         else:
             make_sp_call(f"uv pip install --python {path_to_python} -e {sd_root_dir}")
     elif cli_options.pkg_manager == "req_txt":
@@ -116,10 +124,9 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         else:
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
-
-    elif cli_options.pkg_manager == 'poetry':
+    elif cli_options.pkg_manager == "poetry":
         # Use pip to install the local version.
-        # We could install the local wheel file using `poetry add`, but then 
+        # We could install the local wheel file using `poetry add`, but then
         #   the lock file won't work on the remote server. We're really testing
         #   how simple_deploy handles a poetry environment, we're not testing
         #   how poetry installs the local package. So this should reliably test
@@ -131,13 +138,13 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         else:
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
-    elif cli_options.pkg_manager == 'pipenv':
+    elif cli_options.pkg_manager == "pipenv":
         if cli_options.pypi:
             cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install django-simple-deploy"
             subprocess.run(cmd, shell=True, check=True)
         else:
             # Install local (editable) version of django-simple-deploy.
-            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {sd_root_dir}"# --skip-lock"
+            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {sd_root_dir}"  # --skip-lock"
             subprocess.run(cmd, shell=True, check=True)
 
             # Rewrite the specification for dsd in Pipfile, so remote server
@@ -166,7 +173,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     #   dependency management systems, ie requirements.txt, pyproject.toml, and Pipfile.
     # Note: Current e2e tests don't reuse the project, but this is a very cheap step
     #   that makes the tmp project much more flexible in how we use it. For example, when
-    #   dropping into this 
+    #   dropping into this
     git_exe = "git"
     os.chdir(tmp_proj_dir)
     make_sp_call("git init")

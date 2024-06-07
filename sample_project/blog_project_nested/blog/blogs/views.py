@@ -8,7 +8,7 @@ from .forms import BlogForm, BlogPostForm
 
 def index(request):
     """The home page for the blog."""
-    return render(request, 'blogs/index.html')
+    return render(request, "blogs/index.html")
 
 
 def all_blogs(request):
@@ -22,20 +22,20 @@ def all_blogs(request):
         user_blogs = []
 
     context = {
-        'public_blogs': public_blogs,
-        'user_blogs': user_blogs,
+        "public_blogs": public_blogs,
+        "user_blogs": user_blogs,
     }
-    return render(request, 'blogs/all_blogs.html', context=context)
+    return render(request, "blogs/all_blogs.html", context=context)
 
 
 def latest_posts(request):
     """Show latest posts from all public blogs."""
 
     # Get the latest 10 posts.
-    public_posts = BlogPost.objects.filter(public=True).order_by('-date_added')[:10]
+    public_posts = BlogPost.objects.filter(public=True).order_by("-date_added")[:10]
 
-    context = {'public_posts': public_posts}
-    return render(request, 'blogs/latest_posts.html', context=context)
+    context = {"public_posts": public_posts}
+    return render(request, "blogs/latest_posts.html", context=context)
 
 
 @login_required
@@ -43,8 +43,8 @@ def my_blogs(request):
     """Show user's blogs."""
     user_blogs = Blog.objects.filter(owner=request.user)
 
-    context = {'user_blogs': user_blogs}
-    return render(request, 'blogs/my_blogs.html', context=context)
+    context = {"user_blogs": user_blogs}
+    return render(request, "blogs/my_blogs.html", context=context)
 
 
 def blog(request, blog_id):
@@ -55,15 +55,15 @@ def blog(request, blog_id):
     blog = Blog.objects.get(id=blog_id)
 
     if request.user == blog.owner:
-        posts = blog.blogpost_set.all().order_by('-date_added')
+        posts = blog.blogpost_set.all().order_by("-date_added")
     else:
-        posts = blog.blogpost_set.filter(public=True).order_by('-date_added')
+        posts = blog.blogpost_set.filter(public=True).order_by("-date_added")
 
     context = {
-        'blog': blog,
-        'posts': posts,
+        "blog": blog,
+        "posts": posts,
     }
-    return render(request, 'blogs/blog.html', context=context)
+    return render(request, "blogs/blog.html", context=context)
 
 
 def post(request, post_id):
@@ -73,22 +73,23 @@ def post(request, post_id):
 
     if (not post.public) and (request.user != post.blog.owner):
         # This is someone else's private post; redirect to home page.
-        return redirect('blogs:index')
+        return redirect("blogs:index")
 
     context = {
-        'blog': post.blog,
-        'post': post,
+        "blog": post.blog,
+        "post": post,
     }
-    return render(request, 'blogs/post.html', context=context)
+    return render(request, "blogs/post.html", context=context)
 
 
 # --- Creation pages. ---
+
 
 @login_required
 def new_blog(request):
     """Create a new blog."""
 
-    if request.method != 'POST':
+    if request.method != "POST":
         # No data submitted; create a blank form.
         form = BlogForm()
     else:
@@ -98,11 +99,11 @@ def new_blog(request):
             new_blog = form.save(commit=False)
             new_blog.owner = request.user
             new_blog.save()
-            return redirect('blogs:my_blogs')
+            return redirect("blogs:my_blogs")
 
     # Display blank or invalid form.
-    context = {'form': form}
-    return render(request, 'blogs/new_blog.html', context)
+    context = {"form": form}
+    return render(request, "blogs/new_blog.html", context)
 
 
 @login_required
@@ -114,9 +115,9 @@ def new_post(request, blog_id):
 
     # Make sure user owns this blog.
     if blog.owner != request.user:
-        return redirect('blogs:index')
+        return redirect("blogs:index")
 
-    if request.method != 'POST':
+    if request.method != "POST":
         # No data submitted; create a blank form.
         form = BlogPostForm()
     else:
@@ -132,11 +133,11 @@ def new_post(request, blog_id):
 
             new_post.save()
 
-            return redirect('blogs:post', post_id=new_post.id)
+            return redirect("blogs:post", post_id=new_post.id)
 
     # Display blank or invalid form.
-    context = {'form': form, 'blog': blog}
-    return render(request, 'blogs/new_post.html', context)
+    context = {"form": form, "blog": blog}
+    return render(request, "blogs/new_post.html", context)
 
 
 # --- Editing pages ---

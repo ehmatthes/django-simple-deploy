@@ -21,6 +21,7 @@ from ..utils import manage_sample_project as msp
 
 # --- Helper functions ---
 
+
 def check_project_unchanged(tmp_proj_dir):
     """Check that the project has not been changed.
     Checks git status and git log.
@@ -36,6 +37,7 @@ def check_project_unchanged(tmp_proj_dir):
 
 # --- Test invalid variations of the `simple_deploy` command ---
 
+
 def test_bare_call(tmp_project):
     """Call simple_deploy with no arguments."""
     invalid_sd_command = "python manage.py simple_deploy"
@@ -49,10 +51,14 @@ def test_bare_call(tmp_project):
 
 def test_invalid_platform_call(tmp_project):
     """Call simple_deploy with an invalid --platform argument."""
-    invalid_sd_command = "python manage.py simple_deploy --platform unsupported_platform_name"
+    invalid_sd_command = (
+        "python manage.py simple_deploy --platform unsupported_platform_name"
+    )
     stdout, stderr = msp.call_simple_deploy(tmp_project, invalid_sd_command)
 
-    assert 'The platform "unsupported_platform_name" is not currently supported.' in stderr
+    assert (
+        'The platform "unsupported_platform_name" is not currently supported.' in stderr
+    )
     check_project_unchanged(tmp_project)
 
 
@@ -63,5 +69,7 @@ def test_invalid_platform_call_automate_all(tmp_project):
     invalid_sd_command = "python manage.py simple_deploy --platform unsupported_platform_name --automate-all"
     stdout, stderr = msp.call_simple_deploy(tmp_project, invalid_sd_command)
 
-    assert 'The platform "unsupported_platform_name" is not currently supported.' in stderr
+    assert (
+        'The platform "unsupported_platform_name" is not currently supported.' in stderr
+    )
     check_project_unchanged(tmp_project)

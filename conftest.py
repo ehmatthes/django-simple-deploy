@@ -20,4 +20,6 @@ running_e2e = any(["e2e_tests" in arg for arg in sys.argv])
 if not running_e2e:
     collect_ignore.append("tests/e2e_tests")
     for platform in ["fly_io", "platform_sh", "heroku"]:
-        collect_ignore.append(f"simple_deploy/management/commands/{platform}/tests/e2e_tests")
+        collect_ignore.append(
+            f"simple_deploy/management/commands/{platform}/tests/e2e_tests"
+        )
