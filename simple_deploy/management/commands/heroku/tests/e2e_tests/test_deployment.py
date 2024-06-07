@@ -18,6 +18,7 @@ def test_dummy(tmp_project, request):
     """Helpful to have an empty test to run when testing setup steps."""
     pass
 
+
 # Skip this test and enable test_dummy() to speed up testing of setup steps.
 # @pytest.mark.skip
 def test_deployment(tmp_project, cli_options, request):
@@ -36,10 +37,10 @@ def test_deployment(tmp_project, cli_options, request):
         platform_utils.create_project()
 
     # Run simple_deploy against the test project.
-    it_utils.run_simple_deploy(python_cmd, 'heroku', cli_options.automate_all)
+    it_utils.run_simple_deploy(python_cmd, "heroku", cli_options.automate_all)
 
     # If testing Pipenv, lock after adding new packages.
-    if cli_options.pkg_manager == 'pipenv':
+    if cli_options.pkg_manager == "pipenv":
         it_utils.make_sp_call(f"{python_cmd} -m pipenv lock")
 
     # Push the project if not using --automate-all.
@@ -55,10 +56,16 @@ def test_deployment(tmp_project, cli_options, request):
     # Test functionality of both deployed app, and local project.
     #   We want to make sure the deployment works, but also make sure we haven't
     #   affected functionality of the local project using the development server.
-    remote_functionality_passed = it_utils.check_deployed_app_functionality(python_cmd, project_url)
+    remote_functionality_passed = it_utils.check_deployed_app_functionality(
+        python_cmd, project_url
+    )
     local_functionality_passed = it_utils.check_local_app_functionality(python_cmd)
-    it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
-            cli_options, tmp_project)
+    it_utils.summarize_results(
+        remote_functionality_passed,
+        local_functionality_passed,
+        cli_options,
+        tmp_project,
+    )
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed

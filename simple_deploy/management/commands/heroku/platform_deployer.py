@@ -211,7 +211,9 @@ class PlatformDeployer:
             self.sd.write_output("    Found existing Procfile.")
             proceed = self.sd.get_confirmation(self.messages.procfile_found)
             if not proceed:
-                raise self.sd.utils.SimpleDeployCommandError(self.messages.cant_overwrite_procfile)
+                raise self.sd.utils.SimpleDeployCommandError(
+                    self.messages.cant_overwrite_procfile
+                )
 
         # No Procfile exists, or we're free to write over existing one.
         self.sd.write_output("    Generating Procfile...")
@@ -262,7 +264,9 @@ class PlatformDeployer:
         context = {"current_settings": safe_settings_string}
 
         template_path = self.templates_path / "settings.py"
-        self.sd.utils.write_file_from_template(self.sd.settings_path, template_path, context)
+        self.sd.utils.write_file_from_template(
+            self.sd.settings_path, template_path, context
+        )
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
@@ -371,14 +375,18 @@ class PlatformDeployer:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cli_not_installed
+            )
 
         self.sd.log_info(output_obj)
 
         # The returncode for a successful command is 0, so anything truthy means the
         # command errored out.
         if output_obj.returncode:
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cli_not_installed
+            )
 
     def _check_cli_authenticated(self):
         """Verify the user has authenticated with the CLI.
@@ -398,8 +406,12 @@ class PlatformDeployer:
 
         output_str = output_obj.stderr.decode()
         # I believe I've seen both of these messages when not logged in.
-        if ("Error: Invalid credentials provided" in output_str) or ("Error: not logged in" in output_str):
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_not_authenticated)
+        if ("Error: Invalid credentials provided" in output_str) or (
+            "Error: not logged in" in output_str
+        ):
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cli_not_authenticated
+            )
 
     def _check_heroku_project_available(self):
         """Verify that a Heroku project is available to push to.
