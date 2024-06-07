@@ -1,10 +1,10 @@
 """A collection of messages used in simple_deploy.py."""
 
-# Module is called deploy_messages to avoid collisions with any messages.py 
+# Module is called deploy_messages to avoid collisions with any messages.py
 #   files.
 #
 # Storing messages here makes for a much shorter simple_deploy.py file, and
-#   makes it easier to see how the messages actually look on screen. The 
+#   makes it easier to see how the messages actually look on screen. The
 #   disadvantage is that it's harder to track what messages are being
 #   displayed when working on simple_deploy.
 # When you add a message here, make sure the stdout.write() call has a comment
@@ -71,13 +71,15 @@ makes.
 
 
 # --- Dynamic strings ---
-# These need to be generated in functions, to display information that's 
+# These need to be generated in functions, to display information that's
 #   determined as the script runs.
+
 
 def invalid_platform_msg(requested_platform):
     """Error message, when an invalid --platform argument is provided."""
 
-    msg = dedent(f"""
+    msg = dedent(
+        f"""
 
         --- The platform "{requested_platform}" is not currently supported. ---
         
@@ -87,5 +89,6 @@ def invalid_platform_msg(requested_platform):
           $ python manage.py simple_deploy --platform platform_sh
           $ python manage.py simple_deploy --platform heroku
 
-    """)
+    """
+    )
     return msg
