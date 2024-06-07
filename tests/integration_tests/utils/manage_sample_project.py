@@ -78,7 +78,7 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_proj_dir / "blog/settings.py"
     settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    new_settings_content = settings_content.replace("# Third party apps.", '# Third party apps.\n    "simple_deploy",')
     settings_file_path.write_text(new_settings_content)
 
 
@@ -138,7 +138,7 @@ def reset_test_project(tmp_dir, pkg_manager):
     # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_dir / "blog/settings.py"
     settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    new_settings_content = settings_content.replace("# Third party apps.", '# Third party apps.\n    "simple_deploy",')
     settings_file_path.write_text(new_settings_content)
 
     # Make sure we have a clean status before calling simple_deploy.

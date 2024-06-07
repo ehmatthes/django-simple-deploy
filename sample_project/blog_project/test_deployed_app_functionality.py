@@ -34,16 +34,16 @@ import requests
 
 # Process CLI args.
 parser = argparse.ArgumentParser()
-parser.add_argument('--url', type=str, required=True)
-parser.add_argument('--flush-db', action='store_true')
+parser.add_argument("--url", type=str, required=True)
+parser.add_argument("--flush-db", action="store_true")
 args = parser.parse_args()
 
 # Get URL of deployed project from CLI args.
 app_url = args.url
 
 # Make sure app url has a trailing slash.
-if not app_url[-1] == '/':
-    app_url += '/'
+if not app_url[-1] == "/":
+    app_url += "/"
 
 # This option is available to make it easier to work on this script, running against
 #   a local version of the project. This allows successive runs of the tests to
@@ -51,8 +51,8 @@ if not app_url[-1] == '/':
 #   same user twice.
 if args.flush_db:
     print("Flushing db before running test...")
-    cmd = 'python manage.py flush --no-input'
-    cmd_parts = cmd.split(' ')
+    cmd = "python manage.py flush --no-input"
+    cmd_parts = cmd.split(" ")
     subprocess.run(cmd_parts)
     print("  Flushed db.")
 
@@ -144,27 +144,27 @@ assert "Not Found" not in r.text
 # --- Create an account ---
 #  Uses a session-based approach, to deal with csrf token.
 
-print("  Checking that a user account can be made, and checking the logged-in version of the home page...")
+print(
+    "  Checking that a user account can be made, and checking the logged-in version of the home page..."
+)
 register_url = f"{app_url}users/register/"
 
 s = requests.Session()
 s.get(register_url)
 
-csrftoken = s.cookies['csrftoken']
+csrftoken = s.cookies["csrftoken"]
 
 # This is a simple username and password, so you can log in after running this
 #   test and see the private data that's been created.
-new_username = 'user1'
+new_username = "user1"
 register_data = {
-    'username': new_username,
-    'password1': 'user1user1',
-    'password2': 'user1user1',
-    'csrfmiddlewaretoken': csrftoken,
+    "username": new_username,
+    "password1": "user1user1",
+    "password2": "user1user1",
+    "csrfmiddlewaretoken": csrftoken,
 }
 
-headers = {
-    'referer': f"{app_url}users/login/"
-}
+headers = {"referer": f"{app_url}users/login/"}
 
 r = s.post(register_url, data=register_data, headers=headers)
 
@@ -176,7 +176,7 @@ try:
     assert "Log out" in r.text
     assert "Register" not in r.text
 except AssertionError:
-    with open('error_page.html', 'w') as f:
+    with open("error_page.html", "w") as f:
         f.write(r.text)
     raise AssertionError
 
@@ -185,16 +185,14 @@ except AssertionError:
 # Create a public blog, and make sure it's visible to the owner.
 # Note: Leave 'public' out of blog_data to make a private blog.
 print("  Checking that a public blog can be created, and that it's visible to owner...")
-csrftoken = s.cookies['csrftoken']
+csrftoken = s.cookies["csrftoken"]
 blog_data = {
-    'title': 'My Public Blog',
-    'public': 'on',
-    'csrfmiddlewaretoken': csrftoken,
+    "title": "My Public Blog",
+    "public": "on",
+    "csrfmiddlewaretoken": csrftoken,
 }
 
-headers = {
-    'referer': f"{app_url}new_blog/"
-}
+headers = {"referer": f"{app_url}new_blog/"}
 
 new_blog_url = f"{app_url}new_blog/"
 r = s.post(new_blog_url, data=blog_data, headers=headers)
@@ -205,7 +203,7 @@ try:
     assert "My Public Blog" in r.text
     assert "Create a new blog" in r.text
 except AssertionError:
-    with open('error_page.html', 'w') as f:
+    with open("error_page.html", "w") as f:
         f.write(r.text)
     raise AssertionError
 
@@ -213,27 +211,25 @@ except AssertionError:
 # --- Create a public post on the public blog ---
 # Note: The public blog was the first one created, so should have an id of 1.
 print("  Checking that a public post on public blog is visible to owner...")
-csrftoken = s.cookies['csrftoken']
+csrftoken = s.cookies["csrftoken"]
 post_data = {
-    'title': 'My Public Post on Public Blog',
-    'body': 'This is a wonderful public post on a public blog!',
-    'public': 'on',
-    'csrfmiddlewaretoken': csrftoken,
+    "title": "My Public Post on Public Blog",
+    "body": "This is a wonderful public post on a public blog!",
+    "public": "on",
+    "csrfmiddlewaretoken": csrftoken,
 }
 
-headers = {
-    'referer': f"{app_url}new_post/"
-}
+headers = {"referer": f"{app_url}new_post/"}
 
 new_post_url = f"{app_url}new_post/1/"
 r = s.post(new_post_url, data=post_data, headers=headers)
 
 try:
     assert r.status_code == 200
-    assert post_data['title'] in r.text
-    assert post_data['body'] in r.text
+    assert post_data["title"] in r.text
+    assert post_data["body"] in r.text
 except AssertionError:
-    with open('error_page.html', 'w') as f:
+    with open("error_page.html", "w") as f:
         f.write(r.text)
     raise AssertionError
 
@@ -241,42 +237,40 @@ except AssertionError:
 # --- Create a private post on the public blog ---
 # Note: The public blog was the first one created, so should have an id of 1.
 print("  Checking that a private post on public blog is visible to owner...")
-csrftoken = s.cookies['csrftoken']
+csrftoken = s.cookies["csrftoken"]
 post_data = {
-    'title': 'My Private Post on Public Blog',
-    'body': 'This is a wonderful private post on a public blog!',
-    'csrfmiddlewaretoken': csrftoken,
+    "title": "My Private Post on Public Blog",
+    "body": "This is a wonderful private post on a public blog!",
+    "csrfmiddlewaretoken": csrftoken,
 }
 
-headers = {
-    'referer': f"{app_url}new_post/"
-}
+headers = {"referer": f"{app_url}new_post/"}
 
 new_post_url = f"{app_url}new_post/1/"
 r = s.post(new_post_url, data=post_data, headers=headers)
 
 try:
     assert r.status_code == 200
-    assert post_data['title'] in r.text
-    assert post_data['body'] in r.text
+    assert post_data["title"] in r.text
+    assert post_data["body"] in r.text
 except AssertionError:
-    with open('error_page.html', 'w') as f:
+    with open("error_page.html", "w") as f:
         f.write(r.text)
     raise AssertionError
 
 
 # --- Create a private blog ---
 # Create a private blog, and make sure it's visible to the owner.
-print("  Checking that a private blog can be created, and that it's visible to owner...")
-csrftoken = s.cookies['csrftoken']
+print(
+    "  Checking that a private blog can be created, and that it's visible to owner..."
+)
+csrftoken = s.cookies["csrftoken"]
 blog_data = {
-    'title': 'My Private Blog',
-    'csrfmiddlewaretoken': csrftoken,
+    "title": "My Private Blog",
+    "csrfmiddlewaretoken": csrftoken,
 }
 
-headers = {
-    'referer': f"{app_url}new_blog/"
-}
+headers = {"referer": f"{app_url}new_blog/"}
 
 new_blog_url = f"{app_url}new_blog/"
 r = s.post(new_blog_url, data=blog_data, headers=headers)
@@ -287,7 +281,7 @@ try:
     assert "My Private Blog" in r.text
     assert "Create a new blog" in r.text
 except AssertionError:
-    with open('error_page.html', 'w') as f:
+    with open("error_page.html", "w") as f:
         f.write(r.text)
     raise AssertionError
 
@@ -295,27 +289,25 @@ except AssertionError:
 # --- Create a public post on the private blog ---
 # Note: The private blog was the second one created, so should have an id of 2.
 print("  Checking that a public post on private blog is visible to owner...")
-csrftoken = s.cookies['csrftoken']
+csrftoken = s.cookies["csrftoken"]
 post_data = {
-    'title': 'My Public Post on Private Blog',
-    'body': 'This is a wonderful public post on a private blog!',
-    'public': 'on',
-    'csrfmiddlewaretoken': csrftoken,
+    "title": "My Public Post on Private Blog",
+    "body": "This is a wonderful public post on a private blog!",
+    "public": "on",
+    "csrfmiddlewaretoken": csrftoken,
 }
 
-headers = {
-    'referer': f"{app_url}new_post/"
-}
+headers = {"referer": f"{app_url}new_post/"}
 
 new_post_url = f"{app_url}new_post/2/"
 r = s.post(new_post_url, data=post_data, headers=headers)
 
 try:
     assert r.status_code == 200
-    assert post_data['title'] in r.text
-    assert post_data['body'] in r.text
+    assert post_data["title"] in r.text
+    assert post_data["body"] in r.text
 except AssertionError:
-    with open('error_page.html', 'w') as f:
+    with open("error_page.html", "w") as f:
         f.write(r.text)
     raise AssertionError
 
@@ -324,13 +316,11 @@ except AssertionError:
 # Log out, then test anonymous views of the data that was just created.
 print("  Checking that the logout process works...")
 
-csrftoken = s.cookies['csrftoken']
+csrftoken = s.cookies["csrftoken"]
 post_data = {
-    'csrfmiddlewaretoken': csrftoken,
+    "csrfmiddlewaretoken": csrftoken,
 }
-headers = {
-    "referer": f"{app_url}users/logout"
-}
+headers = {"referer": f"{app_url}users/logout"}
 
 logout_url = f"{app_url}users/logout/"
 r = s.post(logout_url, data=post_data, headers=headers)
@@ -395,7 +385,7 @@ assert '<label class="form-label" for="id_username">Username</label>' in r.text
 
 
 # --- Test that DEBUG is set correctly. ---
-if 'localhost' not in app_url:
+if "localhost" not in app_url:
     print("  Checking that DEBUG is set to False correctly. ---")
     url = f"{app_url}nonexistent_page/"
     r = requests.get(url)
@@ -403,14 +393,20 @@ if 'localhost' not in app_url:
     assert r.status_code == 404
     assert "Not Found" in r.text
     assert "The requested resource was not found on this server." in r.text
-    assert "You're seeing this error because you have DEBUG = True in your Django settings file." not in r.text
+    assert (
+        "You're seeing this error because you have DEBUG = True in your Django settings file."
+        not in r.text
+    )
 else:
     print("  Checking that DEBUG is set to True correctly. ---")
     url = f"{app_url}nonexistent_page/"
     r = requests.get(url)
 
     assert r.status_code == 404
-    assert "You're seeing this error because you have DEBUG = True in your Django settings file." not in r.text
+    assert (
+        "You're seeing this error because you have DEBUG = True in your Django settings file."
+        not in r.text
+    )
 
 
 # --- Everything works! (if you made it to here) --
