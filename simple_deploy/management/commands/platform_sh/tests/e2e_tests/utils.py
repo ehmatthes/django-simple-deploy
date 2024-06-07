@@ -4,7 +4,7 @@ import re, time
 
 import pytest
 
-from ...utils.it_helper_functions import make_sp_call
+from tests.e2e_tests.utils.it_helper_functions import make_sp_call
 
 def check_logged_in():
     """Check that user is currently logged in to Platform.sh through CLI."""
