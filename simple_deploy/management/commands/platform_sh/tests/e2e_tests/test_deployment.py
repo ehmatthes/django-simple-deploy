@@ -18,16 +18,17 @@ def test_dummy(tmp_project):
     """Helpful to have an empty test to run when testing setup steps."""
     pass
 
+
 # Skip this test and enable test_dummy() to speed up testing of setup steps.
 # @pytest.mark.skip
 def test_deployment(tmp_project, cli_options, request):
     """Test the full, live deployment process to Platform.sh.
-    
+
     Note: On Windows, this must be run from a bash terminal, such as Git Bash,
         or through WSL.
       On Windows you may see a popup about authenticating an RSA key fingerprint. Sometimes this
         is hidden by a console window. Look for that confirmation if a platform command
-        hangs. Enter 'yes' (not just 'y') into that box if it appears. It obscures what 
+        hangs. Enter 'yes' (not just 'y') into that box if it appears. It obscures what
         you type with asterisks, but it's just looking for 'yes'.
       Confirming the RSA key in the popup generates a `.ssh/known_hosts` file, which then allows
         you to use non-bash shells. That behavior is *really* confusing, though. I don't think the
@@ -49,20 +50,20 @@ def test_deployment(tmp_project, cli_options, request):
     if not cli_options.automate_all:
         platform_utils.create_project()
 
-        # `platform create` creates `.platform/local`. This is ignored on macOS, 
+        # `platform create` creates `.platform/local`. This is ignored on macOS,
         #   but not on Windows. There's a `.platform/local/.gitignore` file with a
         #   single forward slash in it. Does this ignore that directory on macOS,
-        #   but not on Windows? Committing here, so we got into running sd with a 
+        #   but not on Windows? Committing here, so we got into running sd with a
         #   clean `git status`.
-        if os.name == 'nt':
+        if os.name == "nt":
             it_utils.make_sp_call("git add .")
             it_utils.make_sp_call("git commit -am 'Created platform_sh project.'")
 
     # Run simple_deploy against the test project.
-    it_utils.run_simple_deploy(python_cmd, 'platform_sh', cli_options.automate_all)
+    it_utils.run_simple_deploy(python_cmd, "platform_sh", cli_options.automate_all)
 
     # If testing Pipenv, lock after adding new packages.
-    if cli_options.pkg_manager == 'pipenv':
+    if cli_options.pkg_manager == "pipenv":
         it_utils.make_sp_call(f"{python_cmd} -m pipenv lock")
 
     # Get the deployed project's URL, and ID so we can destroy it later.
@@ -80,10 +81,16 @@ def test_deployment(tmp_project, cli_options, request):
     # Test functionality of both deployed app, and local project.
     #   We want to make sure the deployment works, but also make sure we haven't
     #   affected functionality of the local project using the development server.
-    remote_functionality_passed = it_utils.check_deployed_app_functionality(python_cmd, project_url)
+    remote_functionality_passed = it_utils.check_deployed_app_functionality(
+        python_cmd, project_url
+    )
     local_functionality_passed = it_utils.check_local_app_functionality(python_cmd)
-    it_utils.summarize_results(remote_functionality_passed, local_functionality_passed,
-            cli_options, tmp_project)
+    it_utils.summarize_results(
+        remote_functionality_passed,
+        local_functionality_passed,
+        cli_options,
+        tmp_project,
+    )
 
     # Make final assertions, so pytest results are meaningful.
     assert remote_functionality_passed
