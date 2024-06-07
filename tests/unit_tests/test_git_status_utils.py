@@ -9,6 +9,7 @@ import pytest
 
 # --- Tests for checking git status ---
 
+
 def test_simple_git_status():
     """Tests for simple `git status --porcelain` and `git diff --unified=0` outputs."""
     status_output, diff_output = "", ""
@@ -28,6 +29,7 @@ def test_simple_git_status():
 
 
 # --- Tests for checking overall git diff ---
+
 
 def test_diff_ignore_sd_logs():
     diff_output = dedent(
@@ -58,6 +60,7 @@ def test_diff_settings_sd_installed_apps():
 
     assert sd_utils._check_git_diff(diff_output)
 
+
 def test_diff_settings_requirements_txt():
     diff_output = dedent(
         """\
@@ -80,6 +83,7 @@ def test_diff_settings_requirements_txt():
 
     assert sd_utils._check_git_diff(diff_output)
 
+
 def test_diff_unacceptable_change():
     diff_output = dedent(
         """\
@@ -95,6 +99,7 @@ def test_diff_unacceptable_change():
     )
 
     assert not sd_utils._check_git_diff(diff_output)
+
 
 def test_diff_sdlogs_gitignore_sd_installed_apps():
     diff_output = dedent(
@@ -119,6 +124,7 @@ def test_diff_sdlogs_gitignore_sd_installed_apps():
 
 # --- Tests for _clean_diff(); also includes test of checking the clean diff ---
 
+
 def test_clean_diff():
     diff_output = dedent(
         """\
@@ -134,6 +140,7 @@ def test_clean_diff():
     cleaned_diff = sd_utils._clean_diff(diff_output.splitlines())
     assert cleaned_diff == ["+    'simple_deploy',"]
     assert sd_utils._check_settings_diff(diff_output.splitlines())
+
 
 def test_clean_diff_remove_blank_changes():
     diff_output = dedent(
@@ -152,6 +159,7 @@ def test_clean_diff_remove_blank_changes():
     assert cleaned_diff == ["+# Placeholder comment to create unacceptable git status."]
     assert not sd_utils._check_settings_diff(diff_output.splitlines())
 
+
 def test_clean_diff_remove_trailing_newline():
     diff_output = dedent(
         """\
@@ -169,6 +177,7 @@ def test_clean_diff_remove_trailing_newline():
     assert cleaned_diff == ["+# Placeholder comment to create unacceptable git status."]
     assert not sd_utils._check_settings_diff(diff_output.splitlines())
 
+
 def test_clean_diff_gitignore():
     diff_output = dedent(
         """\
@@ -184,6 +193,7 @@ def test_clean_diff_gitignore():
     cleaned_diff = sd_utils._clean_diff(diff_output.splitlines())
     assert cleaned_diff == ["+simple_deploy_logs/"]
     assert sd_utils._check_gitignore_diff(diff_output.splitlines())
+
 
 def test_clean_diff_settings():
     diff_output = dedent(
