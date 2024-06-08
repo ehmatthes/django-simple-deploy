@@ -71,7 +71,7 @@ class Command(BaseCommand):
 
         # Make resources available to plugins.
         self.utils = utils
-        self.messages = deploy_messages`
+        self.messages = deploy_messages
 
         super().__init__()
 
