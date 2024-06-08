@@ -130,7 +130,11 @@ class PlatformDeployer:
         path = self.sd.project_root / "Dockerfile"
         if path.exists():
             self.sd.write_output("    Found existing Dockerfile.")
-            return
+            proceed = self.sd.get_confirmation(self.messages.dockerfile_found)
+            if not proceed:
+                raise self.sd.utils.SimpleDeployCommandError(
+                    self.messages.cant_overwrite_dockerfile
+                )
 
         # No Dockerfile exists. Generate new file from template.
         self.sd.write_output("    No Dockerfile found. Generating file...")
