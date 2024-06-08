@@ -93,6 +93,7 @@ def invalid_platform_msg(requested_platform):
     )
     return msg
 
+
 def file_found(filename):
     """Found a file that we plan to write.
 
