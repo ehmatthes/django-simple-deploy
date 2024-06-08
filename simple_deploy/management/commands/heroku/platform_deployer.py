@@ -209,8 +209,6 @@ class PlatformDeployer:
 
         if path.exists():
             self.sd.write_output("    Found existing Procfile.")
-            # proceed = self.sd.get_confirmation(self.messages.procfile_found)
-            # proceed = self.sd.messages.file_found("Procfile")
             proceed = self.sd.get_confirmation(self.sd.messages.file_found("Procfile"))
             if not proceed:
                 raise self.sd.utils.SimpleDeployCommandError(
