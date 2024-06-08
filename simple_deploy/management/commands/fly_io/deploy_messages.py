@@ -94,8 +94,36 @@ If you think there's a database that simple_deploy should be able to use,
 
 
 # --- Dynamic strings ---
-# These need to be generated in functions, to display information that's
-#   determined as the script runs.
+# These need to be generated in functions, to display information that's determined as
+# the script runs.
+
+
+def file_found(filename):
+    """Found a file that we plan to write.
+
+    We need to get permission to write over this file. For example found an existing
+    Dockerfile.
+    """
+
+    msg = dedent(
+        f"""
+        The file {filename} already exists. Is it okay to replace this file?
+    """
+    )
+
+def file_replace_rejected(filename):
+    """Permission denied to replace existing file.
+
+    We can't proceed without this permission.
+    """
+
+    msg = dedent(
+        f"""
+        In order to configure the project for deployment, we need to write the
+        file: {filename}
+        Please remove the current version, and then run simple_deploy again.
+    """
+    )
 
 
 def region_not_found(app_name):

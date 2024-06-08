@@ -17,6 +17,11 @@ django-simple-deploy uses a plugin model internally. There shouldn't be many ext
 - All platform-specific tests moved to plugin directories.
 - Integration and e2e tests use `uv` for setup work, when available as a system command.
 - Ran Black against the entire repository.
+- Platform deployers have access to cross-platform `sd.messages`.
+- Added two messages to `sd`:
+    - `file_found(filename)`: Found an existing file, that we need permission to replace.
+    - `file_replace_rejected(filename)`: User does not grant permission to replace file.
+
 
 ### 0.7.0
 
