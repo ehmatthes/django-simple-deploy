@@ -61,7 +61,7 @@ print(f"\nTesting functionality of deployed app at {app_url}...\n")
 
 # --- Anonymous home page ---
 print("  Checking anonymous home page...")
-r = httpx.get(app_url)
+r = httpx.get(app_url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "BlogMaker Lite" in r.text
@@ -74,7 +74,7 @@ assert "Log out" not in r.text
 # --- Anonymous empty all_blogs ---
 print("  Checking empty anonmyous all_blogs page...")
 url = f"{app_url}all_blogs"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "Public Blogs" in r.text
@@ -86,7 +86,7 @@ assert "Create a new blog" not in r.text
 # --- Anonymous empty latest_posts ---
 print("  Checking empty anonmyous latest_posts page...")
 url = f"{app_url}latest_posts"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "Latest Posts" in r.text
@@ -99,7 +99,7 @@ print("  Checking that anonymous my_blogs page redirects to login...")
 # Note that direct django testing detects a redirect; requests just sees
 #   the login page.
 url = f"{app_url}my_blogs"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "Log in" in r.text
@@ -110,7 +110,7 @@ assert "Password" in r.text
 # --- Anonymous register page ---
 print("  Checking that anonymous register page is available...")
 url = f"{app_url}users/register"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "Log in" in r.text
@@ -122,7 +122,7 @@ assert "Password confirmation" in r.text
 # --- Anonymous login page ---
 print("  Checking that anonymous login page is available...")
 url = f"{app_url}users/login/"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "Log in to your account" in r.text
@@ -133,7 +133,7 @@ assert "Password" in r.text
 # --- Check styling of admin login page ---
 print("  Checking that admin static assets are available...")
 url = f"{app_url}static/admin/css/login.css"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 # This is a random line from the default django/contrib/admin/static/admin/css/login.css file.
@@ -148,7 +148,7 @@ print("  Checking that a user account can be made, and checking the logged-in ve
 register_url = f"{app_url}users/register/"
 
 s = httpx.Client()
-s.get(register_url)
+s.get(register_url, follow_redirects=True)
 
 csrftoken = s.cookies['csrftoken']
 
@@ -166,7 +166,7 @@ headers = {
     'referer': f"{app_url}users/login/"
 }
 
-r = s.post(register_url, data=register_data, headers=headers)
+r = s.post(register_url, data=register_data, headers=headers, follow_redirects=True)
 
 try:
     assert r.status_code == 200
@@ -197,7 +197,7 @@ headers = {
 }
 
 new_blog_url = f"{app_url}new_blog/"
-r = s.post(new_blog_url, data=blog_data, headers=headers)
+r = s.post(new_blog_url, data=blog_data, headers=headers, follow_redirects=True)
 
 try:
     assert r.status_code == 200
@@ -226,7 +226,7 @@ headers = {
 }
 
 new_post_url = f"{app_url}new_post/1/"
-r = s.post(new_post_url, data=post_data, headers=headers)
+r = s.post(new_post_url, data=post_data, headers=headers, follow_redirects=True)
 
 try:
     assert r.status_code == 200
@@ -253,7 +253,7 @@ headers = {
 }
 
 new_post_url = f"{app_url}new_post/1/"
-r = s.post(new_post_url, data=post_data, headers=headers)
+r = s.post(new_post_url, data=post_data, headers=headers, follow_redirects=True)
 
 try:
     assert r.status_code == 200
@@ -279,7 +279,7 @@ headers = {
 }
 
 new_blog_url = f"{app_url}new_blog/"
-r = s.post(new_blog_url, data=blog_data, headers=headers)
+r = s.post(new_blog_url, data=blog_data, headers=headers, follow_redirects=True)
 
 try:
     assert r.status_code == 200
@@ -308,7 +308,7 @@ headers = {
 }
 
 new_post_url = f"{app_url}new_post/2/"
-r = s.post(new_post_url, data=post_data, headers=headers)
+r = s.post(new_post_url, data=post_data, headers=headers, follow_redirects=True)
 
 try:
     assert r.status_code == 200
@@ -333,7 +333,7 @@ headers = {
 }
 
 logout_url = f"{app_url}users/logout/"
-r = s.post(logout_url, data=post_data, headers=headers)
+r = s.post(logout_url, data=post_data, headers=headers, follow_redirects=True)
 
 assert r.status_code == 200
 assert "Logged out" in r.text
@@ -345,7 +345,7 @@ assert "My Blogs" not in r.text
 # --- Test that public blog is visible to an anon user ---
 print("  Checking that public blog is visible to an anonymous user...")
 url = f"{app_url}all_blogs"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "My Public Blog" in r.text
@@ -362,7 +362,7 @@ assert "My blogs" not in r.text
 # --- Test that public post is visible on public blog ---
 print("  Checking that public post is visible on public blog...")
 url = f"{app_url}blogs/1/"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "My Public Post on Public Blog" in r.text
@@ -378,7 +378,7 @@ assert "My Private Post on Public Blog" not in r.text
 # This should redirect to the home page.
 print("  Checking that public post on private blog is not visible...")
 url = f"{app_url}posts/2/"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert "BlogMaker Lite makes your world better" in r.text
@@ -388,7 +388,7 @@ assert "BlogMaker Lite makes your world better" in r.text
 # Check the login page, and make sure the bootstrap form was rendered correctly?
 print("  Checking style on login form...")
 url = f"{app_url}users/login/"
-r = httpx.get(url)
+r = httpx.get(url, follow_redirects=True)
 
 assert r.status_code == 200
 assert '<label class="form-label" for="id_username">Username</label>' in r.text
@@ -398,7 +398,7 @@ assert '<label class="form-label" for="id_username">Username</label>' in r.text
 if 'localhost' not in app_url:
     print("  Checking that DEBUG is set to False correctly. ---")
     url = f"{app_url}nonexistent_page/"
-    r = httpx.get(url)
+    r = httpx.get(url, follow_redirects=True)
 
     assert r.status_code == 404
     assert "Not Found" in r.text
@@ -407,7 +407,7 @@ if 'localhost' not in app_url:
 else:
     print("  Checking that DEBUG is set to True correctly. ---")
     url = f"{app_url}nonexistent_page/"
-    r = httpx.get(url)
+    r = httpx.get(url, follow_redirects=True)
 
     assert r.status_code == 404
     assert "You're seeing this error because you have DEBUG = True in your Django settings file." not in r.text

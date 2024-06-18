@@ -589,7 +589,7 @@ class PlatformDeployer:
 
         # Get region output.
         url = "https://liveview-counter.fly.dev/"
-        r = httpx.get(url)
+        r = httpx.get(url, follow_redirects=True)
 
         re_region = r"Connected to ([a-z]{3})"
         m = re.search(re_region, r.text)
