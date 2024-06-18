@@ -27,6 +27,7 @@ def write_file_from_template(dest_path, template_path, context=None):
     rendered_template = template.render(Context(context))
     dest_path.write_text(rendered_template)
 
+
 def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
     """Select from a numbered list of choices.
 

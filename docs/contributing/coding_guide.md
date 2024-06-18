@@ -18,7 +18,7 @@ As much as possible, write small utility functions that can easily be unit teste
 
 ## Coding Style
 
-Use `black` when possible. At this point, some files may not follow Black conventions. By the 1.0 release, Black can act globally across the codebase.
+Run `black` at the root project level before making a PR. This should be integrated into CI around the 1.0 release.
 
 ## Python usage
 

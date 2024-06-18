@@ -1,6 +1,5 @@
 {{current_settings}}
 
-
 # Fly.io settings.
 import os
 

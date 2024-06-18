@@ -46,6 +46,15 @@ settings block. Please remove the current Fly.io-specific settings, and then run
 simple_deploy again.
 """
 
+dockerfile_found = """
+A Dockerfile already exists. Is it okay to overwrite this file?
+"""
+
+cant_overwrite_dockerfile = """
+In order to configure the project for deployment, we need to write a Dockerfile. Please
+remove the current Dockerfile, and then run simple_deploy again.
+"""
+
 no_project_name = """
 A suitable Fly.io app to deploy against could not be found.
 

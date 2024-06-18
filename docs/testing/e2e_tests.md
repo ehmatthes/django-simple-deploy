@@ -18,7 +18,7 @@ Bare `pytest` calls only run unit and integration tests. If you want to run e2e 
 For example, here's how you run an e2e test for deploying to Fly.io:
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/e2e_tests/platforms/fly_io -s
+(dsd_env)django-simple-deploy$ pytest tests/e2e_tests --platform fly_io -s
 ```
 
 E2e tests require the `-s` flag. There's too much information in an e2e test at this point to run silently. Also, some platforms take such a long time to finish a deployment that it's really helpful to know if the deployment is slow, or has hung in a way that won't finish.
@@ -32,7 +32,7 @@ If the test runs successfully, you'll see the deployed project in a new browser 
 By default, e2e tests use a requirements.txt file in the sample project. If you want to test a poetry-based project, use this command:
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/e2e_tests/platforms/fly_io --pkg-manager poetry -s
+(dsd_env)django-simple-deploy$ pytest tests/e2e_tests --platform fly_io --pkg-manager poetry -s
 ```
 
 Options for `--pkg-manager` are `req_txt` (default), `poetry`, and `pipenv`.
@@ -42,7 +42,7 @@ Options for `--pkg-manager` are `req_txt` (default), `poetry`, and `pipenv`.
 You can test a deployment with the `--automate-all` flag:
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/e2e_tests/platforms/fly_io --automate-all -s
+(dsd_env)django-simple-deploy$ pytest tests/e2e_tests --platform fly_io --automate-all -s
 ```
 
 You won't notice a whole lot of difference compared to e2e tests without this flag, but it mimics the user's actions when using this flag. Instead of the e2e tests making commits on the test project, `simple_deploy` makes those commits and runs the platform's push command just as it would on a user's system.
@@ -56,7 +56,7 @@ If you are investigating a bug that integration tests aren't helping with, a rea
 After making a new release, it's reassuring to test the released version. One benefit is that it can catch issues with the overall packaging of the project.
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/e2e_tests/platforms/fly_io --pypi -s
+(dsd_env)django-simple-deploy$ pytest tests/e2e_tests --platform fly_io --pypi -s
 ```
 
 After building the test project in a tmp dir, this will install `simple_deploy` from PyPI, instead of making an editable install of the local version of the project.

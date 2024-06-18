@@ -5,6 +5,7 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
+
 def setup_project(tmp_proj_dir, sd_root_dir):
     """Set up the test project.
     - Copy the sample project to a temp dir.
@@ -17,6 +18,13 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     Returns:
     - None
     """
+    # Find out if uv is available.
+    try:
+        subprocess.run(["uv", "--version"])
+    except FileNotFoundError:
+        uv_available = False
+    else:
+        uv_available = True
 
     # Copy sample project to temp dir.
     sample_project_dir = sd_root_dir / "sample_project/blog_project"
@@ -26,19 +34,57 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     #   activating it. It's easier to use the venv directly than to activate it,
     #   with all these separate subprocess.run() calls.
     venv_dir = tmp_proj_dir / "b_env"
-    subprocess.run([sys.executable, "-m", "venv", venv_dir])
+    if uv_available:
+        subprocess.run(["uv", "venv", venv_dir])
+    else:
+        subprocess.run([sys.executable, "-m", "venv", venv_dir])
 
     # Install requirements for sample project, from vendor/.
     #   Don't upgrade pip, as that would involve a network call. When troubleshooting,
     #   keep in mind someone at some point might just need to upgrade their pip.
-    pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
     requirements_path = tmp_proj_dir / "requirements.txt"
-    subprocess.run([pip_path, "install", "--no-index", "--find-links", sd_root_dir / "vendor", "-r", requirements_path])
+
+    if uv_available:
+        path_to_python = venv_dir / "bin" / "python"
+        if sys.platform == "win32":
+            path_to_python = venv_dir / "Scripts" / "python.exe"
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                path_to_python,
+                "--no-index",
+                "--find-links",
+                sd_root_dir / "vendor",
+                "-r",
+                requirements_path,
+            ]
+        )
+    else:
+        pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
+        subprocess.run(
+            [
+                pip_path,
+                "install",
+                "--no-index",
+                "--find-links",
+                sd_root_dir / "vendor",
+                "-r",
+                requirements_path,
+            ]
+        )
 
     # Install the local version of simple_deploy (the version we're testing).
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
-    subprocess.run([pip_path, "install", "-e", sd_root_dir])
+    if uv_available:
+        subprocess.run(
+            ["uv", "pip", "install", "--python", path_to_python, "-e", sd_root_dir]
+        )
+    else:
+        subprocess.run([pip_path, "install", "-e", sd_root_dir])
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
@@ -57,7 +103,9 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_proj_dir / "blog/settings.py"
     settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    new_settings_content = settings_content.replace(
+        "# Third party apps.", '# Third party apps.\n    "simple_deploy",'
+    )
     settings_file_path.write_text(new_settings_content)
 
 
@@ -77,15 +125,12 @@ def reset_test_project(tmp_dir, pkg_manager):
         "fly.toml",
         "Dockerfile",
         ".dockerignore",
-
         # Platform.sh
         ".platform.app.yaml",
         ".platform",
-
         # Heroku
         "Procfile",
         "static",
-
         # All platforms.
         "simple_deploy_logs",
         "__pycache__",
@@ -112,12 +157,16 @@ def reset_test_project(tmp_dir, pkg_manager):
 
     # Commit these changes; helpful in diagnosing failed runs, when you cd into the test
     #   project directory and run git status.
-    subprocess.run(["git", "commit", "-am", "Removed unneeded dependency management files."])
+    subprocess.run(
+        ["git", "commit", "-am", "Removed unneeded dependency management files."]
+    )
 
     # Add simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_dir / "blog/settings.py"
     settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    new_settings_content = settings_content.replace(
+        "# Third party apps.", '# Third party apps.\n    "simple_deploy",'
+    )
     settings_file_path.write_text(new_settings_content)
 
     # Make sure we have a clean status before calling simple_deploy.
@@ -143,7 +192,7 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     #   a project name, ie misty-fjords-12345 during actual deployment.
     if platform:
         sd_command = f"{sd_command} --platform {platform}"
-    if platform in ('fly_io', 'platform_sh'):
+    if platform in ("fly_io", "platform_sh"):
         # These platforms need a project name to carry out configuration.
         sd_command = f"{sd_command} --deployed-project-name my_blog_project"
 
@@ -164,11 +213,17 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     # Make the call to simple_deploy.
     #   The `text=True` argument causes this to return stdout and stderr as strings, not objects.
     #   Some of these commands, such as cwd, are required specifically for Windows.
-    sd_call = subprocess.Popen(split(sd_command), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-            text=True, cwd=tmp_dir)
+    sd_call = subprocess.Popen(
+        split(sd_command),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        cwd=tmp_dir,
+    )
     stdout, stderr = sd_call.communicate()
 
     return stdout, stderr
+
 
 def make_git_call(tmp_dir, git_call):
     """Make a git call against the test project.
@@ -176,7 +231,9 @@ def make_git_call(tmp_dir, git_call):
     - stdout, stderr as strings.
     """
     os.chdir(tmp_dir)
-    git_call_object = subprocess.Popen(split(git_call), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    git_call_object = subprocess.Popen(
+        split(git_call), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+    )
     stdout, stderr = git_call_object.communicate()
 
     return stdout, stderr
