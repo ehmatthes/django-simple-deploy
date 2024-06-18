@@ -14,6 +14,7 @@ import pytest
 
 # --- Helper functions ---
 
+
 def make_valid_call(tmp_proj_dir, valid_sd_command):
     """Make a valid call.
     Returns:
@@ -27,13 +28,14 @@ def make_valid_call(tmp_proj_dir, valid_sd_command):
     #   This keeps valid_sd_command as one argument.
     # DEV: Naming inconsistency; the existing call_simple_deploy_invalid.sh actually
     #   works for making valid test calls as well.
-    cmd = f'sh utils/call_simple_deploy_invalid.sh {tmp_proj_dir}'
+    cmd = f"sh utils/call_simple_deploy_invalid.sh {tmp_proj_dir}"
     cmd_parts = cmd.split()
     cmd_parts.append(valid_sd_command)
     subprocess.run(cmd_parts)
 
 
 # --- Test correct identification of dependency management approach. ---
+
 
 @pytest.mark.skip(reason="Write this test after logging inspection process.")
 def test_identify_dep_man_approach(tmp_project, capfd):
@@ -47,4 +49,4 @@ def test_identify_dep_man_approach(tmp_project, capfd):
 
     # This should be a more specific test about the output related to identifying
     #   the dependency management approacht that was found.
-    assert 'requirements.txt' not in captured.out
+    assert "requirements.txt" not in captured.out

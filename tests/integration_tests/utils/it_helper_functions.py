@@ -8,6 +8,7 @@ from pathlib import Path
 import filecmp
 import re
 import shutil
+import sys
 import subprocess
 from textwrap import dedent
 
@@ -23,7 +24,7 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
       different name than the generated file
 
     Asserts:
-    - Asserts that the file at `filepath` matches the reference file of the 
+    - Asserts that the file at `filepath` matches the reference file of the
       same name, or the specific reference file given.
 
     Returns:
@@ -32,6 +33,7 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
 
     # Path to the generated file is exactly as given, from tmp_proj_dir.
     fp_generated = tmp_proj_dir / filepath
+    assert fp_generated.exists()
 
     # There are no subdirectories in references/, so we only need to keep
     #   the actual filename.
@@ -42,8 +44,14 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
         filename = Path(filepath).name
 
     # Root directory of local simple_deploy project.
-    sd_root_dir = Path(__file__).parents[2]
-    fp_reference = sd_root_dir / f'integration_tests/platforms/{platform}/reference_files/{filename}'
+    sd_root_dir = Path(__file__).parents[3]
+    print("sd_root_dir:", sd_root_dir)
+    # fp_reference = sd_root_dir / f'integration_tests/platforms/{platform}/reference_files/{filename}'
+    fp_reference = (
+        sd_root_dir
+        / f"simple_deploy/management/commands/{platform}/tests/integration_tests/reference_files/{filename}"
+    )
+    assert fp_reference.exists()
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
@@ -52,7 +60,7 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
 
 def check_package_manager_available(pkg_manager):
     """Check that the user has required package managers installed before
-    running integration tests. For example, we need Poetry installed in order to 
+    running integration tests. For example, we need Poetry installed in order to
     test configuration when the end user uses Poetry for their Django projects.
     """
 
@@ -66,7 +74,8 @@ def check_package_manager_available(pkg_manager):
         return True
     else:
 
-        msg = dedent(f"""
+        msg = dedent(
+            f"""
         --- You must have {pkg_manager.title()} installed in order to run integration tests. ---
 
         If you have a strong reason not to install {pkg_manager.title()}, please open an issue
@@ -74,7 +83,8 @@ def check_package_manager_available(pkg_manager):
         environment each time a test is run.
 
         Instructions for installing {pkg_manager.title()} can be found here:
-        """)
+        """
+        )
 
         if pkg_manager == "poetry":
             msg += "https://python-poetry.org/docs/#installation"

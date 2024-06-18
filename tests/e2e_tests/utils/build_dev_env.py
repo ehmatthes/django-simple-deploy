@@ -24,15 +24,19 @@ from shutil import copy, copytree, rmtree
 
 parser = argparse.ArgumentParser(description="Build development environment")
 
-parser.add_argument('--pkg-manager', 
-                    type=str, 
-                    default='req_txt',
-                    help='The package manager to use (e.g., "req_txt", "poetry", "pipenv")')
+parser.add_argument(
+    "--pkg-manager",
+    type=str,
+    default="req_txt",
+    help='The package manager to use (e.g., "req_txt", "poetry", "pipenv")',
+)
 
-parser.add_argument('--target', 
-                    type=str, 
-                    default='development_version',
-                    help='The target environment (e.g., "development_version", "pypi")')
+parser.add_argument(
+    "--target",
+    type=str,
+    default="development_version",
+    help='The target environment (e.g., "development_version", "pypi")',
+)
 
 args = parser.parse_args()
 
@@ -40,6 +44,7 @@ pkg_manager = args.pkg_manager
 target = args.target
 
 # --- Helper functions
+
 
 def make_sp_call(cmd, capture_output=False):
     """Make a subprocess call.
@@ -55,20 +60,22 @@ def make_sp_call(cmd, capture_output=False):
     """
     print("cmd:", cmd)
     cmd_parts = shlex.split(cmd)
-    if os.name == 'nt':
+    if os.name == "nt":
         # On Windows, only git commands need to be split?
-        if 'git' in cmd:
+        if "git" in cmd:
             return subprocess.run(cmd_parts, capture_output=capture_output)
         else:
             return subprocess.run(cmd, capture_output=capture_output)
     else:
         return subprocess.run(cmd_parts, capture_output=capture_output)
 
+
 def activate_and_run(command, project_dir):
     """Run a command that needs to be run using a venv."""
     activate_path = project_dir / ".venv" / "bin" / "activate"
     full_command = f". {activate_path} && {command}"
     subprocess.run(full_command, shell=True, check=True, cwd=project_dir)
+
 
 def remove_unneeded_files(proj_dir, pkg_manager):
     """Remove dependency management files not needed for the
@@ -84,11 +91,14 @@ def remove_unneeded_files(proj_dir, pkg_manager):
         (proj_dir / "requirements.txt").unlink()
         (proj_dir / "pyproject.toml").unlink()
 
+
 def add_simple_deploy(tmp_dir):
     """Add simple_deploy to INSTALLED_APPS in the test project."""
     settings_file_path = tmp_dir / "blog/settings.py"
     settings_content = settings_file_path.read_text()
-    new_settings_content = settings_content.replace("# Third party apps.", "# Third party apps.\n    'simple_deploy',")
+    new_settings_content = settings_content.replace(
+        "# Third party apps.", "# Third party apps.\n    'simple_deploy',"
+    )
     settings_file_path.write_text(new_settings_content)
 
 
@@ -96,7 +106,7 @@ def add_simple_deploy(tmp_dir):
 
 sd_root_dir = Path(__file__).parents[3]
 
-random_id = ''.join(random.choices(string.ascii_letters + string.digits, k=5)).lower()
+random_id = "".join(random.choices(string.ascii_letters + string.digits, k=5)).lower()
 project_dir = Path.home() / f"projects/dsd-dev-project_{random_id}"
 
 # Copy sample project to project dir.
@@ -116,17 +126,17 @@ pip_path = venv_dir / ("Scripts" if os.name == "nt" else "bin") / "pip"
 vendor_path = sd_root_dir / "vendor"
 activate_path = venv_dir / "bin" / "activate"
 
-if pkg_manager == 'req_txt':
+if pkg_manager == "req_txt":
     #   Don't upgrade pip, unless it starts to cause problems.
     requirements_path = project_dir / "requirements.txt"
     cmd = f"{pip_path} install --no-index --find-links {vendor_path} -r {requirements_path}"
     make_sp_call(cmd)
 
-elif pkg_manager == 'poetry':
+elif pkg_manager == "poetry":
     activate_and_run("poetry cache clear --all pypi -n", project_dir)
     activate_and_run("poetry install", project_dir)
 
-elif pkg_manager == 'pipenv':
+elif pkg_manager == "pipenv":
     # Install pipenv.
     cmd = f"{pip_path} install pipenv"
     make_sp_call(cmd)
@@ -138,16 +148,16 @@ elif pkg_manager == 'pipenv':
 # Note: We don't need an editable install, but a non-editable install is *much* slower.
 #   We may be able to use --cache-dir to address this, but -e is working fine right now.
 # If `--pypi` flag has been passed, install from PyPI.
-if pkg_manager == 'req_txt':
+if pkg_manager == "req_txt":
     if target == "pypi":
         make_sp_call("pip cache purge")
         make_sp_call(f"{pip_path} install django-simple-deploy")
     else:
         make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
-elif pkg_manager == 'poetry':
+elif pkg_manager == "poetry":
     # Use pip to install the local version.
-    # We could install the local wheel file using `poetry add`, but then 
+    # We could install the local wheel file using `poetry add`, but then
     #   the lock file won't work on the remote server. We're really testing
     #   how simple_deploy handles a poetry environment, we're not testing
     #   how poetry installs the local package. So this should reliably test
@@ -158,7 +168,7 @@ elif pkg_manager == 'poetry':
     else:
         make_sp_call(f"{pip_path} install -e {sd_root_dir}")
 
-elif pkg_manager == 'pipenv':
+elif pkg_manager == "pipenv":
     if target == "pypi":
         activate_and_run("pipenv install django-simple-deploy", project_dir)
     else:

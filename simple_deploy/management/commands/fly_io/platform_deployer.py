@@ -130,7 +130,11 @@ class PlatformDeployer:
         path = self.sd.project_root / "Dockerfile"
         if path.exists():
             self.sd.write_output("    Found existing Dockerfile.")
-            return
+            proceed = self.sd.get_confirmation(self.messages.dockerfile_found)
+            if not proceed:
+                raise self.sd.utils.SimpleDeployCommandError(
+                    self.messages.cant_overwrite_dockerfile
+                )
 
         # No Dockerfile exists. Generate new file from template.
         self.sd.write_output("    No Dockerfile found. Generating file...")
@@ -203,7 +207,9 @@ class PlatformDeployer:
         }
         template_path = self.templates_path / "settings.py"
 
-        self.sd.utils.write_file_from_template(self.sd.settings_path, template_path, context)
+        self.sd.utils.write_file_from_template(
+            self.sd.settings_path, template_path, context
+        )
 
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
@@ -330,13 +336,17 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cli_not_installed
+            )
 
         self.sd.log_info(output_obj)
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_not_installed)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cli_not_installed
+            )
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
@@ -344,7 +354,9 @@ class PlatformDeployer:
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cli_logged_out)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cli_logged_out
+            )
 
         # Show current authenticated fly user.
         whoami_json = json.loads(output_obj.stdout.decode())
@@ -420,7 +432,9 @@ class PlatformDeployer:
             if self.sd.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.no_project_name)
+                raise self.sd.utils.SimpleDeployCommandError(
+                    self.sd, self.messages.no_project_name
+                )
         elif len(project_names) == 1:
             # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
@@ -433,7 +447,9 @@ class PlatformDeployer:
             elif self.sd.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.no_project_name)
+                raise self.sd.utils.SimpleDeployCommandError(
+                    self.sd, self.messages.no_project_name
+                )
         else:
             # More than one undeployed app found. `apps list` doesn't show
             # much specific information for undeployed apps. For exmaple we
@@ -500,7 +516,9 @@ class PlatformDeployer:
         try:
             self.app_name = app_dict["Name"]
         except KeyError:
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.create_app_failed)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.create_app_failed
+            )
         else:
             msg = f"  Created new app: {self.app_name}"
             self.sd.write_output(msg)
@@ -712,7 +730,9 @@ class PlatformDeployer:
         if not self.sd.get_confirmation(msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cancel_no_db)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cancel_no_db
+            )
 
     def _confirm_use_unattached_db(self):
         """Confirm it's okay to use db whose name matches this app, but hasn't
@@ -740,7 +760,9 @@ class PlatformDeployer:
             # Permission to use this db denied.
             # Can't simply create a new db, because the name we'd use is
             # already taken.
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cancel_no_db)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cancel_no_db
+            )
 
     def _confirm_create_db(self, db_cmd):
         """Confirm the user wants a database created on their behalf.
@@ -761,7 +783,9 @@ class PlatformDeployer:
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, self.messages.cancel_no_db)
+            raise self.sd.utils.SimpleDeployCommandError(
+                self.sd, self.messages.cancel_no_db
+            )
 
     def _attach_db(self):
         """Attach the database to the app."""

@@ -283,7 +283,7 @@ class Command(BaseCommand):
 
         re_platform_settings = f"(.*)({start_line})(.*)"
         m = re.match(re_platform_settings, settings_text, re.DOTALL)
-        
+
         if not m:
             self.log_info(f"No {platform_name}-specific settings block found.")
             return
@@ -297,7 +297,6 @@ class Command(BaseCommand):
 
         msg = f"  Removed existing {platform_name}-specific settings block."
         self.write_output(msg)
-
 
     def add_packages(self, package_list):
         """Add a set of packages to the project's requirements.
@@ -413,7 +412,6 @@ class Command(BaseCommand):
         for option, value in options.items():
             self.log_info(f"  {option}: {value}")
 
-
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
 
@@ -437,7 +435,9 @@ class Command(BaseCommand):
             SimpleDeployCommandError: If requested platform is supported.
         """
         if not self.platform:
-            raise self.utils.SimpleDeployCommandError(self, deploy_messages.requires_platform_flag)
+            raise self.utils.SimpleDeployCommandError(
+                self, deploy_messages.requires_platform_flag
+            )
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
             self.write_output(f"\nDeployment target: {self.platform}")
         else:
@@ -723,7 +723,10 @@ class Command(BaseCommand):
         plugin = pm.list_name_plugin()[0][1]
 
         callers = [caller.name for caller in pm.get_hookcallers(plugin)]
-        required_hooks = ["simple_deploy_automate_all_supported", "simple_deploy_deploy"]
+        required_hooks = [
+            "simple_deploy_automate_all_supported",
+            "simple_deploy_deploy",
+        ]
         for hook in required_hooks:
             if hook not in callers:
                 msg = f"\nPlugin missing required hook implementation: {hook}()"

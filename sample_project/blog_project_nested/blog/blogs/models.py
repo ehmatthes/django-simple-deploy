@@ -4,6 +4,7 @@ from django.contrib.auth.models import User
 
 class Blog(models.Model):
     """A blog belonging to one user."""
+
     title = models.CharField(max_length=200)
     owner = models.ForeignKey(User, on_delete=models.CASCADE)
     date_added = models.DateTimeField(auto_now_add=True)
@@ -19,9 +20,10 @@ class Blog(models.Model):
 
 class BlogPost(models.Model):
     """A single post belonging to a blog."""
+
     title = models.CharField(max_length=500)
     body = models.TextField()
-    blog = models.ForeignKey(Blog, on_delete= models.CASCADE)
+    blog = models.ForeignKey(Blog, on_delete=models.CASCADE)
     date_added = models.DateTimeField(auto_now_add=True)
 
     # A post is private by default, for drafting purposes.

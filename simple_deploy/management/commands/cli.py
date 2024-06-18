@@ -15,7 +15,6 @@ def get_usage():
         [--deployed-project-name DEPLOYED_PROJECT_NAME]"""
 
 
-# fmt: off
 class SimpleDeployCLI:
     def __init__(self, parser):
         """Defines the CLI for django-simple-deploy."""
@@ -36,9 +35,8 @@ class SimpleDeployCLI:
 
         # --- Required platform argument ---
 
-        # It's tempting to add a `choices=['fly_io', 'platform_sh']` argument to
-        #   this entry. But then we get a generic error message. We can write a
-        #   much better custom message to handle invalid --platform arguments.
+        # This may need some clarification about the distinction between a "platform"
+        # and a "plugin".
         required_group.add_argument(
             "--platform",
             "-p",
@@ -71,10 +69,9 @@ class SimpleDeployCLI:
 
         # --- Arguments to customize deployment configuration ---
 
-        # Allow users to set the deployed project name. This is the name that
-        #   will be used by the platform, which may be different than the name
-        #   used in the `startproject` command. See the Platform.sh script
-        #   for use of this flag.
+        # Allow users to set the deployed project name. This is the name that will be
+        # used by the platform, which may be different than the name used in the
+        # `startproject` command. See the Platform.sh script for use of this flag.
         deployment_config_group.add_argument(
             "--deployed-project-name",
             type=str,
@@ -92,11 +89,10 @@ class SimpleDeployCLI:
 
         # --- Testing arguments ---
 
-        # Since these are never used by end users, they're not included in the
-        #   help text. Make sure these are appropriately documented in other ways.
+        # Since these are never used by end users, they're not included in the help
+        # text. Make sure these are appropriately documented in other ways.
 
-        # If we're doing local unit testing, we need to avoid some network
-        #   calls.
+        # If we're doing local unit testing, we need to avoid some network calls.
         parser.add_argument(
             "--unit-testing", action="store_true", help=argparse.SUPPRESS
         )

@@ -124,6 +124,7 @@ def test_add_poetry_pkg(tmp_path):
     )
     assert filecmp.cmp(tmp_pptoml, ref_file)
 
+
 def test_add_pipenv_pkg(tmp_path):
     path = Path(__file__).parent / "resources" / "Pipfile"
     contents = path.read_text()
@@ -133,9 +134,5 @@ def test_add_pipenv_pkg(tmp_path):
     tmp_pipfile.write_text(contents)
 
     sd_utils.add_pipenv_pkg(tmp_pipfile, "awesome-deployment-package", "")
-    ref_file = (
-        Path(__file__).parent
-        / "reference_files"
-        / "Pipfile"
-    )
+    ref_file = Path(__file__).parent / "reference_files" / "Pipfile"
     assert filecmp.cmp(tmp_pipfile, ref_file)

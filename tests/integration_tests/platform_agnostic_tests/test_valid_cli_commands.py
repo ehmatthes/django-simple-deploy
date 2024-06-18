@@ -16,12 +16,15 @@ from ..utils import manage_sample_project as msp
 
 # --- Test valid platform-agnostic simple_deploy calls ---
 
+
 def test_help_output(tmp_project, capfd):
     """Call `manage.py simple_deploy --help`."""
     valid_sd_command = "python manage.py simple_deploy --help"
     stdout, stderr = msp.call_simple_deploy(tmp_project, valid_sd_command)
 
     current_test_dir = Path(__file__).parent
-    reference_help_output = (current_test_dir / 'reference_files/sd_help_output.txt').read_text()
+    reference_help_output = (
+        current_test_dir / "reference_files/sd_help_output.txt"
+    ).read_text()
 
     assert stdout == reference_help_output
