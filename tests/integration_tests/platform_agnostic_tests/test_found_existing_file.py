@@ -13,6 +13,7 @@ from ..utils import manage_sample_project as msp
 
 # --- Helper functions ---
 
+
 def execute_quick_command(tmp_project, cmd):
     """Run a quick command, and return CompletedProcess object."""
     cmd_parts = shlex.split(cmd)
@@ -22,10 +23,11 @@ def execute_quick_command(tmp_project, cmd):
 
 # --- Test functions ---
 
+
 def test_with_existing_dockerfile(tmp_project):
     """Call simple_deploy with an existing Dockerfile.
 
-    The --unit-testing flag should get confirmation, but we should see a relevant 
+    The --unit-testing flag should get confirmation, but we should see a relevant
     message in the log.
     """
     path_dockerfile = tmp_project / "Dockerfile"
@@ -39,4 +41,6 @@ def test_with_existing_dockerfile(tmp_project):
     sd_command = "python manage.py simple_deploy --platform fly_io"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
-    assert "The file Dockerfile already exists. Is it okay to replace this file?" in stdout
+    assert (
+        "The file Dockerfile already exists. Is it okay to replace this file?" in stdout
+    )

@@ -25,11 +25,14 @@ def test_cancel_automate_all():
 
 # --- Dynamic messages ---
 
+
 def test_invalid_platform_msg():
     msg = messages.invalid_platform_msg("bad_platform")
     assert (
-        msg == "\n\n--- The platform \"bad_platform\" is not currently supported. ---\n\n- Current options are: fly_io, platform_sh, and heroku\n- Example usage:\n  $ python manage.py simple_deploy --platform fly_io\n  $ python manage.py simple_deploy --platform platform_sh\n  $ python manage.py simple_deploy --platform heroku\n\n"
+        msg
+        == '\n\n--- The platform "bad_platform" is not currently supported. ---\n\n- Current options are: fly_io, platform_sh, and heroku\n- Example usage:\n  $ python manage.py simple_deploy --platform fly_io\n  $ python manage.py simple_deploy --platform platform_sh\n  $ python manage.py simple_deploy --platform heroku\n\n'
     )
+
 
 def test_file_found():
     msg = messages.file_found("Procfile")
@@ -37,8 +40,10 @@ def test_file_found():
         msg == "\nThe file Procfile already exists. Is it okay to replace this file?\n"
     )
 
+
 def test_file_replace_rejected():
     msg = messages.file_replace_rejected("Procfile")
     assert (
-        msg == "\nIn order to configure the project for deployment, we need to write the\nfile: Procfile\nPlease remove the current version, and then run simple_deploy again.\n"
+        msg
+        == "\nIn order to configure the project for deployment, we need to write the\nfile: Procfile\nPlease remove the current version, and then run simple_deploy again.\n"
     )

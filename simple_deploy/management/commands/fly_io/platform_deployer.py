@@ -129,7 +129,9 @@ class PlatformDeployer:
 
         path = self.sd.project_root / "Dockerfile"
         if path.exists():
-            proceed = self.sd.get_confirmation(self.sd.messages.file_found("Dockerfile"))
+            proceed = self.sd.get_confirmation(
+                self.sd.messages.file_found("Dockerfile")
+            )
             if not proceed:
                 raise self.sd.utils.SimpleDeployCommandError(
                     self.sd, self.sd.messages.file_replace_rejected("Dockerfile")
