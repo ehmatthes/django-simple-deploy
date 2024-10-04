@@ -208,11 +208,10 @@ class PlatformDeployer:
         self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
 
         if path.exists():
-            self.sd.write_output("    Found existing Procfile.")
-            proceed = self.sd.get_confirmation(self.messages.procfile_found)
+            proceed = self.sd.get_confirmation(self.sd.messages.file_found("Procfile"))
             if not proceed:
                 raise self.sd.utils.SimpleDeployCommandError(
-                    self.messages.cant_overwrite_procfile
+                    self.sd, self.sd.messages.file_replace_rejected("Procfile")
                 )
 
         # No Procfile exists, or we're free to write over existing one.

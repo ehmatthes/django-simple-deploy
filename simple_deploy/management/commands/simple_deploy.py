@@ -69,8 +69,9 @@ class Command(BaseCommand):
         # Ensure that --skip-checks is not included in help output.
         self.requires_system_checks = []
 
-        # Made utils available to plugins.
+        # Make resources available to plugins.
         self.utils = utils
+        self.messages = deploy_messages
 
         super().__init__()
 
