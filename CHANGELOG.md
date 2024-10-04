@@ -6,11 +6,13 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.7 - Internal plugin model
 ---
 
-django-simple-deploy uses a plugin model internally. There shouldn't be many external changes due to this model, but this is an important enough step towards a 1.0 release that it warrants a bump in the minor version number. The 0.8.0 release should indicate preliminary support for external plugins.
+The goal for the 0.7 series is to support an internal plugin model. There shouldn't be many external changes due to this model, but this is an important enough step towards a 1.0 release that it warrants a bump in the minor version number. The 0.8.0 release should indicate preliminary support for external plugins.
 
-### 0.7.1 (Unreleased)
+### 0.7.1
 
 #### External changes
+
+- Fly.io deployer gets permission before overwriting `Dockerfile`.
 
 #### Internal changes
 
@@ -21,6 +23,7 @@ django-simple-deploy uses a plugin model internally. There shouldn't be many ext
 - Added two messages to `sd`:
     - `file_found(filename)`: Found an existing file, that we need permission to replace.
     - `file_replace_rejected(filename)`: User does not grant permission to replace file.
+- Started testing dynamic cross-platform messages.
 
 
 ### 0.7.0
