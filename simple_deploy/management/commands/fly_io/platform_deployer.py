@@ -124,26 +124,7 @@ class PlatformDeployer:
         dependency management system.
         """
 
-        # Existing dockerfile should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Dockerfile...")
-
-        path = self.sd.project_root / "Dockerfile"
-        if path.exists():
-            proceed = self.sd.get_confirmation(
-                self.sd.messages.file_found("Dockerfile")
-            )
-            if not proceed:
-                raise self.sd.utils.SimpleDeployCommandError(
-                    self.sd, self.sd.messages.file_replace_rejected("Dockerfile")
-                )
-
-        # No Dockerfile exists. Generate new file from template.
-        self.sd.write_output("    No Dockerfile found. Generating file...")
-
-        context = {
-            "django_project_name": self.sd.local_project_name,
-        }
-
+        # Build file contents from template and context.
         if self.sd.pkg_manager == "poetry":
             dockerfile_template = "dockerfile_poetry"
         elif self.sd.pkg_manager == "pipenv":
@@ -152,10 +133,15 @@ class PlatformDeployer:
             dockerfile_template = "dockerfile"
         template_path = self.templates_path / dockerfile_template
 
-        self.sd.utils.write_file_from_template(path, template_path, context)
+        context = {
+            "django_project_name": self.sd.local_project_name,
+        }
 
-        msg = f"\n    Generated Dockerfile: {path}"
-        self.sd.write_output(msg)
+        contents = self.sd_utils.get_template_string(template_path, context)
+
+        # Write file to project.
+        path = self.sd.project_root / "Dockerfile"
+        self.sd_utils.add_file(sd_command=self.sd, path, contents)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
