@@ -148,20 +148,10 @@ class PlatformDeployer:
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
         Ignore virtual environment dir, system-specific cruft, and IDE cruft.
-
-        If an existing dockerignore is found, make note of that but don't overwrite.
         """
-        # Check for existing dockerignore file; we're only looking in project root.
-        #   If we find one, don't make any changes.
-        path = Path(".dockerignore")
-        if path.exists():
-            msg = "  Found existing .dockerignore file. Not overwriting this file."
-            self.sd.write_output(msg)
-        else:
-            dockerignore_str = self._build_dockerignore()
-            path.write_text(dockerignore_str, encoding="utf-8")
-            msg = "  Wrote .dockerignore file."
-            self.sd.write_output(msg)
+        path = self.sd.project_root / ".dockerignore"
+        dockerignore_str = self._build_dockerignore()
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=dockerignore_str)
 
     def _add_flytoml(self):
         """Add a minimal fly.toml file."""
