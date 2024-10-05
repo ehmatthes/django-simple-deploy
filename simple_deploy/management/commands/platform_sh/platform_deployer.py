@@ -12,8 +12,9 @@ from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
-from . import deploy_messages as platform_msgs
+from ..utils import plugin_utils
 
+from . import deploy_messages as platform_msgs
 from . import utils as plsh_utils
 
 
@@ -44,7 +45,7 @@ class PlatformDeployer:
         self._prep_automate_all()
         self._modify_settings()
         self._add_requirements()
-        self._generate_platform_app_yaml()
+        self._add_platform_app_yaml()
         self._make_platform_dir()
         self._generate_services_yaml()
 
@@ -133,38 +134,28 @@ class PlatformDeployer:
         msg = f"    Modified settings.py file: {self.sd.settings_path}"
         self.sd.write_output(msg)
 
-    def _generate_platform_app_yaml(self):
+    def _add_platform_app_yaml(self):
         """Create .platform.app.yaml file, if not present."""
 
-        path = self.sd.project_root / ".platform.app.yaml"
-        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
-
-        if path.exists():
-            self.sd.write_output("    Found existing .platform.app.yaml file.")
+        # Build contents from template.
+        if self.sd.pkg_manager == "poetry":
+            template_path = "poetry.platform.app.yaml"
+        elif self.sd.pkg_manager == "pipenv":
+            template_path = "pipenv.platform.app.yaml"
         else:
-            # Generate file from template.
-            self.sd.write_output(
-                "    No .platform.app.yaml file found. Generating file..."
-            )
+            template_path = "platform.app.yaml"
+        template_path = self.templates_path / template_path
 
-            context = {
-                "project_name": self.sd.local_project_name,
-                "deployed_project_name": self.deployed_project_name,
-            }
+        context = {
+            "project_name": self.sd.local_project_name,
+            "deployed_project_name": self.deployed_project_name,
+        }
 
-            if self.sd.pkg_manager == "poetry":
-                template_path = "poetry.platform.app.yaml"
-            elif self.sd.pkg_manager == "pipenv":
-                template_path = "pipenv.platform.app.yaml"
-            else:
-                template_path = "platform.app.yaml"
-            template_path = self.templates_path / template_path
+        contents = plugin_utils.get_template_string(template_path, context)
 
-            self.sd.sd_utils.write_file_from_template(path, template_path, context)
-
-            msg = f"\n    Generated {path.as_posix()}"
-            self.sd.write_output(msg)
-            return path
+        # Write file to project.
+        path = self.sd.project_root / ".platform.app.yaml"
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _add_requirements(self):
         """Add requirements for Platform.sh."""
