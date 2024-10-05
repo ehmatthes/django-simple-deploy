@@ -210,7 +210,7 @@ class PlatformDeployer:
         if path.exists():
             proceed = self.sd.get_confirmation(self.sd.messages.file_found("Procfile"))
             if not proceed:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.sd.messages.file_replace_rejected("Procfile")
                 )
 
@@ -263,7 +263,7 @@ class PlatformDeployer:
         context = {"current_settings": safe_settings_string}
 
         template_path = self.templates_path / "settings.py"
-        self.sd.utils.write_file_from_template(
+        self.sd.sd_utils.write_file_from_template(
             self.sd.settings_path, template_path, context
         )
 
@@ -374,7 +374,7 @@ class PlatformDeployer:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -383,7 +383,7 @@ class PlatformDeployer:
         # The returncode for a successful command is 0, so anything truthy means the
         # command errored out.
         if output_obj.returncode:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -408,7 +408,7 @@ class PlatformDeployer:
         if ("Error: Invalid credentials provided" in output_str) or (
             "Error: not logged in" in output_str
         ):
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_authenticated
             )
 
@@ -444,7 +444,7 @@ class PlatformDeployer:
 
         # If output_str is emtpy, there is no heroku app.
         if not output_str:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.no_heroku_app_detected
             )
 

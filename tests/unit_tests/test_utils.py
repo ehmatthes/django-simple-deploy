@@ -3,7 +3,7 @@
 from pathlib import Path
 import filecmp
 
-import simple_deploy.management.commands.utils as sd_utils
+from simple_deploy.management.commands.utils import sd_utils
 import subprocess
 
 import pytest

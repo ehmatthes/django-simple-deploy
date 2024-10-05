@@ -111,7 +111,7 @@ class PlatformDeployer:
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = self.messages.unknown_create_error(e)
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, error_msg)
+            raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, error_msg)
 
     def _modify_settings(self):
         """Add platformsh-specific settings.
@@ -126,7 +126,7 @@ class PlatformDeployer:
         context = {"current_settings": safe_settings_string}
 
         template_path = self.templates_path / "settings.py"
-        self.sd.utils.write_file_from_template(
+        self.sd.sd_utils.write_file_from_template(
             self.sd.settings_path, template_path, context
         )
 
@@ -160,7 +160,7 @@ class PlatformDeployer:
                 template_path = "platform.app.yaml"
             template_path = self.templates_path / template_path
 
-            self.sd.utils.write_file_from_template(path, template_path, context)
+            self.sd.sd_utils.write_file_from_template(path, template_path, context)
 
             msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
@@ -194,7 +194,7 @@ class PlatformDeployer:
         else:
             self.sd.write_output("    No services.yaml file found. Generating file...")
             template_path = self.templates_path / "services.yaml"
-            self.sd.utils.write_file_from_template(path, template_path)
+            self.sd.sd_utils.write_file_from_template(path, template_path)
 
             msg = f"\n    Generated {path.as_posix()}"
             self.sd.write_output(msg)
@@ -276,7 +276,7 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -287,7 +287,7 @@ class PlatformDeployer:
         output_obj = self.sd.run_quick_command(cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_logged_out
             )
 
@@ -331,21 +331,21 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.login_required
                 )
             elif "ProjectNotFoundException" in output_str:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.no_project_name
                 )
             elif "RootNotFoundException" in output_str:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.no_project_name
                 )
             else:
                 error_msg = self.messages.unknown_error
                 error_msg += self.messages.cli_not_installed
-                raise self.sd.utils.SimpleDeployCommandError(self.sd, error_msg)
+                raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
         lines = output_str.splitlines()
@@ -362,7 +362,7 @@ class PlatformDeployer:
             return project_name
 
         # Couldn't find a project name. Warn user, and tell them about override flag.
-        raise self.sd.utils.SimpleDeployCommandError(
+        raise self.sd.sd_utils.SimpleDeployCommandError(
             self.sd, self.messages.no_project_name
         )
 
@@ -390,7 +390,7 @@ class PlatformDeployer:
 
         org_names = plsh_utils.get_org_names(output_str)
         if not org_names:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.org_not_found
             )
 
@@ -411,7 +411,7 @@ class PlatformDeployer:
         # Confirm selection, because we do *not* want to deploy using the wrong org.
         confirmed = False
         while not confirmed:
-            selection = self.sd.utils.get_numbered_choice(
+            selection = self.sd.sd_utils.get_numbered_choice(
                 self.sd, prompt, valid_choices, self.messages.no_org_available
             )
             selected_org = org_names[selection]
@@ -440,4 +440,4 @@ class PlatformDeployer:
             # Exit, with a message that configuration is still an option.
             msg = self.messages.cancel_plsh
             msg += self.messages.may_configure
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, msg)
+            raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, msg)
