@@ -1,6 +1,7 @@
 """Utility functions and classes for simple_deploy.py.
 
-Also contains resources useful to platform-specific deployment scripts.
+Utilities in this module should only be used internally by simple_deploy.
+Any utility used by plugins should be moved to plugin_utils.py.
 """
 
 from pathlib import Path
