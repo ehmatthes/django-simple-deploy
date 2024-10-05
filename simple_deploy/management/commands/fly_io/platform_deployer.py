@@ -155,7 +155,7 @@ class PlatformDeployer:
 
     def _add_flytoml(self):
         """Add a minimal fly.toml file."""
-        
+
         # Build contents of fly.toml.
         template_path = self.templates_path / "fly.toml"
         context = {

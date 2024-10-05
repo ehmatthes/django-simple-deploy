@@ -14,6 +14,7 @@ import simple_deploy.management.commands.deploy_messages as messages
 
 # --- Static messages ---
 
+
 # Just test one static message for now.
 def test_cancel_automate_all():
     msg = messages.cancel_automate_all

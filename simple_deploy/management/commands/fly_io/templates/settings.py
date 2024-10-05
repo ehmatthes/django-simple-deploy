@@ -12,7 +12,9 @@ if os.environ.get("ON_FLYIO_SETUP") or os.environ.get("ON_FLYIO"):
     try:
         STATICFILES_DIRS.append(os.path.join(BASE_DIR, "static"))
     except NameError:
-        STATICFILES_DIRS = [os.path.join(BASE_DIR, "static"),]
+        STATICFILES_DIRS = [
+            os.path.join(BASE_DIR, "static"),
+        ]
 
     i = MIDDLEWARE.index("django.middleware.security.SecurityMiddleware")
     MIDDLEWARE.insert(i + 1, "whitenoise.middleware.WhiteNoiseMiddleware")
