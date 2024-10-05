@@ -137,11 +137,11 @@ class PlatformDeployer:
             "django_project_name": self.sd.local_project_name,
         }
 
-        contents = self.sd_utils.get_template_string(template_path, context)
+        contents = self.sd.utils.get_template_string(template_path, context)
 
         # Write file to project.
         path = self.sd.project_root / "Dockerfile"
-        self.sd_utils.add_file(sd_command=self.sd, path, contents)
+        self.sd.utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.

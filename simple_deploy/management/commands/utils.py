@@ -31,7 +31,7 @@ def add_file(sd_command, path, contents):
         to overwrite file.
         """
 
-        self.sd.write_output(f"\n  Looking in {path.parent} for {path.name}...")
+        sd_command.write_output(f"\n  Looking in {path.parent} for {path.name}...")
 
         if path.exists():
             proceed = sd_command.get_confirmation(
