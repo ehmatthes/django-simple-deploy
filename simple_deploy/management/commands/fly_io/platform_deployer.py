@@ -17,6 +17,8 @@ import requests
 
 from . import deploy_messages as platform_msgs
 
+from ..utils_modules import plugin_utils
+
 
 class PlatformDeployer:
     """Perform the initial deployment to Fly.io
@@ -137,11 +139,11 @@ class PlatformDeployer:
             "django_project_name": self.sd.local_project_name,
         }
 
-        contents = self.sd.utils.get_template_string(template_path, context)
+        contents = plugin_utils.get_template_string(template_path, context)
 
         # Write file to project.
         path = self.sd.project_root / "Dockerfile"
-        self.sd.utils.add_file(sd_command=self.sd, path=path, contents=contents)
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
