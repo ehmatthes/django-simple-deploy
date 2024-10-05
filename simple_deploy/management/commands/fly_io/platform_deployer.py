@@ -155,24 +155,18 @@ class PlatformDeployer:
 
     def _add_flytoml(self):
         """Add a minimal fly.toml file."""
-        # File should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for fly.toml file...")
+        
+        # Build contents of fly.toml.
+        template_path = self.templates_path / "fly.toml"
+        context = {
+            "deployed_project_name": self.deployed_project_name,
+            "using_pipenv": (self.sd.pkg_manager == "pipenv"),
+        }
+        contents = plugin_utils.get_template_string(template_path, context)
 
+        # Write file to project.
         path = self.sd.project_root / "fly.toml"
-        if path.exists():
-            self.sd.write_output("    Found existing fly.toml file.")
-        else:
-            # Generate file from template.
-            context = {
-                "deployed_project_name": self.deployed_project_name,
-                "using_pipenv": (self.sd.pkg_manager == "pipenv"),
-            }
-            template_path = self.templates_path / "fly.toml"
-
-            self.sd.sd_utils.write_file_from_template(path, template_path, context)
-
-            msg = f"\n    Generated fly.toml: {path}"
-            self.sd.write_output(msg)
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _modify_settings(self):
         """Add platformsh-specific settings."""
