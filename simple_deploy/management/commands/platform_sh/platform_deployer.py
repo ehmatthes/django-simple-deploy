@@ -12,8 +12,9 @@ from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
-from . import deploy_messages as platform_msgs
+from ..utils import plugin_utils
 
+from . import deploy_messages as platform_msgs
 from . import utils as plsh_utils
 
 
@@ -44,9 +45,9 @@ class PlatformDeployer:
         self._prep_automate_all()
         self._modify_settings()
         self._add_requirements()
-        self._generate_platform_app_yaml()
-        self._make_platform_dir()
-        self._generate_services_yaml()
+        self._add_platform_app_yaml()
+        self._add_platform_dir()
+        self._add_services_yaml()
 
         self._conclude_automate_all()
         self._show_success_message()
@@ -111,7 +112,7 @@ class PlatformDeployer:
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = self.messages.unknown_create_error(e)
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, error_msg)
+            raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, error_msg)
 
     def _modify_settings(self):
         """Add platformsh-specific settings.
@@ -119,86 +120,60 @@ class PlatformDeployer:
         This settings block is currently the same for all users. The ALLOWED_HOSTS
         setting should be customized.
         """
-        self.sd.write_output("\n  Adding a Platform.sh-specific settings block...")
+        # Generate modified settings string.
+        template_path = self.templates_path / "settings.py"
 
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
 
-        template_path = self.templates_path / "settings.py"
-        self.sd.utils.write_file_from_template(
-            self.sd.settings_path, template_path, context
-        )
+        modified_settings_string = plugin_utils.get_template_string(
+            template_path, context)
 
-        msg = f"    Modified settings.py file: {self.sd.settings_path}"
-        self.sd.write_output(msg)
+        # Write settings to file.
+        plugin_utils.modify_file(self.sd, self.sd.settings_path, modified_settings_string)
 
-    def _generate_platform_app_yaml(self):
-        """Create .platform.app.yaml file, if not present."""
+    def _add_platform_app_yaml(self):
+        """Add a .platform.app.yaml file."""
 
-        path = self.sd.project_root / ".platform.app.yaml"
-        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
-
-        if path.exists():
-            self.sd.write_output("    Found existing .platform.app.yaml file.")
+        # Build contents from template.
+        if self.sd.pkg_manager == "poetry":
+            template_path = "poetry.platform.app.yaml"
+        elif self.sd.pkg_manager == "pipenv":
+            template_path = "pipenv.platform.app.yaml"
         else:
-            # Generate file from template.
-            self.sd.write_output(
-                "    No .platform.app.yaml file found. Generating file..."
-            )
+            template_path = "platform.app.yaml"
+        template_path = self.templates_path / template_path
 
-            context = {
-                "project_name": self.sd.local_project_name,
-                "deployed_project_name": self.deployed_project_name,
-            }
+        context = {
+            "project_name": self.sd.local_project_name,
+            "deployed_project_name": self.deployed_project_name,
+        }
 
-            if self.sd.pkg_manager == "poetry":
-                template_path = "poetry.platform.app.yaml"
-            elif self.sd.pkg_manager == "pipenv":
-                template_path = "pipenv.platform.app.yaml"
-            else:
-                template_path = "platform.app.yaml"
-            template_path = self.templates_path / template_path
+        contents = plugin_utils.get_template_string(template_path, context)
 
-            self.sd.utils.write_file_from_template(path, template_path, context)
-
-            msg = f"\n    Generated {path.as_posix()}"
-            self.sd.write_output(msg)
-            return path
+        # Write file to project.
+        path = self.sd.project_root / ".platform.app.yaml"
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _add_requirements(self):
         """Add requirements for Platform.sh."""
         requirements = ["platformshconfig", "gunicorn", "psycopg2"]
         self.sd.add_packages(requirements)
 
-    def _make_platform_dir(self):
+    def _add_platform_dir(self):
         """Add a .platform directory, if it doesn't already exist."""
-
         self.platform_dir_path = self.sd.project_root / ".platform"
-        self.sd.write_output(f"\n  Looking for {self.platform_dir_path.as_posix()}...")
+        plugin_utils.add_dir(self.sd, self.platform_dir_path)
 
-        if self.platform_dir_path.exists():
-            self.sd.write_output(f"    Found {self.platform_dir_path.as_posix()}")
-        else:
-            self.platform_dir_path.mkdir()
-            self.sd.write_output(f"    Generated {self.platform_dir_path.as_posix()}")
+    def _add_services_yaml(self):
+        """Add the .platform/services.yaml file."""
 
-    def _generate_services_yaml(self):
-        """Generate the .platform/services.yaml file, if not present."""
+        template_path = self.templates_path / "services.yaml"
+        contents = plugin_utils.get_template_string(template_path, context=None)
 
         path = self.platform_dir_path / "services.yaml"
-        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
-
-        if path.exists():
-            self.sd.write_output("    Found existing services.yaml file.")
-        else:
-            self.sd.write_output("    No services.yaml file found. Generating file...")
-            template_path = self.templates_path / "services.yaml"
-            self.sd.utils.write_file_from_template(path, template_path)
-
-            msg = f"\n    Generated {path.as_posix()}"
-            self.sd.write_output(msg)
-            return path
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _conclude_automate_all(self):
         """Finish automating the push to Platform.sh.
@@ -276,7 +251,7 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -287,7 +262,7 @@ class PlatformDeployer:
         output_obj = self.sd.run_quick_command(cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_logged_out
             )
 
@@ -331,21 +306,21 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.login_required
                 )
             elif "ProjectNotFoundException" in output_str:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.no_project_name
                 )
             elif "RootNotFoundException" in output_str:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.no_project_name
                 )
             else:
                 error_msg = self.messages.unknown_error
                 error_msg += self.messages.cli_not_installed
-                raise self.sd.utils.SimpleDeployCommandError(self.sd, error_msg)
+                raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
         lines = output_str.splitlines()
@@ -362,7 +337,7 @@ class PlatformDeployer:
             return project_name
 
         # Couldn't find a project name. Warn user, and tell them about override flag.
-        raise self.sd.utils.SimpleDeployCommandError(
+        raise self.sd.sd_utils.SimpleDeployCommandError(
             self.sd, self.messages.no_project_name
         )
 
@@ -390,7 +365,7 @@ class PlatformDeployer:
 
         org_names = plsh_utils.get_org_names(output_str)
         if not org_names:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.org_not_found
             )
 
@@ -411,7 +386,7 @@ class PlatformDeployer:
         # Confirm selection, because we do *not* want to deploy using the wrong org.
         confirmed = False
         while not confirmed:
-            selection = self.sd.utils.get_numbered_choice(
+            selection = self.sd.sd_utils.get_numbered_choice(
                 self.sd, prompt, valid_choices, self.messages.no_org_available
             )
             selected_org = org_names[selection]
@@ -440,4 +415,4 @@ class PlatformDeployer:
             # Exit, with a message that configuration is still an option.
             msg = self.messages.cancel_plsh
             msg += self.messages.may_configure
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, msg)
+            raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, msg)

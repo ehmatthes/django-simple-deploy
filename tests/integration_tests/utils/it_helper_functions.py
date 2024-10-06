@@ -73,7 +73,6 @@ def check_package_manager_available(pkg_manager):
     if pkg_manager_path:
         return True
     else:
-
         msg = dedent(
             f"""
         --- You must have {pkg_manager.title()} installed in order to run integration tests. ---

@@ -1,6 +1,7 @@
 """Utility functions and classes for simple_deploy.py.
 
-Also contains resources useful to platform-specific deployment scripts.
+Utilities in this module should only be used internally by simple_deploy.
+Any utility used by plugins should be moved to plugin_utils.py.
 """
 
 from pathlib import Path
@@ -11,21 +12,6 @@ from django.template.utils import get_app_template_dirs
 from django.core.management.base import CommandError
 
 import toml
-
-
-def write_file_from_template(dest_path, template_path, context=None):
-    """Write a file based on a platform-specific template.
-
-    This may be a whole new file, such as a Dockerfile. Or, we may be modifying an
-    existing file such as settings.py.
-
-    Returns:
-    - None
-    """
-    my_engine = Engine()
-    template = my_engine.from_string(template_path.read_text())
-    rendered_template = template.render(Context(context))
-    dest_path.write_text(rendered_template)
 
 
 def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):

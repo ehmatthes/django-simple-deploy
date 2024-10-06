@@ -10,6 +10,8 @@ from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
+from ..utils import plugin_utils
+
 from . import deploy_messages as platform_msgs
 
 
@@ -40,7 +42,7 @@ class PlatformDeployer:
         self._ensure_db()
         self._add_requirements()
         self._set_env_vars()
-        self._generate_procfile()
+        self._add_procfile()
         self._add_static_file_directory()
         self._modify_settings()
 
@@ -194,61 +196,33 @@ class PlatformDeployer:
         self._set_debug_env_var()
         self._set_secret_key_env_var()
 
-    def _generate_procfile(self):
-        """Create Procfile, if none present.
-
-        Returns:
-            None
-
-        Raises:
-            SimpleDeployCommandError: If Procfile exists, and can't be overwritten.
-        """
-        # Procfile should be in project root, if present.
-        path = self.sd.project_root / "Procfile"
-        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
-
-        if path.exists():
-            proceed = self.sd.get_confirmation(self.sd.messages.file_found("Procfile"))
-            if not proceed:
-                raise self.sd.utils.SimpleDeployCommandError(
-                    self.sd, self.sd.messages.file_replace_rejected("Procfile")
-                )
-
-        # No Procfile exists, or we're free to write over existing one.
-        self.sd.write_output("    Generating Procfile...")
-
+    def _add_procfile(self):
+        """Add Procfile to project."""
+        # Generate Procfile contents.
         wsgi_path = f"{self.sd.local_project_name}.wsgi"
         if self.sd.nested_project:
             wsgi_path = f"{self.sd.local_project_name}.{wsgi_path}"
-
         proc_command = f"web: gunicorn {wsgi_path} --log-file -"
-        path.write_text(proc_command)
 
-        self.sd.write_output("    Generated Procfile with following process:")
-        self.sd.write_output(f"      {proc_command}")
+        # Write Procfile.
+        path = self.sd.project_root / "Procfile"
+        plugin_utils.add_file(self.sd, path, proc_command)
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist."""
-        self.sd.write_output("    Checking for static files directory...")
-
+        # Make sure directory exists.
         path_static = self.sd.project_root / "static"
+        plugin_utils.add_dir(self.sd, path_static)
 
-        # If static/ exists and is not empty, we don't need to do anything.
-        if path_static.exists() and any(path_static.iterdir()):
+        # If static/ is not empty, we don't need to do anything.
+        if any(path_static.iterdir()):
             self.sd.write_output("    Found non-empty static files directory.")
             return
 
-        # If path doesn't exist, create it.
-        if not path_static.exists():
-            path_static.mkdir()
-            self.sd.write_output("    Created empty static files directory.")
-
-        # Add a placeholder file to the empty static files directory.
+        # static/ is empty; add a placeholder file to the directory.
         path_placeholder = path_static / "placeholder.txt"
         msg = "This is a placeholder file to make sure this folder is pushed to Heroku."
-        path_placeholder.write_text(msg)
-
-        self.sd.write_output("    Added placeholder file to static files directory.")
+        plugin_utils.add_file(self.sd, path_placeholder, msg)
 
     def _modify_settings(self):
         """Add Heroku-specific settings.
@@ -256,19 +230,18 @@ class PlatformDeployer:
         This settings block is currently the same for all users. The ALLOWED_HOSTS
         setting should be customized.
         """
-        self.sd.write_output("\n  Adding a Heroku-specific settings block...")
+        # Generate modified settings string.
+        template_path = self.templates_path / "settings.py"
 
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
 
-        template_path = self.templates_path / "settings.py"
-        self.sd.utils.write_file_from_template(
-            self.sd.settings_path, template_path, context
-        )
+        modified_settings_string = plugin_utils.get_template_string(
+            template_path, context)
 
-        msg = f"    Modified settings.py file: {self.sd.settings_path}"
-        self.sd.write_output(msg)
+        # Write settings to file.
+        plugin_utils.modify_file(self.sd, self.sd.settings_path, modified_settings_string)
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
@@ -374,7 +347,7 @@ class PlatformDeployer:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -383,7 +356,7 @@ class PlatformDeployer:
         # The returncode for a successful command is 0, so anything truthy means the
         # command errored out.
         if output_obj.returncode:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -408,7 +381,7 @@ class PlatformDeployer:
         if ("Error: Invalid credentials provided" in output_str) or (
             "Error: not logged in" in output_str
         ):
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_authenticated
             )
 
@@ -444,7 +417,7 @@ class PlatformDeployer:
 
         # If output_str is emtpy, there is no heroku app.
         if not output_str:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.no_heroku_app_detected
             )
 

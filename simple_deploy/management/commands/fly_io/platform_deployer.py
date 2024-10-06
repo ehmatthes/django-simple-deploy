@@ -17,6 +17,8 @@ import requests
 
 from . import deploy_messages as platform_msgs
 
+from ..utils import plugin_utils
+
 
 class PlatformDeployer:
     """Perform the initial deployment to Fly.io
@@ -124,26 +126,7 @@ class PlatformDeployer:
         dependency management system.
         """
 
-        # Existing dockerfile should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for Dockerfile...")
-
-        path = self.sd.project_root / "Dockerfile"
-        if path.exists():
-            proceed = self.sd.get_confirmation(
-                self.sd.messages.file_found("Dockerfile")
-            )
-            if not proceed:
-                raise self.sd.utils.SimpleDeployCommandError(
-                    self.sd, self.sd.messages.file_replace_rejected("Dockerfile")
-                )
-
-        # No Dockerfile exists. Generate new file from template.
-        self.sd.write_output("    No Dockerfile found. Generating file...")
-
-        context = {
-            "django_project_name": self.sd.local_project_name,
-        }
-
+        # Build file contents from template and context.
         if self.sd.pkg_manager == "poetry":
             dockerfile_template = "dockerfile_poetry"
         elif self.sd.pkg_manager == "pipenv":
@@ -152,53 +135,43 @@ class PlatformDeployer:
             dockerfile_template = "dockerfile"
         template_path = self.templates_path / dockerfile_template
 
-        self.sd.utils.write_file_from_template(path, template_path, context)
+        context = {
+            "django_project_name": self.sd.local_project_name,
+        }
 
-        msg = f"\n    Generated Dockerfile: {path}"
-        self.sd.write_output(msg)
+        contents = plugin_utils.get_template_string(template_path, context)
+
+        # Write file to project.
+        path = self.sd.project_root / "Dockerfile"
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
         Ignore virtual environment dir, system-specific cruft, and IDE cruft.
-
-        If an existing dockerignore is found, make note of that but don't overwrite.
         """
-        # Check for existing dockerignore file; we're only looking in project root.
-        #   If we find one, don't make any changes.
-        path = Path(".dockerignore")
-        if path.exists():
-            msg = "  Found existing .dockerignore file. Not overwriting this file."
-            self.sd.write_output(msg)
-        else:
-            dockerignore_str = self._build_dockerignore()
-            path.write_text(dockerignore_str, encoding="utf-8")
-            msg = "  Wrote .dockerignore file."
-            self.sd.write_output(msg)
+        path = self.sd.project_root / ".dockerignore"
+        dockerignore_str = self._build_dockerignore()
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=dockerignore_str)
 
     def _add_flytoml(self):
         """Add a minimal fly.toml file."""
-        # File should be in project root, if present.
-        self.sd.write_output(f"\n  Looking in {self.sd.git_path} for fly.toml file...")
 
+        # Build contents of fly.toml.
+        template_path = self.templates_path / "fly.toml"
+        context = {
+            "deployed_project_name": self.deployed_project_name,
+            "using_pipenv": (self.sd.pkg_manager == "pipenv"),
+        }
+        contents = plugin_utils.get_template_string(template_path, context)
+
+        # Write file to project.
         path = self.sd.project_root / "fly.toml"
-        if path.exists():
-            self.sd.write_output("    Found existing fly.toml file.")
-        else:
-            # Generate file from template.
-            context = {
-                "deployed_project_name": self.deployed_project_name,
-                "using_pipenv": (self.sd.pkg_manager == "pipenv"),
-            }
-            template_path = self.templates_path / "fly.toml"
-
-            self.sd.utils.write_file_from_template(path, template_path, context)
-
-            msg = f"\n    Generated fly.toml: {path}"
-            self.sd.write_output(msg)
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _modify_settings(self):
         """Add platformsh-specific settings."""
-        self.sd.write_output("\n  Adding a Fly.io-specific settings block...")
+        # Get modified version of settings.
+        template_path = self.templates_path / "settings.py"
 
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
@@ -206,14 +179,12 @@ class PlatformDeployer:
             "current_settings": safe_settings_string,
             "deployed_project_name": self.deployed_project_name,
         }
-        template_path = self.templates_path / "settings.py"
 
-        self.sd.utils.write_file_from_template(
-            self.sd.settings_path, template_path, context
-        )
+        modified_settings_string = plugin_utils.get_template_string(
+            template_path, context)
 
-        msg = f"    Modified settings.py file: {self.sd.settings_path}"
-        self.sd.write_output(msg)
+        # Write settings to file.
+        plugin_utils.modify_file(self.sd, self.sd.settings_path, modified_settings_string)
 
     def _add_requirements(self):
         """Add requirements for deploying to Fly.io."""
@@ -337,7 +308,7 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -345,7 +316,7 @@ class PlatformDeployer:
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_not_installed
             )
 
@@ -355,7 +326,7 @@ class PlatformDeployer:
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cli_logged_out
             )
 
@@ -433,7 +404,7 @@ class PlatformDeployer:
             if self.sd.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.no_project_name
                 )
         elif len(project_names) == 1:
@@ -448,7 +419,7 @@ class PlatformDeployer:
             elif self.sd.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise self.sd.utils.SimpleDeployCommandError(
+                raise self.sd.sd_utils.SimpleDeployCommandError(
                     self.sd, self.messages.no_project_name
                 )
         else:
@@ -474,7 +445,7 @@ class PlatformDeployer:
             # against the wrong app.
             confirmed = False
             while not confirmed:
-                selection = self.sd.utils.get_numbered_choice(
+                selection = self.sd.sd_utils.get_numbered_choice(
                     self.sd, prompt, valid_choices, self.messages.no_project_name
                 )
                 selected_name = project_names[selection]
@@ -517,7 +488,7 @@ class PlatformDeployer:
         try:
             self.app_name = app_dict["Name"]
         except KeyError:
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.create_app_failed
             )
         else:
@@ -713,7 +684,7 @@ class PlatformDeployer:
             # Note: This path has only been tested once, by manually adding
             # "dummy-user" to the list of db users."
             msg = self.messages.cant_use_db(self.db_name, self.db_users)
-            raise self.sd.utils.SimpleDeployCommandError(self.sd, msg)
+            raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, msg)
 
     def _confirm_use_attached_db(self):
         """Confirm it's okay to use db that's already attached to this app.
@@ -731,7 +702,7 @@ class PlatformDeployer:
         if not self.sd.get_confirmation(msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cancel_no_db
             )
 
@@ -761,7 +732,7 @@ class PlatformDeployer:
             # Permission to use this db denied.
             # Can't simply create a new db, because the name we'd use is
             # already taken.
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cancel_no_db
             )
 
@@ -784,7 +755,7 @@ class PlatformDeployer:
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
-            raise self.sd.utils.SimpleDeployCommandError(
+            raise self.sd.sd_utils.SimpleDeployCommandError(
                 self.sd, self.messages.cancel_no_db
             )
 
