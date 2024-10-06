@@ -46,7 +46,7 @@ class PlatformDeployer:
         self._modify_settings()
         self._add_requirements()
         self._add_platform_app_yaml()
-        self._make_platform_dir()
+        self._add_platform_dir()
         self._add_services_yaml()
 
         self._conclude_automate_all()
@@ -162,17 +162,10 @@ class PlatformDeployer:
         requirements = ["platformshconfig", "gunicorn", "psycopg2"]
         self.sd.add_packages(requirements)
 
-    def _make_platform_dir(self):
+    def _add_platform_dir(self):
         """Add a .platform directory, if it doesn't already exist."""
-
         self.platform_dir_path = self.sd.project_root / ".platform"
-        self.sd.write_output(f"\n  Looking for {self.platform_dir_path.as_posix()}...")
-
-        if self.platform_dir_path.exists():
-            self.sd.write_output(f"    Found {self.platform_dir_path.as_posix()}")
-        else:
-            self.platform_dir_path.mkdir()
-            self.sd.write_output(f"    Generated {self.platform_dir_path.as_posix()}")
+        plugin_utils.add_dir(self.sd, self.platform_dir_path)
 
     def _add_services_yaml(self):
         """Add the .platform/services.yaml file."""

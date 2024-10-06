@@ -41,6 +41,26 @@ def add_file(sd_command, path, contents):
     msg = f"\n    Wrote {path.name} to {path}"
     sd_command.write_output(msg)
 
+def add_dir(sd_command, path):
+    """Write a new directory to the file.
+
+    This function is meant to be used when adding new directories that don't
+    typically exist ina Django project. For example, a platform-specific directory
+    such as .platform/ for Platform.sh.
+
+    Only adds the directory; does nothing if the directory already exists.
+
+    Returns:
+    - None
+    """
+    sd_command.write_output(f"\n  Looking for {path.as_posix()}...")
+
+    if path.exists():
+        sd_command.write_output(f"    Found {path.as_posix()}")
+    else:
+        path.mkdir()
+        sd_command.write_output(f"    Added new directory: {path.as_posix()}")
+
 
 # --- Utilities that do not require an instance of Command ---
 # Note: These utilities are much easier to test, and should
