@@ -8,6 +8,16 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 The goal for the 0.7 series is to support an internal plugin model. There shouldn't be many external changes due to this model, but this is an important enough step towards a 1.0 release that it warrants a bump in the minor version number. The 0.8.0 release should indicate preliminary support for external plugins.
 
+### 0.7.3
+
+#### External changes
+
+- None
+
+#### Internal changes
+
+- Adds several utility functions for use by platform-specific plugins: `add_file()`, `add_dir()`, `modify_file()`, and `get_template_string()`. Each of the three platforms use these functions where appropriate. Reorganizes `utils.py` into `utils/sd_utils.py` and `utils/plugin_utils.py`.
+
 ### 0.7.2
 
 #### External changes
