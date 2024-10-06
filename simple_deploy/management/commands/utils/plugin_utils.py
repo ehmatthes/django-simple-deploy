@@ -41,6 +41,7 @@ def add_file(sd_command, path, contents):
     msg = f"\n    Wrote {path.name} to {path}"
     sd_command.write_output(msg)
 
+
 def modify_file(sd_command, path, contents):
     """Modify an existing file.
 
@@ -57,13 +58,13 @@ def modify_file(sd_command, path, contents):
     # Make sure file exists.
     if not path.exists():
         msg = f"File {path.as_posix()} does not exist."
-        raise sd_command.SimpleDeployCommandError(
-            sd_command, msg)
+        raise sd_command.SimpleDeployCommandError(sd_command, msg)
 
     # Rewrite file with new contents.
     path.write_text(contents)
     msg = f"  Modified file: {path.as_posix()}"
     sd_command.write_output(msg)
+
 
 def add_dir(sd_command, path):
     """Write a new directory to the file.

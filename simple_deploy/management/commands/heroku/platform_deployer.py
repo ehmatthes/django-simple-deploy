@@ -238,10 +238,13 @@ class PlatformDeployer:
         context = {"current_settings": safe_settings_string}
 
         modified_settings_string = plugin_utils.get_template_string(
-            template_path, context)
+            template_path, context
+        )
 
         # Write settings to file.
-        plugin_utils.modify_file(self.sd, self.sd.settings_path, modified_settings_string)
+        plugin_utils.modify_file(
+            self.sd, self.sd.settings_path, modified_settings_string
+        )
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""

@@ -181,10 +181,13 @@ class PlatformDeployer:
         }
 
         modified_settings_string = plugin_utils.get_template_string(
-            template_path, context)
+            template_path, context
+        )
 
         # Write settings to file.
-        plugin_utils.modify_file(self.sd, self.sd.settings_path, modified_settings_string)
+        plugin_utils.modify_file(
+            self.sd, self.sd.settings_path, modified_settings_string
+        )
 
     def _add_requirements(self):
         """Add requirements for deploying to Fly.io."""
