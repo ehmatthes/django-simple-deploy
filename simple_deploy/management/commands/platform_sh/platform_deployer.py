@@ -47,7 +47,7 @@ class PlatformDeployer:
         self._add_requirements()
         self._add_platform_app_yaml()
         self._make_platform_dir()
-        self._generate_services_yaml()
+        self._add_services_yaml()
 
         self._conclude_automate_all()
         self._show_success_message()
@@ -174,22 +174,14 @@ class PlatformDeployer:
             self.platform_dir_path.mkdir()
             self.sd.write_output(f"    Generated {self.platform_dir_path.as_posix()}")
 
-    def _generate_services_yaml(self):
-        """Generate the .platform/services.yaml file, if not present."""
+    def _add_services_yaml(self):
+        """Add the .platform/services.yaml file."""
+
+        template_path = self.templates_path / "services.yaml"
+        contents = plugin_utils.get_template_string(template_path, context=None)
 
         path = self.platform_dir_path / "services.yaml"
-        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
-
-        if path.exists():
-            self.sd.write_output("    Found existing services.yaml file.")
-        else:
-            self.sd.write_output("    No services.yaml file found. Generating file...")
-            template_path = self.templates_path / "services.yaml"
-            self.sd.sd_utils.write_file_from_template(path, template_path)
-
-            msg = f"\n    Generated {path.as_posix()}"
-            self.sd.write_output(msg)
-            return path
+        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
 
     def _conclude_automate_all(self):
         """Finish automating the push to Platform.sh.
