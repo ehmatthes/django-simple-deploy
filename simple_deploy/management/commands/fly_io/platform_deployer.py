@@ -170,7 +170,8 @@ class PlatformDeployer:
 
     def _modify_settings(self):
         """Add platformsh-specific settings."""
-        self.sd.write_output("\n  Adding a Fly.io-specific settings block...")
+        # Get modified version of settings.
+        template_path = self.templates_path / "settings.py"
 
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
@@ -178,14 +179,12 @@ class PlatformDeployer:
             "current_settings": safe_settings_string,
             "deployed_project_name": self.deployed_project_name,
         }
-        template_path = self.templates_path / "settings.py"
 
-        self.sd.sd_utils.write_file_from_template(
-            self.sd.settings_path, template_path, context
-        )
+        modified_settings_string = plugin_utils.get_template_string(
+            template_path, context)
 
-        msg = f"    Modified settings.py file: {self.sd.settings_path}"
-        self.sd.write_output(msg)
+        # Write settings to file.
+        plugin_utils.modify_file(self.sd, self.sd.settings_path, modified_settings_string)
 
     def _add_requirements(self):
         """Add requirements for deploying to Fly.io."""

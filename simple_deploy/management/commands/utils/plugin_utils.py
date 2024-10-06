@@ -41,6 +41,30 @@ def add_file(sd_command, path, contents):
     msg = f"\n    Wrote {path.name} to {path}"
     sd_command.write_output(msg)
 
+def modify_file(sd_command, path, contents):
+    """Modify an existing file.
+
+    This function is meant for modifying a file that should already exist, such as
+    settings.py. We're not getting permission; if unwanted changes are somehow made,
+    the user can use Git to restore the file to its original state.
+
+    Returns:
+    - None
+
+    Raises:
+    - SimpleDeployCommandError: If file does not exist.
+    """
+    # Make sure file exists.
+    if not path.exists():
+        msg = f"File {path.as_posix()} does not exist."
+        raise sd_command.SimpleDeployCommandError(
+            sd_command, msg)
+
+    # Rewrite file with new contents.
+    path.write_text(contents)
+    msg = f"  Modified file: {path.as_posix()}"
+    sd_command.write_output(msg)
+
 def add_dir(sd_command, path):
     """Write a new directory to the file.
 
