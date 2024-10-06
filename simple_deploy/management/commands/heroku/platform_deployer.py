@@ -10,6 +10,8 @@ from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
+from ..utils import plugin_utils
+
 from . import deploy_messages as platform_msgs
 
 
@@ -40,7 +42,7 @@ class PlatformDeployer:
         self._ensure_db()
         self._add_requirements()
         self._set_env_vars()
-        self._generate_procfile()
+        self._add_procfile()
         self._add_static_file_directory()
         self._modify_settings()
 
@@ -194,38 +196,17 @@ class PlatformDeployer:
         self._set_debug_env_var()
         self._set_secret_key_env_var()
 
-    def _generate_procfile(self):
-        """Create Procfile, if none present.
-
-        Returns:
-            None
-
-        Raises:
-            SimpleDeployCommandError: If Procfile exists, and can't be overwritten.
-        """
-        # Procfile should be in project root, if present.
-        path = self.sd.project_root / "Procfile"
-        self.sd.write_output(f"\n  Looking for {path.as_posix()}...")
-
-        if path.exists():
-            proceed = self.sd.get_confirmation(self.sd.messages.file_found("Procfile"))
-            if not proceed:
-                raise self.sd.sd_utils.SimpleDeployCommandError(
-                    self.sd, self.sd.messages.file_replace_rejected("Procfile")
-                )
-
-        # No Procfile exists, or we're free to write over existing one.
-        self.sd.write_output("    Generating Procfile...")
-
+    def _add_procfile(self):
+        """Add Procfile to project."""
+        # Generate Procfile contents.
         wsgi_path = f"{self.sd.local_project_name}.wsgi"
         if self.sd.nested_project:
             wsgi_path = f"{self.sd.local_project_name}.{wsgi_path}"
-
         proc_command = f"web: gunicorn {wsgi_path} --log-file -"
-        path.write_text(proc_command)
 
-        self.sd.write_output("    Generated Procfile with following process:")
-        self.sd.write_output(f"      {proc_command}")
+        # Write Procfile.
+        path = self.sd.project_root / "Procfile"
+        plugin_utils.add_file(self.sd, path, proc_command)
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist."""
