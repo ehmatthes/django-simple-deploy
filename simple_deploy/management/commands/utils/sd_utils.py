@@ -14,24 +14,6 @@ from django.core.management.base import CommandError
 import toml
 
 
-def write_file_from_template(dest_path, template_path, context=None):
-    """Write a file based on a platform-specific template.
-
-    This may be a whole new file, such as a Dockerfile. Or, we may be modifying an
-    existing file such as settings.py.
-
-    # DEV: Deprecated in favor of `get_template_string()`, followed by `add_file()`
-    or `modify_file()`/ `replace_file`.
-
-    Returns:
-    - None
-    """
-    my_engine = Engine()
-    template = my_engine.from_string(template_path.read_text())
-    rendered_template = template.render(Context(context))
-    dest_path.write_text(rendered_template)
-
-
 def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
     """Select from a numbered list of choices.
 
