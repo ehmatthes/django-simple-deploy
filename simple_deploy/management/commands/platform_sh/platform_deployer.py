@@ -120,19 +120,18 @@ class PlatformDeployer:
         This settings block is currently the same for all users. The ALLOWED_HOSTS
         setting should be customized.
         """
-        self.sd.write_output("\n  Adding a Platform.sh-specific settings block...")
+        # Generate modified settings string.
+        template_path = self.templates_path / "settings.py"
 
         settings_string = self.sd.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
 
-        template_path = self.templates_path / "settings.py"
-        self.sd.sd_utils.write_file_from_template(
-            self.sd.settings_path, template_path, context
-        )
+        modified_settings_string = plugin_utils.get_template_string(
+            template_path, context)
 
-        msg = f"    Modified settings.py file: {self.sd.settings_path}"
-        self.sd.write_output(msg)
+        # Write settings to file.
+        plugin_utils.modify_file(self.sd, self.sd.settings_path, modified_settings_string)
 
     def _add_platform_app_yaml(self):
         """Add a .platform.app.yaml file."""
