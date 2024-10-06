@@ -135,7 +135,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
     def _add_platform_app_yaml(self):
-        """Create .platform.app.yaml file, if not present."""
+        """Add a .platform.app.yaml file."""
 
         # Build contents from template.
         if self.sd.pkg_manager == "poetry":
