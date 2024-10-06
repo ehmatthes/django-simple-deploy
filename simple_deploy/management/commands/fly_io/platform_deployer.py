@@ -32,7 +32,6 @@ class PlatformDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
-        self.messages = platform_msgs
         self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
@@ -231,9 +230,9 @@ class PlatformDeployer:
         Describe ongoing approach of commit, push, migrate.
         """
         if self.sd.automate_all:
-            msg = self.messages.success_msg_automate_all(self.deployed_url)
+            msg = platform_msgs.success_msg_automate_all(self.deployed_url)
         else:
-            msg = self.messages.success_msg(log_output=self.sd.log_output)
+            msg = platform_msgs.success_msg(log_output=self.sd.log_output)
         self.sd.write_output(msg)
 
     def _set_secret(self, needle, secret):
@@ -299,8 +298,8 @@ class PlatformDeployer:
         self.sd.check_settings(
             "Fly.io",
             start_line,
-            self.messages.flyio_settings_found,
-            self.messages.cant_overwrite_settings,
+            platform_msgs.flyio_settings_found,
+            platform_msgs.cant_overwrite_settings,
         )
 
     def _validate_cli(self):
@@ -312,7 +311,7 @@ class PlatformDeployer:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_not_installed
+                self.sd, platform_msgs.cli_not_installed
             )
 
         self.sd.log_info(output_obj)
@@ -320,7 +319,7 @@ class PlatformDeployer:
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_not_installed
+                self.sd, platform_msgs.cli_not_installed
             )
 
         # Check that user is authenticated.
@@ -330,7 +329,7 @@ class PlatformDeployer:
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_logged_out
+                self.sd, platform_msgs.cli_logged_out
             )
 
         # Show current authenticated fly user.
@@ -408,7 +407,7 @@ class PlatformDeployer:
                 self.app_name = self._create_flyio_app()
             else:
                 raise self.sd.sd_utils.SimpleDeployCommandError(
-                    self.sd, self.messages.no_project_name
+                    self.sd, platform_msgs.no_project_name
                 )
         elif len(project_names) == 1:
             # Only one app name found. Confirm we can deploy to this app.
@@ -423,7 +422,7 @@ class PlatformDeployer:
                 self.app_name = self._create_flyio_app()
             else:
                 raise self.sd.sd_utils.SimpleDeployCommandError(
-                    self.sd, self.messages.no_project_name
+                    self.sd, platform_msgs.no_project_name
                 )
         else:
             # More than one undeployed app found. `apps list` doesn't show
@@ -449,7 +448,7 @@ class PlatformDeployer:
             confirmed = False
             while not confirmed:
                 selection = self.sd.sd_utils.get_numbered_choice(
-                    self.sd, prompt, valid_choices, self.messages.no_project_name
+                    self.sd, prompt, valid_choices, platform_msgs.no_project_name
                 )
                 selected_name = project_names[selection]
 
@@ -492,7 +491,7 @@ class PlatformDeployer:
             self.app_name = app_dict["Name"]
         except KeyError:
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.create_app_failed
+                self.sd, platform_msgs.create_app_failed
             )
         else:
             msg = f"  Created new app: {self.app_name}"
@@ -686,7 +685,7 @@ class PlatformDeployer:
             # we'll revisit this block.
             # Note: This path has only been tested once, by manually adding
             # "dummy-user" to the list of db users."
-            msg = self.messages.cant_use_db(self.db_name, self.db_users)
+            msg = platform_msgs.cant_use_db(self.db_name, self.db_users)
             raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, msg)
 
     def _confirm_use_attached_db(self):
@@ -698,7 +697,7 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If confirmation denied.
         """
-        msg = self.messages.use_attached_db(self.db_name, self.db_users)
+        msg = platform_msgs.use_attached_db(self.db_name, self.db_users)
         self.sd.write_output(msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
@@ -706,7 +705,7 @@ class PlatformDeployer:
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cancel_no_db
+                self.sd, platform_msgs.cancel_no_db
             )
 
     def _confirm_use_unattached_db(self):
@@ -724,7 +723,7 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If confirmation denied.
         """
-        msg = self.messages.use_unattached_db(self.db_name, self.db_users)
+        msg = platform_msgs.use_unattached_db(self.db_name, self.db_users)
         self.sd.write_output(msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
@@ -736,7 +735,7 @@ class PlatformDeployer:
             # Can't simply create a new db, because the name we'd use is
             # already taken.
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cancel_no_db
+                self.sd, platform_msgs.cancel_no_db
             )
 
     def _confirm_create_db(self, db_cmd):
@@ -753,13 +752,13 @@ class PlatformDeployer:
             return
 
         # Show the command that will be run on the user's behalf.
-        self.stdout.write(self.messages.confirm_create_db(db_cmd))
+        self.stdout.write(platform_msgs.confirm_create_db(db_cmd))
         if self.sd.get_confirmation():
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cancel_no_db
+                self.sd, platform_msgs.cancel_no_db
             )
 
     def _attach_db(self):

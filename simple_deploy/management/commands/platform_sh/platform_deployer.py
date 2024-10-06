@@ -30,7 +30,6 @@ class PlatformDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
-        self.messages = platform_msgs
         self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
@@ -111,7 +110,7 @@ class PlatformDeployer:
             # output goes to stderr.
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
-            error_msg = self.messages.unknown_create_error(e)
+            error_msg = platform_msgs.unknown_create_error(e)
             raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, error_msg)
 
     def _modify_settings(self):
@@ -228,10 +227,10 @@ class PlatformDeployer:
         #   when doing this on production app with users, make sure you learn.
 
         if self.sd.automate_all:
-            msg = self.messages.success_msg_automate_all(self.deployed_url)
+            msg = platform_msgs.success_msg_automate_all(self.deployed_url)
             self.sd.write_output(msg)
         else:
-            msg = self.messages.success_msg(self.sd.log_output)
+            msg = platform_msgs.success_msg(self.sd.log_output)
             self.sd.write_output(msg)
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -242,8 +241,8 @@ class PlatformDeployer:
         self.sd.check_settings(
             "Platform.sh",
             start_line,
-            self.messages.plsh_settings_found,
-            self.messages.cant_overwrite_settings,
+            platform_msgs.plsh_settings_found,
+            platform_msgs.cant_overwrite_settings,
         )
 
     def _validate_cli(self):
@@ -255,7 +254,7 @@ class PlatformDeployer:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_not_installed
+                self.sd, platform_msgs.cli_not_installed
             )
 
         self.sd.log_info(output_obj)
@@ -266,7 +265,7 @@ class PlatformDeployer:
 
         if "Authentication is required." in output_obj.stderr.decode():
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_logged_out
+                self.sd, platform_msgs.cli_logged_out
             )
 
     def _get_platformsh_project_name(self):
@@ -310,19 +309,19 @@ class PlatformDeployer:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
                 raise self.sd.sd_utils.SimpleDeployCommandError(
-                    self.sd, self.messages.login_required
+                    self.sd, platform_msgs.login_required
                 )
             elif "ProjectNotFoundException" in output_str:
                 raise self.sd.sd_utils.SimpleDeployCommandError(
-                    self.sd, self.messages.no_project_name
+                    self.sd, platform_msgs.no_project_name
                 )
             elif "RootNotFoundException" in output_str:
                 raise self.sd.sd_utils.SimpleDeployCommandError(
-                    self.sd, self.messages.no_project_name
+                    self.sd, platform_msgs.no_project_name
                 )
             else:
-                error_msg = self.messages.unknown_error
-                error_msg += self.messages.cli_not_installed
+                error_msg = platform_msgs.unknown_error
+                error_msg += platform_msgs.cli_not_installed
                 raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
@@ -341,7 +340,7 @@ class PlatformDeployer:
 
         # Couldn't find a project name. Warn user, and tell them about override flag.
         raise self.sd.sd_utils.SimpleDeployCommandError(
-            self.sd, self.messages.no_project_name
+            self.sd, platform_msgs.no_project_name
         )
 
     def _get_org_name(self):
@@ -369,7 +368,7 @@ class PlatformDeployer:
         org_names = plsh_utils.get_org_names(output_str)
         if not org_names:
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.org_not_found
+                self.sd, platform_msgs.org_not_found
             )
 
         if len(org_names) == 1:
@@ -390,7 +389,7 @@ class PlatformDeployer:
         confirmed = False
         while not confirmed:
             selection = self.sd.sd_utils.get_numbered_choice(
-                self.sd, prompt, valid_choices, self.messages.no_org_available
+                self.sd, prompt, valid_choices, platform_msgs.no_org_available
             )
             selected_org = org_names[selection]
 
@@ -408,7 +407,7 @@ class PlatformDeployer:
             SimpleDeployCommandError: if not confirmed
         """
 
-        self.stdout.write(self.messages.confirm_use_org(org_name))
+        self.stdout.write(platform_msgs.confirm_use_org(org_name))
         confirmed = self.sd.get_confirmation(skip_logging=True)
 
         if confirmed:
@@ -416,6 +415,6 @@ class PlatformDeployer:
             return True
         else:
             # Exit, with a message that configuration is still an option.
-            msg = self.messages.cancel_plsh
-            msg += self.messages.may_configure
+            msg = platform_msgs.cancel_plsh
+            msg += platform_msgs.may_configure
             raise self.sd.sd_utils.SimpleDeployCommandError(self.sd, msg)

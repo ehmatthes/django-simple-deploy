@@ -27,7 +27,6 @@ class PlatformDeployer:
         """Establishes connection to existing simple_deploy command object."""
         self.sd = command
         self.stdout = self.sd.stdout
-        self.messages = platform_msgs
         self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
@@ -312,12 +311,12 @@ class PlatformDeployer:
 
         if self.sd.automate_all:
             # Show how to make future deployments.
-            msg = self.messages.success_msg_automate_all(
+            msg = platform_msgs.success_msg_automate_all(
                 self.heroku_app_name, self.current_branch
             )
         else:
             # Show steps to finish the deployment process.
-            msg = self.messages.success_msg(self.sd.pkg_manager, self.heroku_app_name)
+            msg = platform_msgs.success_msg(self.sd.pkg_manager, self.heroku_app_name)
 
         self.sd.write_output(msg)
 
@@ -329,8 +328,8 @@ class PlatformDeployer:
         self.sd.check_settings(
             "Heroku",
             start_line,
-            self.messages.heroku_settings_found,
-            self.messages.cant_overwrite_settings,
+            platform_msgs.heroku_settings_found,
+            platform_msgs.cant_overwrite_settings,
         )
 
     def _check_cli_installed(self):
@@ -351,7 +350,7 @@ class PlatformDeployer:
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_not_installed
+                self.sd, platform_msgs.cli_not_installed
             )
 
         self.sd.log_info(output_obj)
@@ -360,7 +359,7 @@ class PlatformDeployer:
         # command errored out.
         if output_obj.returncode:
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_not_installed
+                self.sd, platform_msgs.cli_not_installed
             )
 
     def _check_cli_authenticated(self):
@@ -385,7 +384,7 @@ class PlatformDeployer:
             "Error: not logged in" in output_str
         ):
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.cli_not_authenticated
+                self.sd, platform_msgs.cli_not_authenticated
             )
 
     def _check_heroku_project_available(self):
@@ -421,7 +420,7 @@ class PlatformDeployer:
         # If output_str is emtpy, there is no heroku app.
         if not output_str:
             raise self.sd.sd_utils.SimpleDeployCommandError(
-                self.sd, self.messages.no_heroku_app_detected
+                self.sd, platform_msgs.no_heroku_app_detected
             )
 
         # Parse output for app_name.
