@@ -210,26 +210,19 @@ class PlatformDeployer:
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist."""
-        self.sd.write_output("    Checking for static files directory...")
-
+        # Make sure directory exists.
         path_static = self.sd.project_root / "static"
+        plugin_utils.add_dir(self.sd, path_static)
 
-        # If static/ exists and is not empty, we don't need to do anything.
-        if path_static.exists() and any(path_static.iterdir()):
+        # If static/ is not empty, we don't need to do anything.
+        if any(path_static.iterdir()):
             self.sd.write_output("    Found non-empty static files directory.")
             return
 
-        # If path doesn't exist, create it.
-        if not path_static.exists():
-            path_static.mkdir()
-            self.sd.write_output("    Created empty static files directory.")
-
-        # Add a placeholder file to the empty static files directory.
+        # static/ is empty; add a placeholder file to the directory.
         path_placeholder = path_static / "placeholder.txt"
         msg = "This is a placeholder file to make sure this folder is pushed to Heroku."
-        path_placeholder.write_text(msg)
-
-        self.sd.write_output("    Added placeholder file to static files directory.")
+        plugin_utils.add_file(self.sd, path_placeholder, msg)
 
     def _modify_settings(self):
         """Add Heroku-specific settings.
