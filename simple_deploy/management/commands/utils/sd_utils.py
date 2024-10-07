@@ -9,7 +9,6 @@ import inspect, re, sys, subprocess, logging
 
 from django.template.engine import Engine, Context
 from django.template.utils import get_app_template_dirs
-from django.core.management.base import CommandError
 
 import toml
 
@@ -54,23 +53,6 @@ def validate_choice(choice, valid_choices):
     if choice in valid_choices:
         return True
     return False
-
-
-# class SimpleDeployCommandError(CommandError):
-#     """Simple wrapper around CommandError, to facilitate consistent
-#     logging of command errors.
-
-#     Writes "SimpleDeployCommandError:" and error message to log, then raises
-#     actual CommandError.
-
-#     Note: This changes the exception type from CommandError to
-#     SimpleDeployCommandError.
-#     """
-
-#     def __init__(self, sd_command, message):
-#         sd_command.log_info("\nSimpleDeployCommandError:")
-#         sd_command.log_info(message)
-#         super().__init__(message)
 
 
 def get_string_from_output(output):
