@@ -2,6 +2,7 @@
 
 from django.template.engine import Engine, Context
 
+from .. import deploy_messages as sd_messages
 
 # --- Utilities that require an instance of Command ---
 
@@ -27,10 +28,10 @@ def add_file(sd_command, path, contents):
     sd_command.write_output(f"\n  Looking in {path.parent} for {path.name}...")
 
     if path.exists():
-        proceed = sd_command.get_confirmation(sd_command.messages.file_found(path.name))
+        proceed = sd_command.get_confirmation(sd_messages.file_found(path.name))
         if not proceed:
             raise sd_command.SimpleDeployCommandError(
-                sd_command, sd_command.messages.file_replace_rejected(path.name)
+                sd_command, sd_messages.file_replace_rejected(path.name)
             )
     else:
         sd_command.write_output(f"    File {path.name} not found. Generating file...")

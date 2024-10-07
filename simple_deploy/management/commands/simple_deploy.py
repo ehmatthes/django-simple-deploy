@@ -35,7 +35,7 @@ from django.conf import settings
 
 import toml
 
-from . import deploy_messages
+from . import deploy_messages as sd_messages
 from .utils import sd_utils
 from . import cli
 
@@ -71,7 +71,6 @@ class Command(BaseCommand):
 
         # Make resources available to plugins.
         self.sd_utils = sd_utils
-        self.messages = deploy_messages
 
         super().__init__()
 
@@ -437,12 +436,12 @@ class Command(BaseCommand):
         """
         if not self.platform:
             raise self.sd_utils.SimpleDeployCommandError(
-                self, deploy_messages.requires_platform_flag
+                self, sd_messages.requires_platform_flag
             )
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
             self.write_output(f"\nDeployment target: {self.platform}")
         else:
-            error_msg = deploy_messages.invalid_platform_msg(self.platform)
+            error_msg = sd_messages.invalid_platform_msg(self.platform)
             raise self.sd_utils.SimpleDeployCommandError(self, error_msg)
 
     def _inspect_system(self):
@@ -589,9 +588,9 @@ class Command(BaseCommand):
 
     def _raise_unclean_error(self):
         """Raise unclean git status error."""
-        error_msg = deploy_messages.unclean_git_status
+        error_msg = sd_messages.unclean_git_status
         if self.automate_all:
-            error_msg += deploy_messages.unclean_git_automate_all
+            error_msg += sd_messages.unclean_git_automate_all
 
         raise self.sd_utils.SimpleDeployCommandError(self, error_msg)
 
@@ -771,5 +770,5 @@ class Command(BaseCommand):
             self.write_output("Automating all steps...")
         else:
             # Quit with a message, but don't raise an error.
-            self.write_output(deploy_messages.cancel_automate_all)
+            self.write_output(sd_messages.cancel_automate_all)
             sys.exit()
