@@ -448,7 +448,7 @@ class PlatformDeployer:
             # against the wrong app.
             confirmed = False
             while not confirmed:
-                selection = sd_utils.get_numbered_choice(
+                selection = plugin_utils.get_numbered_choice(
                     self.sd, prompt, valid_choices, platform_msgs.no_project_name
                 )
                 selected_name = project_names[selection]

@@ -11,6 +11,23 @@ from .. import sd_messages
 # --- Utilities that require an instance of Command ---
 
 
+class SimpleDeployCommandError(CommandError):
+    """Simple wrapper around CommandError, to facilitate consistent
+    logging of command errors.
+
+    Writes "SimpleDeployCommandError:" and error message to log, then raises
+    actual CommandError.
+
+    Note: This changes the exception type from CommandError to
+    SimpleDeployCommandError.
+    """
+
+    def __init__(self, sd_command, message):
+        sd_command.log_info("\nSimpleDeployCommandError:")
+        sd_command.log_info(message)
+        super().__init__(message)
+
+
 def add_file(sd_command, path, contents):
     """Add a new file to the project.
 
@@ -92,21 +109,39 @@ def add_dir(sd_command, path):
         sd_command.write_output(f"    Added new directory: {path.as_posix()}")
 
 
-class SimpleDeployCommandError(CommandError):
-    """Simple wrapper around CommandError, to facilitate consistent
-    logging of command errors.
+def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
+    """Select from a numbered list of choices.
 
-    Writes "SimpleDeployCommandError:" and error message to log, then raises
-    actual CommandError.
-
-    Note: This changes the exception type from CommandError to
-    SimpleDeployCommandError.
+    This is used, for example, to select from a number of apps that the user
+    has created on a platform.
     """
+    prompt += "\n\nYou can quit by entering q.\n"
 
-    def __init__(self, sd_command, message):
-        sd_command.log_info("\nSimpleDeployCommandError:")
-        sd_command.log_info(message)
-        super().__init__(message)
+    while True:
+        # Show prompt and get selection.
+        sd_command.log_info(prompt)
+
+        selection = input(prompt)
+        sd_command.log_info(selection)
+
+        if selection.lower() in ["q", "quit"]:
+            raise SimpleDeployCommandError(sd_command, quit_message)
+
+        # Make sure they entered a number
+        try:
+            selection = int(selection)
+        except ValueError:
+            msg = "Please enter a number from the list of choices."
+            sd_command.write_output(msg)
+            continue
+
+        # Validate selection.
+        if selection not in valid_choices:
+            msg = "  Invalid selection. Please try again."
+            sd_command.write_output(msg)
+            continue
+
+        return selection
 
 
 # --- Utilities that do not require an instance of Command ---

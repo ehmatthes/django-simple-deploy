@@ -389,7 +389,7 @@ class PlatformDeployer:
         # Confirm selection, because we do *not* want to deploy using the wrong org.
         confirmed = False
         while not confirmed:
-            selection = sd_utils.get_numbered_choice(
+            selection = plugin_utils.get_numbered_choice(
                 self.sd, prompt, valid_choices, platform_msgs.no_org_available
             )
             selected_org = org_names[selection]

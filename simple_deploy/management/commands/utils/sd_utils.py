@@ -13,39 +13,39 @@ from django.template.utils import get_app_template_dirs
 import toml
 
 
-def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
-    """Select from a numbered list of choices.
+# def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
+#     """Select from a numbered list of choices.
 
-    This is used, for example, to select from a number of apps that the user
-    has created on a platform.
-    """
-    prompt += "\n\nYou can quit by entering q.\n"
+#     This is used, for example, to select from a number of apps that the user
+#     has created on a platform.
+#     """
+#     prompt += "\n\nYou can quit by entering q.\n"
 
-    while True:
-        # Show prompt and get selection.
-        sd_command.log_info(prompt)
+#     while True:
+#         # Show prompt and get selection.
+#         sd_command.log_info(prompt)
 
-        selection = input(prompt)
-        sd_command.log_info(selection)
+#         selection = input(prompt)
+#         sd_command.log_info(selection)
 
-        if selection.lower() in ["q", "quit"]:
-            raise SimpleDeployCommandError(sd_command, quit_message)
+#         if selection.lower() in ["q", "quit"]:
+#             raise SimpleDeployCommandError(sd_command, quit_message)
 
-        # Make sure they entered a number
-        try:
-            selection = int(selection)
-        except ValueError:
-            msg = "Please enter a number from the list of choices."
-            sd_command.write_output(msg)
-            continue
+#         # Make sure they entered a number
+#         try:
+#             selection = int(selection)
+#         except ValueError:
+#             msg = "Please enter a number from the list of choices."
+#             sd_command.write_output(msg)
+#             continue
 
-        # Validate selection.
-        if selection not in valid_choices:
-            msg = "  Invalid selection. Please try again."
-            sd_command.write_output(msg)
-            continue
+#         # Validate selection.
+#         if selection not in valid_choices:
+#             msg = "  Invalid selection. Please try again."
+#             sd_command.write_output(msg)
+#             continue
 
-        return selection
+#         return selection
 
 
 def validate_choice(choice, valid_choices):
