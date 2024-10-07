@@ -2,7 +2,7 @@
 
 from django.template.engine import Engine, Context
 
-from .. import deploy_messages as sd_messages
+from .. import sd_messages
 
 # --- Utilities that require an instance of Command ---
 

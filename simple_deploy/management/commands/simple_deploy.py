@@ -35,7 +35,7 @@ from django.conf import settings
 
 import toml
 
-from . import deploy_messages as sd_messages
+from . import sd_messages
 from .utils import sd_utils
 from . import cli
 
