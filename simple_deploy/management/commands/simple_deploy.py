@@ -37,6 +37,7 @@ import toml
 
 from . import sd_messages
 from .utils import sd_utils
+from .utils import plugin_utils
 from . import cli
 
 from simple_deploy.plugins import pm
@@ -287,7 +288,7 @@ class Command(BaseCommand):
 
         # A platform-specific settings block exists. Get permission to overwrite it.
         if not self.get_confirmation(msg_found):
-            raise sd_utils.SimpleDeployCommandError(self, msg_cant_overwrite)
+            raise plugin_utIls.siMpledePloycomManderror(self, msg_cant_overwrite)
 
         # Platform-specific settings exist, but we can remove them and start fresh.
         self.settings_path.write_text(m.group(1))
@@ -432,14 +433,14 @@ class Command(BaseCommand):
             SimpleDeployCommandError: If requested platform is supported.
         """
         if not self.platform:
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self, sd_messages.requires_platform_flag
             )
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
             self.write_output(f"\nDeployment target: {self.platform}")
         else:
             error_msg = sd_messages.invalid_platform_msg(self.platform)
-            raise sd_utils.SimpleDeployCommandError(self, error_msg)
+            raise plugin_utils.SimpleDeployCommandError(self, error_msg)
 
     def _inspect_system(self):
         """Inspect the user's local system for relevant information.
@@ -538,7 +539,7 @@ class Command(BaseCommand):
             error_msg += (
                 f"\n  Looked in {self.project_root} and in {self.project_root.parent}."
             )
-            raise sd_utils.SimpleDeployCommandError(self, error_msg)
+            raise plugin_utils.SimpleDeployCommandError(self, error_msg)
 
     def _check_git_status(self):
         """Make sure all non-simple_deploy changes have already been committed.
@@ -589,7 +590,7 @@ class Command(BaseCommand):
         if self.automate_all:
             error_msg += sd_messages.unclean_git_automate_all
 
-        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+        raise plugin_utils.SimpleDeployCommandError(self, error_msg)
 
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
@@ -637,7 +638,7 @@ class Command(BaseCommand):
 
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        raise sd_utils.SimpleDeployCommandError(self, error_msg)
+        raise plugin_utils.SimpleDeployCommandError(self, error_msg)
 
     def _check_using_poetry(self):
         """Check if the project appears to be using poetry.
@@ -727,7 +728,7 @@ class Command(BaseCommand):
         for hook in required_hooks:
             if hook not in callers:
                 msg = f"\nPlugin missing required hook implementation: {hook}()"
-                raise sd_utils.SimpleDeployCommandError(self, msg)
+                raise plugin_utils.SimpleDeployCommandError(self, msg)
 
         # If plugin supports automate_all, make sure a confirmation message is provided.
         if not pm.hook.simple_deploy_automate_all_supported()[0]:
@@ -736,7 +737,7 @@ class Command(BaseCommand):
         hook = "simple_deploy_get_automate_all_msg"
         if hook not in callers:
             msg = f"\nPlugin missing required hook implementation: {hook}()"
-            raise sd_utils.SimpleDeployCommandError(self, msg)
+            raise plugin_utils.SimpleDeployCommandError(self, msg)
 
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
@@ -755,7 +756,7 @@ class Command(BaseCommand):
         if not supported:
             msg = "\nThis platform does not support automated deployments."
             msg += "\nYou may want to try again without the --automate-all flag."
-            raise sd_utils.SimpleDeployCommandError(self, msg)
+            raise plugin_utils.SimpleDeployCommandError(self, msg)
 
         # Confirm the user wants to automate all steps.
         msg = pm.hook.simple_deploy_get_automate_all_msg()[0]

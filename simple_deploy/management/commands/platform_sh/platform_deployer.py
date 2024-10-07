@@ -112,7 +112,7 @@ class PlatformDeployer:
             self.sd.run_slow_command(cmd)
         except subprocess.CalledProcessError as e:
             error_msg = platform_msgs.unknown_create_error(e)
-            raise sd_utils.SimpleDeployCommandError(self.sd, error_msg)
+            raise plugin_utils.SimpleDeployCommandError(self.sd, error_msg)
 
     def _modify_settings(self):
         """Add platformsh-specific settings.
@@ -254,7 +254,7 @@ class PlatformDeployer:
         try:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.cli_not_installed
             )
 
@@ -265,7 +265,7 @@ class PlatformDeployer:
         output_obj = self.sd.run_quick_command(cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.cli_logged_out
             )
 
@@ -309,21 +309,21 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
-                raise sd_utils.SimpleDeployCommandError(
+                raise plugin_utils.SimpleDeployCommandError(
                     self.sd, platform_msgs.login_required
                 )
             elif "ProjectNotFoundException" in output_str:
-                raise sd_utils.SimpleDeployCommandError(
+                raise plugin_utils.SimpleDeployCommandError(
                     self.sd, platform_msgs.no_project_name
                 )
             elif "RootNotFoundException" in output_str:
-                raise sd_utils.SimpleDeployCommandError(
+                raise plugin_utils.SimpleDeployCommandError(
                     self.sd, platform_msgs.no_project_name
                 )
             else:
                 error_msg = platform_msgs.unknown_error
                 error_msg += platform_msgs.cli_not_installed
-                raise sd_utils.SimpleDeployCommandError(self.sd, error_msg)
+                raise plugin_utils.SimpleDeployCommandError(self.sd, error_msg)
 
         # Pull deployed project name from output.
         lines = output_str.splitlines()
@@ -340,7 +340,7 @@ class PlatformDeployer:
             return project_name
 
         # Couldn't find a project name. Warn user, and tell them about override flag.
-        raise sd_utils.SimpleDeployCommandError(
+        raise plugin_utils.SimpleDeployCommandError(
             self.sd, platform_msgs.no_project_name
         )
 
@@ -368,7 +368,7 @@ class PlatformDeployer:
 
         org_names = plsh_utils.get_org_names(output_str)
         if not org_names:
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.org_not_found
             )
 
@@ -418,4 +418,4 @@ class PlatformDeployer:
             # Exit, with a message that configuration is still an option.
             msg = platform_msgs.cancel_plsh
             msg += platform_msgs.may_configure
-            raise sd_utils.SimpleDeployCommandError(self.sd, msg)
+            raise plugin_utils.SimpleDeployCommandError(self.sd, msg)

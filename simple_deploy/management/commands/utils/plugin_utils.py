@@ -1,6 +1,10 @@
-"""Utilities for simple_deploy, to be used by platform-specific plugins."""
+"""Utilities for simple_deploy, to be used by platform-specific plugins.
+
+Note: Some of these utilities are also used in core simple_deploy.
+"""
 
 from django.template.engine import Engine, Context
+from django.core.management.base import CommandError
 
 from .. import sd_messages
 
@@ -30,7 +34,7 @@ def add_file(sd_command, path, contents):
     if path.exists():
         proceed = sd_command.get_confirmation(sd_messages.file_found(path.name))
         if not proceed:
-            raise sd_command.SimpleDeployCommandError(
+            raise SimpleDeployCommandError(
                 sd_command, sd_messages.file_replace_rejected(path.name)
             )
     else:
@@ -59,7 +63,7 @@ def modify_file(sd_command, path, contents):
     # Make sure file exists.
     if not path.exists():
         msg = f"File {path.as_posix()} does not exist."
-        raise sd_command.SimpleDeployCommandError(sd_command, msg)
+        raise SimpleDeployCommandError(sd_command, msg)
 
     # Rewrite file with new contents.
     path.write_text(contents)
@@ -87,11 +91,26 @@ def add_dir(sd_command, path):
         path.mkdir()
         sd_command.write_output(f"    Added new directory: {path.as_posix()}")
 
+class SimpleDeployCommandError(CommandError):
+    """Simple wrapper around CommandError, to facilitate consistent
+    logging of command errors.
+
+    Writes "SimpleDeployCommandError:" and error message to log, then raises
+    actual CommandError.
+
+    Note: This changes the exception type from CommandError to
+    SimpleDeployCommandError.
+    """
+
+    def __init__(self, sd_command, message):
+        sd_command.log_info("\nSimpleDeployCommandError:")
+        sd_command.log_info(message)
+        super().__init__(message)
+
 
 # --- Utilities that do not require an instance of Command ---
 # Note: These utilities are much easier to test, and should
 # be preferred when possible.
-
 
 def get_template_string(template_path, context):
     """Given a template and context, return contents as a string.

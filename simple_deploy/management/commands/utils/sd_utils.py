@@ -56,21 +56,21 @@ def validate_choice(choice, valid_choices):
     return False
 
 
-class SimpleDeployCommandError(CommandError):
-    """Simple wrapper around CommandError, to facilitate consistent
-    logging of command errors.
+# class SimpleDeployCommandError(CommandError):
+#     """Simple wrapper around CommandError, to facilitate consistent
+#     logging of command errors.
 
-    Writes "SimpleDeployCommandError:" and error message to log, then raises
-    actual CommandError.
+#     Writes "SimpleDeployCommandError:" and error message to log, then raises
+#     actual CommandError.
 
-    Note: This changes the exception type from CommandError to
-    SimpleDeployCommandError.
-    """
+#     Note: This changes the exception type from CommandError to
+#     SimpleDeployCommandError.
+#     """
 
-    def __init__(self, sd_command, message):
-        sd_command.log_info("\nSimpleDeployCommandError:")
-        sd_command.log_info(message)
-        super().__init__(message)
+#     def __init__(self, sd_command, message):
+#         sd_command.log_info("\nSimpleDeployCommandError:")
+#         sd_command.log_info(message)
+#         super().__init__(message)
 
 
 def get_string_from_output(output):

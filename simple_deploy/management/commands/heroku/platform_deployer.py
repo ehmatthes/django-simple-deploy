@@ -350,7 +350,7 @@ class PlatformDeployer:
             output_obj = self.sd.run_quick_command(cmd)
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.cli_not_installed
             )
 
@@ -359,7 +359,7 @@ class PlatformDeployer:
         # The returncode for a successful command is 0, so anything truthy means the
         # command errored out.
         if output_obj.returncode:
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.cli_not_installed
             )
 
@@ -384,7 +384,7 @@ class PlatformDeployer:
         if ("Error: Invalid credentials provided" in output_str) or (
             "Error: not logged in" in output_str
         ):
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.cli_not_authenticated
             )
 
@@ -420,7 +420,7 @@ class PlatformDeployer:
 
         # If output_str is emtpy, there is no heroku app.
         if not output_str:
-            raise sd_utils.SimpleDeployCommandError(
+            raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.no_heroku_app_detected
             )
 
