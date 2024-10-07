@@ -12,7 +12,6 @@ from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
-from ..utils import sd_utils
 from ..utils import plugin_utils
 
 from . import deploy_messages as platform_msgs

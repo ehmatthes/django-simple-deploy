@@ -17,7 +17,6 @@ import requests
 
 from . import deploy_messages as platform_msgs
 
-from ..utils import sd_utils
 from ..utils import plugin_utils
 
 
