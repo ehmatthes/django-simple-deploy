@@ -91,6 +91,7 @@ def add_dir(sd_command, path):
         path.mkdir()
         sd_command.write_output(f"    Added new directory: {path.as_posix()}")
 
+
 class SimpleDeployCommandError(CommandError):
     """Simple wrapper around CommandError, to facilitate consistent
     logging of command errors.
@@ -111,6 +112,7 @@ class SimpleDeployCommandError(CommandError):
 # --- Utilities that do not require an instance of Command ---
 # Note: These utilities are much easier to test, and should
 # be preferred when possible.
+
 
 def get_template_string(template_path, context):
     """Given a template and context, return contents as a string.
