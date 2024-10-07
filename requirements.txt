@@ -14,6 +14,7 @@ docutils==0.17.1
 execnet==1.9.0
 filelock==3.3.1
 ghp-import==2.1.0
+httpx==0.27.0
 idna==3.3
 importlib-metadata==4.8.1
 iniconfig==1.1.1
