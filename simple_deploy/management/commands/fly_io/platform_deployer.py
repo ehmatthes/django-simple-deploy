@@ -416,7 +416,7 @@ class PlatformDeployer:
             self.sd.write_output(msg)
 
             prompt = "Is this the app you want to deploy to?"
-            if self.sd.get_confirmation(prompt):
+            if plugin_utils.get_confirmation(self.sd, prompt):
                 self.app_name = project_name
             elif self.sd.automate_all:
                 self.app_name = self._create_flyio_app()
@@ -454,7 +454,7 @@ class PlatformDeployer:
 
                 confirm_prompt = f"You have selected {selected_name}."
                 confirm_prompt += " Is that correct?"
-                confirmed = self.sd.get_confirmation(confirm_prompt)
+                confirmed = plugin_utils.get_confirmation(self.sd, confirm_prompt)
 
             # Create a new app for automated runs, if needed.
             if selected_name == "Create a new app":
@@ -701,7 +701,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
-        if not self.sd.get_confirmation(msg):
+        if not plugin_utils.get_confirmation(self.sd, msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
             raise plugin_utils.SimpleDeployCommandError(
@@ -727,7 +727,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
-        if self.sd.get_confirmation(msg):
+        if plugin_utils.get_confirmation(self.sd, msg):
             self._attach_db(self.db_name)
             return
         else:
@@ -753,7 +753,7 @@ class PlatformDeployer:
 
         # Show the command that will be run on the user's behalf.
         self.stdout.write(platform_msgs.confirm_create_db(db_cmd))
-        if self.sd.get_confirmation():
+        if plugin_utils.get_confirmation(self.sd):
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.

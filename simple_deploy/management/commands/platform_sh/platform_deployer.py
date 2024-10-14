@@ -395,7 +395,7 @@ class PlatformDeployer:
 
             confirm_prompt = f"You have selected {selected_org}."
             confirm_prompt += " Is that correct?"
-            confirmed = self.sd.get_confirmation(confirm_prompt)
+            confirmed = plugin_utils.get_confirmation(self.sd, confirm_prompt)
 
             return selected_org
 
@@ -408,7 +408,7 @@ class PlatformDeployer:
         """
 
         self.stdout.write(platform_msgs.confirm_use_org(org_name))
-        confirmed = self.sd.get_confirmation(skip_logging=True)
+        confirmed = plugin_utils.get_confirmation(self.sd, skip_logging=True)
 
         if confirmed:
             self.stdout.write("  Okay, continuing with deployment.")

@@ -51,7 +51,7 @@ def add_file(sd_command, path, contents):
     sd_command.write_output(f"\n  Looking in {path.parent} for {path.name}...")
 
     if path.exists():
-        proceed = sd_command.get_confirmation(sd_messages.file_found(path.name))
+        proceed = get_confirmation(sd_command, sd_messages.file_found(path.name))
         if not proceed:
             raise SimpleDeployCommandError(
                 sd_command, sd_messages.file_replace_rejected(path.name)
@@ -209,6 +209,52 @@ def run_slow_command(sd_command, cmd, skip_logging=False):
 
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
+
+def get_confirmation(
+        sd_command, msg="Are you sure you want to do this?", skip_logging=False
+    ):
+    """Get confirmation for an action.
+
+    Assumes an appropriate message has already been displayed about what is to be
+    done. Shows a yes|no prompt. You can pass a different message for the prompt; it
+    should be phrased to elicit a yes/no response.
+
+    Returns:
+        bool: True if confirmation granted, False if not granted.
+    """
+    prompt = f"\n{msg} (yes|no) "
+    confirmed = ""
+
+    # If doing e2e testing, always return True.
+    if sd_command.e2e_testing:
+        sd_command.write_output(prompt, skip_logging=skip_logging)
+        msg = "  Confirmed for e2e testing..."
+        sd_command.write_output(msg, skip_logging=skip_logging)
+        return True
+
+    if sd_command.unit_testing:
+        sd_command.write_output(prompt, skip_logging=skip_logging)
+        msg = "  Confirmed for unit testing..."
+        sd_command.write_output(msg, skip_logging=skip_logging)
+        return True
+
+    while True:
+        sd_command.write_output(prompt, skip_logging=skip_logging)
+        confirmed = input()
+
+        # Log user's response before processing it.
+        sd_command.write_output(
+            confirmed, skip_logging=skip_logging, write_to_console=False
+        )
+
+        if confirmed.lower() in ("y", "yes"):
+            return True
+        elif confirmed.lower() in ("n", "no"):
+            return False
+        else:
+            sd_command.write_output(
+                "  Please answer yes or no.", skip_logging=skip_logging
+            )
 
 
 # --- Utilities that do not require an instance of Command ---

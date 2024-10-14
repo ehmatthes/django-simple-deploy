@@ -155,52 +155,6 @@ class Command(BaseCommand):
             output_str = sd_utils.get_string_from_output(output)
             sd_utils.log_output_string(output_str)
 
-    def get_confirmation(
-        self, msg="Are you sure you want to do this?", skip_logging=False
-    ):
-        """Get confirmation for an action.
-
-        Assumes an appropriate message has already been displayed about what is to be
-        done. Shows a yes|no prompt. You can pass a different message for the prompt; it
-        should be phrased to elicit a yes/no response.
-
-        Returns:
-            bool: True if confirmation granted, False if not granted.
-        """
-        prompt = f"\n{msg} (yes|no) "
-        confirmed = ""
-
-        # If doing e2e testing, always return True.
-        if self.e2e_testing:
-            self.write_output(prompt, skip_logging=skip_logging)
-            msg = "  Confirmed for e2e testing..."
-            self.write_output(msg, skip_logging=skip_logging)
-            return True
-
-        if self.unit_testing:
-            self.write_output(prompt, skip_logging=skip_logging)
-            msg = "  Confirmed for unit testing..."
-            self.write_output(msg, skip_logging=skip_logging)
-            return True
-
-        while True:
-            self.write_output(prompt, skip_logging=skip_logging)
-            confirmed = input()
-
-            # Log user's response before processing it.
-            self.write_output(
-                confirmed, skip_logging=skip_logging, write_to_console=False
-            )
-
-            if confirmed.lower() in ("y", "yes"):
-                return True
-            elif confirmed.lower() in ("n", "no"):
-                return False
-            else:
-                self.write_output(
-                    "  Please answer yes or no.", skip_logging=skip_logging
-                )
-
     def check_settings(self, platform_name, start_line, msg_found, msg_cant_overwrite):
         """Check if a platform-specific settings block already exists.
 
@@ -224,7 +178,7 @@ class Command(BaseCommand):
             return
 
         # A platform-specific settings block exists. Get permission to overwrite it.
-        if not self.get_confirmation(msg_found):
+        if not plugin_utils.get_confirmation(self, msg_found):
             raise plugin_utIls.siMpledePloycomManderror(self, msg_cant_overwrite)
 
         # Platform-specific settings exist, but we can remove them and start fresh.
@@ -699,7 +653,7 @@ class Command(BaseCommand):
         msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
 
         self.write_output(msg)
-        confirmed = self.get_confirmation()
+        confirmed = plugin_utils.get_confirmation(self)
 
         if confirmed:
             self.write_output("Automating all steps...")
