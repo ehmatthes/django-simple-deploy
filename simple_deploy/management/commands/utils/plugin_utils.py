@@ -2,6 +2,8 @@
 
 Note: Some of these utilities are also used in core simple_deploy.
 """
+
+import logging
 import re
 import subprocess
 import shlex
@@ -26,8 +28,8 @@ class SimpleDeployCommandError(CommandError):
     """
 
     def __init__(self, sd_command, message):
-        sd_command.log_info("\nSimpleDeployCommandError:")
-        sd_command.log_info(message)
+        log_info(sd_command, "\nSimpleDeployCommandError:")
+        log_info(sd_command, message)
         super().__init__(message)
 
 
@@ -122,10 +124,10 @@ def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
 
     while True:
         # Show prompt and get selection.
-        sd_command.log_info(prompt)
+        log_info(sd_command, prompt)
 
         selection = input(prompt)
-        sd_command.log_info(selection)
+        log_info(sd_command, selection)
 
         if selection.lower() in ["q", "quit"]:
             raise SimpleDeployCommandError(sd_command, quit_message)
@@ -168,7 +170,7 @@ def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
         instead of returning a CompletedProcess instance with an error code set.
     """
     if not skip_logging:
-        sd_command.log_info(f"\n{cmd}")
+        log_info(sd_command, f"\n{cmd}")
 
     if sd_command.on_windows:
         output = subprocess.run(cmd, shell=True, capture_output=True)
@@ -195,7 +197,7 @@ def run_slow_command(sd_command, cmd, skip_logging=False):
     # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
     # this topic date back to Python2/3 days.
     if not skip_logging:
-        sd_command.log_info(f"\n{cmd}")
+        log_info(sd_command, f"\n{cmd}")
 
     cmd_parts = cmd.split()
     with subprocess.Popen(
@@ -280,7 +282,7 @@ def check_settings(
     m = re.match(re_platform_settings, settings_text, re.DOTALL)
 
     if not m:
-        sd_command.log_info(f"No {platform_name}-specific settings block found.")
+        log_info(sd_command, f"No {platform_name}-specific settings block found.")
         return
 
     # A platform-specific settings block exists. Get permission to overwrite it.
@@ -292,6 +294,13 @@ def check_settings(
 
     msg = f"  Removed existing {platform_name}-specific settings block."
     sd_command.write_output(msg)
+
+
+def log_info(sd_command, output):
+    """Log output, which may be a string or CompletedProcess instance."""
+    if sd_command.log_output:
+        output_str = get_string_from_output(output)
+        log_output_string(output_str)
 
 
 # --- Utilities that do not require an instance of Command ---
@@ -310,3 +319,51 @@ def get_template_string(template_path, context):
     my_engine = Engine()
     template = my_engine.from_string(template_path.read_text())
     return template.render(Context(context))
+
+
+# --- Helper functions ---
+
+
+def get_string_from_output(output):
+    """Convert output to string.
+
+    Output may be a string, or an instance of subprocess.CompletedProcess.
+
+    This function assumes that output is either stdout *or* stderr, but not both. If we
+    need to display both, consider redirecting stderr to stdout:
+        subprocess.run(cmd_parts, stderr=subprocess.STDOUT, ...)
+    This has not been necessary yet; if it becomes necessary we'll probably need to
+    modify simple_deploy.run_quick_command() to accomodate the necessary args.
+    """
+    if isinstance(output, str):
+        return output
+
+    if isinstance(output, subprocess.CompletedProcess):
+        # Extract subprocess output as a string. Assume output is either stdout or
+        # stderr, but not both.
+        output_str = output.stdout.decode()
+        if not output_str:
+            output_str = output.stderr.decode()
+
+        return output_str
+
+
+def log_output_string(output):
+    """Log output as a series of single lines, for better log parsing.
+
+    Returns:
+        None
+    """
+    for line in output.splitlines():
+        line = _strip_secret_key(line)
+        logging.info(line)
+
+
+def _strip_secret_key(line):
+    """Strip secret key value from log file lines."""
+    if "SECRET_KEY =" in line:
+        new_line = line.split("SECRET_KEY")[0]
+        new_line += "SECRET_KEY = *value hidden*"
+        return new_line
+    else:
+        return line

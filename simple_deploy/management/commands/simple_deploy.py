@@ -141,19 +141,13 @@ class Command(BaseCommand):
         Returns:
             None
         """
-        output_str = sd_utils.get_string_from_output(output)
+        output_str = plugin_utils.get_string_from_output(output)
 
         if write_to_console:
             self.stdout.write(output_str)
 
         if not skip_logging:
-            self.log_info(output_str)
-
-    def log_info(self, output):
-        """Log output, which may be a string or CompletedProcess instance."""
-        if self.log_output:
-            output_str = sd_utils.get_string_from_output(output)
-            sd_utils.log_output_string(output_str)
+            plugin_utils.log_info(self, output_str)
 
     def add_packages(self, package_list):
         """Add a set of packages to the project's requirements.
@@ -265,9 +259,9 @@ class Command(BaseCommand):
 
     def _log_cli_args(self, options):
         """Log the args used for this call."""
-        self.log_info(f"\nCLI args:")
+        plugin_utils.log_info(self, f"\nCLI args:")
         for option, value in options.items():
-            self.log_info(f"  {option}: {value}")
+            plugin_utils.log_info(self, f"  {option}: {value}")
 
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
@@ -315,10 +309,10 @@ class Command(BaseCommand):
         if platform.system() == "Windows":
             self.on_windows = True
             self.use_shell = True
-            self.log_info("Local platform identified: Windows")
+            plugin_utils.log_info(self, "Local platform identified: Windows")
         elif platform.system() == "Darwin":
             self.on_macos = True
-            self.log_info("Local platform identified: macOS")
+            plugin_utils.log_info(self, "Local platform identified: macOS")
 
     def _inspect_project(self):
         """Inspect the local project.
@@ -342,10 +336,10 @@ class Command(BaseCommand):
             None
         """
         self.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
-        self.log_info(f"Local project name: {self.local_project_name}")
+        plugin_utils.log_info(self, f"Local project name: {self.local_project_name}")
 
         self.project_root = settings.BASE_DIR
-        self.log_info(f"Project root: {self.project_root}")
+        plugin_utils.log_info(self, f"Project root: {self.project_root}")
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
@@ -428,12 +422,12 @@ class Command(BaseCommand):
         cmd = "git status --porcelain"
         output_obj = plugin_utils.run_quick_command(self, cmd)
         status_output = output_obj.stdout.decode()
-        self.log_info(f"{status_output}")
+        plugin_utils.log_info(self, f"{status_output}")
 
         cmd = "git diff --unified=0"
         output_obj = plugin_utils.run_quick_command(self, cmd)
         diff_output = output_obj.stdout.decode()
-        self.log_info(f"{diff_output}\n")
+        plugin_utils.log_info(self, f"{diff_output}\n")
 
         proceed = sd_utils.check_status_output(status_output, diff_output)
 

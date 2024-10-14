@@ -109,8 +109,8 @@ class PlatformDeployer:
         # requirements.txt file.
         self.sd.pkg_manager = "req_txt"
         self.sd.req_txt_path = self.sd.git_path / "requirements.txt"
-        self.sd.log_info("    Package manager set to req_txt.")
-        self.sd.log_info(f"    req_txt path: {self.sd.req_txt_path}")
+        plugin_utils.log_info(self.sd, "    Package manager set to req_txt.")
+        plugin_utils.log_info(self.sd, f"    req_txt path: {self.sd.req_txt_path}")
 
         # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
         # Optional deploy group dependencies aren't added to requirements.txt.
@@ -354,7 +354,7 @@ class PlatformDeployer:
                 self.sd, platform_msgs.cli_not_installed
             )
 
-        self.sd.log_info(output_obj)
+        plugin_utils.log_info(self.sd, output_obj)
 
         # The returncode for a successful command is 0, so anything truthy means the
         # command errored out.
@@ -377,7 +377,7 @@ class PlatformDeployer:
 
         cmd = "heroku auth:whoami"
         output_obj = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.log_info(output_obj)
+        plugin_utils.log_info(self.sd, output_obj)
 
         output_str = output_obj.stderr.decode()
         # I believe I've seen both of these messages when not logged in.

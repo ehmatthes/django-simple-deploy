@@ -71,17 +71,21 @@ class PlatformDeployer:
             # Unit tests don't use the CLI. Use the deployed project name that was
             # passed to the simple_deploy CLI.
             self.deployed_project_name = self.sd.deployed_project_name
-            self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
+            plugin_utils.log_info(
+                self.sd, f"Deployed project name: {self.deployed_project_name}"
+            )
             return
 
         self._check_plsh_settings()
         self._validate_cli()
 
         self.deployed_project_name = self._get_platformsh_project_name()
-        self.sd.log_info(f"Deployed project name: {self.deployed_project_name}")
+        plugin_utils.log_info(
+            self.sd, f"Deployed project name: {self.deployed_project_name}"
+        )
 
         self.org_name = self._get_org_name()
-        self.sd.log_info(f"\nOrg name: {self.org_name}")
+        plugin_utils.log_info(self.sd, f"\nOrg name: {self.org_name}")
 
     def _prep_automate_all(self):
         """Intial work for automating entire process.
@@ -258,7 +262,7 @@ class PlatformDeployer:
                 self.sd, platform_msgs.cli_not_installed
             )
 
-        self.sd.log_info(output_obj)
+        plugin_utils.log_info(self.sd, output_obj)
 
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
@@ -300,7 +304,7 @@ class PlatformDeployer:
 
         # Log cmd, but don't log the output of `project:info`. It contains identifying
         # information about the user and project, including client_ssh_key.
-        self.sd.log_info(cmd)
+        plugin_utils.log_info(self.sd, cmd)
 
         # If there's no stdout, the user is probably logged out, hasn't called
         #   create, or doesn't have the CLI installed.
@@ -364,7 +368,7 @@ class PlatformDeployer:
         cmd = "platform organization:list --yes --format csv"
         output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(output_str)
+        plugin_utils.log_info(self.sd, output_str)
 
         org_names = plsh_utils.get_org_names(output_str)
         if not org_names:

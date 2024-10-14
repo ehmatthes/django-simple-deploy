@@ -315,7 +315,7 @@ class PlatformDeployer:
                 self.sd, platform_msgs.cli_not_installed
             )
 
-        self.sd.log_info(output_obj)
+        plugin_utils.log_info(self.sd, output_obj)
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
@@ -373,7 +373,7 @@ class PlatformDeployer:
         # Run command, and get json output.
         # CLI has been validated; should not have to deal with stderr.
         output_str = plugin_utils.run_quick_command(self.sd, cmd).stdout.decode()
-        self.sd.log_info(output_str)
+        plugin_utils.log_info(self.sd, output_str)
         output_json = json.loads(output_str)
 
         project_names = self._get_undeployed_projects(output_json)
@@ -541,7 +541,7 @@ class PlatformDeployer:
 
         # Create database. Log command, but don't log output because it should contain
         # db credentials. May want to scrub and then log output.
-        self.sd.log_info(cmd)
+        plugin_utils.log_info(self.sd, cmd)
         plugin_utils.run_slow_command(self.sd, cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
@@ -610,7 +610,7 @@ class PlatformDeployer:
         cmd = "fly postgres list --json"
         output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(output_str)
+        plugin_utils.log_info(self.sd, output_str)
 
         if "No postgres clusters found" in output_str:
             return False
@@ -664,11 +664,11 @@ class PlatformDeployer:
         cmd = f"fly postgres users list -a {self.db_name} --json"
         output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
-        self.sd.log_info(output_str)
+        plugin_utils.log_info(self.sd, output_str)
 
         pg_users_json = json.loads(output_str)
         self.db_users = [user_dict["Username"] for user_dict in pg_users_json]
-        self.sd.log_info(f"DB users: {self.db_users}")
+        plugin_utils.log_info(self.sd, f"DB users: {self.db_users}")
 
         default_users = {"flypgadmin", "postgres", "repmgr"}
         app_user = self.app_name.replace("-", "_")
@@ -778,7 +778,7 @@ class PlatformDeployer:
             l for l in output_str.splitlines() if "DATABASE_URL" not in l
         ]
         output_scrubbed = "\n".join(output_scrubbed)
-        self.sd.log_info(output_scrubbed)
+        plugin_utils.log_info(self.sd, output_scrubbed)
 
         msg = "  Attached database to app."
         self.sd.write_output(msg)

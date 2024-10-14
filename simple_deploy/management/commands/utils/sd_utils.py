@@ -20,41 +20,6 @@ def validate_choice(choice, valid_choices):
     return False
 
 
-def get_string_from_output(output):
-    """Convert output to string.
-
-    Output may be a string, or an instance of subprocess.CompletedProcess.
-
-    This function assumes that output is either stdout *or* stderr, but not both. If we
-    need to display both, consider redirecting stderr to stdout:
-        subprocess.run(cmd_parts, stderr=subprocess.STDOUT, ...)
-    This has not been necessary yet; if it becomes necessary we'll probably need to
-    modify simple_deploy.run_quick_command() to accomodate the necessary args.
-    """
-    if isinstance(output, str):
-        return output
-
-    if isinstance(output, subprocess.CompletedProcess):
-        # Extract subprocess output as a string. Assume output is either stdout or
-        # stderr, but not both.
-        output_str = output.stdout.decode()
-        if not output_str:
-            output_str = output.stderr.decode()
-
-        return output_str
-
-
-def log_output_string(output):
-    """Log output as a series of single lines, for better log parsing.
-
-    Returns:
-        None
-    """
-    for line in output.splitlines():
-        line = _strip_secret_key(line)
-        logging.info(line)
-
-
 def parse_req_txt(path):
     """Get a list of requirements from a requirements.txt file.
 
@@ -220,16 +185,6 @@ def check_status_output(status_output, diff_output):
 
 
 # --- Helper functions ---
-
-
-def _strip_secret_key(line):
-    """Strip secret key value from log file lines."""
-    if "SECRET_KEY =" in line:
-        new_line = line.split("SECRET_KEY")[0]
-        new_line += "SECRET_KEY = *value hidden*"
-        return new_line
-    else:
-        return line
 
 
 def _check_git_diff(diff_output):
