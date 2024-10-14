@@ -145,6 +145,7 @@ def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
 
         return selection
 
+
 def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
     """Run a command that should finish quickly.
 
@@ -175,6 +176,7 @@ def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
         output = subprocess.run(cmd_parts, capture_output=True, check=check)
 
     return output
+
 
 def run_slow_command(sd_command, cmd, skip_logging=False):
     """Run a command that may take some time.
