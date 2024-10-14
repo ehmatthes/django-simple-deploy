@@ -37,7 +37,9 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
 
-        self.sd.write_output("\nConfiguring project for deployment to Platform.sh...")
+        plugin_utils.write_output(
+            self.sd, "\nConfiguring project for deployment to Platform.sh..."
+        )
 
         self._validate_platform()
 
@@ -102,8 +104,10 @@ class PlatformDeployer:
         if not self.sd.automate_all:
             return
 
-        self.sd.write_output("  Running `platform create`...")
-        self.sd.write_output("    (Please be patient, this can take a few minutes.")
+        plugin_utils.write_output(self.sd, "  Running `platform create`...")
+        plugin_utils.write_output(
+            self.sd, "    (Please be patient, this can take a few minutes."
+        )
         cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
 
         try:
@@ -195,10 +199,12 @@ class PlatformDeployer:
         self.sd.commit_changes()
 
         # Push project.
-        self.sd.write_output("  Pushing to Platform.sh...")
+        plugin_utils.write_output(self.sd, "  Pushing to Platform.sh...")
 
         # Pause to make sure project that was just created can be used.
-        self.sd.write_output("    Pausing 10s to make sure project is ready to use...")
+        plugin_utils.write_output(
+            self.sd, "    Pausing 10s to make sure project is ready to use..."
+        )
         time.sleep(10)
 
         # Use run_slow_command(), to stream output as it runs.
@@ -206,10 +212,12 @@ class PlatformDeployer:
         plugin_utils.run_slow_command(self.sd, cmd)
 
         # Open project.
-        self.sd.write_output("  Opening deployed app in a new browser tab...")
+        plugin_utils.write_output(
+            self.sd, "  Opening deployed app in a new browser tab..."
+        )
         cmd = "platform url --yes"
         output = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output)
+        plugin_utils.write_output(self.sd, output)
 
         # Get url of deployed project.
         #   This can be done with an re, but there's one line of output with
@@ -232,10 +240,10 @@ class PlatformDeployer:
 
         if self.sd.automate_all:
             msg = platform_msgs.success_msg_automate_all(self.deployed_url)
-            self.sd.write_output(msg)
+            plugin_utils.write_output(self.sd, msg)
         else:
             msg = platform_msgs.success_msg(self.sd.log_output)
-            self.sd.write_output(msg)
+            plugin_utils.write_output(self.sd, msg)
 
     # --- Helper methods for methods called from simple_deploy.py ---
 

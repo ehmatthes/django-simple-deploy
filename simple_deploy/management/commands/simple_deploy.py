@@ -100,7 +100,9 @@ class Command(BaseCommand):
         Add django-simple-deploy to project requirements.
         Call the platform-specific deploy() method.
         """
-        self.write_output("Configuring project for deployment...", skip_logging=True)
+        plugin_utils.write_output(
+            self, "Configuring project for deployment...", skip_logging=True
+        )
 
         # CLI options need to be parsed before logging starts, in case --no-logging
         # has been passed.
@@ -124,30 +126,6 @@ class Command(BaseCommand):
 
         self._confirm_automate_all(pm)
         pm.hook.simple_deploy_deploy(sd=self)
-
-    # --- Methods used here, and also by platform-specific modules ---
-
-    def write_output(self, output, write_to_console=True, skip_logging=False):
-        """Write output to the appropriate places.
-
-        Typically, this is used for writing output to the console as the configuration
-        and deployment work is carried out.  Output may be a string, or an instance of
-        subprocess.CompletedProcess.
-
-        Output that's passed to this method typically needs to be logged as well, unless
-        skip_logging has been passed. This is useful, for example, when writing
-        sensitive information to the console.
-
-        Returns:
-            None
-        """
-        output_str = plugin_utils.get_string_from_output(output)
-
-        if write_to_console:
-            self.stdout.write(output_str)
-
-        if not skip_logging:
-            plugin_utils.log_info(self, output_str)
 
     def add_packages(self, package_list):
         """Add a set of packages to the project's requirements.
@@ -173,10 +151,12 @@ class Command(BaseCommand):
         Returns:
             None
         """
-        self.write_output(f"\nLooking for {package_name}...")
+        plugin_utils.write_output(self, f"\nLooking for {package_name}...")
 
         if package_name in self.requirements:
-            self.write_output(f"  Found {package_name} in requirements file.")
+            plugin_utils.write_output(
+                self, f"  Found {package_name} in requirements file."
+            )
             return
 
         if self.pkg_manager == "pipenv":
@@ -187,7 +167,7 @@ class Command(BaseCommand):
         else:
             sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
 
-        self.write_output(f"  Added {package_name} to requirements file.")
+        plugin_utils.write_output(self, f"  Added {package_name} to requirements file.")
 
     def commit_changes(self):
         """Commit changes that have been made to the project.
@@ -197,15 +177,15 @@ class Command(BaseCommand):
         if not self.automate_all:
             return
 
-        self.write_output("  Committing changes...")
+        plugin_utils.write_output(self, "  Committing changes...")
 
         cmd = "git add ."
         output = plugin_utils.run_quick_command(self, cmd)
-        self.write_output(output)
+        plugin_utils.write_output(self, output)
 
         cmd = 'git commit -m "Configured project for deployment."'
         output = plugin_utils.run_quick_command(self, cmd)
-        self.write_output(output)
+        plugin_utils.write_output(self, output)
 
     # --- Internal methods; used only in this class ---
 
@@ -254,8 +234,8 @@ class Command(BaseCommand):
             format="%(asctime)s %(levelname)s: %(message)s",
         )
 
-        self.write_output("Logging run of `manage.py simple_deploy`...")
-        self.write_output(f"Created {verbose_log_path}.")
+        plugin_utils.write_output(self, "Logging run of `manage.py simple_deploy`...")
+        plugin_utils.write_output(self, f"Created {verbose_log_path}.")
 
     def _log_cli_args(self, options):
         """Log the args used for this call."""
@@ -290,7 +270,7 @@ class Command(BaseCommand):
                 self, sd_messages.requires_platform_flag
             )
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
-            self.write_output(f"\nDeployment target: {self.platform}")
+            plugin_utils.write_output(self, f"\nDeployment target: {self.platform}")
         else:
             error_msg = sd_messages.invalid_platform_msg(self.platform)
             raise plugin_utils.SimpleDeployCommandError(self, error_msg)
@@ -354,7 +334,7 @@ class Command(BaseCommand):
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.pkg_manager = self._get_dep_man_approach()
         msg = f"Dependency management system: {self.pkg_manager}"
-        self.write_output(msg)
+        plugin_utils.write_output(self, msg)
 
         self.requirements = self._get_current_requirements()
 
@@ -381,11 +361,11 @@ class Command(BaseCommand):
         """
         if (self.project_root / ".git").exists():
             self.git_path = self.project_root
-            self.write_output(f"Found .git dir at {self.git_path}.")
+            plugin_utils.write_output(self, f"Found .git dir at {self.git_path}.")
             self.nested_project = False
         elif (self.project_root.parent / ".git").exists():
             self.git_path = self.project_root.parent
-            self.write_output(f"Found .git dir at {self.git_path}.")
+            plugin_utils.write_output(self, f"Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
@@ -416,7 +396,7 @@ class Command(BaseCommand):
         """
         if self.ignore_unclean_git:
             msg = "Ignoring git status."
-            self.write_output(msg)
+            plugin_utils.write_output(self, msg)
             return
 
         cmd = "git status --porcelain"
@@ -433,7 +413,7 @@ class Command(BaseCommand):
 
         if proceed:
             msg = "No uncommitted changes, other than simple_deploy work."
-            self.write_output(msg)
+            plugin_utils.write_output(self, msg)
         else:
             self._raise_unclean_error()
 
@@ -456,15 +436,19 @@ class Command(BaseCommand):
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
             gitignore_path.write_text(ignore_msg, encoding="utf-8")
-            self.write_output("No .gitignore file found; created .gitignore.")
-            self.write_output("Added simple_deploy_logs/ to .gitignore.")
+            plugin_utils.write_output(
+                self, "No .gitignore file found; created .gitignore."
+            )
+            plugin_utils.write_output(self, "Added simple_deploy_logs/ to .gitignore.")
         else:
             # Append log directory to .gitignore if it's not already there.
             contents = gitignore_path.read_text()
             if "simple_deploy_logs/" not in contents:
                 contents += f"\n{ignore_msg}"
                 gitignore_path.write_text(contents)
-                self.write_output("Added simple_deploy_logs/ to .gitignore")
+                plugin_utils.write_output(
+                    self, "Added simple_deploy_logs/ to .gitignore"
+                )
 
     def _get_dep_man_approach(self):
         """Identify which dependency management approach the project uses.
@@ -522,7 +506,7 @@ class Command(BaseCommand):
             List[str]: List of strings, each representing a requirement.
         """
         msg = "Checking current project requirements..."
-        self.write_output(msg)
+        plugin_utils.write_output(self, msg)
 
         if self.pkg_manager == "req_txt":
             self.req_txt_path = self.git_path / "requirements.txt"
@@ -536,10 +520,10 @@ class Command(BaseCommand):
 
         # Report findings.
         msg = "  Found existing dependencies:"
-        self.write_output(msg)
+        plugin_utils.write_output(self, msg)
         for requirement in requirements:
             msg = f"    {requirement}"
-            self.write_output(msg)
+            plugin_utils.write_output(self, msg)
 
         return requirements
 
@@ -550,7 +534,7 @@ class Command(BaseCommand):
         requirements. If it's missing, platforms will reject the push.
         """
         msg = "\nLooking for django-simple-deploy in requirements..."
-        self.write_output(msg)
+        plugin_utils.write_output(self, msg)
         self.add_package("django-simple-deploy")
 
     def _check_poetry_deploy_group(self):
@@ -561,7 +545,7 @@ class Command(BaseCommand):
         except KeyError:
             sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
             msg = "    Added optional deploy group to pyproject.toml."
-            self.write_output(msg)
+            plugin_utils.write_output(self, msg)
 
     def _check_required_hooks(self, pm):
         """Check that all required hooks are implemeted by plugin.
@@ -614,12 +598,12 @@ class Command(BaseCommand):
         # Confirm the user wants to automate all steps.
         msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
 
-        self.write_output(msg)
+        plugin_utils.write_output(self, msg)
         confirmed = plugin_utils.get_confirmation(self)
 
         if confirmed:
-            self.write_output("Automating all steps...")
+            plugin_utils.write_output(self, "Automating all steps...")
         else:
             # Quit with a message, but don't raise an error.
-            self.write_output(sd_messages.cancel_automate_all)
+            plugin_utils.write_output(self, sd_messages.cancel_automate_all)
             sys.exit()

@@ -32,7 +32,9 @@ class PlatformDeployer:
     # --- Public methods ---
 
     def deploy(self, *args, **options):
-        self.sd.write_output("\nConfiguring project for deployment to Heroku...")
+        plugin_utils.write_output(
+            self.sd, "\nConfiguring project for deployment to Heroku..."
+        )
 
         self._validate_platform()
 
@@ -96,14 +98,14 @@ class PlatformDeployer:
             return
 
         msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
-        self.sd.write_output(msg)
+        plugin_utils.write_output(self.sd, msg)
 
         cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
         output = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output)
+        plugin_utils.write_output(self.sd, output)
 
         msg = "    Wrote requirements.txt file."
-        self.sd.write_output(msg)
+        plugin_utils.write_output(self.sd, msg)
 
         # From this point forward, treat this user the same as anyone who's using a bare
         # requirements.txt file.
@@ -132,10 +134,10 @@ class PlatformDeployer:
             return
 
         # Create heroku app.
-        self.sd.write_output("  Running `heroku create`...")
+        plugin_utils.write_output(self.sd, "  Running `heroku create`...")
         cmd = "heroku create --json"
         output_obj = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output_obj)
+        plugin_utils.write_output(self.sd, output_obj)
 
         # Get name of app.
         output_json = json.loads(output_obj.stdout.decode())
@@ -172,11 +174,11 @@ class PlatformDeployer:
 
         if db_exists:
             msg = f"  Found a {plan_name} database."
-            self.sd.write_output(msg)
+            plugin_utils.write_output(self.sd, msg)
             return
 
         msg = f"  Could not find an existing database. Creating one now..."
-        self.sd.write_output(msg)
+        plugin_utils.write_output(self.sd, msg)
         self._create_postgres_db()
 
     def _add_requirements(self):
@@ -215,7 +217,9 @@ class PlatformDeployer:
 
         # If static/ is not empty, we don't need to do anything.
         if any(path_static.iterdir()):
-            self.sd.write_output("    Found non-empty static files directory.")
+            plugin_utils.write_output(
+                self.sd, "    Found non-empty static files directory."
+            )
             return
 
         # static/ is empty; add a placeholder file to the directory.
@@ -252,17 +256,19 @@ class PlatformDeployer:
 
         self.sd.commit_changes()
 
-        self.sd.write_output("  Pushing to heroku...")
+        plugin_utils.write_output(self.sd, "  Pushing to heroku...")
 
         # Get the current branch name.
         cmd = "git branch --show-current"
         output_obj = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output_obj)
+        plugin_utils.write_output(self.sd, output_obj)
         self.current_branch = output_obj.stdout.decode().strip()
 
         # Push current local branch to Heroku main branch.
         # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
-        self.sd.write_output(f"    Pushing branch {self.current_branch}...")
+        plugin_utils.write_output(
+            self.sd, f"    Pushing branch {self.current_branch}..."
+        )
         if self.current_branch in ("main", "master"):
             cmd = f"git push heroku {self.current_branch}"
         else:
@@ -270,20 +276,22 @@ class PlatformDeployer:
         plugin_utils.run_slow_command(self.sd, cmd)
 
         # Run initial set of migrations.
-        self.sd.write_output("  Migrating deployed app...")
+        plugin_utils.write_output(self.sd, "  Migrating deployed app...")
         if self.sd.nested_project:
             cmd = f"heroku run python {self.sd.local_project_name}/manage.py migrate"
         else:
             cmd = "heroku run python manage.py migrate"
         output = plugin_utils.run_quick_command(self.sd, cmd)
 
-        self.sd.write_output(output)
+        plugin_utils.write_output(self.sd, output)
 
         # Open Heroku app, so it simply appears in user's browser.
-        self.sd.write_output("  Opening deployed app in a new browser tab...")
+        plugin_utils.write_output(
+            self.sd, "  Opening deployed app in a new browser tab..."
+        )
         cmd = "heroku open"
         output = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output)
+        plugin_utils.write_output(self.sd, output)
 
     def _summarize_deployment(self):
         """Manage all tasks related to generating and showing the friendly
@@ -318,7 +326,7 @@ class PlatformDeployer:
             # Show steps to finish the deployment process.
             msg = platform_msgs.success_msg(self.sd.pkg_manager, self.heroku_app_name)
 
-        self.sd.write_output(msg)
+        plugin_utils.write_output(self.sd, msg)
 
     # --- Utility methods ---
 
@@ -411,10 +419,10 @@ class PlatformDeployer:
         if self.sd.automate_all:
             return
 
-        self.sd.write_output("  Looking for Heroku app to push to...")
+        plugin_utils.write_output(self.sd, "  Looking for Heroku app to push to...")
         cmd = "heroku apps:info --json"
         output_obj = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output_obj)
+        plugin_utils.write_output(self.sd, output_obj)
 
         output_str = output_obj.stdout.decode()
 
@@ -428,7 +436,9 @@ class PlatformDeployer:
         self.apps_list = json.loads(output_str)
         app_dict = self.apps_list["app"]
         self.heroku_app_name = app_dict["name"]
-        self.sd.write_output(f"    Found Heroku app: {self.heroku_app_name}")
+        plugin_utils.write_output(
+            self.sd, f"    Found Heroku app: {self.heroku_app_name}"
+        )
 
     def _create_postgres_db(self):
         """Create a Heroku Postgres database.
@@ -436,22 +446,24 @@ class PlatformDeployer:
         Returns:
             None
         """
-        self.sd.write_output("  Creating Postgres database...")
-        self.sd.write_output("  (This may take several minutes.)")
+        plugin_utils.write_output(self.sd, "  Creating Postgres database...")
+        plugin_utils.write_output(self.sd, "  (This may take several minutes.)")
         cmd = "heroku addons:create heroku-postgresql:essential-0 --wait"
         output = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output)
+        plugin_utils.write_output(self.sd, output)
 
     def _set_heroku_env_var(self):
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
-        self.sd.write_output("  Setting Heroku environment variable...")
+        plugin_utils.write_output(self.sd, "  Setting Heroku environment variable...")
         cmd = "heroku config:set ON_HEROKU=1"
         output = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set ON_HEROKU=1.")
-        self.sd.write_output("    This is used to define Heroku-specific settings.")
+        plugin_utils.write_output(self.sd, output)
+        plugin_utils.write_output(self.sd, "    Set ON_HEROKU=1.")
+        plugin_utils.write_output(
+            self.sd, "    This is used to define Heroku-specific settings."
+        )
 
     def _set_debug_env_var(self):
         """Use an env var to manage DEBUG setting, and set to False."""
@@ -464,11 +476,11 @@ class PlatformDeployer:
         #    os.environ.get('DEBUG') == 'TRUE'
         # returns the bool value True for 'TRUE', and False for 'FALSE'.
         # Taken from: https://stackoverflow.com/a/56828137/748891
-        self.sd.write_output("  Setting DEBUG env var...")
+        plugin_utils.write_output(self.sd, "  Setting DEBUG env var...")
         cmd = "heroku config:set DEBUG=FALSE"
         output = plugin_utils.run_quick_command(self.sd, cmd)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set DEBUG config variable to FALSE.")
+        plugin_utils.write_output(self.sd, output)
+        plugin_utils.write_output(self.sd, "    Set DEBUG config variable to FALSE.")
 
     def _set_secret_key_env_var(self):
         """Use an env var to manage the secret key."""
@@ -482,11 +494,11 @@ class PlatformDeployer:
             new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
-        self.sd.write_output("  Setting new secret key for Heroku...")
+        plugin_utils.write_output(self.sd, "  Setting new secret key for Heroku...")
         cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
         output = plugin_utils.run_quick_command(self.sd, cmd, skip_logging=True)
-        self.sd.write_output(output)
-        self.sd.write_output("    Set SECRET_KEY config variable.")
+        plugin_utils.write_output(self.sd, output)
+        plugin_utils.write_output(self.sd, "    Set SECRET_KEY config variable.")
 
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
@@ -497,4 +509,4 @@ class PlatformDeployer:
         path.write_text(summary_str, encoding="utf-8")
 
         msg = f"\n  Generated friendly summary: {path}"
-        self.sd.write_output(msg)
+        plugin_utils.write_output(self.sd, msg)
