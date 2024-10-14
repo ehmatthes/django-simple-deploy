@@ -214,7 +214,7 @@ class PlatformDeployer:
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output)
 
         # Get URL of deployed project.
@@ -245,7 +245,7 @@ class PlatformDeployer:
         # First check if secret has already been set.
         #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name} --json"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         secrets_json = json.loads(output_obj.stdout.decode())
 
         secrets_keys = [secret["Name"] for secret in secrets_json]
@@ -256,7 +256,7 @@ class PlatformDeployer:
             return
 
         cmd = f"fly secrets set -a {self.deployed_project_name} {secret}"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
 
@@ -308,7 +308,7 @@ class PlatformDeployer:
 
         # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
-            output_obj = self.sd.run_quick_command(cmd)
+            output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         except FileNotFoundError:
             raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.cli_not_installed
@@ -324,7 +324,7 @@ class PlatformDeployer:
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
@@ -371,7 +371,7 @@ class PlatformDeployer:
 
         # Run command, and get json output.
         # CLI has been validated; should not have to deal with stderr.
-        output_str = self.sd.run_quick_command(cmd).stdout.decode()
+        output_str = plugin_utils.run_quick_command(self.sd, cmd).stdout.decode()
         self.sd.log_info(output_str)
         output_json = json.loads(output_str)
 
@@ -481,7 +481,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         cmd = "fly apps create --generate-name --json"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
         self.sd.write_output(output_str)
 
@@ -607,7 +607,7 @@ class PlatformDeployer:
 
         # First, see if any Postgres clusters exist.
         cmd = "fly postgres list --json"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
@@ -661,7 +661,7 @@ class PlatformDeployer:
         """
         # Get users of this db.
         cmd = f"fly postgres users list -a {self.db_name} --json"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 
@@ -767,7 +767,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
         cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
 
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
 
         # Show full output, then scrub for logging.

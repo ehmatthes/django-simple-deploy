@@ -204,7 +204,7 @@ class PlatformDeployer:
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = "platform url --yes"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output)
 
         # Get url of deployed project.
@@ -251,7 +251,7 @@ class PlatformDeployer:
 
         # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
-            output_obj = self.sd.run_quick_command(cmd)
+            output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         except FileNotFoundError:
             raise plugin_utils.SimpleDeployCommandError(
                 self.sd, platform_msgs.cli_not_installed
@@ -261,7 +261,7 @@ class PlatformDeployer:
 
         # Check that the user is authenticated.
         cmd = "platform auth:info --no-interaction"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
             raise plugin_utils.SimpleDeployCommandError(
@@ -294,7 +294,7 @@ class PlatformDeployer:
         # Use --yes flag to avoid interactive prompt hanging in background
         #   if the user is not currently logged in to the CLI.
         cmd = "platform project:info --yes --format csv"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
 
         # Log cmd, but don't log the output of `project:info`. It contains identifying
@@ -361,7 +361,7 @@ class PlatformDeployer:
             return
 
         cmd = "platform organization:list --yes --format csv"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         output_str = output_obj.stdout.decode()
         self.sd.log_info(output_str)
 

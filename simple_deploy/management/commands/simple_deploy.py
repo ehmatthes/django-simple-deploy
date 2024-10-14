@@ -155,37 +155,6 @@ class Command(BaseCommand):
             output_str = sd_utils.get_string_from_output(output)
             sd_utils.log_output_string(output_str)
 
-    def run_quick_command(self, cmd, check=False, skip_logging=False):
-        """Run a command that should finish quickly.
-
-        Commands that should finish quickly can be run more simply than commands that
-        will take a long time. For quick commands, we can capture output and then deal
-        with it however we like, and the user won't notice that we first captured
-        the output.
-
-        The `check` parameter is included because some callers will need to handle
-        exceptions. For example, see prep_automate_all() in deploy_platformsh.py. Most
-        callers will only check stderr, or maybe the returncode; they won't need to
-        involve exception handling.
-
-        Returns:
-            CompletedProcess
-
-        Raises:
-            CalledProcessError: If check=True is passed, will raise CPError instead of
-            returning a CompletedProcess instance with an error code set.
-        """
-        if not skip_logging:
-            self.log_info(f"\n{cmd}")
-
-        if self.on_windows:
-            output = subprocess.run(cmd, shell=True, capture_output=True)
-        else:
-            cmd_parts = shlex.split(cmd)
-            output = subprocess.run(cmd_parts, capture_output=True, check=check)
-
-        return output
-
     def run_slow_command(self, cmd, skip_logging=False):
         """Run a command that may take some time.
 
@@ -347,11 +316,11 @@ class Command(BaseCommand):
         self.write_output("  Committing changes...")
 
         cmd = "git add ."
-        output = self.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self, cmd)
         self.write_output(output)
 
         cmd = 'git commit -m "Configured project for deployment."'
-        output = self.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self, cmd)
         self.write_output(output)
 
     # --- Internal methods; used only in this class ---
@@ -567,12 +536,12 @@ class Command(BaseCommand):
             return
 
         cmd = "git status --porcelain"
-        output_obj = self.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self, cmd)
         status_output = output_obj.stdout.decode()
         self.log_info(f"{status_output}")
 
         cmd = "git diff --unified=0"
-        output_obj = self.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self, cmd)
         diff_output = output_obj.stdout.decode()
         self.log_info(f"{diff_output}\n")
 

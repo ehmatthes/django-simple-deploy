@@ -99,7 +99,7 @@ class PlatformDeployer:
         self.sd.write_output(msg)
 
         cmd = "poetry export -f requirements.txt --output requirements.txt --without-hashes"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output)
 
         msg = "    Wrote requirements.txt file."
@@ -134,7 +134,7 @@ class PlatformDeployer:
         # Create heroku app.
         self.sd.write_output("  Running `heroku create`...")
         cmd = "heroku create --json"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output_obj)
 
         # Get name of app.
@@ -256,7 +256,7 @@ class PlatformDeployer:
 
         # Get the current branch name.
         cmd = "git branch --show-current"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output_obj)
         self.current_branch = output_obj.stdout.decode().strip()
 
@@ -275,14 +275,14 @@ class PlatformDeployer:
             cmd = f"heroku run python {self.sd.local_project_name}/manage.py migrate"
         else:
             cmd = "heroku run python manage.py migrate"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
 
         self.sd.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
         cmd = "heroku open"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output)
 
     def _summarize_deployment(self):
@@ -346,7 +346,7 @@ class PlatformDeployer:
 
         cmd = "heroku --version"
         try:
-            output_obj = self.sd.run_quick_command(cmd)
+            output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
             raise plugin_utils.SimpleDeployCommandError(
@@ -375,7 +375,7 @@ class PlatformDeployer:
             return
 
         cmd = "heroku auth:whoami"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.log_info(output_obj)
 
         output_str = output_obj.stderr.decode()
@@ -412,7 +412,7 @@ class PlatformDeployer:
 
         self.sd.write_output("  Looking for Heroku app to push to...")
         cmd = "heroku apps:info --json"
-        output_obj = self.sd.run_quick_command(cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output_obj)
 
         output_str = output_obj.stdout.decode()
@@ -438,7 +438,7 @@ class PlatformDeployer:
         self.sd.write_output("  Creating Postgres database...")
         self.sd.write_output("  (This may take several minutes.)")
         cmd = "heroku addons:create heroku-postgresql:essential-0 --wait"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output)
 
     def _set_heroku_env_var(self):
@@ -447,7 +447,7 @@ class PlatformDeployer:
         """
         self.sd.write_output("  Setting Heroku environment variable...")
         cmd = "heroku config:set ON_HEROKU=1"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set ON_HEROKU=1.")
         self.sd.write_output("    This is used to define Heroku-specific settings.")
@@ -465,7 +465,7 @@ class PlatformDeployer:
         # Taken from: https://stackoverflow.com/a/56828137/748891
         self.sd.write_output("  Setting DEBUG env var...")
         cmd = "heroku config:set DEBUG=FALSE"
-        output = self.sd.run_quick_command(cmd)
+        output = plugin_utils.run_quick_command(self.sd, cmd)
         self.sd.write_output(output)
         self.sd.write_output("    Set DEBUG config variable to FALSE.")
 
@@ -483,7 +483,7 @@ class PlatformDeployer:
         # Set the new key as an env var on Heroku.
         self.sd.write_output("  Setting new secret key for Heroku...")
         cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
-        output = self.sd.run_quick_command(cmd, skip_logging=True)
+        output = plugin_utils.run_quick_command(self.sd, cmd, skip_logging=True)
         self.sd.write_output(output)
         self.sd.write_output("    Set SECRET_KEY config variable.")
 

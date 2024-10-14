@@ -2,6 +2,8 @@
 
 Note: Some of these utilities are also used in core simple_deploy.
 """
+import subprocess
+import shlex
 
 from django.template.engine import Engine, Context
 from django.core.management.base import CommandError
@@ -142,6 +144,37 @@ def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
             continue
 
         return selection
+
+def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
+    """Run a command that should finish quickly.
+
+    Commands that should finish quickly can be run more simply than commands that
+    will take a long time. For quick commands, we can capture output and then deal
+    with it however we like, and the user won't notice that we first captured
+    the output.
+
+    The `check` parameter is included because some callers will need to handle
+    exceptions. For example, see prep_automate_all() in deploy_platformsh.py. Most
+    callers will only check stderr, or maybe the returncode; they won't need to
+    involve exception handling.
+
+    Returns:
+        CompletedProcess
+
+    Raises:
+        CalledProcessError: If check=True is passed, will raise CalledProcessError
+        instead of returning a CompletedProcess instance with an error code set.
+    """
+    if not skip_logging:
+        sd_command.log_info(f"\n{cmd}")
+
+    if sd_command.on_windows:
+        output = subprocess.run(cmd, shell=True, capture_output=True)
+    else:
+        cmd_parts = shlex.split(cmd)
+        output = subprocess.run(cmd_parts, capture_output=True, check=check)
+
+    return output
 
 
 # --- Utilities that do not require an instance of Command ---
