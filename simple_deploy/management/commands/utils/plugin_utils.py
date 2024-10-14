@@ -326,6 +326,25 @@ def log_info(sd_command, output):
         log_output_string(output_str)
 
 
+def commit_changes(sd_command):
+    """Commit changes that have been made to the project.
+
+    This should only be called when automate_all is being used.
+    """
+    if not sd_command.automate_all:
+        return
+
+    write_output(self, "  Committing changes...")
+
+    cmd = "git add ."
+    output = run_quick_command(self, cmd)
+    write_output(self, output)
+
+    cmd = 'git commit -m "Configured project for deployment."'
+    output = run_quick_command(self, cmd)
+    write_output(self, output)
+
+
 # --- Utilities that do not require an instance of Command ---
 # Note: These utilities are much easier to test, and should
 # be preferred when possible.

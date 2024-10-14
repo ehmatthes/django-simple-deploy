@@ -169,24 +169,6 @@ class Command(BaseCommand):
 
         plugin_utils.write_output(self, f"  Added {package_name} to requirements file.")
 
-    def commit_changes(self):
-        """Commit changes that have been made to the project.
-
-        This should only be called when automate_all is being used.
-        """
-        if not self.automate_all:
-            return
-
-        plugin_utils.write_output(self, "  Committing changes...")
-
-        cmd = "git add ."
-        output = plugin_utils.run_quick_command(self, cmd)
-        plugin_utils.write_output(self, output)
-
-        cmd = 'git commit -m "Configured project for deployment."'
-        output = plugin_utils.run_quick_command(self, cmd)
-        plugin_utils.write_output(self, output)
-
     # --- Internal methods; used only in this class ---
 
     def _parse_cli_options(self, options):
