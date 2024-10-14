@@ -176,6 +176,38 @@ def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
 
     return output
 
+def run_slow_command(sd_command, cmd, skip_logging=False):
+    """Run a command that may take some time.
+
+    For commands that may take a while, we need to stream output to the user, rather
+    than just capturing it. Otherwise, the command will appear to hang.
+    """
+
+    # DEV: This only captures stderr right now.
+    # The first call I used this for was `git push heroku`. That call writes to
+    # stderr; I believe streaming to stdout and stderr requires multithreading. The
+    # current approach seems to be working for all calls that use it.
+    #
+    # Adding a parameter stdout=subprocess.PIPE and adding a separate identical loop
+    # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
+    # this topic date back to Python2/3 days.
+    if not skip_logging:
+        sd_command.log_info(f"\n{cmd}")
+
+    cmd_parts = cmd.split()
+    with subprocess.Popen(
+        cmd_parts,
+        stderr=subprocess.PIPE,
+        bufsize=1,
+        universal_newlines=True,
+        shell=sd_command.use_shell,
+    ) as p:
+        for line in p.stderr:
+            sd_command.write_output(line, skip_logging=skip_logging)
+
+    if p.returncode != 0:
+        raise subprocess.CalledProcessError(p.returncode, p.args)
+
 
 # --- Utilities that do not require an instance of Command ---
 # Note: These utilities are much easier to test, and should

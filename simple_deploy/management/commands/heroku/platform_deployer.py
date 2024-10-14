@@ -267,7 +267,7 @@ class PlatformDeployer:
             cmd = f"git push heroku {self.current_branch}"
         else:
             cmd = f"git push heroku {self.current_branch}:main"
-        self.sd.run_slow_command(cmd)
+        plugin_utils.run_slow_command(self.sd, cmd)
 
         # Run initial set of migrations.
         self.sd.write_output("  Migrating deployed app...")

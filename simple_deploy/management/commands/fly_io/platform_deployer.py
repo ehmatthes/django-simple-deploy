@@ -209,7 +209,7 @@ class PlatformDeployer:
         # Push project.
         self.sd.write_output("  Deploying to Fly.io...")
         cmd = "fly deploy"
-        self.sd.run_slow_command(cmd)
+        plugin_utils.run_slow_command(self.sd, cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")
@@ -541,7 +541,7 @@ class PlatformDeployer:
         # Create database. Log command, but don't log output because it should contain
         # db credentials. May want to scrub and then log output.
         self.sd.log_info(cmd)
-        self.sd.run_slow_command(cmd, skip_logging=True)
+        plugin_utils.run_slow_command(self.sd, cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
         self.sd.write_output(msg)

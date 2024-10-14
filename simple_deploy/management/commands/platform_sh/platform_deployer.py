@@ -108,7 +108,7 @@ class PlatformDeployer:
             # is raised.
             # Also, create command outputs project id to stdout if known, all other
             # output goes to stderr.
-            self.sd.run_slow_command(cmd)
+            plugin_utils.run_slow_command(self.sd, cmd)
         except subprocess.CalledProcessError as e:
             error_msg = platform_msgs.unknown_create_error(e)
             raise plugin_utils.SimpleDeployCommandError(self.sd, error_msg)
@@ -199,7 +199,7 @@ class PlatformDeployer:
 
         # Use run_slow_command(), to stream output as it runs.
         cmd = "platform push --yes"
-        self.sd.run_slow_command(cmd)
+        plugin_utils.run_slow_command(self.sd, cmd)
 
         # Open project.
         self.sd.write_output("  Opening deployed app in a new browser tab...")

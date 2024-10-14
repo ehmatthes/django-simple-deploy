@@ -155,38 +155,6 @@ class Command(BaseCommand):
             output_str = sd_utils.get_string_from_output(output)
             sd_utils.log_output_string(output_str)
 
-    def run_slow_command(self, cmd, skip_logging=False):
-        """Run a command that may take some time.
-
-        For commands that may take a while, we need to stream output to the user, rather
-        than just capturing it. Otherwise, the command will appear to hang.
-        """
-
-        # DEV: This only captures stderr right now.
-        # The first call I used this for was `git push heroku`. That call writes to
-        # stderr; I believe streaming to stdout and stderr requires multithreading. The
-        # current approach seems to be working for all calls that use it.
-        #
-        # Adding a parameter stdout=subprocess.PIPE and adding a separate identical loop
-        # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
-        # this topic date back to Python2/3 days.
-        if not skip_logging:
-            self.log_info(f"\n{cmd}")
-
-        cmd_parts = cmd.split()
-        with subprocess.Popen(
-            cmd_parts,
-            stderr=subprocess.PIPE,
-            bufsize=1,
-            universal_newlines=True,
-            shell=self.use_shell,
-        ) as p:
-            for line in p.stderr:
-                self.write_output(line, skip_logging=skip_logging)
-
-        if p.returncode != 0:
-            raise subprocess.CalledProcessError(p.returncode, p.args)
-
     def get_confirmation(
         self, msg="Are you sure you want to do this?", skip_logging=False
     ):
