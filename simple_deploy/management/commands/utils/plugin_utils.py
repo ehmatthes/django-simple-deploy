@@ -2,6 +2,7 @@
 
 Note: Some of these utilities are also used in core simple_deploy.
 """
+import re
 import subprocess
 import shlex
 
@@ -210,9 +211,10 @@ def run_slow_command(sd_command, cmd, skip_logging=False):
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
 
+
 def get_confirmation(
-        sd_command, msg="Are you sure you want to do this?", skip_logging=False
-    ):
+    sd_command, msg="Are you sure you want to do this?", skip_logging=False
+):
     """Get confirmation for an action.
 
     Assumes an appropriate message has already been displayed about what is to be
@@ -255,6 +257,41 @@ def get_confirmation(
             sd_command.write_output(
                 "  Please answer yes or no.", skip_logging=skip_logging
             )
+
+
+def check_settings(
+    sd_command, platform_name, start_line, msg_found, msg_cant_overwrite
+):
+    """Check if a platform-specific settings block already exists.
+
+    If so, ask if we can overwrite that block. This is much simpler than trying to
+    keep track of individual settings.
+
+    Returns:
+        None
+
+    Raises:
+        SimpleDeployCommandError: If we can't overwrite existing platform-specific
+        settings block.
+    """
+    settings_text = sd_command.settings_path.read_text()
+
+    re_platform_settings = f"(.*)({start_line})(.*)"
+    m = re.match(re_platform_settings, settings_text, re.DOTALL)
+
+    if not m:
+        sd_command.log_info(f"No {platform_name}-specific settings block found.")
+        return
+
+    # A platform-specific settings block exists. Get permission to overwrite it.
+    if not get_confirmation(sd_command, msg_found):
+        raise SimpleDeployCommandError(sd_command, msg_cant_overwrite)
+
+    # Platform-specific settings exist, but we can remove them and start fresh.
+    sd_command.settings_path.write_text(m.group(1))
+
+    msg = f"  Removed existing {platform_name}-specific settings block."
+    sd_command.write_output(msg)
 
 
 # --- Utilities that do not require an instance of Command ---

@@ -155,38 +155,6 @@ class Command(BaseCommand):
             output_str = sd_utils.get_string_from_output(output)
             sd_utils.log_output_string(output_str)
 
-    def check_settings(self, platform_name, start_line, msg_found, msg_cant_overwrite):
-        """Check if a platform-specific settings block already exists.
-
-        If so, ask if we can overwrite that block. This is much simpler than trying to
-        keep track of individual settings.
-
-        Returns:
-            None
-
-        Raises:
-            SimpleDeployCommandError: If we can't overwrite existing platform-specific
-            settings block.
-        """
-        settings_text = self.settings_path.read_text()
-
-        re_platform_settings = f"(.*)({start_line})(.*)"
-        m = re.match(re_platform_settings, settings_text, re.DOTALL)
-
-        if not m:
-            self.log_info(f"No {platform_name}-specific settings block found.")
-            return
-
-        # A platform-specific settings block exists. Get permission to overwrite it.
-        if not plugin_utils.get_confirmation(self, msg_found):
-            raise plugin_utIls.SimpleDeployCommandError(self, msg_cant_overwrite)
-
-        # Platform-specific settings exist, but we can remove them and start fresh.
-        self.settings_path.write_text(m.group(1))
-
-        msg = f"  Removed existing {platform_name}-specific settings block."
-        self.write_output(msg)
-
     def add_packages(self, package_list):
         """Add a set of packages to the project's requirements.
 

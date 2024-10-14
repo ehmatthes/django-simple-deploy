@@ -238,7 +238,8 @@ class PlatformDeployer:
     def _check_plsh_settings(self):
         """Check to see if a Platform.sh settings block already exists."""
         start_line = "# Platform.sh settings."
-        self.sd.check_settings(
+        plugin_utils.check_settings(
+            self.sd,
             "Platform.sh",
             start_line,
             platform_msgs.plsh_settings_found,
