@@ -179,7 +179,7 @@ class Command(BaseCommand):
 
         # A platform-specific settings block exists. Get permission to overwrite it.
         if not plugin_utils.get_confirmation(self, msg_found):
-            raise plugin_utIls.siMpledePloycomManderror(self, msg_cant_overwrite)
+            raise plugin_utIls.SimpleDeployCommandError(self, msg_cant_overwrite)
 
         # Platform-specific settings exist, but we can remove them and start fresh.
         self.settings_path.write_text(m.group(1))
