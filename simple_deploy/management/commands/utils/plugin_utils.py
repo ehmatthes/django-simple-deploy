@@ -344,8 +344,50 @@ def commit_changes(sd_config):
     output = run_quick_command(self, cmd)
     write_output(self, output)
 
+def add_packages(package_list):
+    """Add a set of packages to the project's requirements.
 
-# --- Utilities that do not require an instance of Command ---
+    This is a simple wrapper for add_package(), to make it easier to add multiple
+    requirements at once. If you need to specify a version for a particular package,
+    use add_package().
+
+    Returns:
+        None
+    """
+    for package in package_list:
+        add_package(package)
+
+def add_package(sd_config, package_name, version=""):
+    """Add a package to the project's requirements, if not already present.
+
+    Handles calls with version information with pip formatting:
+        add_package("psycopg2", version="<2.9")
+    The utility helpers handle this version information correctly for the dependency
+    management system in use.
+
+    Returns:
+        None
+    """
+    write_output(sd_config, f"\nLooking for {package_name}...")
+
+    if package_name in self.requirements:
+        plugin_utils.write_output(
+            self, f"  Found {package_name} in requirements file."
+        )
+        return
+
+    if self.pkg_manager == "pipenv":
+        sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
+    elif self.pkg_manager == "poetry":
+        self._check_poetry_deploy_group()
+        sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
+    else:
+        sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
+
+    plugin_utils.write_output(self, f"  Added {package_name} to requirements file.")
+
+
+# --- Utilities that do not require an instance of SDConfig ---
 # Note: These utilities are much easier to test, and should
 # be preferred when possible.
 
