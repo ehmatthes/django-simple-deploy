@@ -519,7 +519,7 @@ class Command(BaseCommand):
         """
         msg = "\nLooking for django-simple-deploy in requirements..."
         plugin_utils.write_output(self, msg)
-        self.add_package("django-simple-deploy")
+        plugin_utils.add_package(self, "django-simple-deploy")
 
     # def _check_poetry_deploy_group(self):
     #     """Make sure a deploy group exists in pyproject.toml."""
