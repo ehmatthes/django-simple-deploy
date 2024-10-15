@@ -25,7 +25,7 @@ See the project documentation for more about this process:
     https://django-simple-deploy.readthedocs.io/en/latest/
 """
 
-import sys, os, platform, re, subprocess, logging, shlex
+import sys, os, platform, re, subprocess, logging, shlex, collections
 from datetime import datetime
 from pathlib import Path
 from importlib import import_module
@@ -125,7 +125,8 @@ class Command(BaseCommand):
         self._check_required_hooks(pm)
 
         self._confirm_automate_all(pm)
-        pm.hook.simple_deploy_deploy(sd=self)
+        sd_config = self._get_sd_config()
+        pm.hook.simple_deploy_deploy(sd_config)
 
     def add_packages(self, package_list):
         """Add a set of packages to the project's requirements.
@@ -589,3 +590,47 @@ class Command(BaseCommand):
             # Quit with a message, but don't raise an error.
             plugin_utils.write_output(self, sd_messages.cancel_automate_all)
             sys.exit()
+
+    def _get_sd_config(self):
+        """Return a config object for use by plugins.
+
+        This object contains all the resources from this class needed by plugins.
+        It avoids needing to pass in instance of this entire class to plugins.
+
+        There are more automated ways to pass this information, but I want to be
+        explicit about exactly what's shared with plugins.
+
+        DEV: Make this a simple list, then build the config object from that list?
+        """
+        SDConfig = collections.namedtuple(
+            "SDConfig",
+            [
+                "deployed_project_name",
+                "pkg_manager",
+                "local_project_name",
+                "project_root",
+                "on_windows",
+                "use_shell",
+                "e2e_testing",
+                "unit_testing",
+                "settings_path",
+                "stdout",
+                "log_output",
+                "automate_all",
+            ],
+        )
+
+        return SDConfig(
+            deployed_project_name=self.deployed_project_name,
+            pkg_manager=self.pkg_manager,
+            local_project_name=self.local_project_name,
+            project_root=self.project_root,
+            on_windows=self.on_windows,
+            use_shell=self.use_shell,
+            e2e_testing=self.e2e_testing,
+            unit_testing=self.unit_testing,
+            settings_path=self.settings_path,
+            stdout=self.stdout,
+            log_output=self.log_output,
+            automate_all=self.automate_all,
+        )

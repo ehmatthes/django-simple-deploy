@@ -27,13 +27,13 @@ class SimpleDeployCommandError(CommandError):
     SimpleDeployCommandError.
     """
 
-    def __init__(self, sd_command, message):
-        log_info(sd_command, "\nSimpleDeployCommandError:")
-        log_info(sd_command, message)
+    def __init__(self, sd_config, message):
+        log_info(sd_config, "\nSimpleDeployCommandError:")
+        log_info(sd_config, message)
         super().__init__(message)
 
 
-def add_file(sd_command, path, contents):
+def add_file(sd_config, path, contents):
     """Add a new file to the project.
 
     This function is meant to be used when adding new files that don't typically
@@ -51,25 +51,25 @@ def add_file(sd_command, path, contents):
     to overwrite file.
     """
 
-    write_output(sd_command, f"\n  Looking in {path.parent} for {path.name}...")
+    write_output(sd_config, f"\n  Looking in {path.parent} for {path.name}...")
 
     if path.exists():
-        proceed = get_confirmation(sd_command, sd_messages.file_found(path.name))
+        proceed = get_confirmation(sd_config, sd_messages.file_found(path.name))
         if not proceed:
             raise SimpleDeployCommandError(
-                sd_command, sd_messages.file_replace_rejected(path.name)
+                sd_config, sd_messages.file_replace_rejected(path.name)
             )
     else:
-        write_output(sd_command, f"    File {path.name} not found. Generating file...")
+        write_output(sd_config, f"    File {path.name} not found. Generating file...")
 
     # File does not exist, or we are free to overwrite it.
     path.write_text(contents)
 
     msg = f"\n    Wrote {path.name} to {path}"
-    write_output(sd_command, msg)
+    write_output(sd_config, msg)
 
 
-def modify_file(sd_command, path, contents):
+def modify_file(sd_config, path, contents):
     """Modify an existing file.
 
     This function is meant for modifying a file that should already exist, such as
@@ -85,15 +85,15 @@ def modify_file(sd_command, path, contents):
     # Make sure file exists.
     if not path.exists():
         msg = f"File {path.as_posix()} does not exist."
-        raise SimpleDeployCommandError(sd_command, msg)
+        raise SimpleDeployCommandError(sd_config, msg)
 
     # Rewrite file with new contents.
     path.write_text(contents)
     msg = f"  Modified file: {path.as_posix()}"
-    write_output(sd_command, msg)
+    write_output(sd_config, msg)
 
 
-def add_dir(sd_command, path):
+def add_dir(sd_config, path):
     """Write a new directory to the file.
 
     This function is meant to be used when adding new directories that don't
@@ -105,16 +105,16 @@ def add_dir(sd_command, path):
     Returns:
     - None
     """
-    write_output(sd_command, f"\n  Looking for {path.as_posix()}...")
+    write_output(sd_config, f"\n  Looking for {path.as_posix()}...")
 
     if path.exists():
-        write_output(sd_command, f"    Found {path.as_posix()}")
+        write_output(sd_config, f"    Found {path.as_posix()}")
     else:
         path.mkdir()
-        write_output(sd_command, f"    Added new directory: {path.as_posix()}")
+        write_output(sd_config, f"    Added new directory: {path.as_posix()}")
 
 
-def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
+def get_numbered_choice(sd_config, prompt, valid_choices, quit_message):
     """Select from a numbered list of choices.
 
     This is used, for example, to select from a number of apps that the user
@@ -124,32 +124,32 @@ def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
 
     while True:
         # Show prompt and get selection.
-        log_info(sd_command, prompt)
+        log_info(sd_config, prompt)
 
         selection = input(prompt)
-        log_info(sd_command, selection)
+        log_info(sd_config, selection)
 
         if selection.lower() in ["q", "quit"]:
-            raise SimpleDeployCommandError(sd_command, quit_message)
+            raise SimpleDeployCommandError(sd_config, quit_message)
 
         # Make sure they entered a number
         try:
             selection = int(selection)
         except ValueError:
             msg = "Please enter a number from the list of choices."
-            write_output(sd_command, msg)
+            write_output(sd_config, msg)
             continue
 
         # Validate selection.
         if selection not in valid_choices:
             msg = "  Invalid selection. Please try again."
-            write_output(sd_command, msg)
+            write_output(sd_config, msg)
             continue
 
         return selection
 
 
-def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
+def run_quick_command(sd_config, cmd, check=False, skip_logging=False):
     """Run a command that should finish quickly.
 
     Commands that should finish quickly can be run more simply than commands that
@@ -170,9 +170,9 @@ def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
         instead of returning a CompletedProcess instance with an error code set.
     """
     if not skip_logging:
-        log_info(sd_command, f"\n{cmd}")
+        log_info(sd_config, f"\n{cmd}")
 
-    if sd_command.on_windows:
+    if sd_config.on_windows:
         output = subprocess.run(cmd, shell=True, capture_output=True)
     else:
         cmd_parts = shlex.split(cmd)
@@ -181,7 +181,7 @@ def run_quick_command(sd_command, cmd, check=False, skip_logging=False):
     return output
 
 
-def run_slow_command(sd_command, cmd, skip_logging=False):
+def run_slow_command(sd_config, cmd, skip_logging=False):
     """Run a command that may take some time.
 
     For commands that may take a while, we need to stream output to the user, rather
@@ -197,7 +197,7 @@ def run_slow_command(sd_command, cmd, skip_logging=False):
     # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
     # this topic date back to Python2/3 days.
     if not skip_logging:
-        log_info(sd_command, f"\n{cmd}")
+        log_info(sd_config, f"\n{cmd}")
 
     cmd_parts = cmd.split()
     with subprocess.Popen(
@@ -205,17 +205,17 @@ def run_slow_command(sd_command, cmd, skip_logging=False):
         stderr=subprocess.PIPE,
         bufsize=1,
         universal_newlines=True,
-        shell=sd_command.use_shell,
+        shell=sd_config.use_shell,
     ) as p:
         for line in p.stderr:
-            write_output(sd_command, line, skip_logging=skip_logging)
+            write_output(sd_config, line, skip_logging=skip_logging)
 
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
 def get_confirmation(
-    sd_command, msg="Are you sure you want to do this?", skip_logging=False
+    sd_config, msg="Are you sure you want to do this?", skip_logging=False
 ):
     """Get confirmation for an action.
 
@@ -230,25 +230,25 @@ def get_confirmation(
     confirmed = ""
 
     # If doing e2e testing, always return True.
-    if sd_command.e2e_testing:
-        write_output(sd_command, prompt, skip_logging=skip_logging)
+    if sd_config.e2e_testing:
+        write_output(sd_config, prompt, skip_logging=skip_logging)
         msg = "  Confirmed for e2e testing..."
-        write_output(sd_command, msg, skip_logging=skip_logging)
+        write_output(sd_config, msg, skip_logging=skip_logging)
         return True
 
-    if sd_command.unit_testing:
-        write_output(sd_command, prompt, skip_logging=skip_logging)
+    if sd_config.unit_testing:
+        write_output(sd_config, prompt, skip_logging=skip_logging)
         msg = "  Confirmed for unit testing..."
-        write_output(sd_command, msg, skip_logging=skip_logging)
+        write_output(sd_config, msg, skip_logging=skip_logging)
         return True
 
     while True:
-        write_output(sd_command, prompt, skip_logging=skip_logging)
+        write_output(sd_config, prompt, skip_logging=skip_logging)
         confirmed = input()
 
         # Log user's response before processing it.
         write_output(
-            sd_command, confirmed, skip_logging=skip_logging, write_to_console=False
+            sd_config, confirmed, skip_logging=skip_logging, write_to_console=False
         )
 
         if confirmed.lower() in ("y", "yes"):
@@ -257,12 +257,12 @@ def get_confirmation(
             return False
         else:
             write_output(
-                sd_command, "  Please answer yes or no.", skip_logging=skip_logging
+                sd_config, "  Please answer yes or no.", skip_logging=skip_logging
             )
 
 
 def check_settings(
-    sd_command, platform_name, start_line, msg_found, msg_cant_overwrite
+    sd_config, platform_name, start_line, msg_found, msg_cant_overwrite
 ):
     """Check if a platform-specific settings block already exists.
 
@@ -276,27 +276,27 @@ def check_settings(
         SimpleDeployCommandError: If we can't overwrite existing platform-specific
         settings block.
     """
-    settings_text = sd_command.settings_path.read_text()
+    settings_text = sd_config.settings_path.read_text()
 
     re_platform_settings = f"(.*)({start_line})(.*)"
     m = re.match(re_platform_settings, settings_text, re.DOTALL)
 
     if not m:
-        log_info(sd_command, f"No {platform_name}-specific settings block found.")
+        log_info(sd_config, f"No {platform_name}-specific settings block found.")
         return
 
     # A platform-specific settings block exists. Get permission to overwrite it.
-    if not get_confirmation(sd_command, msg_found):
-        raise SimpleDeployCommandError(sd_command, msg_cant_overwrite)
+    if not get_confirmation(sd_config, msg_found):
+        raise SimpleDeployCommandError(sd_config, msg_cant_overwrite)
 
     # Platform-specific settings exist, but we can remove them and start fresh.
-    sd_command.settings_path.write_text(m.group(1))
+    sd_config.settings_path.write_text(m.group(1))
 
     msg = f"  Removed existing {platform_name}-specific settings block."
-    write_output(sd_command, msg)
+    write_output(sd_config, msg)
 
 
-def write_output(sd_command, output, write_to_console=True, skip_logging=False):
+def write_output(sd_config, output, write_to_console=True, skip_logging=False):
     """Write output to the appropriate places.
 
     Typically, this is used for writing output to the console as the configuration
@@ -313,25 +313,25 @@ def write_output(sd_command, output, write_to_console=True, skip_logging=False):
     output_str = get_string_from_output(output)
 
     if write_to_console:
-        sd_command.stdout.write(output_str)
+        sd_config.stdout.write(output_str)
 
     if not skip_logging:
-        log_info(sd_command, output_str)
+        log_info(sd_config, output_str)
 
 
-def log_info(sd_command, output):
+def log_info(sd_config, output):
     """Log output, which may be a string or CompletedProcess instance."""
-    if sd_command.log_output:
+    if sd_config.log_output:
         output_str = get_string_from_output(output)
         log_output_string(output_str)
 
 
-def commit_changes(sd_command):
+def commit_changes(sd_config):
     """Commit changes that have been made to the project.
 
     This should only be called when automate_all is being used.
     """
-    if not sd_command.automate_all:
+    if not sd_config.automate_all:
         return
 
     write_output(self, "  Committing changes...")

@@ -28,10 +28,10 @@ class PlatformDeployer:
     `fly deploy`.
     """
 
-    def __init__(self, command):
-        """Establishes connection to existing simple_deploy command object."""
-        self.sd = command
-        self.stdout = self.sd.stdout
+    def __init__(self, sd_config):
+        """Receives config info about user's system, and this run of simple_deploy."""
+        self.sd_config = sd_config
+        self.stdout = self.sd_config.stdout
         self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
@@ -39,7 +39,7 @@ class PlatformDeployer:
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
         plugin_utils.write_output(
-            self.sd, "\nConfiguring project for deployment to Fly.io..."
+            self.sd_config, "\nConfiguring project for deployment to Fly.io..."
         )
 
         self._validate_platform()
@@ -70,10 +70,10 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If we find any reason deployment won't work.
         """
-        if self.sd.unit_testing:
+        if self.sd_config.unit_testing:
             # Unit tests don't use the platform's CLI. Use the deployed project name
             # that was passed to the simple_deploy CLI.
-            self.deployed_project_name = self.sd.deployed_project_name
+            self.deployed_project_name = self.sd_config.deployed_project_name
             return
 
         self._check_flyio_settings()
@@ -94,7 +94,7 @@ class PlatformDeployer:
 
     def _set_env_vars(self):
         """Set Fly.io-specific environment variables."""
-        if self.sd.unit_testing:
+        if self.sd_config.unit_testing:
             return
 
         self._set_on_flyio()
@@ -105,7 +105,7 @@ class PlatformDeployer:
         deployment-specific settings.
         """
         msg = "\nSetting ON_FLYIO secret..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
         self._set_secret("ON_FLYIO", "ON_FLYIO=1")
 
     def _set_debug(self):
@@ -113,7 +113,7 @@ class PlatformDeployer:
         deployment-specific settings.
         """
         msg = "Setting DEBUG secret..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
         self._set_secret("DEBUG", "DEBUG=FALSE")
 
     def _add_dockerfile(self):
@@ -128,31 +128,31 @@ class PlatformDeployer:
         """
 
         # Build file contents from template and context.
-        if self.sd.pkg_manager == "poetry":
+        if self.sd_config.pkg_manager == "poetry":
             dockerfile_template = "dockerfile_poetry"
-        elif self.sd.pkg_manager == "pipenv":
+        elif self.sd_config.pkg_manager == "pipenv":
             dockerfile_template = "dockerfile_pipenv"
         else:
             dockerfile_template = "dockerfile"
         template_path = self.templates_path / dockerfile_template
 
         context = {
-            "django_project_name": self.sd.local_project_name,
+            "django_project_name": self.sd_config.local_project_name,
         }
 
         contents = plugin_utils.get_template_string(template_path, context)
 
         # Write file to project.
-        path = self.sd.project_root / "Dockerfile"
-        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
+        path = self.sd_config.project_root / "Dockerfile"
+        plugin_utils.add_file(self.sd_config, path, contents)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
         Ignore virtual environment dir, system-specific cruft, and IDE cruft.
         """
-        path = self.sd.project_root / ".dockerignore"
+        path = self.sd_config.project_root / ".dockerignore"
         dockerignore_str = self._build_dockerignore()
-        plugin_utils.add_file(sd_command=self.sd, path=path, contents=dockerignore_str)
+        plugin_utils.add_file(self.sd_config, path, contents)
 
     def _add_flytoml(self):
         """Add a minimal fly.toml file."""
@@ -161,20 +161,20 @@ class PlatformDeployer:
         template_path = self.templates_path / "fly.toml"
         context = {
             "deployed_project_name": self.deployed_project_name,
-            "using_pipenv": (self.sd.pkg_manager == "pipenv"),
+            "using_pipenv": (self.sd_config.pkg_manager == "pipenv"),
         }
         contents = plugin_utils.get_template_string(template_path, context)
 
         # Write file to project.
-        path = self.sd.project_root / "fly.toml"
-        plugin_utils.add_file(sd_command=self.sd, path=path, contents=contents)
+        path = self.sd_config.project_root / "fly.toml"
+        plugin_utils.add_file(self.sd_config, path, contents)
 
     def _modify_settings(self):
         """Add platformsh-specific settings."""
         # Get modified version of settings.
         template_path = self.templates_path / "settings.py"
 
-        settings_string = self.sd.settings_path.read_text()
+        settings_string = self.sd_config.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {
             "current_settings": safe_settings_string,
@@ -187,7 +187,7 @@ class PlatformDeployer:
 
         # Write settings to file.
         plugin_utils.modify_file(
-            self.sd, self.sd.settings_path, modified_settings_string
+            self.sd_config, self.sd_config.settings_path, modified_settings_string
         )
 
     def _add_requirements(self):
@@ -203,25 +203,23 @@ class PlatformDeployer:
         - Call `fly apps open`, and grab URL.
         """
         # Making this check here lets deploy() be cleaner.
-        if not self.sd.automate_all:
+        if not self.sd_config.automate_all:
             return
 
-        plugin_utils.commit_changes(
-            self.sd,
-        )
+        plugin_utils.commit_changes(self.sd_config)
 
         # Push project.
-        plugin_utils.write_output(self.sd, "  Deploying to Fly.io...")
+        plugin_utils.write_output(self.sd_config, "  Deploying to Fly.io...")
         cmd = "fly deploy"
-        plugin_utils.run_slow_command(self.sd, cmd)
+        plugin_utils.run_slow_command(self.sd_config, cmd)
 
         # Open project.
         plugin_utils.write_output(
-            self.sd, "  Opening deployed app in a new browser tab..."
+            self.sd_config, "  Opening deployed app in a new browser tab..."
         )
         cmd = f"fly apps open -a {self.app_name}"
-        output = plugin_utils.run_quick_command(self.sd, cmd)
-        plugin_utils.write_output(self.sd, output)
+        output = plugin_utils.run_quick_command(self.sd_config, cmd)
+        plugin_utils.write_output(self.sd_config, output)
 
         # Get URL of deployed project.
         url_re = r"(opening )(http.*?)( \.\.\.)"
@@ -235,11 +233,11 @@ class PlatformDeployer:
 
         Describe ongoing approach of commit, push, migrate.
         """
-        if self.sd.automate_all:
+        if self.sd_config.automate_all:
             msg = platform_msgs.success_msg_automate_all(self.deployed_url)
         else:
-            msg = platform_msgs.success_msg(log_output=self.sd.log_output)
-        plugin_utils.write_output(self.sd, msg)
+            msg = platform_msgs.success_msg(log_output=self.sd_config.log_output)
+        plugin_utils.write_output(self.sd_config, msg)
 
     def _set_secret(self, needle, secret):
         """Set a secret on Fly, if it's not already set.
@@ -251,23 +249,23 @@ class PlatformDeployer:
         # First check if secret has already been set.
         #   Don't log output of `fly secrets list`!
         cmd = f"fly secrets list -a {self.deployed_project_name} --json"
-        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         secrets_json = json.loads(output_obj.stdout.decode())
 
         secrets_keys = [secret["Name"] for secret in secrets_json]
 
         if needle in secrets_keys:
             msg = f"  Found {needle} in existing secrets."
-            plugin_utils.write_output(self.sd, msg)
+            plugin_utils.write_output(self.sd_config, msg)
             return
 
         cmd = f"fly secrets set -a {self.deployed_project_name} {secret}"
-        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         output_str = output_obj.stdout.decode()
-        plugin_utils.write_output(self.sd, output_str)
+        plugin_utils.write_output(self.sd_config, output_str)
 
         msg = f"  Set secret: {secret}"
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
     def _build_dockerignore(self):
         """Build the contents of the dockerignore file."""
@@ -276,7 +274,7 @@ class PlatformDeployer:
         dockerignore_str = ".git/\n"
 
         # Ignore venv dir if a venv is active.
-        if self.sd.unit_testing:
+        if self.sd_config.unit_testing:
             # Unit tests build a venv dir, but use the direct path to the venv. They
             # don't run in an active venv.
             venv_dir = "b_env"
@@ -291,7 +289,7 @@ class PlatformDeployer:
         dockerignore_str += "\n__pycache__/\n*.pyc\n\n*.sqlite3\n"
 
         # If on macOS, ignore .DS_Store.
-        if self.sd.on_macos:
+        if self.sd_config.on_macos:
             dockerignore_str += "\n.DS_Store\n"
 
         return dockerignore_str
@@ -302,7 +300,7 @@ class PlatformDeployer:
         """Check to see if a Fly.io settings block already exists."""
         start_line = "# Fly.io settings."
         plugin_utils.check_settings(
-            self.sd,
+            self.sd_config,
             "Fly.io",
             start_line,
             platform_msgs.flyio_settings_found,
@@ -315,35 +313,35 @@ class PlatformDeployer:
 
         # This generates a FileNotFoundError on Ubuntu if the CLI is not installed.
         try:
-            output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+            output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         except FileNotFoundError:
             raise plugin_utils.SimpleDeployCommandError(
-                self.sd, platform_msgs.cli_not_installed
+                self.sd_config, platform_msgs.cli_not_installed
             )
 
-        plugin_utils.log_info(self.sd, output_obj)
+        plugin_utils.log_info(self.sd_config, output_obj)
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
             raise plugin_utils.SimpleDeployCommandError(
-                self.sd, platform_msgs.cli_not_installed
+                self.sd_config, platform_msgs.cli_not_installed
             )
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
-        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
             raise plugin_utils.SimpleDeployCommandError(
-                self.sd, platform_msgs.cli_logged_out
+                self.sd_config, platform_msgs.cli_logged_out
             )
 
         # Show current authenticated fly user.
         whoami_json = json.loads(output_obj.stdout.decode())
         user_email = whoami_json["email"]
         msg = f"  Logged in to Fly.io CLI as: {user_email}"
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
     def _get_deployed_project_name(self):
         """Get the Fly.io project name.
@@ -371,15 +369,15 @@ class PlatformDeployer:
             SimpleDeployCommandError: If deployed project name can't be found.
         """
         msg = "\nLooking for Fly.io app to deploy against..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         # Get info about user's apps on Fly.io.
         cmd = "fly apps list --json"
 
         # Run command, and get json output.
         # CLI has been validated; should not have to deal with stderr.
-        output_str = plugin_utils.run_quick_command(self.sd, cmd).stdout.decode()
-        plugin_utils.log_info(self.sd, output_str)
+        output_str = plugin_utils.run_quick_command(self.sd_config, cmd).stdout.decode()
+        plugin_utils.log_info(self.sd_config, output_str)
         output_json = json.loads(output_str)
 
         project_names = self._get_undeployed_projects(output_json)
@@ -387,7 +385,7 @@ class PlatformDeployer:
 
         # Display and return deployed app name.
         msg = f"  Using Fly.io app: {self.app_name}"
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
         return self.app_name
 
     def _get_undeployed_projects(self, output_json):
@@ -410,26 +408,26 @@ class PlatformDeployer:
 
         if not project_names:
             # No app name found.
-            if self.sd.automate_all:
+            if self.sd_config.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
                 raise plugin_utils.SimpleDeployCommandError(
-                    self.sd, platform_msgs.no_project_name
+                    self.sd_config, platform_msgs.no_project_name
                 )
         elif len(project_names) == 1:
             # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
             msg = f"\n*** Found one undeployed app on Fly.io: {project_name} ***"
-            plugin_utils.write_output(self.sd, msg)
+            plugin_utils.write_output(self.sd_config, msg)
 
             prompt = "Is this the app you want to deploy to?"
-            if plugin_utils.get_confirmation(self.sd, prompt):
+            if plugin_utils.get_confirmation(self.sd_config, prompt):
                 self.app_name = project_name
-            elif self.sd.automate_all:
+            elif self.sd_config.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
                 raise plugin_utils.SimpleDeployCommandError(
-                    self.sd, platform_msgs.no_project_name
+                    self.sd_config, platform_msgs.no_project_name
                 )
         else:
             # More than one undeployed app found. `apps list` doesn't show
@@ -439,7 +437,7 @@ class PlatformDeployer:
 
             # Rather than a bunch of conditional logic about automate-all runs, just add
             # "Create a new app" for automated runs. If that's chosen, create a new app.
-            if self.sd.automate_all:
+            if self.sd_config.automate_all:
                 project_names.append("Create a new app")
 
             # Show all undeployed apps, ask user to make selection.
@@ -455,13 +453,13 @@ class PlatformDeployer:
             confirmed = False
             while not confirmed:
                 selection = plugin_utils.get_numbered_choice(
-                    self.sd, prompt, valid_choices, platform_msgs.no_project_name
+                    self.sd_config, prompt, valid_choices, platform_msgs.no_project_name
                 )
                 selected_name = project_names[selection]
 
                 confirm_prompt = f"You have selected {selected_name}."
                 confirm_prompt += " Is that correct?"
-                confirmed = plugin_utils.get_confirmation(self.sd, confirm_prompt)
+                confirmed = plugin_utils.get_confirmation(self.sd_config, confirm_prompt)
 
             # Create a new app for automated runs, if needed.
             if selected_name == "Create a new app":
@@ -485,12 +483,12 @@ class PlatformDeployer:
             SimpleDeployCommandError: if an app can't be created.
         """
         msg = "  Creating a new app on Fly.io..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         cmd = "fly apps create --generate-name --json"
-        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         output_str = output_obj.stdout.decode()
-        plugin_utils.write_output(self.sd, output_str)
+        plugin_utils.write_output(self.sd_config, output_str)
 
         # Get app name.
         app_dict = json.loads(output_str)
@@ -498,11 +496,11 @@ class PlatformDeployer:
             self.app_name = app_dict["Name"]
         except KeyError:
             raise plugin_utils.SimpleDeployCommandError(
-                self.sd, platform_msgs.create_app_failed
+                self.sd_config, platform_msgs.create_app_failed
             )
         else:
             msg = f"  Created new app: {self.app_name}"
-            plugin_utils.write_output(self.sd, msg)
+            plugin_utils.write_output(self.sd_config, msg)
             return self.app_name
 
     def _create_db(self):
@@ -528,7 +526,7 @@ class PlatformDeployer:
             permission to use existing db with matching name.
         """
         msg = "Looking for a Postgres database..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         self.db_name = self.app_name + "-db"
         if self._check_db_exists():
@@ -539,7 +537,7 @@ class PlatformDeployer:
 
         # Create a new db.
         msg = f"  Creating a new Postgres database..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         cmd = f"fly postgres create --name {self.db_name} --region {self.region}"
         cmd += " --initial-cluster-size 1 --vm-size shared-cpu-1x --volume-size 1"
@@ -547,11 +545,11 @@ class PlatformDeployer:
 
         # Create database. Log command, but don't log output because it should contain
         # db credentials. May want to scrub and then log output.
-        plugin_utils.log_info(self.sd, cmd)
-        plugin_utils.run_slow_command(self.sd, cmd, skip_logging=True)
+        plugin_utils.log_info(self.sd_config, cmd)
+        plugin_utils.run_slow_command(self.sd_config, cmd, skip_logging=True)
 
         msg = "  Created Postgres database."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         self._attach_db()
 
@@ -584,7 +582,7 @@ class PlatformDeployer:
         """
 
         msg = "Looking for Fly.io region..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         # Get region output.
         url = "https://liveview-counter.fly.dev/"
@@ -596,12 +594,12 @@ class PlatformDeployer:
             region = m.group(1)
 
             msg = f"  Found lowest latency region: {region}"
-            plugin_utils.write_output(self.sd, msg)
+            plugin_utils.write_output(self.sd_config, msg)
         else:
             region = "sea"
 
             msg = f"  Couldn't find lowest latency region, using 'sea'."
-            plugin_utils.write_output(self.sd, msg)
+            plugin_utils.write_output(self.sd_config, msg)
 
         return region
 
@@ -614,9 +612,9 @@ class PlatformDeployer:
 
         # First, see if any Postgres clusters exist.
         cmd = "fly postgres list --json"
-        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         output_str = output_obj.stdout.decode()
-        plugin_utils.log_info(self.sd, output_str)
+        plugin_utils.log_info(self.sd_config, output_str)
 
         if "No postgres clusters found" in output_str:
             return False
@@ -627,11 +625,11 @@ class PlatformDeployer:
         # See if any of these names match this app.
         if self.db_name in pg_names:
             msg = f"  Postgres db found: {self.db_name}"
-            plugin_utils.write_output(self.sd, msg)
+            plugin_utils.write_output(self.sd_config, msg)
             return True
         else:
             msg = "  No matching Postgres database found."
-            plugin_utils.write_output(self.sd, msg)
+            plugin_utils.write_output(self.sd_config, msg)
             return False
 
     def _manage_existing_db(self):
@@ -668,13 +666,13 @@ class PlatformDeployer:
         """
         # Get users of this db.
         cmd = f"fly postgres users list -a {self.db_name} --json"
-        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         output_str = output_obj.stdout.decode()
-        plugin_utils.log_info(self.sd, output_str)
+        plugin_utils.log_info(self.sd_config, output_str)
 
         pg_users_json = json.loads(output_str)
         self.db_users = [user_dict["Username"] for user_dict in pg_users_json]
-        plugin_utils.log_info(self.sd, f"DB users: {self.db_users}")
+        plugin_utils.log_info(self.sd_config, f"DB users: {self.db_users}")
 
         default_users = {"flypgadmin", "postgres", "repmgr"}
         app_user = self.app_name.replace("-", "_")
@@ -693,7 +691,7 @@ class PlatformDeployer:
             # Note: This path has only been tested once, by manually adding
             # "dummy-user" to the list of db users."
             msg = platform_msgs.cant_use_db(self.db_name, self.db_users)
-            raise plugin_utils.SimpleDeployCommandError(self.sd, msg)
+            raise plugin_utils.SimpleDeployCommandError(self.sd_config, msg)
 
     def _confirm_use_attached_db(self):
         """Confirm it's okay to use db that's already attached to this app.
@@ -705,14 +703,14 @@ class PlatformDeployer:
             SimpleDeployCommandError: If confirmation denied.
         """
         msg = platform_msgs.use_attached_db(self.db_name, self.db_users)
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
-        if not plugin_utils.get_confirmation(self.sd, msg):
+        if not plugin_utils.get_confirmation(self.sd_config, msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
             raise plugin_utils.SimpleDeployCommandError(
-                self.sd, platform_msgs.cancel_no_db
+                self.sd_config, platform_msgs.cancel_no_db
             )
 
     def _confirm_use_unattached_db(self):
@@ -731,10 +729,10 @@ class PlatformDeployer:
             SimpleDeployCommandError: If confirmation denied.
         """
         msg = platform_msgs.use_unattached_db(self.db_name, self.db_users)
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
         msg = f"Okay to use {self.db_name} and proceed?"
-        if plugin_utils.get_confirmation(self.sd, msg):
+        if plugin_utils.get_confirmation(self.sd_config, msg):
             self._attach_db(self.db_name)
             return
         else:
@@ -742,7 +740,7 @@ class PlatformDeployer:
             # Can't simply create a new db, because the name we'd use is
             # already taken.
             raise plugin_utils.SimpleDeployCommandError(
-                self.sd, platform_msgs.cancel_no_db
+                self.sd_config, platform_msgs.cancel_no_db
             )
 
     def _confirm_create_db(self, db_cmd):
@@ -755,36 +753,36 @@ class PlatformDeployer:
             SimpleDeployCommandError: If not confirmed.
         """
         # Ignore this check during testing, and when using --automate-all.
-        if self.sd.unit_testing or self.sd.automate_all:
+        if self.sd_config.unit_testing or self.sd_config.automate_all:
             return
 
         # Show the command that will be run on the user's behalf.
         self.stdout.write(platform_msgs.confirm_create_db(db_cmd))
-        if plugin_utils.get_confirmation(self.sd):
+        if plugin_utils.get_confirmation(self.sd_config):
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
             raise plugin_utils.SimpleDeployCommandError(
-                self.sd, platform_msgs.cancel_no_db
+                self.sd_config, platform_msgs.cancel_no_db
             )
 
     def _attach_db(self):
         """Attach the database to the app."""
         msg = "  Attaching database to Fly.io app..."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
         cmd = f"fly postgres attach --app {self.deployed_project_name} {self.db_name}"
 
-        output_obj = plugin_utils.run_quick_command(self.sd, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         output_str = output_obj.stdout.decode()
 
         # Show full output, then scrub for logging.
-        plugin_utils.write_output(self.sd, output_str, skip_logging=True)
+        plugin_utils.write_output(self.sd_config, output_str, skip_logging=True)
 
         output_scrubbed = [
             l for l in output_str.splitlines() if "DATABASE_URL" not in l
         ]
         output_scrubbed = "\n".join(output_scrubbed)
-        plugin_utils.log_info(self.sd, output_scrubbed)
+        plugin_utils.log_info(self.sd_config, output_scrubbed)
 
         msg = "  Attached database to app."
-        plugin_utils.write_output(self.sd, msg)
+        plugin_utils.write_output(self.sd_config, msg)
