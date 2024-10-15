@@ -25,7 +25,7 @@ See the project documentation for more about this process:
     https://django-simple-deploy.readthedocs.io/en/latest/
 """
 
-import sys, os, platform, re, subprocess, logging, shlex, collections
+import sys, os, platform, re, subprocess, logging, shlex
 from datetime import datetime
 from pathlib import Path
 from importlib import import_module
@@ -38,6 +38,7 @@ import toml
 from . import sd_messages
 from .utils import sd_utils
 from .utils import plugin_utils
+from .utils.sd_config import SDConfig
 from . import cli
 
 from simple_deploy.plugins import pm
@@ -602,35 +603,19 @@ class Command(BaseCommand):
 
         DEV: Make this a simple list, then build the config object from that list?
         """
-        SDConfig = collections.namedtuple(
-            "SDConfig",
-            [
-                "deployed_project_name",
-                "pkg_manager",
-                "local_project_name",
-                "project_root",
-                "on_windows",
-                "use_shell",
-                "e2e_testing",
-                "unit_testing",
-                "settings_path",
-                "stdout",
-                "log_output",
-                "automate_all",
-            ],
-        )
+        sd_config = SDConfig()
 
-        return SDConfig(
-            deployed_project_name=self.deployed_project_name,
-            pkg_manager=self.pkg_manager,
-            local_project_name=self.local_project_name,
-            project_root=self.project_root,
-            on_windows=self.on_windows,
-            use_shell=self.use_shell,
-            e2e_testing=self.e2e_testing,
-            unit_testing=self.unit_testing,
-            settings_path=self.settings_path,
-            stdout=self.stdout,
-            log_output=self.log_output,
-            automate_all=self.automate_all,
-        )
+        sd_config.deployed_project_name = self.deployed_project_name
+        sd_config.pkg_manager = self.pkg_manager
+        sd_config.local_project_name = self.local_project_name
+        sd_config.project_root = self.project_root
+        sd_config.on_windows = self.on_windows
+        sd_config.use_shell = self.use_shell
+        sd_config.e2e_testing = self.e2e_testing
+        sd_config.unit_testing = self.unit_testing
+        sd_config.settings_path = self.settings_path
+        sd_config.stdout = self.stdout
+        sd_config.log_output = self.log_output
+        sd_config.automate_all = self.automate_all
+
+        return sd_config
