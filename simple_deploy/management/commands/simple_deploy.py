@@ -521,15 +521,15 @@ class Command(BaseCommand):
         plugin_utils.write_output(self, msg)
         self.add_package("django-simple-deploy")
 
-    def _check_poetry_deploy_group(self):
-        """Make sure a deploy group exists in pyproject.toml."""
-        pptoml_data = toml.load(self.pyprojecttoml_path)
-        try:
-            deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
-        except KeyError:
-            sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
-            msg = "    Added optional deploy group to pyproject.toml."
-            plugin_utils.write_output(self, msg)
+    # def _check_poetry_deploy_group(self):
+    #     """Make sure a deploy group exists in pyproject.toml."""
+    #     pptoml_data = toml.load(self.pyprojecttoml_path)
+    #     try:
+    #         deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
+    #     except KeyError:
+    #         sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
+    #         msg = "    Added optional deploy group to pyproject.toml."
+    #         plugin_utils.write_output(self, msg)
 
     def _check_required_hooks(self, pm):
         """Check that all required hooks are implemeted by plugin.
@@ -605,17 +605,25 @@ class Command(BaseCommand):
         """
         sd_config = SDConfig()
 
-        sd_config.deployed_project_name = self.deployed_project_name
-        sd_config.pkg_manager = self.pkg_manager
-        sd_config.local_project_name = self.local_project_name
-        sd_config.project_root = self.project_root
         sd_config.on_windows = self.on_windows
+
+        sd_config.local_project_name = self.local_project_name
+        sd_config.pkg_manager = self.pkg_manager
+        sd_config.requirements = self.requirements
+
+        sd_config.project_root = self.project_root
+        sd_config.settings_path = self.settings_path
+        sd_config.pipfile_path = self.pipfile_path
+        sd_config.pyprojecttoml_path = self.pyprojecttoml_path
+        sd_config.req_txt_path = self.req_txt_path
+
+        sd_config.deployed_project_name = self.deployed_project_name
+        sd_config.log_output = self.log_output
+        sd_config.automate_all = self.automate_all
+        
         sd_config.use_shell = self.use_shell
         sd_config.e2e_testing = self.e2e_testing
         sd_config.unit_testing = self.unit_testing
-        sd_config.settings_path = self.settings_path
         sd_config.stdout = self.stdout
-        sd_config.log_output = self.log_output
-        sd_config.automate_all = self.automate_all
 
         return sd_config

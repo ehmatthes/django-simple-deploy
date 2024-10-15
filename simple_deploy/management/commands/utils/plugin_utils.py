@@ -7,6 +7,7 @@ import logging
 import re
 import subprocess
 import shlex
+import toml
 
 from django.template.engine import Engine, Context
 from django.core.management.base import CommandError
@@ -334,15 +335,15 @@ def commit_changes(sd_config):
     if not sd_config.automate_all:
         return
 
-    write_output(self, "  Committing changes...")
+    write_output(sd_config, "  Committing changes...")
 
     cmd = "git add ."
-    output = run_quick_command(self, cmd)
-    write_output(self, output)
+    output = run_quick_command(sd_config, cmd)
+    write_output(sd_config, output)
 
     cmd = 'git commit -m "Configured project for deployment."'
-    output = run_quick_command(self, cmd)
-    write_output(self, output)
+    output = run_quick_command(sd_config, cmd)
+    write_output(sd_config, output)
 
 def add_packages(package_list):
     """Add a set of packages to the project's requirements.
@@ -370,21 +371,21 @@ def add_package(sd_config, package_name, version=""):
     """
     write_output(sd_config, f"\nLooking for {package_name}...")
 
-    if package_name in self.requirements:
-        plugin_utils.write_output(
-            self, f"  Found {package_name} in requirements file."
+    if package_name in sd_config.requirements:
+        write_output(
+            sd_config, f"  Found {package_name} in requirements file."
         )
         return
 
-    if self.pkg_manager == "pipenv":
-        sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
-    elif self.pkg_manager == "poetry":
-        self._check_poetry_deploy_group()
-        sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
+    if sd_config.pkg_manager == "pipenv":
+        add_pipenv_pkg(sd_config.pipfile_path, package_name, version)
+    elif sd_config.pkg_manager == "poetry":
+        _check_poetry_deploy_group()
+        add_poetry_pkg(sd_config.pyprojecttoml_path, package_name, version)
     else:
-        sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
+        add_req_txt_pkg(sd_config.req_txt_path, package_name, version)
 
-    plugin_utils.write_output(self, f"  Added {package_name} to requirements file.")
+    write_output(sd_config, f"  Added {package_name} to requirements file.")
 
 
 # --- Utilities that do not require an instance of SDConfig ---
@@ -451,3 +452,60 @@ def _strip_secret_key(line):
         return new_line
     else:
         return line
+
+def add_pipenv_pkg(pipfile_path, package, version):
+    """Add a package to Pipfile."""
+    # A method in simple_deploy may pass an empty string, which would override a
+    # default argument value of "*".
+    if not version:
+        version = "*"
+
+    data = toml.load(pipfile_path)
+    data["packages"][package] = version
+    data_str = toml.dumps(data)
+    pipfile_path.write_text(data_str)
+
+def _check_poetry_deploy_group(sd_config):
+    """Make sure a deploy group exists in pyproject.toml."""
+    pptoml_data = toml.load(sd_config.pyprojecttoml_path)
+    try:
+        deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
+    except KeyError:
+        create_poetry_deploy_group(sd_config.pyprojecttoml_path)
+        msg = "    Added optional deploy group to pyproject.toml."
+        write_output(sd_config, msg)
+
+def create_poetry_deploy_group(pptoml_path):
+    """Create a deploy group for Poetry in pyproject.toml."""
+    pptoml_data = toml.load(pptoml_path)
+
+    # Create Poetry group if needed.
+    if "group" not in pptoml_data["tool"]["poetry"]:
+        pptoml_data["tool"]["poetry"]["group"] = {}
+
+    # Create optional deploy group, and deploy group dependencies.
+    pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
+    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
+
+    pptoml_data_str = toml.dumps(pptoml_data)
+    pptoml_path.write_text(pptoml_data_str)
+
+def add_poetry_pkg(pptoml_path, package, version):
+    """Add a package to poetry deploy group of pyproject.toml."""
+
+    # A method in simple_deploy may pass an empty string, which would override a
+    # default argument value of "*".
+    if not version:
+        version = "*"
+
+    pptoml_data = toml.load(pptoml_path)
+    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][package] = version
+
+    pptoml_data_str = toml.dumps(pptoml_data)
+    pptoml_path.write_text(pptoml_data_str)
+
+def add_req_txt_pkg(req_txt_path, package, version):
+    """Add a package to requirements.txt."""
+    contents = req_txt_path.read_text()
+    pkg_string = f"\n{package + version}"
+    req_txt_path.write_text(contents + pkg_string)

@@ -10,10 +10,14 @@ class SDConfig:
         # Aspects of user's local project.
         self.local_project_name = ""
         self.pkg_manager = ""
+        self.requirements = None
 
         # Paths in user's local project.
         self.project_root = None
         self.settings_path = None
+        self.pipfile_path = None
+        self.pyprojecttoml_path = None
+        self.req_txt_path = None
 
         # Aspects of user's deployment.
         self.deployed_project_name = ""

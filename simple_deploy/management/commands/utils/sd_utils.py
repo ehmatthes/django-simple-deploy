@@ -93,55 +93,55 @@ def parse_pyproject_toml(path):
     return requirements
 
 
-def create_poetry_deploy_group(pptoml_path):
-    """Create a deploy group for Poetry in pyproject.toml."""
-    pptoml_data = toml.load(pptoml_path)
+# def create_poetry_deploy_group(pptoml_path):
+#     """Create a deploy group for Poetry in pyproject.toml."""
+#     pptoml_data = toml.load(pptoml_path)
 
-    # Create Poetry group if needed.
-    if "group" not in pptoml_data["tool"]["poetry"]:
-        pptoml_data["tool"]["poetry"]["group"] = {}
+#     # Create Poetry group if needed.
+#     if "group" not in pptoml_data["tool"]["poetry"]:
+#         pptoml_data["tool"]["poetry"]["group"] = {}
 
-    # Create optional deploy group, and deploy group dependencies.
-    pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
-    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
+#     # Create optional deploy group, and deploy group dependencies.
+#     pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
+#     pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
 
-    pptoml_data_str = toml.dumps(pptoml_data)
-    pptoml_path.write_text(pptoml_data_str)
-
-
-def add_req_txt_pkg(req_txt_path, package, version):
-    """Add a package to requirements.txt."""
-    contents = req_txt_path.read_text()
-    pkg_string = f"\n{package + version}"
-    req_txt_path.write_text(contents + pkg_string)
+#     pptoml_data_str = toml.dumps(pptoml_data)
+#     pptoml_path.write_text(pptoml_data_str)
 
 
-def add_poetry_pkg(pptoml_path, package, version):
-    """Add a package to poetry deploy group of pyproject.toml."""
-
-    # A method in simple_deploy may pass an empty string, which would override a
-    # default argument value of "*".
-    if not version:
-        version = "*"
-
-    pptoml_data = toml.load(pptoml_path)
-    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][package] = version
-
-    pptoml_data_str = toml.dumps(pptoml_data)
-    pptoml_path.write_text(pptoml_data_str)
+# def add_req_txt_pkg(req_txt_path, package, version):
+#     """Add a package to requirements.txt."""
+#     contents = req_txt_path.read_text()
+#     pkg_string = f"\n{package + version}"
+#     req_txt_path.write_text(contents + pkg_string)
 
 
-def add_pipenv_pkg(pipfile_path, package, version):
-    """Add a package to Pipfile."""
-    # A method in simple_deploy may pass an empty string, which would override a
-    # default argument value of "*".
-    if not version:
-        version = "*"
+# def add_poetry_pkg(pptoml_path, package, version):
+#     """Add a package to poetry deploy group of pyproject.toml."""
 
-    data = toml.load(pipfile_path)
-    data["packages"][package] = version
-    data_str = toml.dumps(data)
-    pipfile_path.write_text(data_str)
+#     # A method in simple_deploy may pass an empty string, which would override a
+#     # default argument value of "*".
+#     if not version:
+#         version = "*"
+
+#     pptoml_data = toml.load(pptoml_path)
+#     pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][package] = version
+
+#     pptoml_data_str = toml.dumps(pptoml_data)
+#     pptoml_path.write_text(pptoml_data_str)
+
+
+# def add_pipenv_pkg(pipfile_path, package, version):
+#     """Add a package to Pipfile."""
+#     # A method in simple_deploy may pass an empty string, which would override a
+#     # default argument value of "*".
+#     if not version:
+#         version = "*"
+
+#     data = toml.load(pipfile_path)
+#     data["packages"][package] = version
+#     data_str = toml.dumps(data)
+#     pipfile_path.write_text(data_str)
 
 
 def check_status_output(status_output, diff_output):
