@@ -152,7 +152,7 @@ class PlatformDeployer:
         """
         path = self.sd_config.project_root / ".dockerignore"
         dockerignore_str = self._build_dockerignore()
-        plugin_utils.add_file(self.sd_config, path, contents)
+        plugin_utils.add_file(self.sd_config, path, dockerignore_str)
 
     def _add_flytoml(self):
         """Add a minimal fly.toml file."""

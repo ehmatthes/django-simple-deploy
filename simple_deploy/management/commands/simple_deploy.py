@@ -317,7 +317,7 @@ class Command(BaseCommand):
         if self.sd_config.log_output:
             self._ignore_sd_logs()
 
-        self.settings_path = self.sd_config.project_root / self.sd_config.local_project_name / "settings.py"
+        self.sd_config.settings_path = self.sd_config.project_root / self.sd_config.local_project_name / "settings.py"
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.sd_config.pkg_manager = self._get_dep_man_approach()
