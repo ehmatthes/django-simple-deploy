@@ -2,10 +2,11 @@ class SDConfig:
     """Class for managing attributes of Command that need to be shared with plugins.
     """
 
-    def __init__(self):
+    def __init__(self, stdout):
         """Define all attributes that will need to be shared."""
         # Aspects of user's system.
         self.on_windows = None
+        self.on_macos = None
 
         # Aspects of user's local project.
         self.local_project_name = ""
@@ -28,4 +29,4 @@ class SDConfig:
         self.use_shell = None
         self.e2e_testing = None
         self.unit_testing = None
-        self.stdout = None
+        self.stdout = stdout

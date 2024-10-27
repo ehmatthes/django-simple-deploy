@@ -101,15 +101,19 @@ class Command(BaseCommand):
         Add django-simple-deploy to project requirements.
         Call the platform-specific deploy() method.
         """
+
+        # Create a config object here. This is what's shared with
+        # platform-specific plugins.
+        self.sd_config = SDConfig(self.stdout)
         plugin_utils.write_output(
-            self, "Configuring project for deployment...", skip_logging=True
+            self.sd_config, "Configuring project for deployment...", skip_logging=True
         )
 
         # CLI options need to be parsed before logging starts, in case --no-logging
         # has been passed.
         self._parse_cli_options(options)
 
-        if self.log_output:
+        if self.sd_config.log_output:
             self._start_logging()
             self._log_cli_args(options)
 
@@ -126,8 +130,8 @@ class Command(BaseCommand):
         self._check_required_hooks(pm)
 
         self._confirm_automate_all(pm)
-        sd_config = self._get_sd_config()
-        pm.hook.simple_deploy_deploy(sd_config)
+        # sd_config = self._get_sd_config()
+        pm.hook.simple_deploy_deploy(sd_config=self.sd_config)
 
     # def add_packages(self, package_list):
     #     """Add a set of packages to the project's requirements.
@@ -177,18 +181,18 @@ class Command(BaseCommand):
         """Parse CLI options from simple_deploy command."""
 
         # Platform-agnostic arguments.
-        self.automate_all = options["automate_all"]
+        self.sd_config.automate_all = options["automate_all"]
         self.platform = options["platform"]
-        self.log_output = not (options["no_logging"])
+        self.sd_config.log_output = not (options["no_logging"])
         self.ignore_unclean_git = options["ignore_unclean_git"]
 
         # Platform.sh arguments.
-        self.deployed_project_name = options["deployed_project_name"]
+        self.sd_config.deployed_project_name = options["deployed_project_name"]
         self.region = options["region"]
 
         # Developer arguments.
-        self.unit_testing = options["unit_testing"]
-        self.e2e_testing = options["e2e_testing"]
+        self.sd_config.unit_testing = options["unit_testing"]
+        self.sd_config.e2e_testing = options["e2e_testing"]
 
     def _start_logging(self):
         """Set up for logging.
@@ -218,14 +222,14 @@ class Command(BaseCommand):
             format="%(asctime)s %(levelname)s: %(message)s",
         )
 
-        plugin_utils.write_output(self, "Logging run of `manage.py simple_deploy`...")
-        plugin_utils.write_output(self, f"Created {verbose_log_path}.")
+        plugin_utils.write_output(self.sd_config, "Logging run of `manage.py simple_deploy`...")
+        plugin_utils.write_output(self.sd_config, f"Created {verbose_log_path}.")
 
     def _log_cli_args(self, options):
         """Log the args used for this call."""
-        plugin_utils.log_info(self, f"\nCLI args:")
+        plugin_utils.log_info(self.sd_config, f"\nCLI args:")
         for option, value in options.items():
-            plugin_utils.log_info(self, f"  {option}: {value}")
+            plugin_utils.log_info(self.sd_config, f"  {option}: {value}")
 
     def _create_log_dir(self):
         """Create a directory to hold log files, if not already present.
@@ -251,13 +255,13 @@ class Command(BaseCommand):
         """
         if not self.platform:
             raise plugin_utils.SimpleDeployCommandError(
-                self, sd_messages.requires_platform_flag
+                self.sd_config, sd_messages.requires_platform_flag
             )
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
-            plugin_utils.write_output(self, f"\nDeployment target: {self.platform}")
+            plugin_utils.write_output(self.sd_config, f"\nDeployment target: {self.platform}")
         else:
             error_msg = sd_messages.invalid_platform_msg(self.platform)
-            raise plugin_utils.SimpleDeployCommandError(self, error_msg)
+            raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
 
     def _inspect_system(self):
         """Inspect the user's local system for relevant information.
@@ -268,15 +272,15 @@ class Command(BaseCommand):
 
         Linux is not mentioned because so far, if it works on macOS it works on Linux.
         """
-        self.use_shell = False
-        self.on_windows, self.on_macos = False, False
+        self.sd_config.use_shell = False
+        self.sd_config.on_windows, self.sd_config.on_macos = False, False
         if platform.system() == "Windows":
-            self.on_windows = True
-            self.use_shell = True
-            plugin_utils.log_info(self, "Local platform identified: Windows")
+            self.sd_config.on_windows = True
+            self.sd_config.use_shell = True
+            plugin_utils.log_info(self.sd_config, "Local platform identified: Windows")
         elif platform.system() == "Darwin":
-            self.on_macos = True
-            plugin_utils.log_info(self, "Local platform identified: macOS")
+            self.sd_config.on_macos = True
+            plugin_utils.log_info(self.sd_config, "Local platform identified: macOS")
 
     def _inspect_project(self):
         """Inspect the local project.
@@ -299,28 +303,28 @@ class Command(BaseCommand):
         Returns:
             None
         """
-        self.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
-        plugin_utils.log_info(self, f"Local project name: {self.local_project_name}")
+        self.sd_config.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
+        plugin_utils.log_info(self.sd_config, f"Local project name: {self.sd_config.local_project_name}")
 
-        self.project_root = settings.BASE_DIR
-        plugin_utils.log_info(self, f"Project root: {self.project_root}")
+        self.sd_config.project_root = settings.BASE_DIR
+        plugin_utils.log_info(self.sd_config, f"Project root: {self.sd_config.project_root}")
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
         self._check_git_status()
 
         # Now that we know where .git is, we can ignore simple_deploy logs.
-        if self.log_output:
+        if self.sd_config.log_output:
             self._ignore_sd_logs()
 
-        self.settings_path = self.project_root / self.local_project_name / "settings.py"
+        self.settings_path = self.sd_config.project_root / self.sd_config.local_project_name / "settings.py"
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
-        self.pkg_manager = self._get_dep_man_approach()
-        msg = f"Dependency management system: {self.pkg_manager}"
-        plugin_utils.write_output(self, msg)
+        self.sd_config.pkg_manager = self._get_dep_man_approach()
+        msg = f"Dependency management system: {self.sd_config.pkg_manager}"
+        plugin_utils.write_output(self.sd_config, msg)
 
-        self.requirements = self._get_current_requirements()
+        self.sd_config.requirements = self._get_current_requirements()
 
     def _find_git_dir(self):
         """Find .git/ location.
@@ -343,20 +347,20 @@ class Command(BaseCommand):
         Raises:
             SimpleDeployCommandError: If .git/ dir not found.
         """
-        if (self.project_root / ".git").exists():
-            self.git_path = self.project_root
-            plugin_utils.write_output(self, f"Found .git dir at {self.git_path}.")
+        if (self.sd_config.project_root / ".git").exists():
+            self.git_path = self.sd_config.project_root
+            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.git_path}.")
             self.nested_project = False
         elif (self.project_root.parent / ".git").exists():
-            self.git_path = self.project_root.parent
-            plugin_utils.write_output(self, f"Found .git dir at {self.git_path}.")
+            self.git_path = self.sd_config.project_root.parent
+            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.git_path}.")
             self.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += (
-                f"\n  Looked in {self.project_root} and in {self.project_root.parent}."
+                f"\n  Looked in {self.sd_config.project_root} and in {self.sd_config.project_root.parent}."
             )
-            raise plugin_utils.SimpleDeployCommandError(self, error_msg)
+            raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
 
     def _check_git_status(self):
         """Make sure all non-simple_deploy changes have already been committed.
@@ -380,34 +384,34 @@ class Command(BaseCommand):
         """
         if self.ignore_unclean_git:
             msg = "Ignoring git status."
-            plugin_utils.write_output(self, msg)
+            plugin_utils.write_output(self.sd_config, msg)
             return
 
         cmd = "git status --porcelain"
-        output_obj = plugin_utils.run_quick_command(self, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         status_output = output_obj.stdout.decode()
-        plugin_utils.log_info(self, f"{status_output}")
+        plugin_utils.log_info(self.sd_config, f"{status_output}")
 
         cmd = "git diff --unified=0"
-        output_obj = plugin_utils.run_quick_command(self, cmd)
+        output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         diff_output = output_obj.stdout.decode()
-        plugin_utils.log_info(self, f"{diff_output}\n")
+        plugin_utils.log_info(self.sd_config, f"{diff_output}\n")
 
         proceed = sd_utils.check_status_output(status_output, diff_output)
 
         if proceed:
             msg = "No uncommitted changes, other than simple_deploy work."
-            plugin_utils.write_output(self, msg)
+            plugin_utils.write_output(self.sd_config, msg)
         else:
             self._raise_unclean_error()
 
     def _raise_unclean_error(self):
         """Raise unclean git status error."""
         error_msg = sd_messages.unclean_git_status
-        if self.automate_all:
+        if self.sd_config.automate_all:
             error_msg += sd_messages.unclean_git_automate_all
 
-        raise plugin_utils.SimpleDeployCommandError(self, error_msg)
+        raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
 
     def _ignore_sd_logs(self):
         """Add log dir to .gitignore.
@@ -421,9 +425,9 @@ class Command(BaseCommand):
             # Make the .gitignore file, and add log directory.
             gitignore_path.write_text(ignore_msg, encoding="utf-8")
             plugin_utils.write_output(
-                self, "No .gitignore file found; created .gitignore."
+                self.sd_config, "No .gitignore file found; created .gitignore."
             )
-            plugin_utils.write_output(self, "Added simple_deploy_logs/ to .gitignore.")
+            plugin_utils.write_output(self.sd_config, "Added simple_deploy_logs/ to .gitignore.")
         else:
             # Append log directory to .gitignore if it's not already there.
             contents = gitignore_path.read_text()
@@ -431,7 +435,7 @@ class Command(BaseCommand):
                 contents += f"\n{ignore_msg}"
                 gitignore_path.write_text(contents)
                 plugin_utils.write_output(
-                    self, "Added simple_deploy_logs/ to .gitignore"
+                    self.sd_config, "Added simple_deploy_logs/ to .gitignore"
                 )
 
     def _get_dep_man_approach(self):
@@ -459,7 +463,7 @@ class Command(BaseCommand):
 
         # Exit if we haven't found any requirements.
         error_msg = f"Couldn't find any specified requirements in {self.git_path}."
-        raise plugin_utils.SimpleDeployCommandError(self, error_msg)
+        raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
 
     def _check_using_poetry(self):
         """Check if the project appears to be using poetry.
@@ -490,24 +494,24 @@ class Command(BaseCommand):
             List[str]: List of strings, each representing a requirement.
         """
         msg = "Checking current project requirements..."
-        plugin_utils.write_output(self, msg)
+        plugin_utils.write_output(self.sd_config, msg)
 
-        if self.pkg_manager == "req_txt":
-            self.req_txt_path = self.git_path / "requirements.txt"
-            requirements = sd_utils.parse_req_txt(self.req_txt_path)
-        elif self.pkg_manager == "pipenv":
-            self.pipfile_path = self.git_path / "Pipfile"
-            requirements = sd_utils.parse_pipfile(self.pipfile_path)
-        elif self.pkg_manager == "poetry":
-            self.pyprojecttoml_path = self.git_path / "pyproject.toml"
-            requirements = sd_utils.parse_pyproject_toml(self.pyprojecttoml_path)
+        if self.sd_config.pkg_manager == "req_txt":
+            self.sd_config.req_txt_path = self.git_path / "requirements.txt"
+            requirements = sd_utils.parse_req_txt(self.sd_config.req_txt_path)
+        elif self.sd_config.pkg_manager == "pipenv":
+            self.sd_config.pipfile_path = self.git_path / "Pipfile"
+            requirements = sd_utils.parse_pipfile(self.sd_config.pipfile_path)
+        elif self.sd_config.pkg_manager == "poetry":
+            self.sd_config.pyprojecttoml_path = self.git_path / "pyproject.toml"
+            requirements = sd_utils.parse_pyproject_toml(self.sd_config.pyprojecttoml_path)
 
         # Report findings.
         msg = "  Found existing dependencies:"
-        plugin_utils.write_output(self, msg)
+        plugin_utils.write_output(self.sd_config, msg)
         for requirement in requirements:
             msg = f"    {requirement}"
-            plugin_utils.write_output(self, msg)
+            plugin_utils.write_output(self.sd_config, msg)
 
         return requirements
 
@@ -518,8 +522,8 @@ class Command(BaseCommand):
         requirements. If it's missing, platforms will reject the push.
         """
         msg = "\nLooking for django-simple-deploy in requirements..."
-        plugin_utils.write_output(self, msg)
-        plugin_utils.add_package(self, "django-simple-deploy")
+        plugin_utils.write_output(self.sd_config, msg)
+        plugin_utils.add_package(self.sd_config, "django-simple-deploy")
 
     # def _check_poetry_deploy_group(self):
     #     """Make sure a deploy group exists in pyproject.toml."""
@@ -569,7 +573,7 @@ class Command(BaseCommand):
         If confirmation not granted, exit with a message, but no error.
         """
         # Placing this check here keeps the handle() method cleaner.
-        if not self.automate_all:
+        if not self.sd_config.automate_all:
             return
 
         # Make sure this platform supports automate-all.
@@ -577,53 +581,53 @@ class Command(BaseCommand):
         if not supported:
             msg = "\nThis platform does not support automated deployments."
             msg += "\nYou may want to try again without the --automate-all flag."
-            raise plugin_utils.SimpleDeployCommandError(self, msg)
+            raise plugin_utils.SimpleDeployCommandError(self.sd_config, msg)
 
         # Confirm the user wants to automate all steps.
         msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
 
-        plugin_utils.write_output(self, msg)
-        confirmed = plugin_utils.get_confirmation(self)
+        plugin_utils.write_output(self.sd_config, msg)
+        confirmed = plugin_utils.get_confirmation(self.sd_config)
 
         if confirmed:
-            plugin_utils.write_output(self, "Automating all steps...")
+            plugin_utils.write_output(self.sd_config, "Automating all steps...")
         else:
             # Quit with a message, but don't raise an error.
-            plugin_utils.write_output(self, sd_messages.cancel_automate_all)
+            plugin_utils.write_output(self.sd_config, sd_messages.cancel_automate_all)
             sys.exit()
 
-    def _get_sd_config(self):
-        """Return a config object for use by plugins.
+    # def _get_sd_config(self):
+    #     """Return a config object for use by plugins.
 
-        This object contains all the resources from this class needed by plugins.
-        It avoids needing to pass in instance of this entire class to plugins.
+    #     This object contains all the resources from this class needed by plugins.
+    #     It avoids needing to pass in instance of this entire class to plugins.
 
-        There are more automated ways to pass this information, but I want to be
-        explicit about exactly what's shared with plugins.
+    #     There are more automated ways to pass this information, but I want to be
+    #     explicit about exactly what's shared with plugins.
 
-        DEV: Make this a simple list, then build the config object from that list?
-        """
-        sd_config = SDConfig()
+    #     DEV: Make this a simple list, then build the config object from that list?
+    #     """
+    #     sd_config = SDConfig()
 
-        sd_config.on_windows = self.on_windows
+    #     sd_config.on_windows = self.on_windows
 
-        sd_config.local_project_name = self.local_project_name
-        sd_config.pkg_manager = self.pkg_manager
-        sd_config.requirements = self.requirements
+    #     sd_config.local_project_name = self.local_project_name
+    #     sd_config.pkg_manager = self.pkg_manager
+    #     sd_config.requirements = self.requirements
 
-        sd_config.project_root = self.project_root
-        sd_config.settings_path = self.settings_path
-        sd_config.pipfile_path = self.pipfile_path
-        sd_config.pyprojecttoml_path = self.pyprojecttoml_path
-        sd_config.req_txt_path = self.req_txt_path
+    #     sd_config.project_root = self.project_root
+    #     sd_config.settings_path = self.settings_path
+    #     sd_config.pipfile_path = self.pipfile_path
+    #     sd_config.pyprojecttoml_path = self.pyprojecttoml_path
+    #     sd_config.req_txt_path = self.req_txt_path
 
-        sd_config.deployed_project_name = self.deployed_project_name
-        sd_config.log_output = self.log_output
-        sd_config.automate_all = self.automate_all
+    #     sd_config.deployed_project_name = self.deployed_project_name
+    #     sd_config.log_output = self.log_output
+    #     sd_config.automate_all = self.automate_all
         
-        sd_config.use_shell = self.use_shell
-        sd_config.e2e_testing = self.e2e_testing
-        sd_config.unit_testing = self.unit_testing
-        sd_config.stdout = self.stdout
+    #     sd_config.use_shell = self.use_shell
+    #     sd_config.e2e_testing = self.e2e_testing
+    #     sd_config.unit_testing = self.unit_testing
+    #     sd_config.stdout = self.stdout
 
-        return sd_config
+    #     return sd_config
