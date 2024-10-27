@@ -345,7 +345,7 @@ def commit_changes(sd_config):
     output = run_quick_command(sd_config, cmd)
     write_output(sd_config, output)
 
-def add_packages(package_list):
+def add_packages(sd_config, package_list):
     """Add a set of packages to the project's requirements.
 
     This is a simple wrapper for add_package(), to make it easier to add multiple
@@ -356,7 +356,7 @@ def add_packages(package_list):
         None
     """
     for package in package_list:
-        add_package(package)
+        add_package(sd_config, package)
 
 def add_package(sd_config, package_name, version=""):
     """Add a package to the project's requirements, if not already present.
