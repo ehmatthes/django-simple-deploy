@@ -380,7 +380,7 @@ def add_package(sd_config, package_name, version=""):
     if sd_config.pkg_manager == "pipenv":
         add_pipenv_pkg(sd_config.pipfile_path, package_name, version)
     elif sd_config.pkg_manager == "poetry":
-        _check_poetry_deploy_group()
+        _check_poetry_deploy_group(sd_config)
         add_poetry_pkg(sd_config.pyprojecttoml_path, package_name, version)
     else:
         add_req_txt_pkg(sd_config.req_txt_path, package_name, version)
