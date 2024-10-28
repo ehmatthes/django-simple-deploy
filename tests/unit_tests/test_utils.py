@@ -5,9 +5,18 @@ import filecmp
 
 from simple_deploy.management.commands.utils import sd_utils
 from simple_deploy.management.commands.utils import plugin_utils
+from simple_deploy.management.commands.utils.sd_config import SDConfig
 import subprocess
 
 import pytest
+
+
+@pytest.fixture()
+def mock_sdconfig():
+    sd_config = SDConfig(stdout=None)
+    # Define any settings here that would be helpful for multiple tests.
+    return sd_config
+
 
 
 def test_strip_secret_key_with_key():
@@ -89,7 +98,7 @@ def test_create_poetry_deploy_group(tmp_path):
     tmp_pptoml = tmp_path / "pp.toml"
     tmp_pptoml.write_text(contents)
 
-    sd_utils.create_poetry_deploy_group(tmp_pptoml)
+    plugin_utils.create_poetry_deploy_group(tmp_pptoml)
     ref_file = Path(__file__).parent / "reference_files" / "pyproject.toml"
     assert filecmp.cmp(tmp_pptoml, ref_file)
 
