@@ -11,6 +11,8 @@ import subprocess
 import pytest
 
 
+# --- Fixtures ---
+
 @pytest.fixture()
 def mock_sdconfig():
     sd_config = SDConfig(stdout=None)
@@ -18,6 +20,7 @@ def mock_sdconfig():
     return sd_config
 
 
+# --- Test functions ---
 
 def test_strip_secret_key_with_key():
     line = "SECRET_KEY = 'django-insecure-j+*1=he4!%=(-3g^$hj=1pkmzkbdjm0-h2%yd-=1sf%trwun_-'"
@@ -111,7 +114,7 @@ def test_add_req_txt_pkg(tmp_path):
     tmp_req_txt = tmp_path / "tmp_requirements.txt"
     tmp_req_txt.write_text(contents)
 
-    sd_utils.add_req_txt_pkg(tmp_req_txt, "awesome-deployment-package", "")
+    plugin_utils.add_req_txt_pkg(tmp_req_txt, "awesome-deployment-package", "")
     ref_file = Path(__file__).parent / "reference_files" / "requirements.txt"
     assert filecmp.cmp(tmp_req_txt, ref_file)
 
@@ -126,7 +129,7 @@ def test_add_poetry_pkg(tmp_path):
     tmp_pptoml = tmp_path / "pp.toml"
     tmp_pptoml.write_text(contents)
 
-    sd_utils.add_poetry_pkg(tmp_pptoml, "awesome-deployment-package", "")
+    plugin_utils.add_poetry_pkg(tmp_pptoml, "awesome-deployment-package", "")
     ref_file = (
         Path(__file__).parent
         / "reference_files"
@@ -143,6 +146,6 @@ def test_add_pipenv_pkg(tmp_path):
     tmp_pipfile = tmp_path / "tmp_pipfile"
     tmp_pipfile.write_text(contents)
 
-    sd_utils.add_pipenv_pkg(tmp_pipfile, "awesome-deployment-package", "")
+    plugin_utils.add_pipenv_pkg(tmp_pipfile, "awesome-deployment-package", "")
     ref_file = Path(__file__).parent / "reference_files" / "Pipfile"
     assert filecmp.cmp(tmp_pipfile, ref_file)
