@@ -133,50 +133,6 @@ class Command(BaseCommand):
         # sd_config = self._get_sd_config()
         pm.hook.simple_deploy_deploy(sd_config=self.sd_config)
 
-    # def add_packages(self, package_list):
-    #     """Add a set of packages to the project's requirements.
-
-    #     This is a simple wrapper for add_package(), to make it easier to add multiple
-    #     requirements at once. If you need to specify a version for a particular package,
-    #     use add_package().
-
-    #     Returns:
-    #         None
-    #     """
-    #     for package in package_list:
-    #         self.add_package(package)
-
-    # def add_package(self, package_name, version=""):
-    #     """Add a package to the project's requirements, if not already present.
-
-    #     Handles calls with version information with pip formatting:
-    #         add_package("psycopg2", version="<2.9")
-    #     The utility methods handle this version information correctly for the dependency
-    #     management system in use.
-
-    #     Returns:
-    #         None
-    #     """
-    #     plugin_utils.write_output(self, f"\nLooking for {package_name}...")
-
-    #     if package_name in self.requirements:
-    #         plugin_utils.write_output(
-    #             self, f"  Found {package_name} in requirements file."
-    #         )
-    #         return
-
-    #     if self.pkg_manager == "pipenv":
-    #         sd_utils.add_pipenv_pkg(self.pipfile_path, package_name, version)
-    #     elif self.pkg_manager == "poetry":
-    #         self._check_poetry_deploy_group()
-    #         sd_utils.add_poetry_pkg(self.pyprojecttoml_path, package_name, version)
-    #     else:
-    #         sd_utils.add_req_txt_pkg(self.req_txt_path, package_name, version)
-
-    #     plugin_utils.write_output(self, f"  Added {package_name} to requirements file.")
-
-    # --- Internal methods; used only in this class ---
-
     def _parse_cli_options(self, options):
         """Parse CLI options from simple_deploy command."""
 
@@ -547,16 +503,6 @@ class Command(BaseCommand):
         plugin_utils.write_output(self.sd_config, msg)
         plugin_utils.add_package(self.sd_config, "django-simple-deploy")
 
-    # def _check_poetry_deploy_group(self):
-    #     """Make sure a deploy group exists in pyproject.toml."""
-    #     pptoml_data = toml.load(self.pyprojecttoml_path)
-    #     try:
-    #         deploy_group = pptoml_data["tool"]["poetry"]["group"]["deploy"]
-    #     except KeyError:
-    #         sd_utils.create_poetry_deploy_group(self.pyprojecttoml_path)
-    #         msg = "    Added optional deploy group to pyproject.toml."
-    #         plugin_utils.write_output(self, msg)
-
     def _check_required_hooks(self, pm):
         """Check that all required hooks are implemeted by plugin.
 
@@ -617,39 +563,3 @@ class Command(BaseCommand):
             # Quit with a message, but don't raise an error.
             plugin_utils.write_output(self.sd_config, sd_messages.cancel_automate_all)
             sys.exit()
-
-    # def _get_sd_config(self):
-    #     """Return a config object for use by plugins.
-
-    #     This object contains all the resources from this class needed by plugins.
-    #     It avoids needing to pass in instance of this entire class to plugins.
-
-    #     There are more automated ways to pass this information, but I want to be
-    #     explicit about exactly what's shared with plugins.
-
-    #     DEV: Make this a simple list, then build the config object from that list?
-    #     """
-    #     sd_config = SDConfig()
-
-    #     sd_config.on_windows = self.on_windows
-
-    #     sd_config.local_project_name = self.local_project_name
-    #     sd_config.pkg_manager = self.pkg_manager
-    #     sd_config.requirements = self.requirements
-
-    #     sd_config.project_root = self.project_root
-    #     sd_config.settings_path = self.settings_path
-    #     sd_config.pipfile_path = self.pipfile_path
-    #     sd_config.pyprojecttoml_path = self.pyprojecttoml_path
-    #     sd_config.req_txt_path = self.req_txt_path
-
-    #     sd_config.deployed_project_name = self.deployed_project_name
-    #     sd_config.log_output = self.log_output
-    #     sd_config.automate_all = self.automate_all
-
-    #     sd_config.use_shell = self.use_shell
-    #     sd_config.e2e_testing = self.e2e_testing
-    #     sd_config.unit_testing = self.unit_testing
-    #     sd_config.stdout = self.stdout
-
-    #     return sd_config
