@@ -114,15 +114,9 @@ class PlatformDeployer:
         plugin_utils.log_info(self.sd_config, "    Package manager set to req_txt.")
         plugin_utils.log_info(self.sd_config, f"    req_txt path: {self.sd_config.req_txt_path}")
 
-        # Parse newly-generated requirements.txt file, and add simple_deploy if needed.
-        # Optional deploy group dependencies aren't added to requirements.txt.
-        # DEV: Look at these two lines:
-        # print("\n****************** Requirements", self.sd_config.requirements)
         # Add simple_deploy, because it wasn't done earlier for poetry.
         # This may be a bug in how poetry is handled by core.
         plugin_utils.add_package(self.sd_config, "django-simple-deploy")
-        # self.sd._get_current_requirements()
-        # self.sd._add_simple_deploy_req()
 
     def _prep_automate_all(self):
         """Do intial work for automating entire process.
