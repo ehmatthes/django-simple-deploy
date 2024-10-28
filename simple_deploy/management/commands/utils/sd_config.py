@@ -12,9 +12,11 @@ class SDConfig:
         self.local_project_name = ""
         self.pkg_manager = ""
         self.requirements = None
+        self.nested_project = None
 
         # Paths in user's local project.
         self.project_root = None
+        self.git_path = None
         self.settings_path = None
         self.pipfile_path = None
         self.pyprojecttoml_path = None

@@ -339,7 +339,7 @@ class Command(BaseCommand):
         likely to be.
 
         Sets:
-            self.git_path, self.nested_project
+            self.sd_config.git_path, self.sd_config.nested_project
 
         Returns:
             None
@@ -348,13 +348,13 @@ class Command(BaseCommand):
             SimpleDeployCommandError: If .git/ dir not found.
         """
         if (self.sd_config.project_root / ".git").exists():
-            self.git_path = self.sd_config.project_root
-            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.git_path}.")
-            self.nested_project = False
+            self.sd_config.git_path = self.sd_config.project_root
+            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.sd_config.git_path}.")
+            self.sd_config.nested_project = False
         elif (self.project_root.parent / ".git").exists():
-            self.git_path = self.sd_config.project_root.parent
-            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.git_path}.")
-            self.nested_project = True
+            self.sd_config.git_path = self.sd_config.project_root.parent
+            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.sd_config.git_path}.")
+            self.sd_config.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
             error_msg += (
@@ -420,7 +420,7 @@ class Command(BaseCommand):
         """
         ignore_msg = "simple_deploy_logs/\n"
 
-        gitignore_path = self.git_path / ".gitignore"
+        gitignore_path = self.sd_config.git_path / ".gitignore"
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
             gitignore_path.write_text(ignore_msg, encoding="utf-8")
@@ -454,15 +454,15 @@ class Command(BaseCommand):
         Raises:
             SimpleDeployCommandError: If a pkg manager can't be identified.
         """
-        if (self.git_path / "Pipfile").exists():
+        if (self.sd_config.git_path / "Pipfile").exists():
             return "pipenv"
         elif self._check_using_poetry():
             return "poetry"
-        elif (self.git_path / "requirements.txt").exists():
+        elif (self.sd_config.git_path / "requirements.txt").exists():
             return "req_txt"
 
         # Exit if we haven't found any requirements.
-        error_msg = f"Couldn't find any specified requirements in {self.git_path}."
+        error_msg = f"Couldn't find any specified requirements in {self.sd_config.git_path}."
         raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
 
     def _check_using_poetry(self):
@@ -473,7 +473,7 @@ class Command(BaseCommand):
         Returns:
             bool: True if found, False if not found.
         """
-        path = self.git_path / "pyproject.toml"
+        path = self.sd_config.git_path / "pyproject.toml"
         if not path.exists():
             return False
 
@@ -497,13 +497,13 @@ class Command(BaseCommand):
         plugin_utils.write_output(self.sd_config, msg)
 
         if self.sd_config.pkg_manager == "req_txt":
-            self.sd_config.req_txt_path = self.git_path / "requirements.txt"
+            self.sd_config.req_txt_path = self.sd_config.git_path / "requirements.txt"
             requirements = sd_utils.parse_req_txt(self.sd_config.req_txt_path)
         elif self.sd_config.pkg_manager == "pipenv":
-            self.sd_config.pipfile_path = self.git_path / "Pipfile"
+            self.sd_config.pipfile_path = self.sd_config.git_path / "Pipfile"
             requirements = sd_utils.parse_pipfile(self.sd_config.pipfile_path)
         elif self.sd_config.pkg_manager == "poetry":
-            self.sd_config.pyprojecttoml_path = self.git_path / "pyproject.toml"
+            self.sd_config.pyprojecttoml_path = self.sd_config.git_path / "pyproject.toml"
             requirements = sd_utils.parse_pyproject_toml(self.sd_config.pyprojecttoml_path)
 
         # Report findings.

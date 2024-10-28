@@ -95,14 +95,18 @@ def test_log_dir(tmp_project):
     log_files = sorted(log_path.glob("*"))
     log_filenames = [lf.name for lf in log_files]
     # Check for exactly the log files we expect to find.
-    assert "deployment_summary.html" in log_filenames
+
+    # DEV: This will appear again when friendly summaries are implemented.
+    assert "deployment_summary.html" not in log_filenames
     # DEV: Add a regex text for a file like "simple_deploy_2022-07-09174245.log".
-    assert len(log_files) == 2
+    # DEV: This len will be 2 once friendly summaries are implemented.
+    assert len(log_files) == 1
 
     # Read log file.
     # DEV: Look for specific log file; not sure this log file is always the second one.
     #   We're looking for one similar to "simple_deploy_2022-07-09174245.log".
-    log_file = log_files[1]
+    # DEV: This may be log_files[1] after implementing friendly summaries.
+    log_file = log_files[0]
     log_file_text = log_file.read_text()
 
     # Spot check for opening log messages.
