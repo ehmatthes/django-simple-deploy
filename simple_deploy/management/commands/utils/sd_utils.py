@@ -9,44 +9,8 @@ import inspect, re, sys, subprocess, logging
 
 from django.template.engine import Engine, Context
 from django.template.utils import get_app_template_dirs
-from django.core.management.base import CommandError
 
 import toml
-
-
-def get_numbered_choice(sd_command, prompt, valid_choices, quit_message):
-    """Select from a numbered list of choices.
-
-    This is used, for example, to select from a number of apps that the user
-    has created on a platform.
-    """
-    prompt += "\n\nYou can quit by entering q.\n"
-
-    while True:
-        # Show prompt and get selection.
-        sd_command.log_info(prompt)
-
-        selection = input(prompt)
-        sd_command.log_info(selection)
-
-        if selection.lower() in ["q", "quit"]:
-            raise SimpleDeployCommandError(sd_command, quit_message)
-
-        # Make sure they entered a number
-        try:
-            selection = int(selection)
-        except ValueError:
-            msg = "Please enter a number from the list of choices."
-            sd_command.write_output(msg)
-            continue
-
-        # Validate selection.
-        if selection not in valid_choices:
-            msg = "  Invalid selection. Please try again."
-            sd_command.write_output(msg)
-            continue
-
-        return selection
 
 
 def validate_choice(choice, valid_choices):
@@ -54,58 +18,6 @@ def validate_choice(choice, valid_choices):
     if choice in valid_choices:
         return True
     return False
-
-
-class SimpleDeployCommandError(CommandError):
-    """Simple wrapper around CommandError, to facilitate consistent
-    logging of command errors.
-
-    Writes "SimpleDeployCommandError:" and error message to log, then raises
-    actual CommandError.
-
-    Note: This changes the exception type from CommandError to
-    SimpleDeployCommandError.
-    """
-
-    def __init__(self, sd_command, message):
-        sd_command.log_info("\nSimpleDeployCommandError:")
-        sd_command.log_info(message)
-        super().__init__(message)
-
-
-def get_string_from_output(output):
-    """Convert output to string.
-
-    Output may be a string, or an instance of subprocess.CompletedProcess.
-
-    This function assumes that output is either stdout *or* stderr, but not both. If we
-    need to display both, consider redirecting stderr to stdout:
-        subprocess.run(cmd_parts, stderr=subprocess.STDOUT, ...)
-    This has not been necessary yet; if it becomes necessary we'll probably need to
-    modify simple_deploy.run_quick_command() to accomodate the necessary args.
-    """
-    if isinstance(output, str):
-        return output
-
-    if isinstance(output, subprocess.CompletedProcess):
-        # Extract subprocess output as a string. Assume output is either stdout or
-        # stderr, but not both.
-        output_str = output.stdout.decode()
-        if not output_str:
-            output_str = output.stderr.decode()
-
-        return output_str
-
-
-def log_output_string(output):
-    """Log output as a series of single lines, for better log parsing.
-
-    Returns:
-        None
-    """
-    for line in output.splitlines():
-        line = _strip_secret_key(line)
-        logging.info(line)
 
 
 def parse_req_txt(path):
@@ -181,57 +93,6 @@ def parse_pyproject_toml(path):
     return requirements
 
 
-def create_poetry_deploy_group(pptoml_path):
-    """Create a deploy group for Poetry in pyproject.toml."""
-    pptoml_data = toml.load(pptoml_path)
-
-    # Create Poetry group if needed.
-    if "group" not in pptoml_data["tool"]["poetry"]:
-        pptoml_data["tool"]["poetry"]["group"] = {}
-
-    # Create optional deploy group, and deploy group dependencies.
-    pptoml_data["tool"]["poetry"]["group"]["deploy"] = {"optional": True}
-    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"] = {}
-
-    pptoml_data_str = toml.dumps(pptoml_data)
-    pptoml_path.write_text(pptoml_data_str)
-
-
-def add_req_txt_pkg(req_txt_path, package, version):
-    """Add a package to requirements.txt."""
-    contents = req_txt_path.read_text()
-    pkg_string = f"\n{package + version}"
-    req_txt_path.write_text(contents + pkg_string)
-
-
-def add_poetry_pkg(pptoml_path, package, version):
-    """Add a package to poetry deploy group of pyproject.toml."""
-
-    # A method in simple_deploy may pass an empty string, which would override a
-    # default argument value of "*".
-    if not version:
-        version = "*"
-
-    pptoml_data = toml.load(pptoml_path)
-    pptoml_data["tool"]["poetry"]["group"]["deploy"]["dependencies"][package] = version
-
-    pptoml_data_str = toml.dumps(pptoml_data)
-    pptoml_path.write_text(pptoml_data_str)
-
-
-def add_pipenv_pkg(pipfile_path, package, version):
-    """Add a package to Pipfile."""
-    # A method in simple_deploy may pass an empty string, which would override a
-    # default argument value of "*".
-    if not version:
-        version = "*"
-
-    data = toml.load(pipfile_path)
-    data["packages"][package] = version
-    data_str = toml.dumps(data)
-    pipfile_path.write_text(data_str)
-
-
 def check_status_output(status_output, diff_output):
     """Check output of `git status --porcelain` for uncommitted changes.
 
@@ -273,16 +134,6 @@ def check_status_output(status_output, diff_output):
 
 
 # --- Helper functions ---
-
-
-def _strip_secret_key(line):
-    """Strip secret key value from log file lines."""
-    if "SECRET_KEY =" in line:
-        new_line = line.split("SECRET_KEY")[0]
-        new_line += "SECRET_KEY = *value hidden*"
-        return new_line
-    else:
-        return line
 
 
 def _check_git_diff(diff_output):

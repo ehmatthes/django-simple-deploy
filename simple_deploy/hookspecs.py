@@ -14,5 +14,5 @@ def simple_deploy_get_automate_all_msg():
 
 
 @hookspec
-def simple_deploy_deploy(sd):
+def simple_deploy_deploy(sd_config):
     """Carry out all platform-specific configuration and deployment work."""

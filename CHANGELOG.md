@@ -17,6 +17,12 @@ The goal for the 0.7 series is to support an internal plugin model. There should
 #### Internal changes
 
 - Adds several utility functions for use by platform-specific plugins: `add_file()`, `add_dir()`, `modify_file()`, and `get_template_string()`. Each of the three platforms use these functions where appropriate. Reorganizes `utils.py` into `utils/sd_utils.py` and `utils/plugin_utils.py`.
+- Accesses platform messages directly, rather than through an attribute.
+- Simpler access to `sd_utils`.
+- Renamed `deploy_messages` -> `sd_messages`.
+- Moved `SimpleDeployCommandError` to `plugin_utils`.
+- Move all functions that platform plugins use to `plugin_utils`, and out of `Command`.
+- Created `SDConfig` class to store all information that a plugin might need to access. This avoids having to pass around an instance of `Command`, which had grown pretty awkward.
 
 ### 0.7.2
 
