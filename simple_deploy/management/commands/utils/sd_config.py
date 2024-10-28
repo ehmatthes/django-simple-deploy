@@ -1,6 +1,5 @@
 class SDConfig:
-    """Class for managing attributes of Command that need to be shared with plugins.
-    """
+    """Class for managing attributes of Command that need to be shared with plugins."""
 
     def __init__(self, stdout):
         """Define all attributes that will need to be shared."""

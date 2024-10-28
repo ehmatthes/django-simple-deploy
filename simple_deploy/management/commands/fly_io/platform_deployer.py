@@ -459,7 +459,9 @@ class PlatformDeployer:
 
                 confirm_prompt = f"You have selected {selected_name}."
                 confirm_prompt += " Is that correct?"
-                confirmed = plugin_utils.get_confirmation(self.sd_config, confirm_prompt)
+                confirmed = plugin_utils.get_confirmation(
+                    self.sd_config, confirm_prompt
+                )
 
             # Create a new app for automated runs, if needed.
             if selected_name == "Create a new app":

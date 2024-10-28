@@ -13,6 +13,7 @@ import pytest
 
 # --- Fixtures ---
 
+
 @pytest.fixture()
 def mock_sdconfig():
     sd_config = SDConfig(stdout=None)
@@ -21,6 +22,7 @@ def mock_sdconfig():
 
 
 # --- Test functions ---
+
 
 def test_strip_secret_key_with_key():
     line = "SECRET_KEY = 'django-insecure-j+*1=he4!%=(-3g^$hj=1pkmzkbdjm0-h2%yd-=1sf%trwun_-'"

@@ -262,9 +262,7 @@ def get_confirmation(
             )
 
 
-def check_settings(
-    sd_config, platform_name, start_line, msg_found, msg_cant_overwrite
-):
+def check_settings(sd_config, platform_name, start_line, msg_found, msg_cant_overwrite):
     """Check if a platform-specific settings block already exists.
 
     If so, ask if we can overwrite that block. This is much simpler than trying to
@@ -345,6 +343,7 @@ def commit_changes(sd_config):
     output = run_quick_command(sd_config, cmd)
     write_output(sd_config, output)
 
+
 def add_packages(sd_config, package_list):
     """Add a set of packages to the project's requirements.
 
@@ -357,6 +356,7 @@ def add_packages(sd_config, package_list):
     """
     for package in package_list:
         add_package(sd_config, package)
+
 
 def add_package(sd_config, package_name, version=""):
     """Add a package to the project's requirements, if not already present.
@@ -372,9 +372,7 @@ def add_package(sd_config, package_name, version=""):
     write_output(sd_config, f"\nLooking for {package_name}...")
 
     if package_name in sd_config.requirements:
-        write_output(
-            sd_config, f"  Found {package_name} in requirements file."
-        )
+        write_output(sd_config, f"  Found {package_name} in requirements file.")
         return
 
     if sd_config.pkg_manager == "pipenv":
@@ -453,6 +451,7 @@ def _strip_secret_key(line):
     else:
         return line
 
+
 def add_pipenv_pkg(pipfile_path, package, version):
     """Add a package to Pipfile."""
     # A method in simple_deploy may pass an empty string, which would override a
@@ -465,6 +464,7 @@ def add_pipenv_pkg(pipfile_path, package, version):
     data_str = toml.dumps(data)
     pipfile_path.write_text(data_str)
 
+
 def _check_poetry_deploy_group(sd_config):
     """Make sure a deploy group exists in pyproject.toml."""
     pptoml_data = toml.load(sd_config.pyprojecttoml_path)
@@ -474,6 +474,7 @@ def _check_poetry_deploy_group(sd_config):
         create_poetry_deploy_group(sd_config.pyprojecttoml_path)
         msg = "    Added optional deploy group to pyproject.toml."
         write_output(sd_config, msg)
+
 
 def create_poetry_deploy_group(pptoml_path):
     """Create a deploy group for Poetry in pyproject.toml."""
@@ -490,6 +491,7 @@ def create_poetry_deploy_group(pptoml_path):
     pptoml_data_str = toml.dumps(pptoml_data)
     pptoml_path.write_text(pptoml_data_str)
 
+
 def add_poetry_pkg(pptoml_path, package, version):
     """Add a package to poetry deploy group of pyproject.toml."""
 
@@ -503,6 +505,7 @@ def add_poetry_pkg(pptoml_path, package, version):
 
     pptoml_data_str = toml.dumps(pptoml_data)
     pptoml_path.write_text(pptoml_data_str)
+
 
 def add_req_txt_pkg(req_txt_path, package, version):
     """Add a package to requirements.txt."""

@@ -112,7 +112,9 @@ class PlatformDeployer:
         self.sd_config.pkg_manager = "req_txt"
         self.sd_config.req_txt_path = self.sd_config.git_path / "requirements.txt"
         plugin_utils.log_info(self.sd_config, "    Package manager set to req_txt.")
-        plugin_utils.log_info(self.sd_config, f"    req_txt path: {self.sd_config.req_txt_path}")
+        plugin_utils.log_info(
+            self.sd_config, f"    req_txt path: {self.sd_config.req_txt_path}"
+        )
 
         # Add simple_deploy, because it wasn't done earlier for poetry.
         # This may be a bug in how poetry is handled by core.
@@ -325,7 +327,9 @@ class PlatformDeployer:
             )
         else:
             # Show steps to finish the deployment process.
-            msg = platform_msgs.success_msg(self.sd_config.pkg_manager, self.heroku_app_name)
+            msg = platform_msgs.success_msg(
+                self.sd_config.pkg_manager, self.heroku_app_name
+            )
 
         plugin_utils.write_output(self.sd_config, msg)
 
@@ -420,7 +424,9 @@ class PlatformDeployer:
         if self.sd_config.automate_all:
             return
 
-        plugin_utils.write_output(self.sd_config, "  Looking for Heroku app to push to...")
+        plugin_utils.write_output(
+            self.sd_config, "  Looking for Heroku app to push to..."
+        )
         cmd = "heroku apps:info --json"
         output_obj = plugin_utils.run_quick_command(self.sd_config, cmd)
         plugin_utils.write_output(self.sd_config, output_obj)
@@ -457,7 +463,9 @@ class PlatformDeployer:
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
-        plugin_utils.write_output(self.sd_config, "  Setting Heroku environment variable...")
+        plugin_utils.write_output(
+            self.sd_config, "  Setting Heroku environment variable..."
+        )
         cmd = "heroku config:set ON_HEROKU=1"
         output = plugin_utils.run_quick_command(self.sd_config, cmd)
         plugin_utils.write_output(self.sd_config, output)
@@ -481,7 +489,9 @@ class PlatformDeployer:
         cmd = "heroku config:set DEBUG=FALSE"
         output = plugin_utils.run_quick_command(self.sd_config, cmd)
         plugin_utils.write_output(self.sd_config, output)
-        plugin_utils.write_output(self.sd_config, "    Set DEBUG config variable to FALSE.")
+        plugin_utils.write_output(
+            self.sd_config, "    Set DEBUG config variable to FALSE."
+        )
 
     def _set_secret_key_env_var(self):
         """Use an env var to manage the secret key."""
@@ -495,7 +505,9 @@ class PlatformDeployer:
             new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
-        plugin_utils.write_output(self.sd_config, "  Setting new secret key for Heroku...")
+        plugin_utils.write_output(
+            self.sd_config, "  Setting new secret key for Heroku..."
+        )
         cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
         output = plugin_utils.run_quick_command(self.sd_config, cmd, skip_logging=True)
         plugin_utils.write_output(self.sd_config, output)
@@ -512,5 +524,5 @@ class PlatformDeployer:
         # msg = f"\n  Generated friendly summary: {path}"
         # plugin_utils.write_output(self.sd_config, msg)
         pass
-        # When implementing this, write a plugin utility to write the contents of the 
+        # When implementing this, write a plugin utility to write the contents of the
         # friendly summary to file.

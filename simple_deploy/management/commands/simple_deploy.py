@@ -222,7 +222,9 @@ class Command(BaseCommand):
             format="%(asctime)s %(levelname)s: %(message)s",
         )
 
-        plugin_utils.write_output(self.sd_config, "Logging run of `manage.py simple_deploy`...")
+        plugin_utils.write_output(
+            self.sd_config, "Logging run of `manage.py simple_deploy`..."
+        )
         plugin_utils.write_output(self.sd_config, f"Created {verbose_log_path}.")
 
     def _log_cli_args(self, options):
@@ -258,7 +260,9 @@ class Command(BaseCommand):
                 self.sd_config, sd_messages.requires_platform_flag
             )
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
-            plugin_utils.write_output(self.sd_config, f"\nDeployment target: {self.platform}")
+            plugin_utils.write_output(
+                self.sd_config, f"\nDeployment target: {self.platform}"
+            )
         else:
             error_msg = sd_messages.invalid_platform_msg(self.platform)
             raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
@@ -304,10 +308,14 @@ class Command(BaseCommand):
             None
         """
         self.sd_config.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
-        plugin_utils.log_info(self.sd_config, f"Local project name: {self.sd_config.local_project_name}")
+        plugin_utils.log_info(
+            self.sd_config, f"Local project name: {self.sd_config.local_project_name}"
+        )
 
         self.sd_config.project_root = settings.BASE_DIR
-        plugin_utils.log_info(self.sd_config, f"Project root: {self.sd_config.project_root}")
+        plugin_utils.log_info(
+            self.sd_config, f"Project root: {self.sd_config.project_root}"
+        )
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
@@ -317,7 +325,11 @@ class Command(BaseCommand):
         if self.sd_config.log_output:
             self._ignore_sd_logs()
 
-        self.sd_config.settings_path = self.sd_config.project_root / self.sd_config.local_project_name / "settings.py"
+        self.sd_config.settings_path = (
+            self.sd_config.project_root
+            / self.sd_config.local_project_name
+            / "settings.py"
+        )
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
         self.sd_config.pkg_manager = self._get_dep_man_approach()
@@ -349,17 +361,19 @@ class Command(BaseCommand):
         """
         if (self.sd_config.project_root / ".git").exists():
             self.sd_config.git_path = self.sd_config.project_root
-            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.sd_config.git_path}.")
+            plugin_utils.write_output(
+                self.sd_config, f"Found .git dir at {self.sd_config.git_path}."
+            )
             self.sd_config.nested_project = False
         elif (self.project_root.parent / ".git").exists():
             self.sd_config.git_path = self.sd_config.project_root.parent
-            plugin_utils.write_output(self.sd_config, f"Found .git dir at {self.sd_config.git_path}.")
+            plugin_utils.write_output(
+                self.sd_config, f"Found .git dir at {self.sd_config.git_path}."
+            )
             self.sd_config.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
-            error_msg += (
-                f"\n  Looked in {self.sd_config.project_root} and in {self.sd_config.project_root.parent}."
-            )
+            error_msg += f"\n  Looked in {self.sd_config.project_root} and in {self.sd_config.project_root.parent}."
             raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
 
     def _check_git_status(self):
@@ -427,7 +441,9 @@ class Command(BaseCommand):
             plugin_utils.write_output(
                 self.sd_config, "No .gitignore file found; created .gitignore."
             )
-            plugin_utils.write_output(self.sd_config, "Added simple_deploy_logs/ to .gitignore.")
+            plugin_utils.write_output(
+                self.sd_config, "Added simple_deploy_logs/ to .gitignore."
+            )
         else:
             # Append log directory to .gitignore if it's not already there.
             contents = gitignore_path.read_text()
@@ -462,7 +478,9 @@ class Command(BaseCommand):
             return "req_txt"
 
         # Exit if we haven't found any requirements.
-        error_msg = f"Couldn't find any specified requirements in {self.sd_config.git_path}."
+        error_msg = (
+            f"Couldn't find any specified requirements in {self.sd_config.git_path}."
+        )
         raise plugin_utils.SimpleDeployCommandError(self.sd_config, error_msg)
 
     def _check_using_poetry(self):
@@ -503,8 +521,12 @@ class Command(BaseCommand):
             self.sd_config.pipfile_path = self.sd_config.git_path / "Pipfile"
             requirements = sd_utils.parse_pipfile(self.sd_config.pipfile_path)
         elif self.sd_config.pkg_manager == "poetry":
-            self.sd_config.pyprojecttoml_path = self.sd_config.git_path / "pyproject.toml"
-            requirements = sd_utils.parse_pyproject_toml(self.sd_config.pyprojecttoml_path)
+            self.sd_config.pyprojecttoml_path = (
+                self.sd_config.git_path / "pyproject.toml"
+            )
+            requirements = sd_utils.parse_pyproject_toml(
+                self.sd_config.pyprojecttoml_path
+            )
 
         # Report findings.
         msg = "  Found existing dependencies:"
@@ -624,7 +646,7 @@ class Command(BaseCommand):
     #     sd_config.deployed_project_name = self.deployed_project_name
     #     sd_config.log_output = self.log_output
     #     sd_config.automate_all = self.automate_all
-        
+
     #     sd_config.use_shell = self.use_shell
     #     sd_config.e2e_testing = self.e2e_testing
     #     sd_config.unit_testing = self.unit_testing
