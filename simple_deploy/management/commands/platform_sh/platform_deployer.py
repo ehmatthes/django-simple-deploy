@@ -108,7 +108,7 @@ class PlatformDeployer:
         plugin_utils.write_output(
             self.sd_config, "    (Please be patient, this can take a few minutes."
         )
-        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd.region} --yes"
+        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd_config.region} --yes"
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.

@@ -24,6 +24,7 @@ class SDConfig:
         self.deployed_project_name = ""
         self.log_output = None
         self.automate_all = None
+        self.region = None
 
         # Attributes needed by plugin utility functions.
         self.use_shell = None

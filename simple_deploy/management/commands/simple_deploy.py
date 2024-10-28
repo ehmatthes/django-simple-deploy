@@ -188,7 +188,7 @@ class Command(BaseCommand):
 
         # Platform.sh arguments.
         self.sd_config.deployed_project_name = options["deployed_project_name"]
-        self.region = options["region"]
+        self.sd_config.region = options["region"]
 
         # Developer arguments.
         self.sd_config.unit_testing = options["unit_testing"]
