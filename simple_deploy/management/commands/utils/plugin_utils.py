@@ -16,6 +16,12 @@ from .. import sd_messages
 
 # --- Utilities that require an instance of Command ---
 
+def init(config):
+    """Make sd_config instance available to all functions in this module."""
+    global sd_config
+    sd_config = config
+
+
 
 class SimpleDeployCommandError(CommandError):
     """Simple wrapper around CommandError, to facilitate consistent
@@ -28,13 +34,13 @@ class SimpleDeployCommandError(CommandError):
     SimpleDeployCommandError.
     """
 
-    def __init__(self, sd_config, message):
-        log_info(sd_config, "\nSimpleDeployCommandError:")
-        log_info(sd_config, message)
+    def __init__(self, message):
+        log_info("\nSimpleDeployCommandError:")
+        log_info(message)
         super().__init__(message)
 
 
-def add_file(sd_config, path, contents):
+def add_file(path, contents):
     """Add a new file to the project.
 
     This function is meant to be used when adding new files that don't typically
@@ -52,25 +58,25 @@ def add_file(sd_config, path, contents):
     to overwrite file.
     """
 
-    write_output(sd_config, f"\n  Looking in {path.parent} for {path.name}...")
+    write_output(f"\n  Looking in {path.parent} for {path.name}...")
 
     if path.exists():
-        proceed = get_confirmation(sd_config, sd_messages.file_found(path.name))
+        proceed = get_confirmation(sd_messages.file_found(path.name))
         if not proceed:
             raise SimpleDeployCommandError(
-                sd_config, sd_messages.file_replace_rejected(path.name)
+                sd_messages.file_replace_rejected(path.name)
             )
     else:
-        write_output(sd_config, f"    File {path.name} not found. Generating file...")
+        write_output(f"    File {path.name} not found. Generating file...")
 
     # File does not exist, or we are free to overwrite it.
     path.write_text(contents)
 
     msg = f"\n    Wrote {path.name} to {path}"
-    write_output(sd_config, msg)
+    write_output(msg)
 
 
-def modify_file(sd_config, path, contents):
+def modify_file(path, contents):
     """Modify an existing file.
 
     This function is meant for modifying a file that should already exist, such as
@@ -86,15 +92,15 @@ def modify_file(sd_config, path, contents):
     # Make sure file exists.
     if not path.exists():
         msg = f"File {path.as_posix()} does not exist."
-        raise SimpleDeployCommandError(sd_config, msg)
+        raise SimpleDeployCommandError(msg)
 
     # Rewrite file with new contents.
     path.write_text(contents)
     msg = f"  Modified file: {path.as_posix()}"
-    write_output(sd_config, msg)
+    write_output(msg)
 
 
-def add_dir(sd_config, path):
+def add_dir(path):
     """Write a new directory to the file.
 
     This function is meant to be used when adding new directories that don't
@@ -106,16 +112,16 @@ def add_dir(sd_config, path):
     Returns:
     - None
     """
-    write_output(sd_config, f"\n  Looking for {path.as_posix()}...")
+    write_output(f"\n  Looking for {path.as_posix()}...")
 
     if path.exists():
-        write_output(sd_config, f"    Found {path.as_posix()}")
+        write_output(f"    Found {path.as_posix()}")
     else:
         path.mkdir()
-        write_output(sd_config, f"    Added new directory: {path.as_posix()}")
+        write_output(f"    Added new directory: {path.as_posix()}")
 
 
-def get_numbered_choice(sd_config, prompt, valid_choices, quit_message):
+def get_numbered_choice(prompt, valid_choices, quit_message):
     """Select from a numbered list of choices.
 
     This is used, for example, to select from a number of apps that the user
@@ -125,32 +131,32 @@ def get_numbered_choice(sd_config, prompt, valid_choices, quit_message):
 
     while True:
         # Show prompt and get selection.
-        log_info(sd_config, prompt)
+        log_info(prompt)
 
         selection = input(prompt)
-        log_info(sd_config, selection)
+        log_info(selection)
 
         if selection.lower() in ["q", "quit"]:
-            raise SimpleDeployCommandError(sd_config, quit_message)
+            raise SimpleDeployCommandError(quit_message)
 
         # Make sure they entered a number
         try:
             selection = int(selection)
         except ValueError:
             msg = "Please enter a number from the list of choices."
-            write_output(sd_config, msg)
+            write_output(msg)
             continue
 
         # Validate selection.
         if selection not in valid_choices:
             msg = "  Invalid selection. Please try again."
-            write_output(sd_config, msg)
+            write_output(msg)
             continue
 
         return selection
 
 
-def run_quick_command(sd_config, cmd, check=False, skip_logging=False):
+def run_quick_command(cmd, check=False, skip_logging=False):
     """Run a command that should finish quickly.
 
     Commands that should finish quickly can be run more simply than commands that
@@ -171,7 +177,7 @@ def run_quick_command(sd_config, cmd, check=False, skip_logging=False):
         instead of returning a CompletedProcess instance with an error code set.
     """
     if not skip_logging:
-        log_info(sd_config, f"\n{cmd}")
+        log_info(f"\n{cmd}")
 
     if sd_config.on_windows:
         output = subprocess.run(cmd, shell=True, capture_output=True)
@@ -182,7 +188,7 @@ def run_quick_command(sd_config, cmd, check=False, skip_logging=False):
     return output
 
 
-def run_slow_command(sd_config, cmd, skip_logging=False):
+def run_slow_command(cmd, skip_logging=False):
     """Run a command that may take some time.
 
     For commands that may take a while, we need to stream output to the user, rather
@@ -198,7 +204,7 @@ def run_slow_command(sd_config, cmd, skip_logging=False):
     # over p.stdout misses stderr. Maybe combine the loops with zip()? SO posts on
     # this topic date back to Python2/3 days.
     if not skip_logging:
-        log_info(sd_config, f"\n{cmd}")
+        log_info(f"\n{cmd}")
 
     cmd_parts = cmd.split()
     with subprocess.Popen(
@@ -209,14 +215,14 @@ def run_slow_command(sd_config, cmd, skip_logging=False):
         shell=sd_config.use_shell,
     ) as p:
         for line in p.stderr:
-            write_output(sd_config, line, skip_logging=skip_logging)
+            write_output(line, skip_logging=skip_logging)
 
     if p.returncode != 0:
         raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
 def get_confirmation(
-    sd_config, msg="Are you sure you want to do this?", skip_logging=False
+    msg="Are you sure you want to do this?", skip_logging=False
 ):
     """Get confirmation for an action.
 
@@ -232,24 +238,24 @@ def get_confirmation(
 
     # If doing e2e testing, always return True.
     if sd_config.e2e_testing:
-        write_output(sd_config, prompt, skip_logging=skip_logging)
+        write_output(prompt, skip_logging=skip_logging)
         msg = "  Confirmed for e2e testing..."
-        write_output(sd_config, msg, skip_logging=skip_logging)
+        write_output(msg, skip_logging=skip_logging)
         return True
 
     if sd_config.unit_testing:
-        write_output(sd_config, prompt, skip_logging=skip_logging)
+        write_output(prompt, skip_logging=skip_logging)
         msg = "  Confirmed for unit testing..."
-        write_output(sd_config, msg, skip_logging=skip_logging)
+        write_output(msg, skip_logging=skip_logging)
         return True
 
     while True:
-        write_output(sd_config, prompt, skip_logging=skip_logging)
+        write_output(prompt, skip_logging=skip_logging)
         confirmed = input()
 
         # Log user's response before processing it.
         write_output(
-            sd_config, confirmed, skip_logging=skip_logging, write_to_console=False
+            confirmed, skip_logging=skip_logging, write_to_console=False
         )
 
         if confirmed.lower() in ("y", "yes"):
@@ -258,11 +264,11 @@ def get_confirmation(
             return False
         else:
             write_output(
-                sd_config, "  Please answer yes or no.", skip_logging=skip_logging
+                "  Please answer yes or no.", skip_logging=skip_logging
             )
 
 
-def check_settings(sd_config, platform_name, start_line, msg_found, msg_cant_overwrite):
+def check_settings(platform_name, start_line, msg_found, msg_cant_overwrite):
     """Check if a platform-specific settings block already exists.
 
     If so, ask if we can overwrite that block. This is much simpler than trying to
@@ -281,21 +287,21 @@ def check_settings(sd_config, platform_name, start_line, msg_found, msg_cant_ove
     m = re.match(re_platform_settings, settings_text, re.DOTALL)
 
     if not m:
-        log_info(sd_config, f"No {platform_name}-specific settings block found.")
+        log_info(f"No {platform_name}-specific settings block found.")
         return
 
     # A platform-specific settings block exists. Get permission to overwrite it.
-    if not get_confirmation(sd_config, msg_found):
-        raise SimpleDeployCommandError(sd_config, msg_cant_overwrite)
+    if not get_confirmation(msg_found):
+        raise SimpleDeployCommandError(msg_cant_overwrite)
 
     # Platform-specific settings exist, but we can remove them and start fresh.
     sd_config.settings_path.write_text(m.group(1))
 
     msg = f"  Removed existing {platform_name}-specific settings block."
-    write_output(sd_config, msg)
+    write_output(msg)
 
 
-def write_output(sd_config, output, write_to_console=True, skip_logging=False):
+def write_output(output, write_to_console=True, skip_logging=False):
     """Write output to the appropriate places.
 
     Typically, this is used for writing output to the console as the configuration
@@ -315,17 +321,17 @@ def write_output(sd_config, output, write_to_console=True, skip_logging=False):
         sd_config.stdout.write(output_str)
 
     if not skip_logging:
-        log_info(sd_config, output_str)
+        log_info(output_str)
 
 
-def log_info(sd_config, output):
+def log_info(output):
     """Log output, which may be a string or CompletedProcess instance."""
     if sd_config.log_output:
         output_str = get_string_from_output(output)
         log_output_string(output_str)
 
 
-def commit_changes(sd_config):
+def commit_changes():
     """Commit changes that have been made to the project.
 
     This should only be called when automate_all is being used.
@@ -333,18 +339,18 @@ def commit_changes(sd_config):
     if not sd_config.automate_all:
         return
 
-    write_output(sd_config, "  Committing changes...")
+    write_output("  Committing changes...")
 
     cmd = "git add ."
-    output = run_quick_command(sd_config, cmd)
-    write_output(sd_config, output)
+    output = run_quick_command(cmd)
+    write_output(output)
 
     cmd = 'git commit -m "Configured project for deployment."'
-    output = run_quick_command(sd_config, cmd)
-    write_output(sd_config, output)
+    output = run_quick_command(cmd)
+    write_output(output)
 
 
-def add_packages(sd_config, package_list):
+def add_packages(package_list):
     """Add a set of packages to the project's requirements.
 
     This is a simple wrapper for add_package(), to make it easier to add multiple
@@ -355,10 +361,10 @@ def add_packages(sd_config, package_list):
         None
     """
     for package in package_list:
-        add_package(sd_config, package)
+        add_package(package)
 
 
-def add_package(sd_config, package_name, version=""):
+def add_package(package_name, version=""):
     """Add a package to the project's requirements, if not already present.
 
     Handles calls with version information with pip formatting:
@@ -369,21 +375,21 @@ def add_package(sd_config, package_name, version=""):
     Returns:
         None
     """
-    write_output(sd_config, f"\nLooking for {package_name}...")
+    write_output(f"\nLooking for {package_name}...")
 
     if package_name in sd_config.requirements:
-        write_output(sd_config, f"  Found {package_name} in requirements file.")
+        write_output(f"  Found {package_name} in requirements file.")
         return
 
     if sd_config.pkg_manager == "pipenv":
         add_pipenv_pkg(sd_config.pipfile_path, package_name, version)
     elif sd_config.pkg_manager == "poetry":
-        _check_poetry_deploy_group(sd_config)
+        _check_poetry_deploy_group()
         add_poetry_pkg(sd_config.pyprojecttoml_path, package_name, version)
     else:
         add_req_txt_pkg(sd_config.req_txt_path, package_name, version)
 
-    write_output(sd_config, f"  Added {package_name} to requirements file.")
+    write_output(f"  Added {package_name} to requirements file.")
 
 
 # --- Utilities that do not require an instance of SDConfig ---
@@ -465,7 +471,7 @@ def add_pipenv_pkg(pipfile_path, package, version):
     pipfile_path.write_text(data_str)
 
 
-def _check_poetry_deploy_group(sd_config):
+def _check_poetry_deploy_group():
     """Make sure a deploy group exists in pyproject.toml."""
     pptoml_data = toml.load(sd_config.pyprojecttoml_path)
     try:
@@ -473,7 +479,7 @@ def _check_poetry_deploy_group(sd_config):
     except KeyError:
         create_poetry_deploy_group(sd_config.pyprojecttoml_path)
         msg = "    Added optional deploy group to pyproject.toml."
-        write_output(sd_config, msg)
+        write_output(msg)
 
 
 def create_poetry_deploy_group(pptoml_path):
