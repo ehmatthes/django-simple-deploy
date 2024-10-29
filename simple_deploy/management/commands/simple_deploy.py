@@ -133,6 +133,7 @@ class Command(BaseCommand):
 
         self._confirm_automate_all(pm)
         # sd_config = self._get_sd_config()
+        self.sd_config.validate()
         pm.hook.simple_deploy_deploy(sd_config=self.sd_config)
 
     def _parse_cli_options(self, options):
