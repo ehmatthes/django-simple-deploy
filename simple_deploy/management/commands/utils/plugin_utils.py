@@ -34,7 +34,7 @@ class SimpleDeployCommandError(CommandError):
     SimpleDeployCommandError.
     """
 
-    def __init__(self, sd_config, message):
+    def __init__(self, message):
         log_info("\nSimpleDeployCommandError:")
         log_info(message)
         super().__init__(message)
@@ -64,7 +64,7 @@ def add_file(path, contents):
         proceed = get_confirmation(sd_messages.file_found(path.name))
         if not proceed:
             raise SimpleDeployCommandError(
-                sd_config, sd_messages.file_replace_rejected(path.name)
+                sd_messages.file_replace_rejected(path.name)
             )
     else:
         write_output(f"    File {path.name} not found. Generating file...")
@@ -222,7 +222,7 @@ def run_slow_command(cmd, skip_logging=False):
 
 
 def get_confirmation(
-    sd_config, msg="Are you sure you want to do this?", skip_logging=False
+    msg="Are you sure you want to do this?", skip_logging=False
 ):
     """Get confirmation for an action.
 
@@ -255,7 +255,7 @@ def get_confirmation(
 
         # Log user's response before processing it.
         write_output(
-            sd_config, confirmed, skip_logging=skip_logging, write_to_console=False
+            confirmed, skip_logging=skip_logging, write_to_console=False
         )
 
         if confirmed.lower() in ("y", "yes"):
@@ -264,7 +264,7 @@ def get_confirmation(
             return False
         else:
             write_output(
-                sd_config, "  Please answer yes or no.", skip_logging=skip_logging
+                "  Please answer yes or no.", skip_logging=skip_logging
             )
 
 
@@ -331,7 +331,7 @@ def log_info(output):
         log_output_string(output_str)
 
 
-def commit_changes(sd_config):
+def commit_changes():
     """Commit changes that have been made to the project.
 
     This should only be called when automate_all is being used.
@@ -384,7 +384,7 @@ def add_package(package_name, version=""):
     if sd_config.pkg_manager == "pipenv":
         add_pipenv_pkg(sd_config.pipfile_path, package_name, version)
     elif sd_config.pkg_manager == "poetry":
-        _check_poetry_deploy_group(sd_config)
+        _check_poetry_deploy_group()
         add_poetry_pkg(sd_config.pyprojecttoml_path, package_name, version)
     else:
         add_req_txt_pkg(sd_config.req_txt_path, package_name, version)
@@ -471,7 +471,7 @@ def add_pipenv_pkg(pipfile_path, package, version):
     pipfile_path.write_text(data_str)
 
 
-def _check_poetry_deploy_group(sd_config):
+def _check_poetry_deploy_group():
     """Make sure a deploy group exists in pyproject.toml."""
     pptoml_data = toml.load(sd_config.pyprojecttoml_path)
     try:

@@ -195,9 +195,7 @@ class PlatformDeployer:
         if not self.sd_config.automate_all:
             return
 
-        plugin_utils.commit_changes(
-            self.sd_config,
-        )
+        plugin_utils.commit_changes()
 
         # Push project.
         plugin_utils.write_output("  Pushing to Platform.sh...")
@@ -252,7 +250,6 @@ class PlatformDeployer:
         """Check to see if a Platform.sh settings block already exists."""
         start_line = "# Platform.sh settings."
         plugin_utils.check_settings(
-            self.sd_config,
             "Platform.sh",
             start_line,
             platform_msgs.plsh_settings_found,

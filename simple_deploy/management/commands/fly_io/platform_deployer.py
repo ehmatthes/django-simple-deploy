@@ -206,7 +206,7 @@ class PlatformDeployer:
         if not self.sd_config.automate_all:
             return
 
-        plugin_utils.commit_changes(self.sd_config)
+        plugin_utils.commit_changes()
 
         # Push project.
         plugin_utils.write_output("  Deploying to Fly.io...")
@@ -300,7 +300,6 @@ class PlatformDeployer:
         """Check to see if a Fly.io settings block already exists."""
         start_line = "# Fly.io settings."
         plugin_utils.check_settings(
-            self.sd_config,
             "Fly.io",
             start_line,
             platform_msgs.flyio_settings_found,
@@ -760,7 +759,7 @@ class PlatformDeployer:
 
         # Show the command that will be run on the user's behalf.
         self.stdout.write(platform_msgs.confirm_create_db(db_cmd))
-        if plugin_utils.get_confirmation(self.sd_config):
+        if plugin_utils.get_confirmation():
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.

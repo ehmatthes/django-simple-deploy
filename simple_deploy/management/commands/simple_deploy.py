@@ -106,7 +106,7 @@ class Command(BaseCommand):
         # platform-specific plugins.
         self.sd_config = SDConfig(self.stdout)
         plugin_utils.init(self.sd_config)
-        
+
         plugin_utils.write_output(
             "Configuring project for deployment...", skip_logging=True
         )
@@ -523,7 +523,7 @@ class Command(BaseCommand):
         for hook in required_hooks:
             if hook not in callers:
                 msg = f"\nPlugin missing required hook implementation: {hook}()"
-                raise plugin_utils.SimpleDeployCommandError(self, msg)
+                raise plugin_utils.SimpleDeployCommandError(msg)
 
         # If plugin supports automate_all, make sure a confirmation message is provided.
         if not pm.hook.simple_deploy_automate_all_supported()[0]:
@@ -532,7 +532,7 @@ class Command(BaseCommand):
         hook = "simple_deploy_get_automate_all_msg"
         if hook not in callers:
             msg = f"\nPlugin missing required hook implementation: {hook}()"
-            raise plugin_utils.SimpleDeployCommandError(self, msg)
+            raise plugin_utils.SimpleDeployCommandError(msg)
 
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.

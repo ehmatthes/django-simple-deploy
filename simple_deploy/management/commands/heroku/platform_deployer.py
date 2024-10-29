@@ -255,9 +255,7 @@ class PlatformDeployer:
         if not self.sd_config.automate_all:
             return
 
-        plugin_utils.commit_changes(
-            self.sd_config,
-        )
+        plugin_utils.commit_changes()
 
         plugin_utils.write_output("  Pushing to heroku...")
 
