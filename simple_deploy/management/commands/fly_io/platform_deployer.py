@@ -38,8 +38,6 @@ class PlatformDeployer:
 
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
-        # plugin_utils.init(self.sd_config)
-
         plugin_utils.write_output(
             "\nConfiguring project for deployment to Fly.io..."
         )

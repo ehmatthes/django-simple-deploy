@@ -29,8 +29,6 @@ class PlatformDeployer:
         self.stdout = sd_config.stdout
         self.templates_path = Path(__file__).parent / "templates"
 
-        plugin_utils.init(sd_config)
-
     # --- Public methods ---
 
     def deploy(self, *args, **options):
