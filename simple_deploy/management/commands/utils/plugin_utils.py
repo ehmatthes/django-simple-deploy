@@ -16,6 +16,11 @@ from .. import sd_messages
 
 # --- Utilities that require an instance of Command ---
 
+# def init(sd_config):
+#     """Make sd_config instance available to all functions in this module."""
+#     global sd_config
+
+
 
 class SimpleDeployCommandError(CommandError):
     """Simple wrapper around CommandError, to facilitate consistent

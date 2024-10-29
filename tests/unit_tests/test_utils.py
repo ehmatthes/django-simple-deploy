@@ -2,6 +2,7 @@
 
 from pathlib import Path
 import filecmp
+import sys
 
 from simple_deploy.management.commands.utils import sd_utils
 from simple_deploy.management.commands.utils import plugin_utils
@@ -151,3 +152,22 @@ def test_add_pipenv_pkg(tmp_path):
     plugin_utils.add_pipenv_pkg(tmp_pipfile, "awesome-deployment-package", "")
     ref_file = Path(__file__).parent / "reference_files" / "Pipfile"
     assert filecmp.cmp(tmp_pipfile, ref_file)
+
+
+# --- Tests for functions that require sd_config ---
+
+def test_add_file(tmp_path, mock_sdconfig):
+    """Test utility for adding a file."""
+    contents = "Sample file contents.\n"
+    path = tmp_path / "test_add_file.txt"
+
+    assert not path.exists()
+
+    mock_sdconfig.unit_testing = "True"
+    mock_sdconfig.stdout = sys.stdout
+    plugin_utils.add_file(mock_sdconfig, path, contents)
+
+    assert path.exists()
+
+    contents_from_file = path.read_text()
+    assert contents_from_file == contents
