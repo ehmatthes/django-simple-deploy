@@ -156,6 +156,7 @@ def test_add_pipenv_pkg(tmp_path):
 
 # --- Tests for functions that require sd_config ---
 
+
 def test_add_file(tmp_path, mock_sdconfig):
     """Test utility for adding a file."""
     contents = "Sample file contents.\n"

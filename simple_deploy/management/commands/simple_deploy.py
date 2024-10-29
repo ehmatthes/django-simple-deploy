@@ -181,9 +181,7 @@ class Command(BaseCommand):
             format="%(asctime)s %(levelname)s: %(message)s",
         )
 
-        plugin_utils.write_output(
-            "Logging run of `manage.py simple_deploy`..."
-        )
+        plugin_utils.write_output("Logging run of `manage.py simple_deploy`...")
         plugin_utils.write_output(f"Created {verbose_log_path}.")
 
     def _log_cli_args(self, options):
@@ -219,9 +217,7 @@ class Command(BaseCommand):
                 sd_messages.requires_platform_flag
             )
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
-            plugin_utils.write_output(
-                f"\nDeployment target: {self.platform}"
-            )
+            plugin_utils.write_output(f"\nDeployment target: {self.platform}")
         else:
             error_msg = sd_messages.invalid_platform_msg(self.platform)
             raise plugin_utils.SimpleDeployCommandError(error_msg)
@@ -272,9 +268,7 @@ class Command(BaseCommand):
         )
 
         self.sd_config.project_root = settings.BASE_DIR
-        plugin_utils.log_info(
-            f"Project root: {self.sd_config.project_root}"
-        )
+        plugin_utils.log_info(f"Project root: {self.sd_config.project_root}")
 
         # Find .git location, and make sure there's a clean status.
         self._find_git_dir()
@@ -320,15 +314,11 @@ class Command(BaseCommand):
         """
         if (self.sd_config.project_root / ".git").exists():
             self.sd_config.git_path = self.sd_config.project_root
-            plugin_utils.write_output(
-                f"Found .git dir at {self.sd_config.git_path}."
-            )
+            plugin_utils.write_output(f"Found .git dir at {self.sd_config.git_path}.")
             self.sd_config.nested_project = False
         elif (self.project_root.parent / ".git").exists():
             self.sd_config.git_path = self.sd_config.project_root.parent
-            plugin_utils.write_output(
-                f"Found .git dir at {self.sd_config.git_path}."
-            )
+            plugin_utils.write_output(f"Found .git dir at {self.sd_config.git_path}.")
             self.sd_config.nested_project = True
         else:
             error_msg = "Could not find a .git/ directory."
@@ -397,21 +387,15 @@ class Command(BaseCommand):
         if not gitignore_path.exists():
             # Make the .gitignore file, and add log directory.
             gitignore_path.write_text(ignore_msg, encoding="utf-8")
-            plugin_utils.write_output(
-                "No .gitignore file found; created .gitignore."
-            )
-            plugin_utils.write_output(
-                "Added simple_deploy_logs/ to .gitignore."
-            )
+            plugin_utils.write_output("No .gitignore file found; created .gitignore.")
+            plugin_utils.write_output("Added simple_deploy_logs/ to .gitignore.")
         else:
             # Append log directory to .gitignore if it's not already there.
             contents = gitignore_path.read_text()
             if "simple_deploy_logs/" not in contents:
                 contents += f"\n{ignore_msg}"
                 gitignore_path.write_text(contents)
-                plugin_utils.write_output(
-                    "Added simple_deploy_logs/ to .gitignore"
-                )
+                plugin_utils.write_output("Added simple_deploy_logs/ to .gitignore")
 
     def _get_dep_man_approach(self):
         """Identify which dependency management approach the project uses.

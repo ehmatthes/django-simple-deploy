@@ -32,9 +32,7 @@ class PlatformDeployer:
     # --- Public methods ---
 
     def deploy(self, *args, **options):
-        plugin_utils.write_output(
-            "\nConfiguring project for deployment to Heroku..."
-        )
+        plugin_utils.write_output("\nConfiguring project for deployment to Heroku...")
 
         self._validate_platform()
 
@@ -112,9 +110,7 @@ class PlatformDeployer:
         self.sd_config.pkg_manager = "req_txt"
         self.sd_config.req_txt_path = self.sd_config.git_path / "requirements.txt"
         plugin_utils.log_info("    Package manager set to req_txt.")
-        plugin_utils.log_info(
-            f"    req_txt path: {self.sd_config.req_txt_path}"
-        )
+        plugin_utils.log_info(f"    req_txt path: {self.sd_config.req_txt_path}")
 
         # Add simple_deploy, because it wasn't done earlier for poetry.
         # This may be a bug in how poetry is handled by core.
@@ -218,9 +214,7 @@ class PlatformDeployer:
 
         # If static/ is not empty, we don't need to do anything.
         if any(path_static.iterdir()):
-            plugin_utils.write_output(
-                "    Found non-empty static files directory."
-            )
+            plugin_utils.write_output("    Found non-empty static files directory.")
             return
 
         # static/ is empty; add a placeholder file to the directory.
@@ -246,9 +240,7 @@ class PlatformDeployer:
         )
 
         # Write settings to file.
-        plugin_utils.modify_file(
-            self.sd_config.settings_path, modified_settings_string
-        )
+        plugin_utils.modify_file(self.sd_config.settings_path, modified_settings_string)
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
@@ -267,9 +259,7 @@ class PlatformDeployer:
 
         # Push current local branch to Heroku main branch.
         # DEV: Note that the output of `git push heroku` goes to stderr, not stdout.
-        plugin_utils.write_output(
-            f"    Pushing branch {self.current_branch}..."
-        )
+        plugin_utils.write_output(f"    Pushing branch {self.current_branch}...")
         if self.current_branch in ("main", "master"):
             cmd = f"git push heroku {self.current_branch}"
         else:
@@ -287,9 +277,7 @@ class PlatformDeployer:
         plugin_utils.write_output(output)
 
         # Open Heroku app, so it simply appears in user's browser.
-        plugin_utils.write_output(
-            "  Opening deployed app in a new browser tab..."
-        )
+        plugin_utils.write_output("  Opening deployed app in a new browser tab...")
         cmd = "heroku open"
         output = plugin_utils.run_quick_command(cmd)
         plugin_utils.write_output(output)
@@ -360,18 +348,14 @@ class PlatformDeployer:
             output_obj = plugin_utils.run_quick_command(cmd)
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cli_not_installed
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
         plugin_utils.log_info(output_obj)
 
         # The returncode for a successful command is 0, so anything truthy means the
         # command errored out.
         if output_obj.returncode:
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cli_not_installed
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
     def _check_cli_authenticated(self):
         """Verify the user has authenticated with the CLI.
@@ -421,9 +405,7 @@ class PlatformDeployer:
         if self.sd_config.automate_all:
             return
 
-        plugin_utils.write_output(
-            "  Looking for Heroku app to push to..."
-        )
+        plugin_utils.write_output("  Looking for Heroku app to push to...")
         cmd = "heroku apps:info --json"
         output_obj = plugin_utils.run_quick_command(cmd)
         plugin_utils.write_output(output_obj)
@@ -440,9 +422,7 @@ class PlatformDeployer:
         self.apps_list = json.loads(output_str)
         app_dict = self.apps_list["app"]
         self.heroku_app_name = app_dict["name"]
-        plugin_utils.write_output(
-            f"    Found Heroku app: {self.heroku_app_name}"
-        )
+        plugin_utils.write_output(f"    Found Heroku app: {self.heroku_app_name}")
 
     def _create_postgres_db(self):
         """Create a Heroku Postgres database.
@@ -460,9 +440,7 @@ class PlatformDeployer:
         """Set a config var to indicate when we're in the Heroku environment.
         This is mostly used to modify settings for the deployed project.
         """
-        plugin_utils.write_output(
-            "  Setting Heroku environment variable..."
-        )
+        plugin_utils.write_output("  Setting Heroku environment variable...")
         cmd = "heroku config:set ON_HEROKU=1"
         output = plugin_utils.run_quick_command(cmd)
         plugin_utils.write_output(output)
@@ -486,9 +464,7 @@ class PlatformDeployer:
         cmd = "heroku config:set DEBUG=FALSE"
         output = plugin_utils.run_quick_command(cmd)
         plugin_utils.write_output(output)
-        plugin_utils.write_output(
-            "    Set DEBUG config variable to FALSE."
-        )
+        plugin_utils.write_output("    Set DEBUG config variable to FALSE.")
 
     def _set_secret_key_env_var(self):
         """Use an env var to manage the secret key."""
@@ -502,9 +478,7 @@ class PlatformDeployer:
             new_secret_key = get_random_secret_key()
 
         # Set the new key as an env var on Heroku.
-        plugin_utils.write_output(
-            "  Setting new secret key for Heroku..."
-        )
+        plugin_utils.write_output("  Setting new secret key for Heroku...")
         cmd = f"heroku config:set SECRET_KEY={new_secret_key}"
         output = plugin_utils.run_quick_command(cmd, skip_logging=True)
         plugin_utils.write_output(output)

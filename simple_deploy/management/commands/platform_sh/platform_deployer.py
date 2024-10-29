@@ -81,9 +81,7 @@ class PlatformDeployer:
         self._validate_cli()
 
         self.deployed_project_name = self._get_platformsh_project_name()
-        plugin_utils.log_info(
-            f"Deployed project name: {self.deployed_project_name}"
-        )
+        plugin_utils.log_info(f"Deployed project name: {self.deployed_project_name}")
 
         self.org_name = self._get_org_name()
         plugin_utils.log_info(f"\nOrg name: {self.org_name}")
@@ -138,9 +136,7 @@ class PlatformDeployer:
         )
 
         # Write settings to file.
-        plugin_utils.modify_file(
-            self.sd_config.settings_path, modified_settings_string
-        )
+        plugin_utils.modify_file(self.sd_config.settings_path, modified_settings_string)
 
     def _add_platform_app_yaml(self):
         """Add a .platform.app.yaml file."""
@@ -211,9 +207,7 @@ class PlatformDeployer:
         plugin_utils.run_slow_command(cmd)
 
         # Open project.
-        plugin_utils.write_output(
-            "  Opening deployed app in a new browser tab..."
-        )
+        plugin_utils.write_output("  Opening deployed app in a new browser tab...")
         cmd = "platform url --yes"
         output = plugin_utils.run_quick_command(cmd)
         plugin_utils.write_output(output)
@@ -264,9 +258,7 @@ class PlatformDeployer:
         try:
             output_obj = plugin_utils.run_quick_command(cmd)
         except FileNotFoundError:
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cli_not_installed
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
         plugin_utils.log_info(output_obj)
 
@@ -275,9 +267,7 @@ class PlatformDeployer:
         output_obj = plugin_utils.run_quick_command(cmd)
 
         if "Authentication is required." in output_obj.stderr.decode():
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cli_logged_out
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_logged_out)
 
     def _get_platformsh_project_name(self):
         """Get the deployed project name.
@@ -350,9 +340,7 @@ class PlatformDeployer:
             return project_name
 
         # Couldn't find a project name. Warn user, and tell them about override flag.
-        raise plugin_utils.SimpleDeployCommandError(
-            platform_msgs.no_project_name
-        )
+        raise plugin_utils.SimpleDeployCommandError(platform_msgs.no_project_name)
 
     def _get_org_name(self):
         """Get the organization name associated with the user's Platform.sh account.
@@ -378,9 +366,7 @@ class PlatformDeployer:
 
         org_names = plsh_utils.get_org_names(output_str)
         if not org_names:
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.org_not_found
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.org_not_found)
 
         if len(org_names) == 1:
             # Get permission to use this org.

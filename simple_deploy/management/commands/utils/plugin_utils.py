@@ -16,11 +16,11 @@ from .. import sd_messages
 
 # --- Utilities that require an instance of Command ---
 
+
 def init(config):
     """Make sd_config instance available to all functions in this module."""
     global sd_config
     sd_config = config
-
 
 
 class SimpleDeployCommandError(CommandError):
@@ -63,9 +63,7 @@ def add_file(path, contents):
     if path.exists():
         proceed = get_confirmation(sd_messages.file_found(path.name))
         if not proceed:
-            raise SimpleDeployCommandError(
-                sd_messages.file_replace_rejected(path.name)
-            )
+            raise SimpleDeployCommandError(sd_messages.file_replace_rejected(path.name))
     else:
         write_output(f"    File {path.name} not found. Generating file...")
 
@@ -221,9 +219,7 @@ def run_slow_command(cmd, skip_logging=False):
         raise subprocess.CalledProcessError(p.returncode, p.args)
 
 
-def get_confirmation(
-    msg="Are you sure you want to do this?", skip_logging=False
-):
+def get_confirmation(msg="Are you sure you want to do this?", skip_logging=False):
     """Get confirmation for an action.
 
     Assumes an appropriate message has already been displayed about what is to be
@@ -254,18 +250,14 @@ def get_confirmation(
         confirmed = input()
 
         # Log user's response before processing it.
-        write_output(
-            confirmed, skip_logging=skip_logging, write_to_console=False
-        )
+        write_output(confirmed, skip_logging=skip_logging, write_to_console=False)
 
         if confirmed.lower() in ("y", "yes"):
             return True
         elif confirmed.lower() in ("n", "no"):
             return False
         else:
-            write_output(
-                "  Please answer yes or no.", skip_logging=skip_logging
-            )
+            write_output("  Please answer yes or no.", skip_logging=skip_logging)
 
 
 def check_settings(platform_name, start_line, msg_found, msg_cant_overwrite):

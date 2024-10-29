@@ -38,9 +38,7 @@ class PlatformDeployer:
 
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
-        plugin_utils.write_output(
-            "\nConfiguring project for deployment to Fly.io..."
-        )
+        plugin_utils.write_output("\nConfiguring project for deployment to Fly.io...")
 
         self._validate_platform()
 
@@ -186,9 +184,7 @@ class PlatformDeployer:
         )
 
         # Write settings to file.
-        plugin_utils.modify_file(
-            self.sd_config.settings_path, modified_settings_string
-        )
+        plugin_utils.modify_file(self.sd_config.settings_path, modified_settings_string)
 
     def _add_requirements(self):
         """Add requirements for deploying to Fly.io."""
@@ -214,9 +210,7 @@ class PlatformDeployer:
         plugin_utils.run_slow_command(cmd)
 
         # Open project.
-        plugin_utils.write_output(
-            "  Opening deployed app in a new browser tab..."
-        )
+        plugin_utils.write_output("  Opening deployed app in a new browser tab...")
         cmd = f"fly apps open -a {self.app_name}"
         output = plugin_utils.run_quick_command(cmd)
         plugin_utils.write_output(output)
@@ -314,17 +308,13 @@ class PlatformDeployer:
         try:
             output_obj = plugin_utils.run_quick_command(cmd)
         except FileNotFoundError:
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cli_not_installed
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
         plugin_utils.log_info(output_obj)
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cli_not_installed
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
@@ -332,9 +322,7 @@ class PlatformDeployer:
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cli_logged_out
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_logged_out)
 
         # Show current authenticated fly user.
         whoami_json = json.loads(output_obj.stdout.decode())
@@ -458,9 +446,7 @@ class PlatformDeployer:
 
                 confirm_prompt = f"You have selected {selected_name}."
                 confirm_prompt += " Is that correct?"
-                confirmed = plugin_utils.get_confirmation(
-                    confirm_prompt
-                )
+                confirmed = plugin_utils.get_confirmation(confirm_prompt)
 
             # Create a new app for automated runs, if needed.
             if selected_name == "Create a new app":
@@ -496,9 +482,7 @@ class PlatformDeployer:
         try:
             self.app_name = app_dict["Name"]
         except KeyError:
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.create_app_failed
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.create_app_failed)
         else:
             msg = f"  Created new app: {self.app_name}"
             plugin_utils.write_output(msg)
@@ -710,9 +694,7 @@ class PlatformDeployer:
         if not plugin_utils.get_confirmation(msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cancel_no_db
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cancel_no_db)
 
     def _confirm_use_unattached_db(self):
         """Confirm it's okay to use db whose name matches this app, but hasn't
@@ -740,9 +722,7 @@ class PlatformDeployer:
             # Permission to use this db denied.
             # Can't simply create a new db, because the name we'd use is
             # already taken.
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cancel_no_db
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cancel_no_db)
 
     def _confirm_create_db(self, db_cmd):
         """Confirm the user wants a database created on their behalf.
@@ -763,9 +743,7 @@ class PlatformDeployer:
             self.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
-            raise plugin_utils.SimpleDeployCommandError(
-                platform_msgs.cancel_no_db
-            )
+            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cancel_no_db)
 
     def _attach_db(self):
         """Attach the database to the app."""

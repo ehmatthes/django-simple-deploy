@@ -53,4 +53,3 @@ class SDConfig:
         if self.settings_path is None:
             msg = "Could not identify path to settings.py."
             raise SimpleDeployCommandError(msg)
-        
