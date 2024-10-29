@@ -105,6 +105,8 @@ class Command(BaseCommand):
         # Create a config object here. This is what's shared with
         # platform-specific plugins.
         self.sd_config = SDConfig(self.stdout)
+        plugin_utils.init(self.sd_config)
+        
         plugin_utils.write_output(
             self.sd_config, "Configuring project for deployment...", skip_logging=True
         )

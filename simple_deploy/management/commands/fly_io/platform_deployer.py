@@ -34,10 +34,14 @@ class PlatformDeployer:
         self.stdout = self.sd_config.stdout
         self.templates_path = Path(__file__).parent / "templates"
 
+        plugin_utils.init(self.sd_config)
+
     # --- Public methods ---
 
     def deploy(self, *args, **options):
         """Coordinate the overall configuration and deployment."""
+        # plugin_utils.init(self.sd_config)
+
         plugin_utils.write_output(
             self.sd_config, "\nConfiguring project for deployment to Fly.io..."
         )
@@ -144,7 +148,7 @@ class PlatformDeployer:
 
         # Write file to project.
         path = self.sd_config.project_root / "Dockerfile"
-        plugin_utils.add_file(self.sd_config, path, contents)
+        plugin_utils.add_file(path, contents)
 
     def _add_dockerignore(self):
         """Add a dockerignore file, based on user's local project environmnet.
@@ -152,7 +156,7 @@ class PlatformDeployer:
         """
         path = self.sd_config.project_root / ".dockerignore"
         dockerignore_str = self._build_dockerignore()
-        plugin_utils.add_file(self.sd_config, path, dockerignore_str)
+        plugin_utils.add_file(path, dockerignore_str)
 
     def _add_flytoml(self):
         """Add a minimal fly.toml file."""
@@ -167,7 +171,7 @@ class PlatformDeployer:
 
         # Write file to project.
         path = self.sd_config.project_root / "fly.toml"
-        plugin_utils.add_file(self.sd_config, path, contents)
+        plugin_utils.add_file(path, contents)
 
     def _modify_settings(self):
         """Add platformsh-specific settings."""
