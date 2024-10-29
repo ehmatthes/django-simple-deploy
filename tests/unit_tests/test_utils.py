@@ -165,7 +165,8 @@ def test_add_file(tmp_path, mock_sdconfig):
 
     mock_sdconfig.unit_testing = "True"
     mock_sdconfig.stdout = sys.stdout
-    plugin_utils.add_file(mock_sdconfig, path, contents)
+    plugin_utils.init(mock_sdconfig)
+    plugin_utils.add_file(path, contents)
 
     assert path.exists()
 

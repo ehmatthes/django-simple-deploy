@@ -16,9 +16,10 @@ from .. import sd_messages
 
 # --- Utilities that require an instance of Command ---
 
-# def init(sd_config):
-#     """Make sd_config instance available to all functions in this module."""
-#     global sd_config
+def init(config):
+    """Make sd_config instance available to all functions in this module."""
+    global sd_config
+    sd_config = config
 
 
 
@@ -39,7 +40,7 @@ class SimpleDeployCommandError(CommandError):
         super().__init__(message)
 
 
-def add_file(sd_config, path, contents):
+def add_file(path, contents):
     """Add a new file to the project.
 
     This function is meant to be used when adding new files that don't typically
