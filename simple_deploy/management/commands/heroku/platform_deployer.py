@@ -341,7 +341,6 @@ class PlatformDeployer:
         """Check to see if a Heroku settings block already exists."""
         start_line = "# Heroku settings."
         plugin_utils.check_settings(
-            self.sd_config,
             "Heroku",
             start_line,
             platform_msgs.heroku_settings_found,
