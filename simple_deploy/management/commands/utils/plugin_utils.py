@@ -32,7 +32,6 @@ from .command_errors import SimpleDeployCommandError
 # and then accessible by plugins. This approach keeps from having to pass the config
 # instance between core, plugins, and these utility functions.
 sd_config = SDConfig()
-print("sd_config id:", id(sd_config))
 
 
 # class SimpleDeployCommandError(CommandError):
