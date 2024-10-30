@@ -38,6 +38,7 @@ import toml
 from . import sd_messages
 from .utils import sd_utils
 from .utils import plugin_utils
+
 # from .utils.sd_config import SDConfig
 from .utils.plugin_utils import sd_config
 from .utils.command_errors import SimpleDeployCommandError
@@ -217,9 +218,7 @@ class Command(BaseCommand):
             SimpleDeployCommandError: If requested platform is supported.
         """
         if not self.platform:
-            raise SimpleDeployCommandError(
-                sd_messages.requires_platform_flag
-            )
+            raise SimpleDeployCommandError(sd_messages.requires_platform_flag)
         elif self.platform in ["fly_io", "platform_sh", "heroku"]:
             plugin_utils.write_output(f"\nDeployment target: {self.platform}")
         else:
@@ -267,9 +266,7 @@ class Command(BaseCommand):
             None
         """
         sd_config.local_project_name = settings.ROOT_URLCONF.replace(".urls", "")
-        plugin_utils.log_info(
-            f"Local project name: {sd_config.local_project_name}"
-        )
+        plugin_utils.log_info(f"Local project name: {sd_config.local_project_name}")
 
         sd_config.project_root = settings.BASE_DIR
         plugin_utils.log_info(f"Project root: {sd_config.project_root}")
@@ -283,9 +280,7 @@ class Command(BaseCommand):
             self._ignore_sd_logs()
 
         sd_config.settings_path = (
-            sd_config.project_root
-            / sd_config.local_project_name
-            / "settings.py"
+            sd_config.project_root / sd_config.local_project_name / "settings.py"
         )
 
         # Find out which package manager is being used: req_txt, poetry, or pipenv
@@ -425,9 +420,7 @@ class Command(BaseCommand):
             return "req_txt"
 
         # Exit if we haven't found any requirements.
-        error_msg = (
-            f"Couldn't find any specified requirements in {sd_config.git_path}."
-        )
+        error_msg = f"Couldn't find any specified requirements in {sd_config.git_path}."
         raise SimpleDeployCommandError(error_msg)
 
     def _check_using_poetry(self):
@@ -468,12 +461,8 @@ class Command(BaseCommand):
             sd_config.pipfile_path = sd_config.git_path / "Pipfile"
             requirements = sd_utils.parse_pipfile(sd_config.pipfile_path)
         elif sd_config.pkg_manager == "poetry":
-            sd_config.pyprojecttoml_path = (
-                sd_config.git_path / "pyproject.toml"
-            )
-            requirements = sd_utils.parse_pyproject_toml(
-                sd_config.pyprojecttoml_path
-            )
+            sd_config.pyprojecttoml_path = sd_config.git_path / "pyproject.toml"
+            requirements = sd_utils.parse_pyproject_toml(sd_config.pyprojecttoml_path)
 
         # Report findings.
         msg = "  Found existing dependencies:"

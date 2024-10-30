@@ -16,6 +16,7 @@ class SimpleDeployCommandError(CommandError):
 
     def __init__(self, message):
         from .plugin_utils import log_info
+
         log_info("\nSimpleDeployCommandError:")
         log_info(message)
         super().__init__(message)

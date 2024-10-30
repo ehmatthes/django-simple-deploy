@@ -375,9 +375,7 @@ class PlatformDeployer:
         if ("Error: Invalid credentials provided" in output_str) or (
             "Error: not logged in" in output_str
         ):
-            raise SimpleDeployCommandError(
-                platform_msgs.cli_not_authenticated
-            )
+            raise SimpleDeployCommandError(platform_msgs.cli_not_authenticated)
 
     def _check_heroku_project_available(self):
         """Verify that a Heroku project is available to push to.
@@ -411,9 +409,7 @@ class PlatformDeployer:
 
         # If output_str is emtpy, there is no heroku app.
         if not output_str:
-            raise SimpleDeployCommandError(
-                platform_msgs.no_heroku_app_detected
-            )
+            raise SimpleDeployCommandError(platform_msgs.no_heroku_app_detected)
 
         # Parse output for app_name.
         self.apps_list = json.loads(output_str)

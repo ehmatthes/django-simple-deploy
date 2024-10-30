@@ -309,17 +309,11 @@ class PlatformDeployer:
         if not output_str:
             output_str = output_obj.stderr.decode()
             if "LoginRequiredException" in output_str:
-                raise SimpleDeployCommandError(
-                    platform_msgs.login_required
-                )
+                raise SimpleDeployCommandError(platform_msgs.login_required)
             elif "ProjectNotFoundException" in output_str:
-                raise SimpleDeployCommandError(
-                    platform_msgs.no_project_name
-                )
+                raise SimpleDeployCommandError(platform_msgs.no_project_name)
             elif "RootNotFoundException" in output_str:
-                raise SimpleDeployCommandError(
-                    platform_msgs.no_project_name
-                )
+                raise SimpleDeployCommandError(platform_msgs.no_project_name)
             else:
                 error_msg = platform_msgs.unknown_error
                 error_msg += platform_msgs.cli_not_installed

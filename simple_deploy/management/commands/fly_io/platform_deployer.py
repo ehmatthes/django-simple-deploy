@@ -398,9 +398,7 @@ class PlatformDeployer:
             if sd_config.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise SimpleDeployCommandError(
-                    platform_msgs.no_project_name
-                )
+                raise SimpleDeployCommandError(platform_msgs.no_project_name)
         elif len(project_names) == 1:
             # Only one app name found. Confirm we can deploy to this app.
             project_name = project_names[0]
@@ -413,9 +411,7 @@ class PlatformDeployer:
             elif sd_config.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise SimpleDeployCommandError(
-                    platform_msgs.no_project_name
-                )
+                raise SimpleDeployCommandError(platform_msgs.no_project_name)
         else:
             # More than one undeployed app found. `apps list` doesn't show
             # much specific information for undeployed apps. For exmaple we
