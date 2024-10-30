@@ -16,7 +16,7 @@ from .sd_config import SDConfig
 from .command_errors import SimpleDeployCommandError
 
 
-# sd_config is created once right here. The attributes are set by simple_deploy,
+# Create sd_config once right here. The attributes are set by simple_deploy,
 # and then accessible by plugins. This approach keeps from having to pass the config
 # instance between core, plugins, and these utility functions.
 sd_config = SDConfig()

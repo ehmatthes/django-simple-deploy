@@ -39,7 +39,6 @@ from . import sd_messages
 from .utils import sd_utils
 from .utils import plugin_utils
 
-# from .utils.sd_config import SDConfig
 from .utils.plugin_utils import sd_config
 from .utils.command_errors import SimpleDeployCommandError
 from . import cli
@@ -104,11 +103,7 @@ class Command(BaseCommand):
         Add django-simple-deploy to project requirements.
         Call the platform-specific deploy() method.
         """
-
-        # Create a config object here. This is what's shared with
-        # platform-specific plugins.
-        # self.sd_config = SDConfig(self.stdout)
-        # plugin_utils.init(self.sd_config)
+        # Need to define stdout before the first call to write_output().
         sd_config.stdout = self.stdout
 
         plugin_utils.write_output(
