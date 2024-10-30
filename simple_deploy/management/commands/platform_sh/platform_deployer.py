@@ -13,6 +13,7 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 from ..utils import plugin_utils
+from ..utils.plugin_utils import sd_config
 
 from . import deploy_messages as platform_msgs
 from . import utils as plsh_utils
@@ -26,10 +27,8 @@ class PlatformDeployer:
     `platform push`.
     """
 
-    def __init__(self, sd_config):
+    def __init__(self):
         """Establishes connection to existing simple_deploy command object."""
-        self.sd_config = sd_config
-        self.stdout = sd_config.stdout
         self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
@@ -68,10 +67,10 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If we find any reason deployment won't work.
         """
-        if self.sd_config.unit_testing:
+        if sd_config.unit_testing:
             # Unit tests don't use the CLI. Use the deployed project name that was
             # passed to the simple_deploy CLI.
-            self.deployed_project_name = self.sd_config.deployed_project_name
+            self.deployed_project_name = sd_config.deployed_project_name
             plugin_utils.log_info(
                 f"Deployed project name: {self.deployed_project_name}"
             )
@@ -98,14 +97,14 @@ class PlatformDeployer:
         Note: create command outputs project id to stdout if known, all other
           output goes to stderr.
         """
-        if not self.sd_config.automate_all:
+        if not sd_config.automate_all:
             return
 
         plugin_utils.write_output("  Running `platform create`...")
         plugin_utils.write_output(
             "    (Please be patient, this can take a few minutes."
         )
-        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {self.sd_config.region} --yes"
+        cmd = f"platform create --title { self.deployed_project_name } --org {self.org_name} --region {sd_config.region} --yes"
 
         try:
             # Note: if user can't create a project the returncode will be 6, not 1.
@@ -127,7 +126,7 @@ class PlatformDeployer:
         # Generate modified settings string.
         template_path = self.templates_path / "settings.py"
 
-        settings_string = self.sd_config.settings_path.read_text()
+        settings_string = sd_config.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
 
@@ -136,29 +135,29 @@ class PlatformDeployer:
         )
 
         # Write settings to file.
-        plugin_utils.modify_file(self.sd_config.settings_path, modified_settings_string)
+        plugin_utils.modify_file(sd_config.settings_path, modified_settings_string)
 
     def _add_platform_app_yaml(self):
         """Add a .platform.app.yaml file."""
 
         # Build contents from template.
-        if self.sd_config.pkg_manager == "poetry":
+        if sd_config.pkg_manager == "poetry":
             template_path = "poetry.platform.app.yaml"
-        elif self.sd_config.pkg_manager == "pipenv":
+        elif sd_config.pkg_manager == "pipenv":
             template_path = "pipenv.platform.app.yaml"
         else:
             template_path = "platform.app.yaml"
         template_path = self.templates_path / template_path
 
         context = {
-            "project_name": self.sd_config.local_project_name,
+            "project_name": sd_config.local_project_name,
             "deployed_project_name": self.deployed_project_name,
         }
 
         contents = plugin_utils.get_template_string(template_path, context)
 
         # Write file to project.
-        path = self.sd_config.project_root / ".platform.app.yaml"
+        path = sd_config.project_root / ".platform.app.yaml"
         plugin_utils.add_file(path, contents)
 
     def _add_requirements(self):
@@ -168,7 +167,7 @@ class PlatformDeployer:
 
     def _add_platform_dir(self):
         """Add a .platform directory, if it doesn't already exist."""
-        self.platform_dir_path = self.sd_config.project_root / ".platform"
+        self.platform_dir_path = sd_config.project_root / ".platform"
         plugin_utils.add_dir(self.platform_dir_path)
 
     def _add_services_yaml(self):
@@ -188,7 +187,7 @@ class PlatformDeployer:
         - Open project.
         """
         # Making this check here lets deploy() be cleaner.
-        if not self.sd_config.automate_all:
+        if not sd_config.automate_all:
             return
 
         plugin_utils.commit_changes()
@@ -231,11 +230,11 @@ class PlatformDeployer:
         # - Describe ongoing approach of commit, push, migrate. Lots to consider
         #   when doing this on production app with users, make sure you learn.
 
-        if self.sd_config.automate_all:
+        if sd_config.automate_all:
             msg = platform_msgs.success_msg_automate_all(self.deployed_url)
             plugin_utils.write_output(msg)
         else:
-            msg = platform_msgs.success_msg(self.sd_config.log_output)
+            msg = platform_msgs.success_msg(sd_config.log_output)
             plugin_utils.write_output(msg)
 
     # --- Helper methods for methods called from simple_deploy.py ---
@@ -285,12 +284,12 @@ class PlatformDeployer:
             SimpleDeployCommandError: If deployed project name can't be found.
         """
         # If we're creating the project, we'll just use the startproject name.
-        if self.sd_config.automate_all:
-            return self.sd_config.local_project_name
+        if sd_config.automate_all:
+            return sd_config.local_project_name
 
         # Use the provided name if --deployed-project-name specified.
-        if self.sd_config.deployed_project_name:
-            return self.sd_config.deployed_project_name
+        if sd_config.deployed_project_name:
+            return sd_config.deployed_project_name
 
         # Use --yes flag to avoid interactive prompt hanging in background
         #   if the user is not currently logged in to the CLI.
@@ -356,7 +355,7 @@ class PlatformDeployer:
             - if org name found, but not confirmed.
             - if org name not found
         """
-        if not self.sd_config.automate_all:
+        if not sd_config.automate_all:
             return
 
         cmd = "platform organization:list --yes --format csv"
@@ -404,11 +403,11 @@ class PlatformDeployer:
             SimpleDeployCommandError: if not confirmed
         """
 
-        self.stdout.write(platform_msgs.confirm_use_org(org_name))
+        sd_config.stdout.write(platform_msgs.confirm_use_org(org_name))
         confirmed = plugin_utils.get_confirmation(skip_logging=True)
 
         if confirmed:
-            self.stdout.write("  Okay, continuing with deployment.")
+            sd_config.stdout.write("  Okay, continuing with deployment.")
             return True
         else:
             # Exit, with a message that configuration is still an option.

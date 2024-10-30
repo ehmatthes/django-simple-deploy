@@ -26,7 +26,7 @@ def simple_deploy_get_automate_all_msg():
 
 
 @simple_deploy.hookimpl
-def simple_deploy_deploy(sd_config):
+def simple_deploy_deploy():
     """Carry out platform-specific deployment steps."""
-    platform_deployer = PlatformDeployer(sd_config)
+    platform_deployer = PlatformDeployer()
     platform_deployer.deploy()

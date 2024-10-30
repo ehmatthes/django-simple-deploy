@@ -11,6 +11,7 @@ from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 from ..utils import plugin_utils
+from ..utils.plugin_utils import sd_config
 
 from . import deploy_messages as platform_msgs
 
@@ -23,10 +24,8 @@ class PlatformDeployer:
     `git push heroku main`.
     """
 
-    def __init__(self, sd_config):
+    def __init__(self):
         """Establishes connection to existing simple_deploy command object."""
-        self.sd_config = sd_config
-        self.stdout = sd_config.stdout
         self.templates_path = Path(__file__).parent / "templates"
 
     # --- Public methods ---
@@ -69,7 +68,7 @@ class PlatformDeployer:
         """Respond appropriately if the local project uses Poetry.
 
         If the project uses Poetry, generate a requirements.txt file, and override the
-        initial value of self.sd_config.pkg_manager.
+        initial value of sd_config.pkg_manager.
 
         Heroku doesn't work directly with Poetry, so we need to generate a
         requirements.txt file for the user, which we can then add requirements to. We
@@ -92,7 +91,7 @@ class PlatformDeployer:
             None
         """
         # Making this check here keeps deploy() cleaner.
-        if self.sd_config.pkg_manager != "poetry":
+        if sd_config.pkg_manager != "poetry":
             return
 
         msg = "  Generating a requirements.txt file, because Heroku does not support Poetry directly..."
@@ -107,10 +106,10 @@ class PlatformDeployer:
 
         # From this point forward, treat this user the same as anyone who's using a bare
         # requirements.txt file.
-        self.sd_config.pkg_manager = "req_txt"
-        self.sd_config.req_txt_path = self.sd_config.git_path / "requirements.txt"
+        sd_config.pkg_manager = "req_txt"
+        sd_config.req_txt_path = sd_config.git_path / "requirements.txt"
         plugin_utils.log_info("    Package manager set to req_txt.")
-        plugin_utils.log_info(f"    req_txt path: {self.sd_config.req_txt_path}")
+        plugin_utils.log_info(f"    req_txt path: {sd_config.req_txt_path}")
 
         # Add simple_deploy, because it wasn't done earlier for poetry.
         # This may be a bug in how poetry is handled by core.
@@ -127,7 +126,7 @@ class PlatformDeployer:
         Returns:
             None
         """
-        if not self.sd_config.automate_all:
+        if not sd_config.automate_all:
             return
 
         # Create heroku app.
@@ -149,10 +148,10 @@ class PlatformDeployer:
             None
         """
         # DB not needed for unit testing.
-        if self.sd_config.unit_testing:
+        if sd_config.unit_testing:
             return
         # DB already created for automate-all.
-        if self.sd_config.automate_all:
+        if sd_config.automate_all:
             return
 
         # Look for a Postgres database.
@@ -187,7 +186,7 @@ class PlatformDeployer:
 
     def _set_env_vars(self):
         """Set Heroku-specific environment variables."""
-        if self.sd_config.unit_testing:
+        if sd_config.unit_testing:
             return
 
         self._set_heroku_env_var()
@@ -197,19 +196,19 @@ class PlatformDeployer:
     def _add_procfile(self):
         """Add Procfile to project."""
         # Generate Procfile contents.
-        wsgi_path = f"{self.sd_config.local_project_name}.wsgi"
-        if self.sd_config.nested_project:
-            wsgi_path = f"{self.sd_config.local_project_name}.{wsgi_path}"
+        wsgi_path = f"{sd_config.local_project_name}.wsgi"
+        if sd_config.nested_project:
+            wsgi_path = f"{sd_config.local_project_name}.{wsgi_path}"
         proc_command = f"web: gunicorn {wsgi_path} --log-file -"
 
         # Write Procfile.
-        path = self.sd_config.project_root / "Procfile"
+        path = sd_config.project_root / "Procfile"
         plugin_utils.add_file(path, proc_command)
 
     def _add_static_file_directory(self):
         """Create a folder for static files, if it doesn't already exist."""
         # Make sure directory exists.
-        path_static = self.sd_config.project_root / "static"
+        path_static = sd_config.project_root / "static"
         plugin_utils.add_dir(path_static)
 
         # If static/ is not empty, we don't need to do anything.
@@ -231,7 +230,7 @@ class PlatformDeployer:
         # Generate modified settings string.
         template_path = self.templates_path / "settings.py"
 
-        settings_string = self.sd_config.settings_path.read_text()
+        settings_string = sd_config.settings_path.read_text()
         safe_settings_string = mark_safe(settings_string)
         context = {"current_settings": safe_settings_string}
 
@@ -240,11 +239,11 @@ class PlatformDeployer:
         )
 
         # Write settings to file.
-        plugin_utils.modify_file(self.sd_config.settings_path, modified_settings_string)
+        plugin_utils.modify_file(sd_config.settings_path, modified_settings_string)
 
     def _conclude_automate_all(self):
         """Finish automating the push to Heroku."""
-        if not self.sd_config.automate_all:
+        if not sd_config.automate_all:
             return
 
         plugin_utils.commit_changes()
@@ -268,8 +267,8 @@ class PlatformDeployer:
 
         # Run initial set of migrations.
         plugin_utils.write_output("  Migrating deployed app...")
-        if self.sd_config.nested_project:
-            cmd = f"heroku run python {self.sd_config.local_project_name}/manage.py migrate"
+        if sd_config.nested_project:
+            cmd = f"heroku run python {sd_config.local_project_name}/manage.py migrate"
         else:
             cmd = "heroku run python manage.py migrate"
         output = plugin_utils.run_quick_command(cmd)
@@ -306,16 +305,14 @@ class PlatformDeployer:
         #   - Describe ongoing approach of commit, push, migrate. Lots to consider
         #     when doing this on production app with users, make sure you learn.
 
-        if self.sd_config.automate_all:
+        if sd_config.automate_all:
             # Show how to make future deployments.
             msg = platform_msgs.success_msg_automate_all(
                 self.heroku_app_name, self.current_branch
             )
         else:
             # Show steps to finish the deployment process.
-            msg = platform_msgs.success_msg(
-                self.sd_config.pkg_manager, self.heroku_app_name
-            )
+            msg = platform_msgs.success_msg(sd_config.pkg_manager, self.heroku_app_name)
 
         plugin_utils.write_output(msg)
 
@@ -340,7 +337,7 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If CLI not installed.
         """
-        if self.sd_config.unit_testing:
+        if sd_config.unit_testing:
             return
 
         cmd = "heroku --version"
@@ -366,7 +363,7 @@ class PlatformDeployer:
         Raises:
             SimpleDeployCommandError: If the user has not been authenticated.
         """
-        if self.sd_config.unit_testing:
+        if sd_config.unit_testing:
             return
 
         cmd = "heroku auth:whoami"
@@ -397,12 +394,12 @@ class PlatformDeployer:
             dict: self.apps_list
             str: self.heroku_app_name
         """
-        if self.sd_config.unit_testing:
+        if sd_config.unit_testing:
             self.heroku_app_name = "sample-name-11894"
             return
 
         # automate-all does the work we're checking for here.
-        if self.sd_config.automate_all:
+        if sd_config.automate_all:
             return
 
         plugin_utils.write_output("  Looking for Heroku app to push to...")
@@ -469,7 +466,7 @@ class PlatformDeployer:
     def _set_secret_key_env_var(self):
         """Use an env var to manage the secret key."""
         # Generate a new key.
-        if self.sd_config.on_windows:
+        if sd_config.on_windows:
             # Non-alphanumeric keys have been problematic on Windows.
             new_secret_key = get_random_string(
                 length=50, allowed_chars="abcdefghijklmnopqrstuvwxyz0123456789"
@@ -487,7 +484,7 @@ class PlatformDeployer:
     def _generate_summary(self):
         """Generate the friendly summary, which is html for now."""
         # Generate the summary file.
-        # path = self.sd_config.log_dir_path / "deployment_summary.html"
+        # path = sd_config.log_dir_path / "deployment_summary.html"
 
         # summary_str = "<h2>Understanding your deployment</h2>"
         # path.write_text(summary_str, encoding="utf-8")

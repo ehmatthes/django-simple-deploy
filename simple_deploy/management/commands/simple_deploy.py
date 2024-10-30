@@ -132,9 +132,10 @@ class Command(BaseCommand):
         self._check_required_hooks(pm)
 
         self._confirm_automate_all(pm)
-        # sd_config = self._get_sd_config()
+
+        # Validate sd_config before handing responsiblity off to plugin.
         self.sd_config.validate()
-        pm.hook.simple_deploy_deploy(sd_config=self.sd_config)
+        pm.hook.simple_deploy_deploy()
 
     def _parse_cli_options(self, options):
         """Parse CLI options from simple_deploy command."""

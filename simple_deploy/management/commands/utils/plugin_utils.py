@@ -18,7 +18,10 @@ from .. import sd_messages
 
 
 def init(config):
-    """Make sd_config instance available to all functions in this module."""
+    """Make sd_config instance available to all functions in this module.
+
+    This is called once in simple_deploy.py, and does not need to be called again.
+    """
     global sd_config
     sd_config = config
 
