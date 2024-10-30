@@ -10,6 +10,7 @@ import shlex
 import toml
 
 from django.template.engine import Engine, Context
+from django.utils.safestring import mark_safe
 
 from .. import sd_messages
 from .sd_config import SDConfig
@@ -78,6 +79,22 @@ def modify_file(path, contents):
     path.write_text(contents)
     msg = f"  Modified file: {path.as_posix()}"
     write_output(msg)
+
+
+def modify_settings_file(template_path, context):
+    """Add a platform-specific settings block to settings.py."""
+
+    # Add current settings to context.
+    settings_string = sd_config.settings_path.read_text()
+    safe_settings_string = mark_safe(settings_string)
+    context["current_settings"] = safe_settings_string
+
+    modified_settings_string = get_template_string(
+        template_path, context
+    )
+
+    # Write settings to file.
+    modify_file(sd_config.settings_path, modified_settings_string)
 
 
 def add_dir(path):
