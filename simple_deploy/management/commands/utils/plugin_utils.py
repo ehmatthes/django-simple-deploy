@@ -10,37 +10,46 @@ import shlex
 import toml
 
 from django.template.engine import Engine, Context
-from django.core.management.base import CommandError
+# from django.core.management.base import CommandError
 
 from .. import sd_messages
+from .sd_config import SDConfig
+from .command_errors import SimpleDeployCommandError
+
 
 # --- Utilities that require an instance of Command ---
 
 
-def init(config):
-    """Make sd_config instance available to all functions in this module.
+# def init(config):
+#     """Make sd_config instance available to all functions in this module.
 
-    This is called once in simple_deploy.py, and does not need to be called again.
-    """
-    global sd_config
-    sd_config = config
+#     This is called once in simple_deploy.py, and does not need to be called again.
+#     """
+#     global sd_config
+#     sd_config = config
+
+# sd_config is created once right here. The attributes are set by simple_deploy,
+# and then accessible by plugins. This approach keeps from having to pass the config
+# instance between core, plugins, and these utility functions.
+sd_config = SDConfig()
+print("sd_config id:", id(sd_config))
 
 
-class SimpleDeployCommandError(CommandError):
-    """Simple wrapper around CommandError, to facilitate consistent
-    logging of command errors.
+# class SimpleDeployCommandError(CommandError):
+#     """Simple wrapper around CommandError, to facilitate consistent
+#     logging of command errors.
 
-    Writes "SimpleDeployCommandError:" and error message to log, then raises
-    actual CommandError.
+#     Writes "SimpleDeployCommandError:" and error message to log, then raises
+#     actual CommandError.
 
-    Note: This changes the exception type from CommandError to
-    SimpleDeployCommandError.
-    """
+#     Note: This changes the exception type from CommandError to
+#     SimpleDeployCommandError.
+#     """
 
-    def __init__(self, message):
-        log_info("\nSimpleDeployCommandError:")
-        log_info(message)
-        super().__init__(message)
+#     def __init__(self, message):
+#         log_info("\nSimpleDeployCommandError:")
+#         log_info(message)
+#         super().__init__(message)
 
 
 def add_file(path, contents):

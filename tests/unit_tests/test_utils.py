@@ -6,7 +6,7 @@ import sys
 
 from simple_deploy.management.commands.utils import sd_utils
 from simple_deploy.management.commands.utils import plugin_utils
-from simple_deploy.management.commands.utils.sd_config import SDConfig
+from simple_deploy.management.commands.utils.plugin_utils import sd_config as mock_sdconfig
 import subprocess
 
 import pytest
@@ -14,12 +14,6 @@ import pytest
 
 # --- Fixtures ---
 
-
-@pytest.fixture()
-def mock_sdconfig():
-    sd_config = SDConfig(stdout=None)
-    # Define any settings here that would be helpful for multiple tests.
-    return sd_config
 
 
 # --- Test functions ---
@@ -157,7 +151,7 @@ def test_add_pipenv_pkg(tmp_path):
 # --- Tests for functions that require sd_config ---
 
 
-def test_add_file(tmp_path, mock_sdconfig):
+def test_add_file(tmp_path):#, mock_sdconfig):
     """Test utility for adding a file."""
     contents = "Sample file contents.\n"
     path = tmp_path / "test_add_file.txt"
@@ -165,8 +159,14 @@ def test_add_file(tmp_path, mock_sdconfig):
     assert not path.exists()
 
     mock_sdconfig.unit_testing = "True"
+    assert mock_sdconfig.stdout is None
     mock_sdconfig.stdout = sys.stdout
-    plugin_utils.init(mock_sdconfig)
+    assert mock_sdconfig.stdout is not None
+    # import sys
+    sys.stdout.write("\n*** Hello testing world!")
+    mock_sdconfig.stdout.write("\n*** Hello again testing world!")
+    print("\nmock_sdconfig id:", id(mock_sdconfig))
+    # plugin_utils.init(mock_sdconfig)
     plugin_utils.add_file(path, contents)
 
     assert path.exists()

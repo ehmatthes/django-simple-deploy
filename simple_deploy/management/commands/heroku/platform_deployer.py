@@ -5,13 +5,13 @@ from pathlib import Path
 from itertools import takewhile
 
 from django.conf import settings
-from django.core.management.base import CommandError
 from django.core.management.utils import get_random_secret_key
 from django.utils.crypto import get_random_string
 from django.utils.safestring import mark_safe
 
 from ..utils import plugin_utils
 from ..utils.plugin_utils import sd_config
+from ..utils.command_errors import SimpleDeployCommandError
 
 from . import deploy_messages as platform_msgs
 
@@ -345,14 +345,14 @@ class PlatformDeployer:
             output_obj = plugin_utils.run_quick_command(cmd)
         except FileNotFoundError:
             # This generates a FileNotFoundError on Linux (Ubuntu) if CLI not installed.
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
         plugin_utils.log_info(output_obj)
 
         # The returncode for a successful command is 0, so anything truthy means the
         # command errored out.
         if output_obj.returncode:
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
     def _check_cli_authenticated(self):
         """Verify the user has authenticated with the CLI.
@@ -375,7 +375,7 @@ class PlatformDeployer:
         if ("Error: Invalid credentials provided" in output_str) or (
             "Error: not logged in" in output_str
         ):
-            raise plugin_utils.SimpleDeployCommandError(
+            raise SimpleDeployCommandError(
                 platform_msgs.cli_not_authenticated
             )
 
@@ -411,7 +411,7 @@ class PlatformDeployer:
 
         # If output_str is emtpy, there is no heroku app.
         if not output_str:
-            raise plugin_utils.SimpleDeployCommandError(
+            raise SimpleDeployCommandError(
                 platform_msgs.no_heroku_app_detected
             )
 

@@ -19,6 +19,7 @@ from . import deploy_messages as platform_msgs
 
 from ..utils import plugin_utils
 from ..utils.plugin_utils import sd_config
+from ..utils.command_errors import SimpleDeployCommandError
 
 
 class PlatformDeployer:
@@ -307,13 +308,13 @@ class PlatformDeployer:
         try:
             output_obj = plugin_utils.run_quick_command(cmd)
         except FileNotFoundError:
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
         plugin_utils.log_info(output_obj)
 
         # DEV: Note which OS this block runs on; I believe it's macOS.
         if output_obj.returncode:
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_not_installed)
+            raise SimpleDeployCommandError(platform_msgs.cli_not_installed)
 
         # Check that user is authenticated.
         cmd = "fly auth whoami --json"
@@ -321,7 +322,7 @@ class PlatformDeployer:
 
         error_msg = "Error: No access token available."
         if error_msg in output_obj.stderr.decode():
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cli_logged_out)
+            raise SimpleDeployCommandError(platform_msgs.cli_logged_out)
 
         # Show current authenticated fly user.
         whoami_json = json.loads(output_obj.stdout.decode())
@@ -397,7 +398,7 @@ class PlatformDeployer:
             if sd_config.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise plugin_utils.SimpleDeployCommandError(
+                raise SimpleDeployCommandError(
                     platform_msgs.no_project_name
                 )
         elif len(project_names) == 1:
@@ -412,7 +413,7 @@ class PlatformDeployer:
             elif sd_config.automate_all:
                 self.app_name = self._create_flyio_app()
             else:
-                raise plugin_utils.SimpleDeployCommandError(
+                raise SimpleDeployCommandError(
                     platform_msgs.no_project_name
                 )
         else:
@@ -481,7 +482,7 @@ class PlatformDeployer:
         try:
             self.app_name = app_dict["Name"]
         except KeyError:
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.create_app_failed)
+            raise SimpleDeployCommandError(platform_msgs.create_app_failed)
         else:
             msg = f"  Created new app: {self.app_name}"
             plugin_utils.write_output(msg)
@@ -675,7 +676,7 @@ class PlatformDeployer:
             # Note: This path has only been tested once, by manually adding
             # "dummy-user" to the list of db users."
             msg = platform_msgs.cant_use_db(self.db_name, self.db_users)
-            raise plugin_utils.SimpleDeployCommandError(msg)
+            raise SimpleDeployCommandError(msg)
 
     def _confirm_use_attached_db(self):
         """Confirm it's okay to use db that's already attached to this app.
@@ -693,7 +694,7 @@ class PlatformDeployer:
         if not plugin_utils.get_confirmation(msg):
             # Permission to use this db denied. Can't simply create a new db,
             # because the name we'd use is already taken.
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cancel_no_db)
+            raise SimpleDeployCommandError(platform_msgs.cancel_no_db)
 
     def _confirm_use_unattached_db(self):
         """Confirm it's okay to use db whose name matches this app, but hasn't
@@ -721,7 +722,7 @@ class PlatformDeployer:
             # Permission to use this db denied.
             # Can't simply create a new db, because the name we'd use is
             # already taken.
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cancel_no_db)
+            raise SimpleDeployCommandError(platform_msgs.cancel_no_db)
 
     def _confirm_create_db(self, db_cmd):
         """Confirm the user wants a database created on their behalf.
@@ -742,7 +743,7 @@ class PlatformDeployer:
             sd_config.stdout.write("  Creating database...")
         else:
             # Quit and invite the user to create a database manually.
-            raise plugin_utils.SimpleDeployCommandError(platform_msgs.cancel_no_db)
+            raise SimpleDeployCommandError(platform_msgs.cancel_no_db)
 
     def _attach_db(self):
         """Attach the database to the app."""
