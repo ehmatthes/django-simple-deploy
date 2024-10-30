@@ -92,9 +92,7 @@ def modify_settings_file(template_path, context):
     safe_settings_string = mark_safe(settings_string)
     context["current_settings"] = safe_settings_string
 
-    modified_settings_string = get_template_string(
-        template_path, context
-    )
+    modified_settings_string = get_template_string(template_path, context)
 
     # Write settings to file.
     modify_file(sd_config.settings_path, modified_settings_string)
