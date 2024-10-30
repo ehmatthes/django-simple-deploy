@@ -1,10 +1,23 @@
-from .plugin_utils import SimpleDeployCommandError
+from .command_errors import SimpleDeployCommandError
 
 
 class SDConfig:
-    """Class for managing attributes of Command that need to be shared with plugins."""
+    """Class for managing attributes of Command that need to be shared with plugins.
 
-    def __init__(self, stdout):
+    This is instantiated once at the module level in plugin_utils. That instance is
+    imported into simple_deploy, where Command defines all relevant attributes, and
+    calls validate().
+
+    Plugins then import the sd_config instance from plugin_utils. If mutability is an
+    issue, or if multiple instances of SDConfig are being created, consider making this
+    a singleton class.
+
+    No module other than plugin_utils should import this class directly, or otherwise
+    make an instance of this class. All access should happen through the sd_config
+    variable in plugin_utils.
+    """
+
+    def __init__(self):
         """Define all attributes that will need to be shared."""
         # Aspects of user's system.
         self.on_windows = None
@@ -34,7 +47,7 @@ class SDConfig:
         self.use_shell = None
         self.e2e_testing = None
         self.unit_testing = None
-        self.stdout = stdout
+        self.stdout = None
 
     def validate(self):
         """Make sure all required attributes have been defined."""
@@ -52,4 +65,8 @@ class SDConfig:
 
         if self.settings_path is None:
             msg = "Could not identify path to settings.py."
+            raise SimpleDeployCommandError(msg)
+
+        if self.stdout is None:
+            msg = "Failed to access stdout."
             raise SimpleDeployCommandError(msg)

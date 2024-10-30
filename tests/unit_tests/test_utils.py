@@ -1,4 +1,7 @@
-"""Tests for simple_deploy/management/commands/utils.py."""
+"""Tests for simple_deploy/management/commands/utils.py.
+
+Note: May need to rethink handling of sd_config, if tests start to affect each other.
+"""
 
 from pathlib import Path
 import filecmp
@@ -6,20 +9,13 @@ import sys
 
 from simple_deploy.management.commands.utils import sd_utils
 from simple_deploy.management.commands.utils import plugin_utils
-from simple_deploy.management.commands.utils.sd_config import SDConfig
+from simple_deploy.management.commands.utils.plugin_utils import sd_config
 import subprocess
 
 import pytest
 
 
 # --- Fixtures ---
-
-
-@pytest.fixture()
-def mock_sdconfig():
-    sd_config = SDConfig(stdout=None)
-    # Define any settings here that would be helpful for multiple tests.
-    return sd_config
 
 
 # --- Test functions ---
@@ -157,18 +153,16 @@ def test_add_pipenv_pkg(tmp_path):
 # --- Tests for functions that require sd_config ---
 
 
-def test_add_file(tmp_path, mock_sdconfig):
+def test_add_file(tmp_path):
     """Test utility for adding a file."""
+    sd_config.unit_testing = "True"
+    sd_config.stdout = sys.stdout
+
     contents = "Sample file contents.\n"
     path = tmp_path / "test_add_file.txt"
-
     assert not path.exists()
 
-    mock_sdconfig.unit_testing = "True"
-    mock_sdconfig.stdout = sys.stdout
-    plugin_utils.init(mock_sdconfig)
     plugin_utils.add_file(path, contents)
-
     assert path.exists()
 
     contents_from_file = path.read_text()

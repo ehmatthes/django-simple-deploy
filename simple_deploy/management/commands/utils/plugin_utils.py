@@ -10,37 +10,16 @@ import shlex
 import toml
 
 from django.template.engine import Engine, Context
-from django.core.management.base import CommandError
 
 from .. import sd_messages
-
-# --- Utilities that require an instance of Command ---
-
-
-def init(config):
-    """Make sd_config instance available to all functions in this module.
-
-    This is called once in simple_deploy.py, and does not need to be called again.
-    """
-    global sd_config
-    sd_config = config
+from .sd_config import SDConfig
+from .command_errors import SimpleDeployCommandError
 
 
-class SimpleDeployCommandError(CommandError):
-    """Simple wrapper around CommandError, to facilitate consistent
-    logging of command errors.
-
-    Writes "SimpleDeployCommandError:" and error message to log, then raises
-    actual CommandError.
-
-    Note: This changes the exception type from CommandError to
-    SimpleDeployCommandError.
-    """
-
-    def __init__(self, message):
-        log_info("\nSimpleDeployCommandError:")
-        log_info(message)
-        super().__init__(message)
+# Create sd_config once right here. The attributes are set by simple_deploy,
+# and then accessible by plugins. This approach keeps from having to pass the config
+# instance between core, plugins, and these utility functions.
+sd_config = SDConfig()
 
 
 def add_file(path, contents):
@@ -385,11 +364,6 @@ def add_package(package_name, version=""):
         add_req_txt_pkg(sd_config.req_txt_path, package_name, version)
 
     write_output(f"  Added {package_name} to requirements file.")
-
-
-# --- Utilities that do not require an instance of SDConfig ---
-# Note: These utilities are much easier to test, and should
-# be preferred when possible.
 
 
 def get_template_string(template_path, context):
