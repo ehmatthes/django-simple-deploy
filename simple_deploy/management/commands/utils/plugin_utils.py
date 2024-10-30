@@ -82,8 +82,11 @@ def modify_file(path, contents):
 
 
 def modify_settings_file(template_path, context):
-    """Add a platform-specific settings block to settings.py."""
+    """Add a platform-specific settings block to settings.py.
 
+    Provide a path to a template including current settings and the platform-specific
+    settings block, and a context dictionary.
+    """
     # Add current settings to context.
     settings_string = sd_config.settings_path.read_text()
     safe_settings_string = mark_safe(settings_string)

@@ -169,22 +169,10 @@ class PlatformDeployer:
 
     def _modify_settings(self):
         """Add platformsh-specific settings."""
-        # Get modified version of settings.
         template_path = self.templates_path / "settings.py"
-
-        # settings_string = sd_config.settings_path.read_text()
-        # safe_settings_string = mark_safe(settings_string)
         context = {
-            # "current_settings": safe_settings_string,
             "deployed_project_name": self.deployed_project_name,
         }
-
-        # modified_settings_string = plugin_utils.get_template_string(
-        #     template_path, context
-        # )
-
-        # # Write settings to file.
-        # plugin_utils.modify_file(sd_config.settings_path, modified_settings_string)
 
         plugin_utils.modify_settings_file(template_path, context)
 
