@@ -25,6 +25,8 @@ The goal for the 0.7 series is to support an internal plugin model. There should
 - Created `SDConfig` class to store all information that a plugin might need to access. This avoids having to pass around an instance of `Command`, which had grown pretty awkward.
 - `SDConfig` instance is now a global in `plugin_utils`. Despite the oft-repeated advice not to use globals, it really seems to make sense in this context. It simplifies most plugin utility function signatures. For example: `plugin_utils.write_output(self.sd_config, msg)` is now `plugin_utils.write_output(msg)`. There are numerous ways to protect the config instance if the need arises, or choose a different non-globabl approach with this as a better starting point.
 - `SDConfig.validate()` checks that attributes required by all plugins have been set.
+- Plugins import `sd_config` directly. This simplifies the use of `sd_config` significantly in plugins. For exmple, `self.sd_config.automate_all` becomes `sd_config.automate_all`. Also, core no longer needs to pass anything off directly to plugins.
+
 
 ### 0.7.2
 
