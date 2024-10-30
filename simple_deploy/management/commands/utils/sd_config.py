@@ -1,9 +1,21 @@
-# from .plugin_utils import SimpleDeployCommandError
 from .command_errors import SimpleDeployCommandError
 
 
 class SDConfig:
-    """Class for managing attributes of Command that need to be shared with plugins."""
+    """Class for managing attributes of Command that need to be shared with plugins.
+
+    This is instantiated once at the module level in plugin_utils. That instance is
+    imported into simple_deploy, where Command defines all relevant attributes, and 
+    calls validate().
+
+    Plugins then import the sd_config instance from plugin_utils. If mutability is an
+    issue, or if multiple instances of SDConfig are being created, consider making this
+    a singleton class.
+
+    No module other than plugin_utils should import this class directly, or otherwise
+    make an instance of this class. All access should happen through the sd_config 
+    variable in plugin_utils.
+    """
 
     def __init__(self):
         """Define all attributes that will need to be shared."""
