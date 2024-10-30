@@ -312,9 +312,7 @@ class PlatformDeployer:
             )
         else:
             # Show steps to finish the deployment process.
-            msg = platform_msgs.success_msg(
-                sd_config.pkg_manager, self.heroku_app_name
-            )
+            msg = platform_msgs.success_msg(sd_config.pkg_manager, self.heroku_app_name)
 
         plugin_utils.write_output(msg)
 
