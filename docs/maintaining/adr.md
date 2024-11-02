@@ -74,4 +74,4 @@ Outcomes:
 
 Extra info:
 
-- Related issue: [#168](https://github.com/ehmatthes/django-simple-deploy/issues/168)
+- Related issue: [#168](https://github.com/django-simple-deploy/django-simple-deploy/issues/168)
