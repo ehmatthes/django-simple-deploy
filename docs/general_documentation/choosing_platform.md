@@ -12,7 +12,7 @@ Choosing a platform for your first deployment might seem difficult, because ther
 
 This page summarizes the major strengths and potential drawbacks of each platform.
 
-*Note: Best efforts are made to keep this page up to date. If you see something that is no longer accurate, please [open an issue](https://github.com/ehmatthes/django-simple-deploy/issues) and include a link to the updated information.*
+*Note: Best efforts are made to keep this page up to date. If you see something that is no longer accurate, please [open an issue](https://github.com/django-simple-deploy/django-simple-deploy/issues) and include a link to the updated information.*
 
 ## Quick comparison
 

@@ -28,7 +28,7 @@ For a test run, feel free to try `simple_deploy` against the provided sample pro
 
 Here are the overall steps you'll take:
 
-- Open an issue using the [Documenting a Test Run](https://github.com/ehmatthes/django-simple-deploy/issues/new?assignees=&labels=&template=documenting-a-test-run.md&title=Documenting+a+Test+Run) issue template.
+- Open an issue using the [Documenting a Test Run](https://github.com/django-simple-deploy/django-simple-deploy/issues/new?assignees=&labels=&template=documenting-a-test-run.md&title=Documenting+a+Test+Run) issue template.
 - Fill in the initial information in the template.
 - Clone the sample repository, if you're not testing against your own project.
 - Run `simple_deploy` in either configuration mode, or the automated mode.
@@ -120,6 +120,6 @@ If you have any final thoughts about how `django-simple-deploy` works, please sh
 
 Feel free to do as many test runs as you want. For example you might want to deploy to a different platform, or try a different dependency management system, or deploy a different project.
 
-This is also a great time to try running the [integration tests](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/integration_tests.md) for the platform you just targeted. Integration tests automate everything you just did. (Documentation for integration tests has not been migrated here yet.)
+This is also a great time to try running the [integration](../testing/integration_tests.md) and [end-to-end](../testing/e2e_tests.md) tests for the platform you just targeted. End-to-end tests automate everything you just did.
 
 If you want to contribute in other ways, see the main [Contributing](index.md) page for a variety of ways to help out.

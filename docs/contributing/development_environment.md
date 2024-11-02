@@ -14,7 +14,7 @@ Also, if you haven't done so already, please review the [Testing on Your Own Acc
 
 ## Make a local working copy of the project
 
-First, fork the `django-simple-deploy` project on GitHub. If you haven't done this before, look for the Fork button in the upper right corner of the project's [home page](https://github.com/ehmatthes/django-simple-deploy/). This will copy the main branch of the project to a new repo under your account.
+First, fork the `django-simple-deploy` project on GitHub. If you haven't done this before, look for the Fork button in the upper right corner of the project's [home page](https://github.com/django-simple-deploy/django-simple-deploy/). This will copy the main branch of the project to a new repo under your account.
 
 Next, clone your Github (replace `<username>` with your username):
 
@@ -27,7 +27,7 @@ Add an `upstream` remote, then configure `git` to pull `main` from `upstream` an
 
 ```bash
 $ cd django-simple-deploy
-$ git remote add upstream https://github.com/ehmatthes/django-simple-deploy
+$ git remote add upstream https://github.com/django-simple-deploy/django-simple-deploy
 $ git config branch.main.remote upstream
 $ git remote set-url --push upstream git@github.com:<your-username>/django-simple-deploy.git
 ```
@@ -38,7 +38,7 @@ You can verify that `git` is configured correctly by running:
 $ git remote -v
 origin  git@github.com:<username>/django-simple-deploy.git (fetch)
 origin  git@github.com:<username>/django-simple-deploy.git (push)
-upstream        https://github.com/ehmatthes/django-simple-deploy (fetch)
+upstream        https://github.com/django-simple-deploy/django-simple-deploy (fetch)
 upstream        git@github.com:<username>/django-simple-deploy.git (push)
 
 $ git config branch.main.remote
@@ -233,7 +233,7 @@ If you're interested in running the unit tests, please refer to [Unit tests](../
 
 ## Running integration tests
 
-The integration tests have been critical in developing the project to this point. That said, they are in need of restructuring as well. If you want to understand the current state of the integration tests, see the [old documentation](https://github.com/ehmatthes/django-simple-deploy/blob/main/old_docs/integration_tests.md) as well.
+The integration tests have been critical in developing the project to this point. That said, they are in need of restructuring as well. If you want to understand the current state of the integration tests, see the [old documentation](https://github.com/django-simple-deploy/django-simple-deploy/blob/main/old_docs/integration_tests.md) as well.
 
 ## Ongoing work
 
@@ -268,4 +268,4 @@ $ python build_dev_env.py --pkg-manager [req_txt | poetry | pipenv] --target [de
 
 ## Closing thoughts
 
-This is a rapidly evolving project. Please feel free to open an [issue](https://github.com/ehmatthes/django-simple-deploy/issues/new/choose) or a [discussion](https://github.com/ehmatthes/django-simple-deploy/discussions/new) about any aspect of this project.
+This is a rapidly evolving project. Please feel free to open an [issue](https://github.com/django-simple-deploy/django-simple-deploy/issues/new/choose) or a [discussion](https://github.com/django-simple-deploy/django-simple-deploy/discussions/new) about any aspect of this project.
