@@ -1,6 +1,6 @@
 site_name: django-simple-deploy
 
-repo_url: https://github.com/ehmatthes/django-simple-deploy/
+repo_url: https://github.com/django-simple-deploy/django-simple-deploy/
 
 markdown_extensions:
   - attr_list
