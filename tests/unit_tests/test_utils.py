@@ -94,6 +94,29 @@ def test_get_plugin_name_unavailable_plugin():
     with pytest.raises(SimpleDeployCommandError):
         plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
 
+def test_get_plugin_name_too_many_plugins():
+    """Test that having more than one plugin for the same non-default platform raises an exception.
+
+    DEV: This needs to be rewritten when that case is handled by lettting user select plugin to use.
+    """
+    available_packages = ["dsd_newplatform", "dsd_newplatform_high_scale", "django", "django-bootstrap5", "dsd_flyio", "dsd_platformsh", "dsd_heroku"]
+
+    platform_arg = "new_platform"
+    with pytest.raises(SimpleDeployCommandError):
+        plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
+
+
+def test_get_plugin_name_too_many_plugins_default():
+    """Test that having more than two third-party plugins for default platform raises an exception.
+
+    DEV: This needs to be rewritten when that case is handled by lettting user select plugin to use.
+    """
+    available_packages = ["dsd_flyio_high_scale", "dsd_flyio_higher_scale", "django", "django-bootstrap5", "dsd_flyio", "dsd_platformsh", "dsd_heroku"]
+
+    platform_arg = "fly_io"
+    with pytest.raises(SimpleDeployCommandError):
+        plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
+
 
 # --- Parsing requirements ---
 

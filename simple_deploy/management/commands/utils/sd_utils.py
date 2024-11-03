@@ -248,3 +248,10 @@ def _get_plugin_name_from_packages(platform, available_packages):
         # third-party plugin overlapping a default plugin wants the custom plugin.
         default_plugins = {"dsd_flyio", "dsd_platformsh", "dsd_heroku"}
         return (set(plugin_names) - default_plugins).pop()
+
+    # At this point, it's simply an error if the user has installed multiple plugins
+    # targeting the same platform.
+    msg = f"There seem to be multiple plugins targeting the platform {platform}."
+    msg += "\nPlease uninstall redundant plugins."
+    msg += "\nFuture releases of simple_deploy may allow you to select which plugin to use."
+    raise SimpleDeployCommandError(msg)
