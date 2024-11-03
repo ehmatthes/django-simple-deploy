@@ -55,11 +55,35 @@ def test_get_string_from_output_with_stderr():
 
 def test_get_plugin_name_default_plugins():
     """Test that the appropriate plugin name is determined from the --platform arg."""
-    available_packages = ["dsd_flyio", "dsd_platformsh", "dsd_heroku"]
+    available_packages = ["django", "django-bootstrap5", "dsd_flyio", "dsd_platformsh", "dsd_heroku"]
 
     platform_arg = "fly_io"
     plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
     assert plugin_name == "dsd_flyio"
+
+    platform_arg = "platform_sh"
+    plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
+    assert plugin_name == "dsd_platformsh"
+
+    platform_arg = "heroku"
+    plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
+    assert plugin_name == "dsd_heroku"
+
+def test_get_plugin_name_third_party_overlapping_plugin():
+    """Test that appropriate plugin name returned for third-party plugin that overlaps default plugins."""
+    available_packages = ["dsd_flyio_thirdparty", "django", "django-bootstrap5", "dsd_flyio", "dsd_platformsh", "dsd_heroku"]
+
+    platform_arg = "fly_io"
+    plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
+    assert plugin_name == "dsd_flyio_thirdparty"
+
+def test_get_plugin_name_third_party_non_overlapping_plugin():
+    """Test that appropriate plugin name is returned when no overlap with defaults."""
+    available_packages = ["dsd_nonoverlappingplatform", "django", "django-bootstrap5", "dsd_flyio", "dsd_platformsh", "dsd_heroku"]
+
+    platform_arg = "nonoverlapping_platform"
+    plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
+    assert plugin_name == "dsd_nonoverlappingplatform"
 
 
 # --- Parsing requirements ---

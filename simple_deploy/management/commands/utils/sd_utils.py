@@ -52,6 +52,16 @@ def _get_plugin_name_from_packages(platform, available_packages):
     if len(plugin_names) == 1:
         return plugin_names[0]
 
+    if len(plugin_names) == 2 and platform in ["fly_io", "platform_sh", "heroku"]:
+        # Return the third-party plugin. We're assuming a user who installed a
+        # third-party plugin overlapping a default plugin wants the custom plugin.
+        default_plugins = {"dsd_flyio", "dsd_platformsh", "dsd_heroku"}
+        return (set(plugin_names) - default_plugins).pop()
+
+
+
+
+
 
 
 
