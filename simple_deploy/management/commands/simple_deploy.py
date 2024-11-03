@@ -124,9 +124,10 @@ class Command(BaseCommand):
         self._add_simple_deploy_req()
 
         # Get the platform-specific deployer module.
-        platform_module = import_module(
-            f".{self.platform}.deploy", package="simple_deploy.management.commands"
-        )
+        # platform_module = import_module(
+        #     f".{self.platform}.deploy", package="simple_deploy.management.commands"
+        # )
+        platform_module = import_module(f"{self.platform}.deploy")
         pm.register(platform_module, self.platform)
         self._check_required_hooks(pm)
 
@@ -214,7 +215,7 @@ class Command(BaseCommand):
         """
         if not self.platform:
             raise SimpleDeployCommandError(sd_messages.requires_platform_flag)
-        elif self.platform in ["fly_io", "platform_sh", "heroku"]:
+        elif self.platform in ["fly_io", "platform_sh", "heroku", "dsd_flyio"]:
             plugin_utils.write_output(f"\nDeployment target: {self.platform}")
         else:
             error_msg = sd_messages.invalid_platform_msg(self.platform)
