@@ -234,7 +234,9 @@ def _get_plugin_name_from_packages(platform, available_packages):
 
     # Get possible plugin names.
     plugin_prefix = f"dsd_{platform_name}"
-    plugin_names = [pkg_name for pkg_name in available_packages if plugin_prefix in pkg_name]
+    plugin_names = [
+        pkg_name for pkg_name in available_packages if plugin_prefix in pkg_name
+    ]
     if len(plugin_names) == 0:
         msg = f"Could not find plugin for the platform {platform}."
         msg += "\n"
