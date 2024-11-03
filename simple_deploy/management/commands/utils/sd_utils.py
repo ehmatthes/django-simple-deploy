@@ -6,9 +6,12 @@ Any utility used by plugins should be moved to plugin_utils.py.
 
 from pathlib import Path
 import inspect, re, sys, subprocess, logging
+from importlib.metadata import packages_distributions
 
 from django.template.engine import Engine, Context
 from django.template.utils import get_app_template_dirs
+
+from .command_errors import SimpleDeployCommandError
 
 import toml
 
@@ -18,6 +21,38 @@ def validate_choice(choice, valid_choices):
     if choice in valid_choices:
         return True
     return False
+
+
+def get_plugin_name(platform):
+    """Get the appropriate plugin name from the --platform arg."""
+    available_packages = packages_distributions().keys()
+    return _get_plugin_name_from_packages(platform, available_packages)
+
+
+def _get_plugin_name_from_packages(platform, available_packages):
+    """Helper for getting correct plugin from platform name.
+
+    This is broken into a helper function to make testing easier.
+
+    Examples:
+    - The platform arg --fly_io will return dsd_flyio.
+    - The platform arg --digital_ocean will return dsd_digitalocean_<extension>.
+    """
+    # Remove underscores from platform arg.
+    platform_name = platform.replace("_", "")
+
+    # Get possible plugin names.
+    plugin_prefix = f"dsd_{platform_name}"
+    plugin_names = [pkg_name for pkg_name in available_packages if plugin_prefix in pkg_name]
+    if len(plugin_names) == 0:
+        msg = f"Could not find plugin for the platform {platform}."
+        msg += "\n"
+        raise SimpleDeployCommandError(msg)
+
+    if len(plugin_names) == 1:
+        return plugin_names[0]
+
+
 
 
 def parse_req_txt(path):

@@ -51,6 +51,17 @@ def test_get_string_from_output_with_stderr():
     assert plugin_utils.get_string_from_output(output_obj) == "Error message\n"
 
 
+# --- Parsing --platform arg ---
+
+def test_get_plugin_name_default_plugins():
+    """Test that the appropriate plugin name is determined from the --platform arg."""
+    available_packages = ["dsd_flyio", "dsd_platformsh", "dsd_heroku"]
+
+    platform_arg = "fly_io"
+    plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
+    assert plugin_name == "dsd_flyio"
+
+
 # --- Parsing requirements ---
 
 

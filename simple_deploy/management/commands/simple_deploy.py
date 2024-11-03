@@ -123,11 +123,11 @@ class Command(BaseCommand):
         self._inspect_project()
         self._add_simple_deploy_req()
 
-        # Get the platform-specific deployer module.
-        # platform_module = import_module(
-        #     f".{self.platform}.deploy", package="simple_deploy.management.commands"
-        # )
+        # Import the platform-specific plugin module.
+        plugin_name = sd_utils.get_plugin_name(self.platform)
         platform_module = import_module(f"{self.platform}.deploy")
+
+        # Register the platform-specific plugin.
         pm.register(platform_module, self.platform)
         self._check_required_hooks(pm)
 
