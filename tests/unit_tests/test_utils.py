@@ -6,11 +6,12 @@ Note: May need to rethink handling of sd_config, if tests start to affect each o
 from pathlib import Path
 import filecmp
 import sys
+import subprocess
 
 from simple_deploy.management.commands.utils import sd_utils
 from simple_deploy.management.commands.utils import plugin_utils
 from simple_deploy.management.commands.utils.plugin_utils import sd_config
-import subprocess
+from simple_deploy.management.commands.utils.command_errors import SimpleDeployCommandError
 
 import pytest
 
@@ -84,6 +85,14 @@ def test_get_plugin_name_third_party_non_overlapping_plugin():
     platform_arg = "nonoverlapping_platform"
     plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
     assert plugin_name == "dsd_nonoverlappingplatform"
+
+def test_get_plugin_name_unavailable_plugin():
+    """Test that exception raised when unavailable plugin requested."""
+    available_packages = ["django", "django-bootstrap5", "dsd_flyio", "dsd_platformsh", "dsd_heroku"]
+
+    platform_arg = "unsupported_platform"
+    with pytest.raises(SimpleDeployCommandError):
+        plugin_name = sd_utils._get_plugin_name_from_packages(platform_arg, available_packages)
 
 
 # --- Parsing requirements ---

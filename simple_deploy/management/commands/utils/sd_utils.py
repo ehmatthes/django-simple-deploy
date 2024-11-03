@@ -29,42 +29,6 @@ def get_plugin_name(platform):
     return _get_plugin_name_from_packages(platform, available_packages)
 
 
-def _get_plugin_name_from_packages(platform, available_packages):
-    """Helper for getting correct plugin from platform name.
-
-    This is broken into a helper function to make testing easier.
-
-    Examples:
-    - The platform arg --fly_io will return dsd_flyio.
-    - The platform arg --digital_ocean will return dsd_digitalocean_<extension>.
-    """
-    # Remove underscores from platform arg.
-    platform_name = platform.replace("_", "")
-
-    # Get possible plugin names.
-    plugin_prefix = f"dsd_{platform_name}"
-    plugin_names = [pkg_name for pkg_name in available_packages if plugin_prefix in pkg_name]
-    if len(plugin_names) == 0:
-        msg = f"Could not find plugin for the platform {platform}."
-        msg += "\n"
-        raise SimpleDeployCommandError(msg)
-
-    if len(plugin_names) == 1:
-        return plugin_names[0]
-
-    if len(plugin_names) == 2 and platform in ["fly_io", "platform_sh", "heroku"]:
-        # Return the third-party plugin. We're assuming a user who installed a
-        # third-party plugin overlapping a default plugin wants the custom plugin.
-        default_plugins = {"dsd_flyio", "dsd_platformsh", "dsd_heroku"}
-        return (set(plugin_names) - default_plugins).pop()
-
-
-
-
-
-
-
-
 def parse_req_txt(path):
     """Get a list of requirements from a requirements.txt file.
 
@@ -254,3 +218,33 @@ def _clean_diff(diff_lines):
     lines = [l for l in lines if l not in ("-", "+")]
 
     return lines
+
+
+def _get_plugin_name_from_packages(platform, available_packages):
+    """Helper for getting correct plugin from platform name.
+
+    This is broken into a helper function to make testing easier.
+
+    Examples:
+    - The platform arg --fly_io will return dsd_flyio.
+    - The platform arg --digital_ocean will return dsd_digitalocean_<extension>.
+    """
+    # Remove underscores from platform arg.
+    platform_name = platform.replace("_", "")
+
+    # Get possible plugin names.
+    plugin_prefix = f"dsd_{platform_name}"
+    plugin_names = [pkg_name for pkg_name in available_packages if plugin_prefix in pkg_name]
+    if len(plugin_names) == 0:
+        msg = f"Could not find plugin for the platform {platform}."
+        msg += "\n"
+        raise SimpleDeployCommandError(msg)
+
+    if len(plugin_names) == 1:
+        return plugin_names[0]
+
+    if len(plugin_names) == 2 and platform in ["fly_io", "platform_sh", "heroku"]:
+        # Return the third-party plugin. We're assuming a user who installed a
+        # third-party plugin overlapping a default plugin wants the custom plugin.
+        default_plugins = {"dsd_flyio", "dsd_platformsh", "dsd_heroku"}
+        return (set(plugin_names) - default_plugins).pop()
