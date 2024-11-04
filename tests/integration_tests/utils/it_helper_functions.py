@@ -52,12 +52,14 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
     if plugin_name:
         plugin_root_dir = sd_root_dir.parent / plugin_name
         assert plugin_root_dir.exists()
-        
+
         fp_reference = plugin_root_dir / f"tests/integration_tests/reference_files/{filename}"
         assert fp_reference.exists()
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
+    print("fpg", fp_generated)
+    print("fpr", fp_reference)
     assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
 
 

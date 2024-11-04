@@ -216,7 +216,7 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     #   a project name, ie misty-fjords-12345 during actual deployment.
     if platform:
         sd_command = f"{sd_command} --platform {platform}"
-    if platform in ("fly_io", "platform_sh"):
+    if platform in ("fly_io", "flyio", "platform_sh", "platformsh"):
         # These platforms need a project name to carry out configuration.
         sd_command = f"{sd_command} --deployed-project-name my_blog_project"
 
