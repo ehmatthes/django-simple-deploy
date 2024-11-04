@@ -119,6 +119,7 @@ class Command(BaseCommand):
             self._log_cli_args(options)
 
         self._validate_command()
+        platform_module = self._load_plugin()
 
 
         self._inspect_system()
@@ -129,7 +130,7 @@ class Command(BaseCommand):
         # plugin_name = sd_utils.get_plugin_name(self.platform)
         # platform_module = import_module(f"{self.platform}.deploy")
         # DEV: This should be called right after _validate_command().
-        platform_module = self._load_plugin()
+        # platform_module = self._load_plugin()
 
         # Register the platform-specific plugin.
         pm.register(platform_module, self.platform)
