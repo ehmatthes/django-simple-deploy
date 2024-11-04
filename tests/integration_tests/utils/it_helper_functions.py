@@ -22,6 +22,8 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
     - filepath: relative path from tmp_proj_dir to test file
     - reference_filename: the name of the  reference file, if it has a
       different name than the generated file
+    - plugin_name: used to find the path to reference files, so it's distinct from the
+      --platform arg.
 
     Asserts:
     - Asserts that the file at `filepath` matches the reference file of the
@@ -58,8 +60,6 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
-    print("fpg", fp_generated)
-    print("fpr", fp_reference)
     assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
 
 

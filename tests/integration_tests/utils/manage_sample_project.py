@@ -214,6 +214,11 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     # - Some platforms require a deployed project name, which isn't inferred from
     #   the project being deployed. This is typically because the platform generates
     #   a project name, ie misty-fjords-12345 during actual deployment.
+    # Automated testing tends to use platform names like flyio, derived from repository
+    # path. But manual use of integration test utilities may still use the form fly_io,
+    # so keep both for now.
+    # DEV: This will probably not be hard-coded once third-party plugins are being
+    # written.
     if platform:
         sd_command = f"{sd_command} --platform {platform}"
     if platform in ("fly_io", "flyio", "platform_sh", "platformsh"):
