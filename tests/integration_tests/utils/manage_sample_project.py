@@ -90,6 +90,9 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     # It assumes user has a repo dsd-flyio in the same directory as their development
     # copy of django-simple-deploy. Asserting that this directory exists helps
     # troubleshoot development environments.
+    # Also note, this should not interfere with testing any other plugin, as this is
+    # only selected if fly is the target platform and there are no other fly plugins
+    # available.
     dsd_flyio_root_dir = sd_root_dir.parent / "dsd-flyio"
     assert dsd_flyio_root_dir.exists()
     if uv_available:
