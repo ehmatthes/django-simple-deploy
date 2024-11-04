@@ -87,10 +87,15 @@ def setup_project(tmp_proj_dir, sd_root_dir):
         subprocess.run([pip_path, "install", "-e", sd_root_dir])
 
     # Install editable versions of default plugins that are available.
+    # DEV: I believe dsd-flyio is required for core integration testing. Ensure that
+    # it's available. Also, consider emitting warning if any default plugins are not
+    # being tested.
+    # Assumes user has default plugins in repos named dsd-flyio, in same directory as 
+    # their development copy of django-simple-deploy.
     default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
     for plugin_name in default_plugin_names:
         plugin_root_dir = sd_root_dir.parent / plugin_name
-        
+
         if not plugin_root_dir.exists():
             print(f"Can't install default plugin {plugin_name}.")
             continue
@@ -109,33 +114,6 @@ def setup_project(tmp_proj_dir, sd_root_dir):
             )
         else:
             subprocess.run([pip_path, "install", "-e", plugin_root_dir])
-
-
-
-
-    # Install local version of dsd-flyio. This is the only plugin needed for testing.
-    # It assumes user has a repo dsd-flyio in the same directory as their development
-    # copy of django-simple-deploy. Asserting that this directory exists helps
-    # troubleshoot development environments.
-    # Also note, this should not interfere with testing any other plugin, as this is
-    # only selected if fly is the target platform and there are no other fly plugins
-    # available.
-    dsd_flyio_root_dir = sd_root_dir.parent / "dsd-flyio"
-    assert dsd_flyio_root_dir.exists()
-    if uv_available:
-        subprocess.run(
-            [
-                "uv",
-                "pip",
-                "install",
-                "--python",
-                path_to_python,
-                "-e",
-                dsd_flyio_root_dir,
-            ]
-        )
-    else:
-        subprocess.run([pip_path, "install", "-e", dsd_flyio_root_dir])
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
