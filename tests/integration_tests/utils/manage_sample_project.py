@@ -86,6 +86,19 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     else:
         subprocess.run([pip_path, "install", "-e", sd_root_dir])
 
+    # Install local version of dsd-flyio. This is the only plugin needed for testing.
+    # It assumes user has a repo dsd-flyio in the same directory as their development
+    # copy of django-simple-deploy. Asserting that this directory exists helps
+    # troubleshoot development environments.
+    dsd_flyio_root_dir = sd_root_dir.parent / "dsd-flyio"
+    assert dsd_flyio_root_dir.exists()
+    if uv_available:
+        subprocess.run(
+            ["uv", "pip", "install", "--python", path_to_python, "-e", dsd_flyio_root_dir]
+        )
+    else:
+        subprocess.run([pip_path, "install", "-e", dsd_flyio_root_dir])
+
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
     #   tearing down the whole sample project and rebuilding it from scratch.
