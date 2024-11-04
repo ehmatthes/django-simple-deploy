@@ -119,18 +119,14 @@ class Command(BaseCommand):
             self._log_cli_args(options)
 
         self._validate_command()
-        platform_module = self._load_plugin()
 
+        # Import the platform-specific plugin module. This performs some validation, so
+        # it's best to call this before modifying project in any way.
+        platform_module = self._load_plugin()
 
         self._inspect_system()
         self._inspect_project()
         self._add_simple_deploy_req()
-
-        # # Import the platform-specific plugin module.
-        # plugin_name = sd_utils.get_plugin_name(self.platform)
-        # platform_module = import_module(f"{self.platform}.deploy")
-        # DEV: This should be called right after _validate_command().
-        # platform_module = self._load_plugin()
 
         # Register the platform-specific plugin.
         pm.register(platform_module, self.platform)
@@ -140,6 +136,8 @@ class Command(BaseCommand):
 
         # Validate sd_config before handing responsiblity off to plugin.
         sd_config.validate()
+
+        # Platform-agnostic work is finished. Hand off to plugin.
         pm.hook.simple_deploy_deploy()
 
     def _parse_cli_options(self, options):
