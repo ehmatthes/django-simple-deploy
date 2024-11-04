@@ -119,13 +119,17 @@ class Command(BaseCommand):
             self._log_cli_args(options)
 
         self._validate_command()
+
+
         self._inspect_system()
         self._inspect_project()
         self._add_simple_deploy_req()
 
-        # Import the platform-specific plugin module.
-        plugin_name = sd_utils.get_plugin_name(self.platform)
-        platform_module = import_module(f"{self.platform}.deploy")
+        # # Import the platform-specific plugin module.
+        # plugin_name = sd_utils.get_plugin_name(self.platform)
+        # platform_module = import_module(f"{self.platform}.deploy")
+        # DEV: This should be called right after _validate_command().
+        platform_module = self._load_plugin()
 
         # Register the platform-specific plugin.
         pm.register(platform_module, self.platform)
@@ -204,6 +208,16 @@ class Command(BaseCommand):
         else:
             return False
 
+    def _load_plugin(self):
+        """Load the appropriate platform-specific plugin module for this deployment."""
+        self.plugin_name = sd_utils.get_plugin_name(self.platform)
+
+        plugin_utils.write_output(f"\nDeployment target: {self.platform}")
+        plugin_utils.write_output(f"  Using plugin: {self.plugin_name}")
+
+        platform_module = import_module(f"{self.plugin_name}.deploy")
+        return platform_module
+
     def _validate_command(self):
         """Verify simple_deploy has been called with a valid set of arguments.
 
@@ -215,11 +229,11 @@ class Command(BaseCommand):
         """
         if not self.platform:
             raise SimpleDeployCommandError(sd_messages.requires_platform_flag)
-        elif self.platform in ["fly_io", "platform_sh", "heroku", "dsd_flyio"]:
-            plugin_utils.write_output(f"\nDeployment target: {self.platform}")
-        else:
-            error_msg = sd_messages.invalid_platform_msg(self.platform)
-            raise SimpleDeployCommandError(error_msg)
+        # elif self.platform in ["fly_io", "platform_sh", "heroku", "dsd_flyio"]:
+        #     plugin_utils.write_output(f"\nDeployment target: {self.platform}")
+        # else:
+        #     error_msg = sd_messages.invalid_platform_msg(self.platform)
+        #     raise SimpleDeployCommandError(error_msg)
 
     def _inspect_system(self):
         """Inspect the user's local system for relevant information.
