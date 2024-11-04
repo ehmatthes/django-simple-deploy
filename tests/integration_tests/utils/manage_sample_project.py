@@ -86,6 +86,33 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     else:
         subprocess.run([pip_path, "install", "-e", sd_root_dir])
 
+    # Install editable versions of default plugins that are available.
+    default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
+    for plugin_name in default_plugin_names:
+        plugin_root_dir = sd_root_dir.parent / plugin_name
+        
+        if not plugin_root_dir.exists():
+            print(f"Can't install default plugin {plugin_name}.")
+            continue
+
+        if uv_available:
+            subprocess.run(
+                [
+                    "uv",
+                    "pip",
+                    "install",
+                    "--python",
+                    path_to_python,
+                    "-e",
+                    plugin_root_dir,
+                ]
+            )
+        else:
+            subprocess.run([pip_path, "install", "-e", plugin_root_dir])
+
+
+
+
     # Install local version of dsd-flyio. This is the only plugin needed for testing.
     # It assumes user has a repo dsd-flyio in the same directory as their development
     # copy of django-simple-deploy. Asserting that this directory exists helps
