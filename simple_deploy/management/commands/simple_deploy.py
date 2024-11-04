@@ -124,6 +124,8 @@ class Command(BaseCommand):
         # it's best to call this before modifying project in any way.
         platform_module = self._load_plugin()
 
+        # Inspect the user's system and project, and make sure simple_deploy is included
+        # in project requirements.
         self._inspect_system()
         self._inspect_project()
         self._add_simple_deploy_req()
