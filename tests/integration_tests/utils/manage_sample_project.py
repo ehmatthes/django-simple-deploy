@@ -94,7 +94,15 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     assert dsd_flyio_root_dir.exists()
     if uv_available:
         subprocess.run(
-            ["uv", "pip", "install", "--python", path_to_python, "-e", dsd_flyio_root_dir]
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                path_to_python,
+                "-e",
+                dsd_flyio_root_dir,
+            ]
         )
     else:
         subprocess.run([pip_path, "install", "-e", dsd_flyio_root_dir])
