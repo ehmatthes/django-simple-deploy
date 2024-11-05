@@ -146,7 +146,7 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     #   test run.
     if confirm_destroy_project(cli_options):
         # Import the platform-specific utils module and call destroy_project().
-        platform = request.config.cache.get("platform", None)
+        # platform = request.config.cache.get("platform", None)
         # import_path = f"tests.e2e_tests.platforms.{platform}.utils"
         # import_path = (
         #     f"simple_deploy.management.commands.{platform}.tests.e2e_tests.utils"
@@ -156,15 +156,20 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
         # because that points to core's test_platform.py.
         # Assume plugin is in a repo called dsd-<something>, in same directory as
         # django-simple-deploy.
-        plugin_e2e_dir = sd_root_dir.parent / cli_options.plugin_name / "tests/e2e_tests"
+        # plugin_e2e_dir = sd_root_dir.parent / cli_options.plugin_name / "tests/e2e_tests"
         # path = Path(request.module.__file__)
         # while path.name != "e2e_tests":
         #     path = path.parent
         # e2e_tests_path = path
 
-        import_path = (
-            plugin_e2e_dir / "utils"
-        ).as_posix()
+        # import_path = (
+        #     plugin_e2e_dir / "utils"
+        # ).as_posix()
 
-        platform_utils = importlib.import_module(import_path)
+        # platform_utils = importlib.import_module(import_path)
+        # platform_utils.destroy_project(request)
+
+
+        module_path = "e2e_tests.utils"
+        platform_utils = importlib.import_module(module_path)
         platform_utils.destroy_project(request)

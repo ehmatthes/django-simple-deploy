@@ -41,7 +41,8 @@ def test_platform_deployment(tmp_project, cli_options, request):
 
     # platform_e2e_module = importlib.import_module(plugin_e2e_path.as_posix())
     platform_e2e_module = importlib.import_module(module_path)
-    assert False
+    platform_e2e_module.test_deployment(tmp_project, cli_options, request)
+
 
 
 
