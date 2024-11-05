@@ -140,6 +140,10 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     # Identify the platform that's being tested. This is derived from the path of the
     # test module that's currently being run. If no platform is being tested, don't
     # need to run simple_deploy.
+    # DEV: This is implemented awkwardly. There's probably one dsd- in the path, 
+    # and if there's more we probably want the last one in the path. plugin_names
+    # should probably be path_parts or something like that. Also, consider refactoring
+    # this into a test utility function; see similar block in e2e conftest.
     module_path = request.module.__file__
     plugin_names = [name for name in module_path.split("/") if "dsd-" in name]
 
