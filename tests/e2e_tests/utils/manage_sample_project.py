@@ -161,7 +161,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {plugin_root_dir}"  # --skip-lock"
             subprocess.run(cmd, shell=True, check=True)
 
-            # Rewrite the specification for dsd in Pipfile, so remote server
+            # Rewrite the specification for dsd and the plugin in Pipfile, so remote server
             #   won't try to install local version.
             pipfile_path = tmp_proj_dir / "Pipfile"
             pipfile_lines = pipfile_path.read_text().splitlines()
