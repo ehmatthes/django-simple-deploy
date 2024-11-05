@@ -77,16 +77,23 @@ def pytest_addoption(parser):
         help="Which platform to run e2e tests for.",
         required=True,
     )
+    parser.addoption(
+        "--plugin",
+        action="store",
+        help="Which plugin to run e2e tests for.",
+        required=True,
+    )
 
 
 # Bundle these options into a single object.
 class CLIOptions:
-    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations, platform):
+    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations, platform, plugin_name):
         self.pkg_manager = pkg_manager
         self.pypi = pypi
         self.automate_all = automate_all
         self.skip_confirmations = skip_confirmations
         self.platform = platform
+        self.plugin_name = plugin_name
 
 
 @pytest.fixture(scope="session")
@@ -97,6 +104,7 @@ def cli_options(request):
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations"),
         platform=request.config.getoption("--platform"),
+        plugin_name=request.config.getoption("--plugin")
     )
 
 
@@ -140,8 +148,23 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
         # Import the platform-specific utils module and call destroy_project().
         platform = request.config.cache.get("platform", None)
         # import_path = f"tests.e2e_tests.platforms.{platform}.utils"
+        # import_path = (
+        #     f"simple_deploy.management.commands.{platform}.tests.e2e_tests.utils"
+        # )
+
+        # Find the plugin's e2e_tests directory. Can't use request.module.__file__,
+        # because that points to core's test_platform.py.
+        # Assume plugin is in a repo called dsd-<something>, in same directory as
+        # django-simple-deploy.
+        plugin_e2e_dir = sd_root_dir.parent / cli_options.plugin_name / "tests/e2e_tests"
+        # path = Path(request.module.__file__)
+        # while path.name != "e2e_tests":
+        #     path = path.parent
+        # e2e_tests_path = path
+
         import_path = (
-            f"simple_deploy.management.commands.{platform}.tests.e2e_tests.utils"
-        )
+            plugin_e2e_dir / "utils"
+        ).as_posix()
+
         platform_utils = importlib.import_module(import_path)
         platform_utils.destroy_project(request)
