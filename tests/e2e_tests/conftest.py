@@ -72,21 +72,23 @@ def pytest_addoption(parser):
         help="Skip all confirmations",
     )
     parser.addoption(
-        "--platform",
+        "--plugin",
         action="store",
-        help="Which platform to run e2e tests for.",
+        help="Which plugin to run e2e tests for.",
         required=True,
     )
 
 
 # Bundle these options into a single object.
 class CLIOptions:
-    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations, platform):
+    def __init__(
+        self, pkg_manager, pypi, automate_all, skip_confirmations, plugin_name
+    ):
         self.pkg_manager = pkg_manager
         self.pypi = pypi
         self.automate_all = automate_all
         self.skip_confirmations = skip_confirmations
-        self.platform = platform
+        self.plugin_name = plugin_name
 
 
 @pytest.fixture(scope="session")
@@ -96,7 +98,8 @@ def cli_options(request):
         pypi=request.config.getoption("--pypi"),
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations"),
-        platform=request.config.getoption("--platform"),
+        # platform=request.config.getoption("--platform"),
+        plugin_name=request.config.getoption("--plugin"),
     )
 
 
@@ -138,10 +141,9 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     #   test run.
     if confirm_destroy_project(cli_options):
         # Import the platform-specific utils module and call destroy_project().
-        platform = request.config.cache.get("platform", None)
-        # import_path = f"tests.e2e_tests.platforms.{platform}.utils"
-        import_path = (
-            f"simple_deploy.management.commands.{platform}.tests.e2e_tests.utils"
-        )
-        platform_utils = importlib.import_module(import_path)
+
+        # The plugin's tests/ dir has been added to sys.path earlier, so we can just
+        # use a dotted path to utils.py.
+        module_path = "e2e_tests.utils"
+        platform_utils = importlib.import_module(module_path)
         platform_utils.destroy_project(request)

@@ -1,8 +1,0 @@
-.git/
-
-b_env/
-
-__pycache__/
-*.pyc
-
-*.sqlite3

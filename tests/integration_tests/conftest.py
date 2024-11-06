@@ -134,26 +134,26 @@ def reset_test_project(request, tmp_project):
 @pytest.fixture(scope="module", autouse=True)
 def run_simple_deploy(reset_test_project, tmp_project, request):
     """Call simple deploy, targeting the platform that's currently being tested.
-    This auto-runs for all test modules in the /integration_tests/platforms/ directory.
+    This auto-runs for all test modules in the /integration_tests/ directory, and
+    should run for all default plugins as well.
     """
+    # Identify the platform that's being tested. This is derived from the path of the
+    # test module that's currently being run. If no platform is being tested, don't
+    # need to run simple_deploy.
+    # DEV: This is implemented awkwardly. There's probably one dsd- in the path,
+    # and if there's more we probably want the last one in the path. plugin_names
+    # should probably be path_parts or something like that. Also, consider refactoring
+    # this into a test utility function; see similar block in e2e conftest.
+    module_path = request.module.__file__
+    plugin_names = [name for name in module_path.split("/") if "dsd-" in name]
 
-    # Identify the platform that's being tested. We're looking for the element
-    #   in the test module path immediately after /integration_tests/platforms/.
-    # Note that we can use `{re.escape(os.sep)}` and avoid the if block, but it's less readable.
-    if sys.platform == "win32":
-        re_platform = r".*\\management\\commands\\(.*?)\\.*"
-    else:
-        re_platform = r".*/management/commands/(.*?)/.*"
-    test_module_path = request.path
-    print("\n\ntest_module_path:", test_module_path, "\n\n")
-    m = re.match(re_platform, str(test_module_path))
-
-    if m:
-        platform = m.group(1)
-    else:
-        # The currently running test module is not in /integration_tests/platforms/, so it
-        #   doesn't need to run simple_deploy.
+    if not plugin_names:
+        # The currently running test module is not in a plugin repo, so it doesn't
+        # need to run simple_deploy.
         return
+
+    plugin_name = plugin_names[0]
+    platform = plugin_name.removeprefix("dsd-")
 
     cmd = f"python manage.py simple_deploy"
     msp.call_simple_deploy(tmp_project, cmd, platform)

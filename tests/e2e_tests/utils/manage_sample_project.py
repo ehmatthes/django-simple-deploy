@@ -42,6 +42,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     - Set up a venv.
     - Install requirements for the sample project.
     - Install the appropriate version of simple_deploy.
+    - Install the appropriate version of the plugin being tested.
     - Make an initial commit.
     - Add simple_deploy to INSTALLED_APPS.
 
@@ -109,20 +110,31 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
     # Note: We don't need an editable install, but a non-editable install is *much* slower.
     #   We may be able to use --cache-dir to address this, but -e is working fine right now.
     # If `--pypi` flag has been passed, install from PyPI.
+    # Treat plugins the same as simple_deploy.
+    plugin_repo_dir_name = cli_options.plugin_name.replace("_", "-")
+    plugin_root_dir = sd_root_dir.parent / plugin_repo_dir_name
     if cli_options.pkg_manager == "req_txt" and uv_available:
         if cli_options.pypi:
             make_sp_call("uv pip cache purge")
             make_sp_call(
                 f"uv pip install --python {path_to_python} django-simple-deploy"
             )
+            make_sp_call(
+                f"uv pip install --python {path_to_python} {cli_options.plugin_name}"
+            )
         else:
             make_sp_call(f"uv pip install --python {path_to_python} -e {sd_root_dir}")
+            make_sp_call(
+                f"uv pip install --python {path_to_python} -e {plugin_root_dir}"
+            )
     elif cli_options.pkg_manager == "req_txt":
         if cli_options.pypi:
             make_sp_call("pip cache purge")
             make_sp_call(f"{pip_path} install django-simple-deploy")
+            make_sp_call(f"{pip_path} install {cli_options.plugin_name}")
         else:
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
+            make_sp_call(f"{pip_path} install -e {plugin_root_dir}")
 
     elif cli_options.pkg_manager == "poetry":
         # Use pip to install the local version.
@@ -133,21 +145,25 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
         #   whether an end user who uses poetry is able to use simple_deploy
         #   successfully.
         if cli_options.pypi:
-            cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry add django-simple-deploy"
+            cmd = f". {activate_path} && cd {tmp_proj_dir} && poetry add django-simple-deploy {cli_options.plugin_name}"
             subprocess.run(cmd, shell=True, check=True)
         else:
             make_sp_call(f"{pip_path} install -e {sd_root_dir}")
+            make_sp_call(f"{pip_path} install -e {plugin_root_dir}")
 
     elif cli_options.pkg_manager == "pipenv":
         if cli_options.pypi:
-            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install django-simple-deploy"
+            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install django-simple-deploy {cli_options.plugin_name}"
             subprocess.run(cmd, shell=True, check=True)
         else:
             # Install local (editable) version of django-simple-deploy.
             cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {sd_root_dir}"  # --skip-lock"
             subprocess.run(cmd, shell=True, check=True)
 
-            # Rewrite the specification for dsd in Pipfile, so remote server
+            cmd = f"cd {tmp_proj_dir} && . {activate_path} && pipenv install -e {plugin_root_dir}"  # --skip-lock"
+            subprocess.run(cmd, shell=True, check=True)
+
+            # Rewrite the specification for dsd and the plugin in Pipfile, so remote server
             #   won't try to install local version.
             pipfile_path = tmp_proj_dir / "Pipfile"
             pipfile_lines = pipfile_path.read_text().splitlines()
@@ -155,6 +171,8 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             for line in pipfile_lines:
                 if "django-simple-deploy" in line:
                     new_pipfile_lines.append('django-simple-deploy = "*"')
+                elif cli_options.plugin_name in line:
+                    new_pipfile_lines.append(f'{cli_options.plugin_name} = "*"')
                 else:
                     new_pipfile_lines.append(line)
 

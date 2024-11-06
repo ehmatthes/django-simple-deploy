@@ -3,6 +3,21 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
+0.8 - External plugins
+
+### 0.8.0
+
+#### External changes
+
+- None
+
+#### Internal changes
+
+- All platform-specific code has been moved to external plugins.
+  - Selects appropriate plugin based on `--platform` arg, and names of plugins that have been installed.
+  - Plugin naming convention: `dsd-<platformname>-<extension>`.
+  - Underscores in `--platform` arg are ignored when selecting plugin to use. For example, `--platform fly_io` will select a plugin named `dsd-flyio-<extension>`.
+
 0.7 - Internal plugin model
 ---
 

@@ -140,6 +140,7 @@ def summarize_results(
 
         Test options:
         - Tested {'PyPI' if cli_options.pypi else 'local'} version of django-simple-deploy.
+        - Plugin: {cli_options.plugin_name}
         - Package manager: {cli_options.pkg_manager}
         - {'Used' if cli_options.automate_all else 'Did not use'} `--automate-all` flag.
 

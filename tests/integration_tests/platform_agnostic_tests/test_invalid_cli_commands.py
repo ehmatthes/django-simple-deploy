@@ -57,7 +57,8 @@ def test_invalid_platform_call(tmp_project):
     stdout, stderr = msp.call_simple_deploy(tmp_project, invalid_sd_command)
 
     assert (
-        'The platform "unsupported_platform_name" is not currently supported.' in stderr
+        "SimpleDeployCommandError: Could not find plugin for the platform unsupported_platform_name."
+        in stderr
     )
     check_project_unchanged(tmp_project)
 
@@ -70,6 +71,7 @@ def test_invalid_platform_call_automate_all(tmp_project):
     stdout, stderr = msp.call_simple_deploy(tmp_project, invalid_sd_command)
 
     assert (
-        'The platform "unsupported_platform_name" is not currently supported.' in stderr
+        "SimpleDeployCommandError: Could not find plugin for the platform unsupported_platform_name."
+        in stderr
     )
     check_project_unchanged(tmp_project)

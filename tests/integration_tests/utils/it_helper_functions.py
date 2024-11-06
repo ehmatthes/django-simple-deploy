@@ -15,13 +15,15 @@ from textwrap import dedent
 import pytest
 
 
-def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""):
+def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filename=""):
     """Check that the test version of the file matches the reference version
     of the file.
 
     - filepath: relative path from tmp_proj_dir to test file
     - reference_filename: the name of the  reference file, if it has a
       different name than the generated file
+    - plugin_name: used to find the path to reference files, so it's distinct from the
+      --platform arg.
 
     Asserts:
     - Asserts that the file at `filepath` matches the reference file of the
@@ -46,12 +48,17 @@ def check_reference_file(tmp_proj_dir, filepath, platform, reference_filename=""
     # Root directory of local simple_deploy project.
     sd_root_dir = Path(__file__).parents[3]
     print("sd_root_dir:", sd_root_dir)
-    # fp_reference = sd_root_dir / f'integration_tests/platforms/{platform}/reference_files/{filename}'
-    fp_reference = (
-        sd_root_dir
-        / f"simple_deploy/management/commands/{platform}/tests/integration_tests/reference_files/{filename}"
-    )
-    assert fp_reference.exists()
+
+    # Only plugins use reference files for now. Assume plugin dir is in same directory as
+    # django-simple-deploy.
+    if plugin_name:
+        plugin_root_dir = sd_root_dir.parent / plugin_name
+        assert plugin_root_dir.exists()
+
+        fp_reference = (
+            plugin_root_dir / f"tests/integration_tests/reference_files/{filename}"
+        )
+        assert fp_reference.exists()
 
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.

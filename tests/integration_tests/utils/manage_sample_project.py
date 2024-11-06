@@ -86,6 +86,35 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     else:
         subprocess.run([pip_path, "install", "-e", sd_root_dir])
 
+    # Install editable versions of default plugins that are available.
+    # DEV: I believe dsd-flyio is required for core integration testing. Ensure that
+    # it's available. Also, consider emitting warning if any default plugins are not
+    # being tested.
+    # Assumes user has default plugins in repos named dsd-flyio, in same directory as
+    # their development copy of django-simple-deploy.
+    default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
+    for plugin_name in default_plugin_names:
+        plugin_root_dir = sd_root_dir.parent / plugin_name
+
+        if not plugin_root_dir.exists():
+            print(f"Can't install default plugin {plugin_name}.")
+            continue
+
+        if uv_available:
+            subprocess.run(
+                [
+                    "uv",
+                    "pip",
+                    "install",
+                    "--python",
+                    path_to_python,
+                    "-e",
+                    plugin_root_dir,
+                ]
+            )
+        else:
+            subprocess.run([pip_path, "install", "-e", plugin_root_dir])
+
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than
     #   tearing down the whole sample project and rebuilding it from scratch.
@@ -190,9 +219,14 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     # - Some platforms require a deployed project name, which isn't inferred from
     #   the project being deployed. This is typically because the platform generates
     #   a project name, ie misty-fjords-12345 during actual deployment.
+    # Automated testing tends to use platform names like flyio, derived from repository
+    # path. But manual use of integration test utilities may still use the form fly_io,
+    # so keep both for now.
+    # DEV: This will probably not be hard-coded once third-party plugins are being
+    # written.
     if platform:
         sd_command = f"{sd_command} --platform {platform}"
-    if platform in ("fly_io", "platform_sh"):
+    if platform in ("fly_io", "flyio", "platform_sh", "platformsh"):
         # These platforms need a project name to carry out configuration.
         sd_command = f"{sd_command} --deployed-project-name my_blog_project"
 
