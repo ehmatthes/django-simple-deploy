@@ -13,33 +13,51 @@ collect_ignore = ["sample_project"]
 
 # Let plugins import utilities.
 path = Path(__file__).parent / "tests" / "integration_tests" / "utils"
-sys.path.insert(0, path)
+sys.path.insert(0, str(path))
 
 # Get names of all plugins.
 plugin_names = packages_distributions().keys()
 plugin_names = [p for p in plugin_names if p.startswith("dsd_")]
 
-# Find paths to all plugin_names' e2e tests.
-plugin_test_paths = []
-plugin_e2e_paths = []
+# Find paths to all plugins.
+plugin_paths = []
 for plugin in plugin_names:
     plugin_spec = importlib.util.find_spec(plugin)
-    plugin_test_path = Path(plugin_spec.origin).parents[1] / "tests"
-    plugin_e2e_path = Path(plugin_spec.origin).parents[1] / "tests" / "e2e_tests"
-    plugin_test_paths.append(plugin_test_path)
-    plugin_e2e_paths.append(plugin_e2e_path)
+    plugin_path = Path(plugin_spec.origin).parents[1]
+    plugin_paths.append(plugin_path)
 
-print(plugin_test_paths)
-print(plugin_e2e_paths)
-sys.exit()
+plugin_e2e_paths = [p / "tests/e2e_tests" for p in plugin_paths]
 
 # Run tests for all installed plugins.
-for plugin_test_path in plugin_test_paths:
-    if plugin_test_path.exists():
-        sys.path.insert(0, str(plugin_test_path))
-        print("here")
-    else:
-        print("HERE")
+print(sys.path)
+for plugin_path in plugin_paths:
+    if plugin_path.exists():
+        sys.path.insert(0, str(plugin_path))
+print(sys.path)
+
+# sys.exit()
+
+
+
+
+
+
+# # Find paths to all plugins' tests.
+# plugin_test_paths = []
+# for plugin in plugin_names:
+#     plugin_spec = importlib.util.find_spec(plugin)
+#     plugin_test_path = Path(plugin_spec.origin).parents[1] / "tests"
+#     plugin_test_paths.append(plugin_test_path)
+
+# plugin_e2e_paths = [p / "e2e_tests" for p in plugin_test_paths]
+
+# # Run tests for all installed plugins.
+# for plugin_test_path in plugin_test_paths:
+#     if plugin_test_path.exists():
+#         sys.path.insert(0, str(plugin_test_path))
+#         print("here")
+#     else:
+#         print("HERE")
 
 # # Find relative paths to all plugin e2e tests.
 # plugin_e2e_paths_rel = []
