@@ -29,6 +29,10 @@ for plugin in plugin_names:
     plugin_test_paths.append(plugin_test_path)
     plugin_e2e_paths.append(plugin_e2e_path)
 
+print(plugin_test_paths)
+print(plugin_e2e_paths)
+sys.exit()
+
 # Run tests for all installed plugins.
 for plugin_test_path in plugin_test_paths:
     if plugin_test_path.exists():
