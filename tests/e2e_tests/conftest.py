@@ -71,12 +71,6 @@ def pytest_addoption(parser):
         default=False,
         help="Skip all confirmations",
     )
-    # parser.addoption(
-    #     "--platform",
-    #     action="store",
-    #     help="Which platform to run e2e tests for.",
-    #     required=True,
-    # )
     parser.addoption(
         "--plugin",
         action="store",
@@ -93,10 +87,6 @@ class CLIOptions:
         self.automate_all = automate_all
         self.skip_confirmations = skip_confirmations
         self.plugin_name = plugin_name
-
-        # It's helpful to have the platform name available here.
-        # Platform is the second term in the plugin name.
-        # self.platform = plugin_name.split("_")[1]
 
 
 @pytest.fixture(scope="session")
