@@ -90,7 +90,7 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     # DEV: I believe dsd-flyio is required for core integration testing. Ensure that
     # it's available. Also, consider emitting warning if any default plugins are not
     # being tested.
-    # Assumes user has default plugins in repos named dsd-flyio, in same directory as 
+    # Assumes user has default plugins in repos named dsd-flyio, in same directory as
     # their development copy of django-simple-deploy.
     default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
     for plugin_name in default_plugin_names:

@@ -81,7 +81,9 @@ def pytest_addoption(parser):
 
 # Bundle these options into a single object.
 class CLIOptions:
-    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations, plugin_name):
+    def __init__(
+        self, pkg_manager, pypi, automate_all, skip_confirmations, plugin_name
+    ):
         self.pkg_manager = pkg_manager
         self.pypi = pypi
         self.automate_all = automate_all
@@ -97,7 +99,7 @@ def cli_options(request):
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations"),
         # platform=request.config.getoption("--platform"),
-        plugin_name=request.config.getoption("--plugin")
+        plugin_name=request.config.getoption("--plugin"),
     )
 
 
@@ -139,7 +141,7 @@ def tmp_project(tmp_path_factory, pytestconfig, cli_options, request):
     #   test run.
     if confirm_destroy_project(cli_options):
         # Import the platform-specific utils module and call destroy_project().
-        
+
         # The plugin's tests/ dir has been added to sys.path earlier, so we can just
         # use a dotted path to utils.py.
         module_path = "e2e_tests.utils"

@@ -124,7 +124,9 @@ def setup_project(tmp_proj_dir, sd_root_dir, cli_options):
             )
         else:
             make_sp_call(f"uv pip install --python {path_to_python} -e {sd_root_dir}")
-            make_sp_call(f"uv pip install --python {path_to_python} -e {plugin_root_dir}")
+            make_sp_call(
+                f"uv pip install --python {path_to_python} -e {plugin_root_dir}"
+            )
     elif cli_options.pkg_manager == "req_txt":
         if cli_options.pypi:
             make_sp_call("pip cache purge")

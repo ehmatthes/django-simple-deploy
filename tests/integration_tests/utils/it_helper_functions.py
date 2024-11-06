@@ -55,7 +55,9 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
         plugin_root_dir = sd_root_dir.parent / plugin_name
         assert plugin_root_dir.exists()
 
-        fp_reference = plugin_root_dir / f"tests/integration_tests/reference_files/{filename}"
+        fp_reference = (
+            plugin_root_dir / f"tests/integration_tests/reference_files/{filename}"
+        )
         assert fp_reference.exists()
 
     # The test file and reference file will always have different modified
@@ -96,4 +98,3 @@ def check_package_manager_available(pkg_manager):
             msg += "https://pipenv.pypa.io/en/latest/install/#installing-pipenv"
 
         pytest.exit(msg)
-
