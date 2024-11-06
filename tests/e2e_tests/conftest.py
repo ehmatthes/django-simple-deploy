@@ -71,12 +71,12 @@ def pytest_addoption(parser):
         default=False,
         help="Skip all confirmations",
     )
-    parser.addoption(
-        "--platform",
-        action="store",
-        help="Which platform to run e2e tests for.",
-        required=True,
-    )
+    # parser.addoption(
+    #     "--platform",
+    #     action="store",
+    #     help="Which platform to run e2e tests for.",
+    #     required=True,
+    # )
     parser.addoption(
         "--plugin",
         action="store",
@@ -87,13 +87,16 @@ def pytest_addoption(parser):
 
 # Bundle these options into a single object.
 class CLIOptions:
-    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations, platform, plugin_name):
+    def __init__(self, pkg_manager, pypi, automate_all, skip_confirmations, plugin_name):
         self.pkg_manager = pkg_manager
         self.pypi = pypi
         self.automate_all = automate_all
         self.skip_confirmations = skip_confirmations
-        self.platform = platform
         self.plugin_name = plugin_name
+
+        # It's helpful to have the platform name available here.
+        # Platform is the second term in the plugin name.
+        # self.platform = plugin_name.split("_")[1]
 
 
 @pytest.fixture(scope="session")
@@ -103,7 +106,7 @@ def cli_options(request):
         pypi=request.config.getoption("--pypi"),
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations"),
-        platform=request.config.getoption("--platform"),
+        # platform=request.config.getoption("--platform"),
         plugin_name=request.config.getoption("--plugin")
     )
 
