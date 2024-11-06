@@ -546,7 +546,7 @@ class Command(BaseCommand):
         msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
 
         plugin_utils.write_output(msg)
-        confirmed = plugin_utils.get_confirmation(self.sd_config)
+        confirmed = plugin_utils.get_confirmation()
 
         if confirmed:
             plugin_utils.write_output("Automating all steps...")
