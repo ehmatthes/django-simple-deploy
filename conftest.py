@@ -41,6 +41,13 @@ for path in nd_plugin_paths:
 print(nd_plugin_paths)
 print(nd_plugin_paths_rel)
 
+def pytest_configure(config):
+    # print("\n*** in config ***")
+    # print(config)
+    config.args.append("../dsd-heroku/tests/")
+    # breakpoint()
+    # sys.exit()
+
 
 # for path in nd_plugin_paths_rel:
 # sys.exit()
