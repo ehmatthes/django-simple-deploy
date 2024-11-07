@@ -44,7 +44,8 @@ print(nd_plugin_paths_rel)
 def pytest_configure(config):
     # print("\n*** in config ***")
     # print(config)
-    config.args.append("../dsd-heroku/tests/")
+    # config.args.append("../dsd-heroku/tests/")
+    config.args.append("/Users/eric/projects/dsd-heroku/tests/")
     # breakpoint()
     # sys.exit()
 
