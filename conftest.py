@@ -39,10 +39,9 @@ for path in plugin_paths:
 def pytest_configure(config):
     """Add plugin test paths to what's being collected."""
 
-    # Don't modify test collection if running an e2e test.
-    for arg in config.args:
-        if "e2e_tests" in arg:
-            return
+    # Don't modify test collection when running e2e tests.
+    if any("e2e_tests" in arg for arg in config.args):
+        return
 
     # DEV: It's probably better to use absolute paths, and make sure any path
     # that's already included in args isn't appended again. This would mean
