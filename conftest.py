@@ -36,6 +36,7 @@ for path in plugin_paths:
     path_rel = Path(path_rel) / "tests"
     plugin_paths_rel.append(str(path_rel))
 
+
 def pytest_configure(config):
     """Add plugin test paths to what's being collected."""
 
