@@ -17,6 +17,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
   - Selects appropriate plugin based on `--platform` arg, and names of plugins that have been installed.
   - Plugin naming convention: `dsd-<platformname>-<extension>`.
   - Underscores in `--platform` arg are ignored when selecting plugin to use. For example, `--platform fly_io` will select a plugin named `dsd-flyio-<extension>`.
+- When running `pytest`, installed plugins are auto-discovered and their unit and integration tests are run.
+- When running end to end tests, use `--plugin dsd_flyio` instead of `--platform fly_io`. The platform arg will be inferred from the plugin name, allowing you to run tests for any default or third-party plugin.
 
 0.7 - Internal plugin model
 ---
