@@ -47,6 +47,10 @@ def pytest_configure(config):
     # that's already included in args isn't appended again. This would mean
     # comparing each plugin path to each arg, probably with path.resolve(), and
     # only adding if not already in args.
+    #
+    # Also, consider bailing if there are already any of these paths in config.args.
+    # We don't want to run all plugins' tests if the user is just trying to run tests
+    # for a single plugin.
 
     # Don't add paths that have already been explicitly included.
     for path in plugin_paths_rel:
