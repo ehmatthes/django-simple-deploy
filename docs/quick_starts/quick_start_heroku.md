@@ -34,7 +34,7 @@ Now create a new Heroku app and database using the CLI, and run `simple_deploy` 
 
 ```sh
 $ heroku create
-$ heroku addons:create heroku-postgresql:mini
+$ heroku addons:create heroku-postgresql:essential-0
 $ python manage.py simple_deploy --platform heroku
 ```
 

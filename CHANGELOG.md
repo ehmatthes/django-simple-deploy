@@ -10,7 +10,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 #### External changes
 
-- None
+- Requires default plugins: dsd-flyio, dsd-platformsh, dsd-heroku.
+- Updated quick start docs for Heroku, replacing deprecated `mini` Postgres instance with `essential-0`.
 
 #### Internal changes
 
