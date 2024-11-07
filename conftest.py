@@ -22,7 +22,7 @@ sys.path.insert(0, str(path))
 plugin_names = packages_distributions().keys()
 plugin_names = [p for p in plugin_names if p.startswith("dsd_")]
 
-default_plugin_names = ["dsd_flyio", "dsd_platformsh"]
+default_plugin_names = []#["dsd_flyio", "dsd_platformsh"]
 nd_plugin_names = [p for p in plugin_names if p not in default_plugin_names]
 
 nd_plugin_paths = []
@@ -38,16 +38,20 @@ for path in nd_plugin_paths:
     path_rel = Path(path_rel) / "tests"
     nd_plugin_paths_rel.append(str(path_rel))
 
-print(nd_plugin_paths)
-print(nd_plugin_paths_rel)
+# print(nd_plugin_paths)
+# print(nd_plugin_paths_rel)
 
 def pytest_configure(config):
     # print("\n*** in config ***")
     # print(config)
     # config.args.append("../dsd-heroku/tests/")
-    config.args.append("/Users/eric/projects/dsd-heroku/tests/")
+    # config.args.append("/Users/eric/projects/dsd-heroku/tests/")
     # breakpoint()
     # sys.exit()
+    for path in nd_plugin_paths_rel:
+        if path not in config.args:
+            config.args.append(path)
+    # breakpoint()
 
 
 # for path in nd_plugin_paths_rel:
