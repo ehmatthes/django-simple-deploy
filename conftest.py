@@ -37,7 +37,13 @@ for path in plugin_paths:
     plugin_paths_rel.append(str(path_rel))
 
 def pytest_configure(config):
-    # Add plugin test paths to what's being collected.
+    """Add plugin test paths to what's being collected."""
+
+    # DEV: It's probably better to use absolute paths, and make sure any path
+    # that's already included in args isn't appended again. This would mean
+    # comparing each plugin path to each arg, probably with path.resolve(), and
+    # only adding if not already in args.
+
     # Don't add paths that have already been explicitly included.
     for path in plugin_paths_rel:
         if path not in config.args:
