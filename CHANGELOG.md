@@ -4,6 +4,7 @@ Changelog: django-simple-deploy
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
 0.8 - External plugins
+---
 
 ### 0.8.0
 
