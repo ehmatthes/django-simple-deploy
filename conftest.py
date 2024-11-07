@@ -46,7 +46,8 @@ def pytest_configure(config):
     # DEV: It's probably better to use absolute paths, and make sure any path
     # that's already included in args isn't appended again. This would mean
     # comparing each plugin path to each arg, probably with path.resolve(), and
-    # only adding if not already in args.
+    # only adding if not already in args. Consider working with
+    # config._inicache["testpaths"] for this.
     #
     # Also, consider bailing if there are already any of these paths in config.args.
     # We don't want to run all plugins' tests if the user is just trying to run tests
