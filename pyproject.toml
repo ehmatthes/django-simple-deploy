@@ -1,6 +1,6 @@
 [build-system]
-build-backend = "setuptools.build_meta"
 requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-simple-deploy"
@@ -11,12 +11,6 @@ readme = "README.md"
 authors = [
     {name = "Eric Matthes", email = "ehmatthes@gmail.com" },
 ]
-
-urls = {
-    Documentation = "https://django-simple-deploy.readthedocs.io/en/latest/",
-    GitHub = "https://github.com/django-simple-deploy/django-simple-deploy",
-    Changelog = "https://github.com/django-simple-deploy/django-simple-deploy/blob/main/CHANGELOG.md",
-}
 
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -42,10 +36,18 @@ dependencies = [
     "django>=4.2",
     "pluggy>=1.5.0",
     "toml>=0.10.2",
-    "requests>2.28.0",
+    "requests>=2.28.0",
 ]
 
 [project.optional-dependencies]
 fly_io = ["dsd-flyio"]
 platform_sh = ["dsd-platformsh"]
 heroku = ["dsd-heroku"]
+
+[project.urls]
+"Documentation" = "https://django-simple-deploy.readthedocs.io/en/latest/"
+"GitHub" = "https://github.com/django-simple-deploy/django-simple-deploy"
+"Changelog" = "https://github.com/django-simple-deploy/django-simple-deploy/blob/main/CHANGELOG.md"
+
+[tool.setuptools]
+packages = ["simple_deploy"]
