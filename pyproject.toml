@@ -52,4 +52,8 @@ dev = ["black", "pytest", "dsd-flyio"]
 "Changelog" = "https://github.com/django-simple-deploy/django-simple-deploy/blob/main/CHANGELOG.md"
 
 [tool.setuptools]
-packages = ["simple_deploy"]
+packages = [
+    "simple_deploy",
+    "simple_deploy.management.commands",
+    "simple_deploy.management.commands.utils",
+]
