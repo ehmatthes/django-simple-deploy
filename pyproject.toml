@@ -1,3 +1,51 @@
 [build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+build-backend = "setuptools.build_meta"
+requires = ["setuptools"]
+
+[project]
+name = "django-simple-deploy"
+version = "0.8.1"
+description = "Deployment, for Djangonauts with deadlines."
+readme = "README.md"
+
+authors = [
+    {name = "Eric Matthes", email = "ehmatthes@gmail.com" },
+]
+
+urls = {
+    Documentation = "https://django-simple-deploy.readthedocs.io/en/latest/",
+    GitHub = "https://github.com/django-simple-deploy/django-simple-deploy",
+    Changelog = "https://github.com/django-simple-deploy/django-simple-deploy/blob/main/CHANGELOG.md",
+}
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+
+keywords = ["django", "deployment"]
+
+requires-python = ">=3.9"
+
+dependencies = [
+    "django>=4.2",
+    "pluggy>=1.5.0",
+    "toml>=0.10.2",
+    "requests>2.28.0",
+]
+
+[project.optional-dependencies]
+fly_io = ["dsd-flyio"]
+platform_sh = ["dsd-platformsh"]
+heroku = ["dsd-heroku"]

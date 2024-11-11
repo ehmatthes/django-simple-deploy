@@ -6,6 +6,16 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.8 - External plugins
 ---
 
+### 0.8.1
+
+#### External changes
+
+- New tagline: "Deployment, for Djangonauts with deadlines."
+
+#### Internal changes
+
+- Moved all info in setup.cfg to pyproject.toml.
+
 ### 0.8.0
 
 #### External changes
