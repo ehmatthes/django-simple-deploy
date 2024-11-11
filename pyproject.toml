@@ -44,6 +44,8 @@ fly_io = ["dsd-flyio"]
 platform_sh = ["dsd-platformsh"]
 heroku = ["dsd-heroku"]
 
+dev = ["black", "pytest", "dsd-flyio"]
+
 [project.urls]
 "Documentation" = "https://django-simple-deploy.readthedocs.io/en/latest/"
 "GitHub" = "https://github.com/django-simple-deploy/django-simple-deploy"
