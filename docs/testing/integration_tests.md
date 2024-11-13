@@ -21,7 +21,7 @@ Running integration tests
 ---
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/integration_tests
+(.venv)django-simple-deploy$ pytest tests/integration_tests
 ```
 
 Integration tests require that Poetry and Pipenv are installed. The tests call simple deploy against a version using each of these package managers, once for each supported platform. It should tell you gracefully if one of these requirements is not met.
@@ -31,13 +31,13 @@ Integration tests require that Poetry and Pipenv are installed. The tests call s
 You can easily run tests against a single platform:
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/integration_tests/platforms/fly_io
+(.venv)django-simple-deploy$ pytest tests/integration_tests/platforms/fly_io
 ```
 
 ### Consider using the `-s` flag
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/integration_tests -s
+(.venv)django-simple-deploy$ pytest tests/integration_tests -s
 ```
 
 If you include the `-s` flag, you'll see a whole bunch of output that can be helpful for troubleshooting. For example you'll see output related to creating a copy of the project in a temp environment, you'll see all the versions of the `simple_deploy` command that are being run, and you'll see the locations of the test projects that are being set up.
@@ -48,7 +48,7 @@ Running unit and integration tests together
 Unit tests and integration tests can be run together:
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest
+(.venv)django-simple-deploy$ pytest
 ```
 
 The bare `pytest` command will run all unit and integration tests. It will *not* run end-to-end tests; those tests need to be run explicitly.
@@ -59,7 +59,7 @@ Tests as a development tool
 The integration tests are quite useful for ongoing development work. For example, consider the following test command:
 
 ```sh
-(dsd_env)django-simple-deploy$ % pytest tests/integration_tests/platforms/fly_io -k req_txt -s
+(.venv)django-simple-deploy$ % pytest tests/integration_tests/platforms/fly_io -k req_txt -s
 ```
 
 This will create a temp project that uses requirements.txt to manage dependencies, and run a slight variation of `python manage.py simple_deploy --platform fly_io` against the project.
@@ -77,7 +77,7 @@ If you're troubleshooting a failed test, run `pytest tests/integration_tests -lf
 On macOS, you can run the following command:
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/integration_tests -x --open-test-project
+(.venv)django-simple-deploy$ pytest tests/integration_tests -x --open-test-project
 ```
 
 This will stop at the first failed test, and open a new terminal tab at the test project's location. It runs `git status` and `git log --pretty=oneline` automatically, and invites you to poke around the project. This is a really helpful feature, that I'd like to refine.
@@ -94,7 +94,7 @@ Examining the test project is an efficient way to update reference files. Say yo
 The main purpose of the `vendor/` directory is to facilitate integration testing. To add a new package to the directory:
 
 ```sh
-(dsd_env) $ pip download --dest vendor/ package_name
+(.venv) $ pip download --dest vendor/ package_name
 ```
 
 To upgrade all packages in `vendor/`:

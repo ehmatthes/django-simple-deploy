@@ -52,8 +52,8 @@ Now, considering that you are in the django-simple-deploy directory, create a vi
 === "macOS/Linux"
 
     ```
-    $ python3 -m venv dsd_env
-    $ source dsd_env/bin/activate
+    $ python3 -m venv .venv
+    $ source .venv/bin/activate
     $ pip install --upgrade pip
     $ pip install -r requirements.txt
     ```
@@ -61,8 +61,8 @@ Now, considering that you are in the django-simple-deploy directory, create a vi
 === "Windows"
 
     ```
-    > python -m venv dsd_env
-    > dsd_env\Scripts\activate
+    > python -m venv .venv
+    > .venv\Scripts\activate
     > pip install --upgrade pip
     > pip install -r requirements.txt
     ```

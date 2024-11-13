@@ -1,7 +1,5 @@
 .DS_Store
 
-*_env/
-
 *.pyc
 __pycache__/
 
@@ -17,5 +15,5 @@ docs/tmp_header.md
 build/
 
 # Ignores the virtualenv directory
-dsd_env
 .venv/
+*_env/

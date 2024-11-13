@@ -34,6 +34,12 @@ plugin_paths_rel = []
 for path in plugin_paths:
     path_rel = os.path.relpath(path, sd_root_dir)
     path_rel = Path(path_rel) / "tests"
+
+    if not path_rel.exists():
+        # This block is hit when a plugin is installed through PyPI rather than
+        # a local editable install. PyPI versions typically don't have tests.
+        continue
+
     plugin_paths_rel.append(str(path_rel))
 
 
