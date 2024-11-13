@@ -18,7 +18,7 @@ Running unit tests
 ---
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest tests/unit_tests
+(.venv)django-simple-deploy$ pytest tests/unit_tests
 ```
 
 Running unit and integration tests together
@@ -27,7 +27,7 @@ Running unit and integration tests together
 Unit tests and integration tests can be run together:
 
 ```sh
-(dsd_env)django-simple-deploy$ pytest
+(.venv)django-simple-deploy$ pytest
 ```
 
 The bare `pytest` command will run all unit and integration tests. It will *not* run end-to-end tests; those tests need to be run explicitly.
