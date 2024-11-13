@@ -33,10 +33,10 @@ keywords = ["django", "deployment"]
 requires-python = ">=3.9"
 
 dependencies = [
-    "django==4.2",
-    "pluggy==1.5.0",
-    "toml==0.10.2",
-    "requests==2.32.2",
+    "django>=4.2",
+    "pluggy>=1.5.0",
+    "toml>=0.10.2",
+    "requests>=2.32.2",
 ]
 
 [project.optional-dependencies]
@@ -45,13 +45,13 @@ platform_sh = ["dsd-platformsh"]
 heroku = ["dsd-heroku"]
 
 dev = [
-    "black==24.1.0",
-    "build==1.2.1",
-    "mkdocs==1.6.0",
-    "mkdocs-material==9.5.0",
-    "pipenv==2024.4.0",
-    "pytest==8.3.0",
-    "twine==5.1.1",
+    "black>=24.1.0",
+    "build>=1.2.1",
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "pipenv>=2024.4.0",
+    "pytest>=8.3.0",
+    "twine>=5.1.1",
 ]
 
 [project.urls]
