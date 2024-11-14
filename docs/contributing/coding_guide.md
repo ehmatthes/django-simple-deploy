@@ -14,7 +14,7 @@ There are some coding guidelines that are helpful to note, with the following go
 
 # Project structure
 
-As much as possible, write small utility functions that can easily be unit tested, without the need for building a full project.
+As much as possible, write small utility functions that can easily be unit tested, without the need for building a full project. If you're writing a method, pull any functionality that doesn't depend on class attributes out into a utility function, unless it's too trivial to be worth testing.
 
 ## Coding Style
 
