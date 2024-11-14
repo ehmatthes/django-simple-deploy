@@ -21,6 +21,8 @@ Running unit tests
 (.venv)django-simple-deploy$ pytest tests/unit_tests
 ```
 
+This will run unit tests for the core django-simple-deploy project, and for any plugins installed in editable mode.
+
 Running unit and integration tests together
 ---
 
@@ -30,4 +32,4 @@ Unit tests and integration tests can be run together:
 (.venv)django-simple-deploy$ pytest
 ```
 
-The bare `pytest` command will run all unit and integration tests. It will *not* run end-to-end tests; those tests need to be run explicitly.
+The bare `pytest` command will run all unit and integration tests for the core django-simple-deploy project, and for any plugins installed in editable mode. It will *not* run end-to-end tests; those tests need to be run explicitly.

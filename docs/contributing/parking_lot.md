@@ -29,7 +29,6 @@ General ideas
 - Revisit `git status` check in simple_deploy.py. See [#261](https://github.com/django-simple-deploy/django-simple-deploy/issues/261).
 - Document use of development tools such as reset_project.py. See [#264](https://github.com/django-simple-deploy/django-simple-deploy/issues/264).
 - Look at consistency of platform messages. See [#270](https://github.com/django-simple-deploy/django-simple-deploy/issues/264).
-- Consider a tagline. [#284](https://github.com/django-simple-deploy/django-simple-deploy/issues/284).
 - Consider pyupgrade for finding old Python idioms that are no longer needed. See [#299](https://github.com/django-simple-deploy/django-simple-deploy/issues/299).
 - Try simple_deploy with a micro framework such as [django-singlefile](https://github.com/andrewgodwin/django-singlefile) or [nanodjango](https://github.com/radiac/nanodjango).
 - Should the project support Poetry?
