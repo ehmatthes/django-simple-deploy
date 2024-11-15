@@ -28,6 +28,9 @@ $ pip install django-simple-deploy[platform_sh]
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
+!!! note
+    If you're using zsh, you need to put quotes around the package name when you install it: `$ pip install "django-simple-deploy[platform_sh]"`. Otherwise zsh interprets the square brackets as glob patterns.
+
 Now create a new Platform.sh app using the CLI, and run `simple_deploy` to configure your app:
 
 ```sh

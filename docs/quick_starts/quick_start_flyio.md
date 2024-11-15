@@ -28,10 +28,10 @@ $ pip install django-simple-deploy[fly_io]
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
-Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure your app:
-
 !!! note
-    The `fly` and `flyctl` commands are used on the Fly.io docs interchangeably. They are standardizing on `fly`, so that's what we'll be using here.
+    If you're using zsh, you need to put quotes around the package name when you install it: `$ pip install "django-simple-deploy[fly_io]"`. Otherwise zsh interprets the square brackets as glob patterns.
+
+Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure your app:
 
 ```sh
 $ fly apps create --generate-name
@@ -87,3 +87,7 @@ $ fly ssh console
 If deployment doesn't work, feel free to open an [issue](https://github.com/django-simple-deploy/django-simple-deploy/issues). Please share the OS you're  using locally, and the specific error message or unexpected behavior you saw. If the project you're deploying is hosted in a public repository, please share that as well.
 
 Please remember that `django-simple-deploy` is in a preliminary state. That said, I'd love to know the specific issues people are running into so we can reach a 1.0 state in a reasonable time frame.
+
+## A note about `fly` and `flyctl`
+
+The `fly` and `flyctl` commands are used on the Fly.io docs interchangeably. They are standardizing on `fly`, so that's what we'll be using here.

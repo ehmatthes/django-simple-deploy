@@ -30,6 +30,9 @@ $ pip install django-simple-deploy[heroku]
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
+!!! note
+    If you're using zsh, you need to put quotes around the package name when you install it: `$ pip install "django-simple-deploy[heroku]"`. Otherwise zsh interprets the square brackets as glob patterns.
+
 Now create a new Heroku app and database using the CLI, and run `simple_deploy` to configure your app:
 
 ```sh
