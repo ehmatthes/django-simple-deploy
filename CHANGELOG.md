@@ -12,6 +12,8 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 
 - New tagline: "Deployment, for Djangonauts with deadlines."
 - Updated all virtual environment names in docs from `dsd_env` to `.venv`.
+- Brief update for docs to reflect installation workflow requiring user to specify a plugin.
+- Updated docs for setting up a development environment, and testing the project.
 
 #### Internal changes
 
