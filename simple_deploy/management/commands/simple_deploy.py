@@ -134,6 +134,15 @@ class Command(BaseCommand):
         pm.register(platform_module, self.platform)
         self._check_required_hooks(pm)
 
+
+
+        pname = pm.hook.simple_deploy_get_platform_name()[0]
+        print("Platform name from plugin:", pname)
+        breakpoint()
+
+        
+
+
         self._confirm_automate_all(pm)
 
         # Validate sd_config before handing responsiblity off to plugin.
