@@ -16,6 +16,8 @@ def test_platform_deployment(tmp_project, cli_options, request):
     # The tests/ dir is not part of the plugin package, so it needs to be added
     # to sys.path.
     plugin_spec = importlib.util.find_spec(cli_options.plugin_name)
+    assert plugin_spec
+
     plugin_tests_path = Path(plugin_spec.origin).parents[1] / "tests"
     assert plugin_tests_path.exists()
 
