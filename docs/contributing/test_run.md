@@ -53,7 +53,7 @@ Clone the example project, and run it locally:
     ```
     $ git clone https://github.com/ehmatthes/dsd_sample_blog_reqtxt.git
     $ cd dsd_sample_blog_reqtxt
-    $ python3 -m venv b_env
+    $ python -m venv b_env
     $ source b_env/bin/activate
     (b_env)$ pip install --upgrade pip
     (b_env)$ pip install -r requirements.txt

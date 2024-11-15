@@ -55,7 +55,7 @@ requests==2.32.3
 requests-toolbelt==1.0.0
 rfc3986==2.0.0
 rich==13.9.4
-setuptools==75.4.0
+setuptools==75.5.0
 six==1.16.0
 sqlparse==0.5.1
 toml==0.10.2

@@ -11,11 +11,14 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 #### External changes
 
 - New tagline: "Deployment, for Djangonauts with deadlines."
-- Updated all virtual environment names from `dsd_env` to `.venv`.
+- Updated all virtual environment names in docs from `dsd_env` to `.venv`.
+- Brief update for docs to reflect installation workflow requiring user to specify a plugin.
+- Updated docs for setting up a development environment, and testing the project.
 
 #### Internal changes
 
 - Moved all info in setup.cfg to pyproject.toml.
+- Set and tested minimum versions for top-level dependencies.
 
 ### 0.8.0
 

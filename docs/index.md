@@ -11,7 +11,7 @@ hide:
 Here's what automated deployment on [Fly.io](https://fly.io) looks like:
 
 ```sh
-$ pip install django-simple-deploy
+$ pip install django-simple-deploy[fly_io]
 # Add simple_deploy to INSTALLED_APPS.
 $ python manage.py simple_deploy --platform fly_io --automate-all
 ```

@@ -52,10 +52,10 @@ Now, considering that you are in the django-simple-deploy directory, create a vi
 === "macOS/Linux"
 
     ```
-    $ python3 -m venv .venv
+    $ python -m venv .venv
     $ source .venv/bin/activate
     $ pip install --upgrade pip
-    $ pip install -r requirements.txt
+    $ pip install -e '.[dev]'
     ```
 
 === "Windows"
@@ -64,7 +64,7 @@ Now, considering that you are in the django-simple-deploy directory, create a vi
     > python -m venv .venv
     > .venv\Scripts\activate
     > pip install --upgrade pip
-    > pip install -r requirements.txt
+    > pip install -e '[.dev]'
     ```
 
 ## Make a test project to run `simple_deploy` against
@@ -108,7 +108,7 @@ In the root directory of the test project, build out the environment and start t
 === "macOS/Linux"
 
     ```
-    $ python3 -m venv b_env
+    $ python -m venv b_env
     $ source b_env/bin/activate
     $ pip install --upgrade pip
     $ pip install -r requiremnents.txt
@@ -173,8 +173,19 @@ To use your local version of `django-simple-deploy`, we'll install `simple_deplo
 Here's how to make the editable install:
 
 ```sh
-$ python -m pip install -e /local/path/to/django-simple-deploy/
+$ pip install -e /local/path/to/django-simple-deploy/
 ```
+
+## Install the correct plugin for your platform
+
+There are currently three plugins available: [dsd-flyio](https://github.com/django-simple-deploy/dsd-flyio), [dsd-platformsh](https://github.com/django-simple-deploy/dsd-platformsh), and [dsd-heroku](https://github.com/django-simple-deploy/dsd-heroku). Pick the one that you want to use for deployment, and install it just like any PyPI package:
+
+```sh
+$ pip install dsd-flyio
+```
+
+!!! note
+    If you want to contribute to a plugin as well, clone the plugin to your system just like you did for django-simple-deploy, and make an editable install of the plugin into your test project as well.
 
 ## Run `simple_deploy` against the test project
 
@@ -227,20 +238,16 @@ This will avoid network calls and use sample resource names again, and it will i
 
 When this project is more mature, there will be a clear routine for running tests before opening a new PR. But testing this project is not straightforward. For example, there's no need to run a full test suite making multiple full deployments for every possible PR. If you're satisfied with your work and think it should be merged into the main project, feel free to open a PR.
 
-## Running unit tests
+## Running tests
 
-If you're interested in running the unit tests, please refer to [Unit tests](../unit_tests/index.md).
-
-## Running integration tests
-
-The integration tests have been critical in developing the project to this point. That said, they are in need of restructuring as well. If you want to understand the current state of the integration tests, see the [old documentation](https://github.com/django-simple-deploy/django-simple-deploy/blob/main/old_docs/integration_tests.md) as well.
+Unit and integration tests can be run locally, without making any network calls. End-to-end tests are one-off runs of actual deployments, and can cost money to run. If you're interested in running tests, see the [Testing](../../testing/) section.
 
 ## Ongoing work
 
 It's a lot of work to do these steps repeatedly. You can automate most of this setup work with the following commands. For the moment, this assumes you have a directory called *projects/* in your home directory:
 
 ```sh
-$ python integration_tests/utils/build_dev_env.py
+$ python tests/e2e_tests/utils/build_dev_env.py
 --- Finished setup ---
   Your project is ready to use at: /Users/eric/projects/dsd-dev-project_zepbz
 ```
@@ -260,7 +267,7 @@ This gives you a project where simple_deploy has already been installed and adde
 
 New contributors should probably go through the longer process once, unless they've used simple_deploy previously.
 
-You can also run variations of the build command to develop against the package manager of your choice, and you can run manual tests against the PyPI version if you wish as well:
+You can also pass arguments to *build_dev_env.py* to develop against the package manager of your choice, and you can run manual tests against the PyPI version if you wish as well:
 
 ```sh
 $ python build_dev_env.py --pkg-manager [req_txt | poetry | pipenv] --target [development_version | pypi]
@@ -268,4 +275,4 @@ $ python build_dev_env.py --pkg-manager [req_txt | poetry | pipenv] --target [de
 
 ## Closing thoughts
 
-This is a rapidly evolving project. Please feel free to open an [issue](https://github.com/django-simple-deploy/django-simple-deploy/issues/new/choose) or a [discussion](https://github.com/django-simple-deploy/django-simple-deploy/discussions/new) about any aspect of this project.
+This is an evolving project. Please feel free to open an [issue](https://github.com/django-simple-deploy/django-simple-deploy/issues/new/choose) or a [discussion](https://github.com/django-simple-deploy/django-simple-deploy/discussions/new) about any aspect of this project.

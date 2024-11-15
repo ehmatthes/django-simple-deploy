@@ -23,7 +23,7 @@ Deployment to Fly.io requires three things:
 First, install `django-simple-deploy` and add `simple_deploy` to `INSTALLED_APPS` in *settings.py*:
 
 ```sh
-$ pip install django-simple-deploy
+$ pip install django-simple-deploy[fly_io]
 # Add "simple_deploy" to INSTALLED_APPS in settings.py.
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
@@ -56,7 +56,7 @@ You can find a record of the deployment process in `simple_deploy_logs`. It cont
 If you want, you can automate this entire process. This involves just three steps:
 
 ```sh
-$ pip install django-simple-deploy
+$ pip install django-simple-deploy[fly_io]
 # Add `simple_deploy` to INSTALLED_APPS in settings.py.
 $ python manage.py simple_deploy --platform fly_io --automate-all
 ```
