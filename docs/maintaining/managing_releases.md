@@ -11,7 +11,7 @@ Making a new release
 ---
 
 - Make sure you are on the main branch, and you have pulled all recently merged changes: `git pull origin main`
-- Bump the version number in `setup.cfg`
+- Bump the version number in `pyproject.toml`
 - Make an entry in `changelog.md`
 - Commit this change: `git commit -am "Bumped version number, and updated changelog."`
 - Push this change directly to main: `git push origin main`
