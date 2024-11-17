@@ -137,8 +137,8 @@ class Command(BaseCommand):
 
 
         pname = pm.hook.simple_deploy_get_platform_name()[0]
-        print("Platform name from plugin:", pname)
-        breakpoint()
+        # print("Platform name from plugin:", pname)
+        # breakpoint()
 
         
 
@@ -156,7 +156,7 @@ class Command(BaseCommand):
 
         # Platform-agnostic arguments.
         sd_config.automate_all = options["automate_all"]
-        self.platform = options["platform"]
+        # self.platform = options["platform"]
         sd_config.log_output = not (options["no_logging"])
         self.ignore_unclean_git = options["ignore_unclean_git"]
 
@@ -235,10 +235,11 @@ class Command(BaseCommand):
             None
 
         Raises:
-            SimpleDeployCommandError: If requested platform is supported.
+            SimpleDeployCommandError: If we can't do a deployment with given set of args.
         """
-        if not self.platform:
-            raise SimpleDeployCommandError(sd_messages.requires_platform_flag)
+        pass
+        # if not self.platform:
+        #     raise SimpleDeployCommandError(sd_messages.requires_platform_flag)
         # elif self.platform in ["fly_io", "platform_sh", "heroku", "dsd_flyio"]:
         #     plugin_utils.write_output(f"\nDeployment target: {self.platform}")
         # else:

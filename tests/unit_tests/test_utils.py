@@ -58,129 +58,55 @@ def test_get_string_from_output_with_stderr():
 
 
 def test_get_plugin_name_default_plugins():
-    """Test that the appropriate plugin name is determined from the --platform arg."""
+    """Test that the appropriate plugin name is determined when an official plugin is installed."""
     available_packages = [
         "django",
         "django-bootstrap5",
         "dsd_flyio",
-        "dsd_platformsh",
-        "dsd_heroku",
     ]
 
-    platform_arg = "fly_io"
-    plugin_name = sd_utils._get_plugin_name_from_packages(
-        platform_arg, available_packages
-    )
+    plugin_name = sd_utils._get_plugin_name_from_packages(available_packages)
     assert plugin_name == "dsd_flyio"
 
-    platform_arg = "platform_sh"
-    plugin_name = sd_utils._get_plugin_name_from_packages(
-        platform_arg, available_packages
-    )
-    assert plugin_name == "dsd_platformsh"
 
-    platform_arg = "heroku"
-    plugin_name = sd_utils._get_plugin_name_from_packages(
-        platform_arg, available_packages
-    )
-    assert plugin_name == "dsd_heroku"
-
-
-def test_get_plugin_name_third_party_overlapping_plugin():
-    """Test that appropriate plugin name returned for third-party plugin that overlaps default plugins."""
+def test_get_plugin_name_third_party_plugin():
+    """Test that appropriate plugin name returned for third-party plugin."""
     available_packages = [
         "dsd_flyio_thirdparty",
         "django",
         "django-bootstrap5",
-        "dsd_flyio",
-        "dsd_platformsh",
-        "dsd_heroku",
     ]
 
-    platform_arg = "fly_io"
-    plugin_name = sd_utils._get_plugin_name_from_packages(
-        platform_arg, available_packages
-    )
+    plugin_name = sd_utils._get_plugin_name_from_packages(available_packages)
     assert plugin_name == "dsd_flyio_thirdparty"
 
 
-def test_get_plugin_name_third_party_non_overlapping_plugin():
-    """Test that appropriate plugin name is returned when no overlap with defaults."""
-    available_packages = [
-        "dsd_nonoverlappingplatform",
-        "django",
-        "django-bootstrap5",
-        "dsd_flyio",
-        "dsd_platformsh",
-        "dsd_heroku",
-    ]
-
-    platform_arg = "nonoverlapping_platform"
-    plugin_name = sd_utils._get_plugin_name_from_packages(
-        platform_arg, available_packages
-    )
-    assert plugin_name == "dsd_nonoverlappingplatform"
-
-
-def test_get_plugin_name_unavailable_plugin():
-    """Test that exception raised when unavailable plugin requested."""
+def test_get_plugin_name_no_plugins():
+    """Test that exception raised when no plugins installed."""
     available_packages = [
         "django",
         "django-bootstrap5",
-        "dsd_flyio",
-        "dsd_platformsh",
-        "dsd_heroku",
     ]
 
-    platform_arg = "unsupported_platform"
     with pytest.raises(SimpleDeployCommandError):
-        plugin_name = sd_utils._get_plugin_name_from_packages(
-            platform_arg, available_packages
-        )
+        plugin_name = sd_utils._get_plugin_name_from_packages(available_packages)
 
 
 def test_get_plugin_name_too_many_plugins():
-    """Test that having more than one plugin for the same non-default platform raises an exception.
+    """Test that having more than one plugin installed raises an exception.
 
     DEV: This needs to be rewritten when that case is handled by lettting user select plugin to use.
     """
     available_packages = [
         "dsd_newplatform",
         "dsd_newplatform_high_scale",
+        "dsd_flyio",
         "django",
         "django-bootstrap5",
-        "dsd_flyio",
-        "dsd_platformsh",
-        "dsd_heroku",
     ]
 
-    platform_arg = "new_platform"
     with pytest.raises(SimpleDeployCommandError):
-        plugin_name = sd_utils._get_plugin_name_from_packages(
-            platform_arg, available_packages
-        )
-
-
-def test_get_plugin_name_too_many_plugins_default():
-    """Test that having more than two third-party plugins for default platform raises an exception.
-
-    DEV: This needs to be rewritten when that case is handled by lettting user select plugin to use.
-    """
-    available_packages = [
-        "dsd_flyio_high_scale",
-        "dsd_flyio_higher_scale",
-        "django",
-        "django-bootstrap5",
-        "dsd_flyio",
-        "dsd_platformsh",
-        "dsd_heroku",
-    ]
-
-    platform_arg = "fly_io"
-    with pytest.raises(SimpleDeployCommandError):
-        plugin_name = sd_utils._get_plugin_name_from_packages(
-            platform_arg, available_packages
-        )
+        plugin_name = sd_utils._get_plugin_name_from_packages(available_packages)
 
 
 # --- Parsing requirements ---

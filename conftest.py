@@ -61,6 +61,7 @@ def pytest_configure(config):
     # for a single plugin.
 
     # Don't add paths that have already been explicitly included.
-    for path in plugin_paths_rel:
-        if path not in config.args:
-            config.args.append(path)
+    # DEV: Commented out in order to avoid running plugin tests temporarily.
+    # for path in plugin_paths_rel:
+    #     if path not in config.args:
+    #         config.args.append(path)
