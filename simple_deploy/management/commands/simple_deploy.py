@@ -123,12 +123,13 @@ class Command(BaseCommand):
         # Import the platform-specific plugin module. This performs some validation, so
         # it's best to call this before modifying project in any way.
         platform_module = self._load_plugin()
-        
+
         # Register the platform-specific plugin.
-        pm.register(platform_module, self.platform)
+        pm.register(platform_module)
         self._check_required_hooks(pm)
 
-        pname = pm.hook.simple_deploy_get_platform_name()[0]
+        platform_name = pm.hook.simple_deploy_get_platform_name()[0]
+        plugin_utils.write_output(f"\nDeployment target: {platform_name}")
         # print("Platform name from plugin:", pname)
         # breakpoint()
 
@@ -226,9 +227,7 @@ class Command(BaseCommand):
 
     def _load_plugin(self):
         """Load the appropriate platform-specific plugin module for this deployment."""
-        self.plugin_name = sd_utils.get_plugin_name(self.platform)
-
-        plugin_utils.write_output(f"\nDeployment target: {self.platform}")
+        self.plugin_name = sd_utils.get_plugin_name()
         plugin_utils.write_output(f"  Using plugin: {self.plugin_name}")
 
         platform_module = import_module(f"{self.plugin_name}.deploy")

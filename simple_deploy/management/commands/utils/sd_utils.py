@@ -23,7 +23,7 @@ def validate_choice(choice, valid_choices):
     return False
 
 
-def get_plugin_name(platform):
+def get_plugin_name():
     """Get the name of the installed plugin."""
     available_packages = packages_distributions().keys()
     return _get_plugin_name_from_packages(available_packages)
