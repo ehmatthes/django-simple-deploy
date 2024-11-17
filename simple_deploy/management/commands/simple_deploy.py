@@ -123,6 +123,18 @@ class Command(BaseCommand):
         # Import the platform-specific plugin module. This performs some validation, so
         # it's best to call this before modifying project in any way.
         platform_module = self._load_plugin()
+        
+        # Register the platform-specific plugin.
+        pm.register(platform_module, self.platform)
+        self._check_required_hooks(pm)
+
+        pname = pm.hook.simple_deploy_get_platform_name()[0]
+        # print("Platform name from plugin:", pname)
+        # breakpoint()
+
+
+
+
 
         # Inspect the user's system and project, and make sure simple_deploy is included
         # in project requirements.
@@ -130,15 +142,9 @@ class Command(BaseCommand):
         self._inspect_project()
         self._add_simple_deploy_req()
 
-        # Register the platform-specific plugin.
-        pm.register(platform_module, self.platform)
-        self._check_required_hooks(pm)
 
 
 
-        pname = pm.hook.simple_deploy_get_platform_name()[0]
-        # print("Platform name from plugin:", pname)
-        # breakpoint()
 
         
 
