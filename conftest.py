@@ -8,6 +8,9 @@ import importlib
 
 import pytest
 
+from tests.utils import plugin_finders
+
+
 # Don't look at any test files in the sample_project/ dir.
 # Don't collect e2e tests; only run when specified over CLI.
 collect_ignore = ["sample_project", "tests/e2e_tests"]
@@ -15,32 +18,6 @@ collect_ignore = ["sample_project", "tests/e2e_tests"]
 # Let plugins import utilities.
 path = Path(__file__).parent / "tests" / "integration_tests" / "utils"
 sys.path.insert(0, str(path))
-
-
-# --- Dynamically import tests from all installed plugins ---
-
-# Get names of all plugins.
-plugin_names = packages_distributions().keys()
-plugin_names = [p for p in plugin_names if p.startswith("dsd_")]
-
-plugin_paths = []
-for plugin_name in plugin_names:
-    spec = importlib.util.find_spec(plugin_name)
-    path = Path(spec.origin).parents[1]
-    plugin_paths.append(path)
-
-sd_root_dir = Path(__file__).parent
-plugin_paths_rel = []
-for path in plugin_paths:
-    path_rel = os.path.relpath(path, sd_root_dir)
-    path_rel = Path(path_rel) / "tests"
-
-    if not path_rel.exists():
-        # This block is hit when a plugin is installed through PyPI rather than
-        # a local editable install. PyPI versions typically don't have tests.
-        continue
-
-    plugin_paths_rel.append(str(path_rel))
 
 
 def pytest_configure(config):
@@ -62,6 +39,7 @@ def pytest_configure(config):
 
     # Don't add paths that have already been explicitly included.
     # DEV: Commented out in order to avoid running plugin tests temporarily.
-    # for path in plugin_paths_rel:
-    #     if path not in config.args:
-    #         config.args.append(path)
+    plugin_paths_rel = plugin_finders.get_plugin_paths_rel()
+    for path in plugin_paths_rel:
+        if path not in config.args:
+            config.args.append(path)
