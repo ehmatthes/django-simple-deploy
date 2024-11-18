@@ -37,7 +37,8 @@ def pytest_configure(config):
     int_tests_explicit = any(arg.endswith("tests/integration_tests") for arg in sys.argv)
 
     # Consider a "bare" call one that doesn't explicitly ask for unit or integration tests.
-    # Look at all args beyond pytest command, and see if any paths are included.
+    # In this case, we want to collect all plugin tests. Look at all args beyond
+    # pytest command, and see if any paths are included.
     bare_call = True
     for arg in sys.argv[1:]:
         if Path(arg).exists():
