@@ -113,7 +113,7 @@ def tmp_project(tmp_path_factory, pytestconfig):
     # assert not tmp_proj_dir
 
     # Copy sample project to tmp dir, and set up the project for using simple_deploy.
-    msp.setup_project(tmp_proj_dir, sd_root_dir)
+    msp.setup_project(tmp_proj_dir, sd_root_dir, pytestconfig)
 
     # Store the tmp_proj_dir in the pytest cache, so we can access it in the
     #   open_test_project() plugin.

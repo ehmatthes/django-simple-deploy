@@ -6,7 +6,7 @@ from shutil import copytree, rmtree
 from shlex import split
 
 
-def setup_project(tmp_proj_dir, sd_root_dir):
+def setup_project(tmp_proj_dir, sd_root_dir,config):
     """Set up the test project.
     - Copy the sample project to a temp dir.
     - Set up a venv.
@@ -95,12 +95,38 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
     # DEV: Hacky [:1] insertion to just test against dsd-flyio plugin for now.
     # Need to determine which plugin to install for testing.
-    for plugin_name in default_plugin_names[:1]:
-        plugin_root_dir = sd_root_dir.parent / plugin_name
+    # for plugin_name in default_plugin_names[:1]:
+    #     plugin_root_dir = sd_root_dir.parent / plugin_name
+
+    #     if not plugin_root_dir.exists():
+    #         print(f"Can't install default plugin {plugin_name}.")
+    #         continue
+
+    #     if uv_available:
+    #         subprocess.run(
+    #             [
+    #                 "uv",
+    #                 "pip",
+    #                 "install",
+    #                 "--python",
+    #                 path_to_python,
+    #                 "-e",
+    #                 plugin_root_dir,
+    #             ]
+    #         )
+    #     else:
+    #         subprocess.run([pip_path, "install", "-e", plugin_root_dir])
+
+
+
+    # Install a plugin. If no plugin specified, install local editable version of dsd-flyio.
+    # If a plugin specified, install same version that's installed to dev env.
+    if not config.option.plugin:
+        plugin_root_dir = sd_root_dir.parent / "dsd-flyio"
 
         if not plugin_root_dir.exists():
-            print(f"Can't install default plugin {plugin_name}.")
-            continue
+            msg = f"Can't install default testing plugin dsd-flyio."
+            pytest.exit(msg)
 
         if uv_available:
             subprocess.run(
@@ -116,6 +142,10 @@ def setup_project(tmp_proj_dir, sd_root_dir):
             )
         else:
             subprocess.run([pip_path, "install", "-e", plugin_root_dir])
+
+
+
+
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different simple_deploy command. This is much more efficient than

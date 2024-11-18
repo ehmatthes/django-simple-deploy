@@ -18,6 +18,12 @@ def pytest_addoption(parser):
         action="store_true",
         help="Don't collect any tests from plugins.",
     )
+    parser.addoption(
+        "--plugin",
+        action="store",
+        help="Which plugin to run tests for.",
+        required=False,
+    )
 
 
 # Don't look at any test files in the sample_project/ dir.
