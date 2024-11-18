@@ -11,6 +11,15 @@ import pytest
 from tests.utils import plugin_finders
 
 
+# Allow developers to skip all tests in plugins.
+def pytest_addoption(parser):
+    parser.addoption(
+        "--skip-plugin-tests",
+        action="store_true",
+        help="Don't collect any tests from plugins.",
+    )
+
+
 # Don't look at any test files in the sample_project/ dir.
 # Don't collect e2e tests; only run when specified over CLI.
 collect_ignore = ["sample_project", "tests/e2e_tests"]
@@ -25,6 +34,9 @@ def pytest_configure(config):
 
     # Don't modify test collection when running e2e tests.
     if any("e2e_tests" in arg for arg in config.args):
+        return
+
+    if config.option.skip_plugin_tests:
         return
 
     # Define expected unit and integration tests paths for plugins.
