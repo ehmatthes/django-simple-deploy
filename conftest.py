@@ -27,36 +27,32 @@ def pytest_configure(config):
     if any("e2e_tests" in arg for arg in config.args):
         return
 
-    # DEV: It's probably better to use absolute paths, and make sure any path
-    # that's already included in args isn't appended again. This would mean
-    # comparing each plugin path to each arg, probably with path.resolve(), and
-    # only adding if not already in args. Consider working with
-    # config._inicache["testpaths"] for this.
-    #
-    # Also, consider bailing if there are already any of these paths in config.args.
-    # We don't want to run all plugins' tests if the user is just trying to run tests
-    # for a single plugin.
-
-    # Don't add paths that have already been explicitly included.
-    # DEV: Commented out in order to avoid running plugin tests temporarily.
-    # plugin_paths_rel = plugin_finders.get_plugin_paths_rel()
-    # for path in plugin_paths_rel:
-    #     if path not in config.args:
-    #         config.args.append(path)
-
-
-
-
+    # Define expected unit and integration tests paths for plugins.
     plugin_paths_rel = plugin_finders.get_plugin_paths_rel()
     unit_test_paths = [p / "tests" / "unit_tests" for p in plugin_paths_rel]
+    int_test_paths = [p / "tests" / "integration_tests" for p in plugin_paths_rel]
 
-    breakpoint()
+    # Want to know if unit or integration tests were explicitly called.
+    unit_tests_explicit = any(arg.endswith("tests/unit_tests") for arg in sys.argv)
+    int_tests_explicit = any(arg.endswith("tests/integration_tests") for arg in sys.argv)
 
-    for path in unit_test_paths:
-        if not path.exists():
-            continue
+    # Consider a "bare" call one that doesn't explicitly ask for unit or integration tests.
+    # Look at all args beyond pytest command, and see if any paths are included.
+    bare_call = True
+    for arg in sys.argv[1:]:
+        if Path(arg).exists():
+            bare_call = False
+            break
 
-        if path not in config.args:
-            config.args.append(path.as_posix())
+    # Collect appropriate tests from plugins.
+    if unit_tests_explicit or bare_call:
+        # Collect plugins' unit tests.
+        for path in unit_test_paths:
+            if path.exists() and path not in config.args:
+                config.args.append(path.as_posix())
 
-    breakpoint()
+    if int_tests_explicit or bare_call:
+        # Collect plugins' integration tests.
+        for path in int_test_paths:
+            if path.exists() and path not in config.args:
+                config.args.append(path.as_posix())
