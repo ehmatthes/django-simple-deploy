@@ -39,7 +39,24 @@ def pytest_configure(config):
 
     # Don't add paths that have already been explicitly included.
     # DEV: Commented out in order to avoid running plugin tests temporarily.
+    # plugin_paths_rel = plugin_finders.get_plugin_paths_rel()
+    # for path in plugin_paths_rel:
+    #     if path not in config.args:
+    #         config.args.append(path)
+
+
+
+
     plugin_paths_rel = plugin_finders.get_plugin_paths_rel()
-    for path in plugin_paths_rel:
+    unit_test_paths = [p / "tests" / "unit_tests" for p in plugin_paths_rel]
+
+    breakpoint()
+
+    for path in unit_test_paths:
+        if not path.exists():
+            continue
+
         if path not in config.args:
-            config.args.append(path)
+            config.args.append(path.as_posix())
+
+    breakpoint()
