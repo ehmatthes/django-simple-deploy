@@ -38,7 +38,7 @@ def test_with_existing_dockerfile(tmp_project):
     cmd = "git commit -am 'Added dummy dockerfile.'"
     output_str = execute_quick_command(tmp_project, cmd).stdout.decode()
 
-    sd_command = "python manage.py simple_deploy --platform fly_io"
+    sd_command = "python manage.py simple_deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert (

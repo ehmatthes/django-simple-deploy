@@ -93,7 +93,9 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     # Assumes user has default plugins in repos named dsd-flyio, in same directory as
     # their development copy of django-simple-deploy.
     default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
-    for plugin_name in default_plugin_names:
+    # DEV: Hacky [:1] insertion to just test against dsd-flyio plugin for now.
+    # Need to determine which plugin to install for testing.
+    for plugin_name in default_plugin_names[:1]:
         plugin_root_dir = sd_root_dir.parent / plugin_name
 
         if not plugin_root_dir.exists():
@@ -225,7 +227,7 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     # DEV: This will probably not be hard-coded once third-party plugins are being
     # written.
     if platform:
-        sd_command = f"{sd_command} --platform {platform}"
+        sd_command = f"{sd_command}"
     if platform in ("fly_io", "flyio", "platform_sh", "platformsh"):
         # These platforms need a project name to carry out configuration.
         sd_command = f"{sd_command} --deployed-project-name my_blog_project"
