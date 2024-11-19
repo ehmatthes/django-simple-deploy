@@ -1,11 +1,11 @@
 """Manage deployement to a variety of platforms.
 
 Configuration-only mode: 
-    $ python manage.py simple_deploy --platform <platform-name>
+    $ python manage.py simple_deploy
     Configures project for deployment to the specified platform.
 
 Automated mode:
-    $ python manage.py simple_deploy --platform <platform-name> --automate-all
+    $ python manage.py simple_deploy --automate-all
     Configures project for deployment, *and* issues platform's CLI commands to create
     any resources needed for deployment. Also commits changes, and pushes project.
 
@@ -163,7 +163,6 @@ class Command(BaseCommand):
 
         # Platform-agnostic arguments.
         sd_config.automate_all = options["automate_all"]
-        # self.platform = options["platform"]
         sd_config.log_output = not (options["no_logging"])
         self.ignore_unclean_git = options["ignore_unclean_git"]
 
@@ -242,21 +241,16 @@ class Command(BaseCommand):
         Raises:
             SimpleDeployCommandError: If we can't do a deployment with given set of args.
         """
+        # This was used to validate the deprecated --platform arg, but will probably
+        # be used again.
         pass
-        # if not self.platform:
-        #     raise SimpleDeployCommandError(sd_messages.requires_platform_flag)
-        # elif self.platform in ["fly_io", "platform_sh", "heroku", "dsd_flyio"]:
-        #     plugin_utils.write_output(f"\nDeployment target: {self.platform}")
-        # else:
-        #     error_msg = sd_messages.invalid_platform_msg(self.platform)
-        #     raise SimpleDeployCommandError(error_msg)
 
     def _inspect_system(self):
         """Inspect the user's local system for relevant information.
 
-        Uses self.on_windows and self.on_macos because those are clean checks to run.
-        May want to refactor to self.user_system at some point. Don't ever use
-        self.platform, because "platform" refers to the host we're deploying to.
+        Uses sd_config.on_windows and sd_config.on_macos because those are clean checks to run.
+        May want to refactor to sd_config.user_system at some point. Don't ever use
+        sd_config.platform, because "platform" usually refers to the host we're deploying to.
 
         Linux is not mentioned because so far, if it works on macOS it works on Linux.
         """
