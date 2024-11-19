@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import importlib
 from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
@@ -121,27 +122,36 @@ def setup_project(tmp_proj_dir, sd_root_dir,config):
 
     # Install a plugin. If no plugin specified, install local editable version of dsd-flyio.
     # If a plugin specified, install same version that's installed to dev env.
-    if not config.option.plugin:
-        plugin_root_dir = sd_root_dir.parent / "dsd-flyio"
+    plugin = config.option.plugin
+    if config.option.plugin is None:
+        plugin = "dsd-flyio"
 
-        if not plugin_root_dir.exists():
-            msg = f"Can't install default testing plugin dsd-flyio."
-            pytest.exit(msg)
+    plugin_pkg_name = plugin.replace("-", "_")
+    plugin_module = importlib.import_module(plugin_pkg_name)
 
-        if uv_available:
-            subprocess.run(
-                [
-                    "uv",
-                    "pip",
-                    "install",
-                    "--python",
-                    path_to_python,
-                    "-e",
-                    plugin_root_dir,
-                ]
-            )
-        else:
-            subprocess.run([pip_path, "install", "-e", plugin_root_dir])
+    # breakpoint()
+    plugin_path = Path(plugin_module.__file__).parents[1]
+
+    if not plugin_path.exists():
+        msg = f"Can't install plugin {plugin}. A plugin must be installed to run integration test."
+        pytest.exit(msg)
+
+    if uv_available:
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                path_to_python,
+                "-e",
+                plugin_path,
+            ]
+        )
+    else:
+        subprocess.run([pip_path, "install", "-e", plugin_path])
+
+    # breakpoint()
 
 
 
