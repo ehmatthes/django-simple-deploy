@@ -6,6 +6,8 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
+import pytest
+
 
 def setup_project(tmp_proj_dir, sd_root_dir,config):
     """Set up the test project.
@@ -127,7 +129,12 @@ def setup_project(tmp_proj_dir, sd_root_dir,config):
         plugin = "dsd-flyio"
 
     plugin_pkg_name = plugin.replace("-", "_")
-    plugin_module = importlib.import_module(plugin_pkg_name)
+    # breakpoint()
+    try:
+        plugin_module = importlib.import_module(plugin_pkg_name)
+    except ImportError:
+        msg = f"The plugin {plugin} is not installed. You must install a plugin in editable mode in order to test it."
+        pytest.fail(msg)
 
     # breakpoint()
     plugin_path = Path(plugin_module.__file__).parents[1]
