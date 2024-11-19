@@ -75,23 +75,24 @@ makes.
 #   determined as the script runs.
 
 
-def invalid_platform_msg(requested_platform):
-    """Error message, when an invalid --platform argument is provided."""
+# DEV: This should be updated for invalid plugin.
+# def invalid_platform_msg(requested_platform):
+#     """Error message, when an invalid --platform argument is provided."""
 
-    msg = dedent(
-        f"""
+#     msg = dedent(
+#         f"""
 
-        --- The platform "{requested_platform}" is not currently supported. ---
+#         --- The platform "{requested_platform}" is not currently supported. ---
         
-        - Current options are: fly_io, platform_sh, and heroku
-        - Example usage:
-          $ python manage.py simple_deploy --platform fly_io
-          $ python manage.py simple_deploy --platform platform_sh
-          $ python manage.py simple_deploy --platform heroku
+#         - Current options are: fly_io, platform_sh, and heroku
+#         - Example usage:
+#           $ python manage.py simple_deploy --platform fly_io
+#           $ python manage.py simple_deploy --platform platform_sh
+#           $ python manage.py simple_deploy --platform heroku
 
-    """
-    )
-    return msg
+#     """
+#     )
+#     return msg
 
 
 def file_found(filename):
