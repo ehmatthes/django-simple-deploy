@@ -261,7 +261,7 @@ def test_unacceptable_settings_change_ignore_unclean_flag(tmp_project):
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "Ignoring git status." in stdout
-    assert "Ignoring git status." not in stdout
+    # assert "Ignoring git status." not in stdout
 
 
 def test_unacceptable_file_changed_ignore_unclean_flag(tmp_project):

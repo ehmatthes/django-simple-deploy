@@ -265,6 +265,9 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     # Change to the temp dir.
     os.chdir(tmp_dir)
 
+    # Add --unit-testing argument to the call.
+    sd_command = sd_command.replace("deploy", "deploy --unit-testing")
+
     # Add options that are present.
     # - If we're testing for a platform, add that platform option.
     # - Some platforms require a deployed project name, which isn't inferred from
@@ -280,9 +283,6 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     if platform in ("fly_io", "flyio", "platform_sh", "platformsh"):
         # These platforms need a project name to carry out configuration.
         sd_command = f"{sd_command} --deployed-project-name my_blog_project"
-
-    # Add --unit-testing argument to the call.
-    sd_command = sd_command.replace("deploy", "deploy --unit-testing")
 
     # Get the path to the Python interpreter in the virtual environment.
     #   We'll use the full path to the interpreter, rather than trying to rely on
