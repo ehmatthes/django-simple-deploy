@@ -280,7 +280,7 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
         sd_command = f"{sd_command} --deployed-project-name my_blog_project"
 
     # Add --unit-testing argument to the call.
-    sd_command = sd_command.replace("simple_deploy", "simple_deploy --unit-testing")
+    sd_command = sd_command.replace("deploy", "deploy --unit-testing")
 
     # Get the path to the Python interpreter in the virtual environment.
     #   We'll use the full path to the interpreter, rather than trying to rely on

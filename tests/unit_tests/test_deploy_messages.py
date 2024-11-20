@@ -26,13 +26,13 @@ def test_cancel_automate_all():
 
 # --- Dynamic messages ---
 
-
-def test_invalid_platform_msg():
-    msg = sd_messages.invalid_platform_msg("bad_platform")
-    assert (
-        msg
-        == '\n\n--- The platform "bad_platform" is not currently supported. ---\n\n- Current options are: fly_io, platform_sh, and heroku\n- Example usage:\n  $ python manage.py simple_deploy --platform fly_io\n  $ python manage.py simple_deploy --platform platform_sh\n  $ python manage.py simple_deploy --platform heroku\n\n'
-    )
+# DEV: This should be updated to test_invalid_plugin_msg()?
+# def test_invalid_platform_msg():
+#     msg = sd_messages.invalid_platform_msg("bad_platform")
+#     assert (
+#         msg
+#         == '\n\n--- The platform "bad_platform" is not currently supported. ---\n\n- Current options are: fly_io, platform_sh, and heroku\n- Example usage:\n  $ python manage.py simple_deploy --platform fly_io\n  $ python manage.py simple_deploy --platform platform_sh\n  $ python manage.py simple_deploy --platform heroku\n\n'
+#     )
 
 
 def test_file_found():

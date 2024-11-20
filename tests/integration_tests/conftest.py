@@ -155,7 +155,7 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     plugin_name = plugin_names[0]
     platform = plugin_name.removeprefix("dsd-")
 
-    cmd = f"python manage.py simple_deploy"
+    cmd = f"python manage.py deploy"
     msp.call_simple_deploy(tmp_project, cmd, platform)
 
 
