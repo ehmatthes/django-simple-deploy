@@ -80,8 +80,10 @@ def setup_project(tmp_proj_dir, sd_root_dir,config):
         )
 
     # Install the local version of simple_deploy (the version we're testing).
-    # Note: We don't need an editable install, but a non-editable install is *much* slower.
-    #   We may be able to use --cache-dir to address this, but -e is working fine right now.
+    # An editable install is preferred for two reasons. It's much faster than a non-editable
+    # install. It also makes the temp test project *really* useful for debugging, and even
+    # development. You can run a test, maybe `pytest -x`, drop into the temp project and
+    # activate the venv, and then run the deploy command while fixing the bug.
     if uv_available:
         subprocess.run(
             ["uv", "pip", "install", "--python", path_to_python, "-e", sd_root_dir]
