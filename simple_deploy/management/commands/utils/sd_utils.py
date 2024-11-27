@@ -28,12 +28,6 @@ def get_plugin_name():
     available_packages = packages_distributions().keys()
     return _get_plugin_name_from_packages(available_packages)
 
-# def get_plugins():
-#     """Get the names of all plugins installed."""
-#     available_packages = packages_distributions().keys()
-#     return _get_plugin_names_from_packages(available_packages)
-
-
 
 def parse_req_txt(path):
     """Get a list of requirements from a requirements.txt file.

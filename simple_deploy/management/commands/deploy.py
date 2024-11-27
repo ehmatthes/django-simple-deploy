@@ -97,7 +97,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         """Manage the overall configuration process.
 
-        Parse options, start logging, validate the simple_deploy command used, inspect
+        Parse options, start logging, validate the deploy command used, inspect
         the user's system, inspect the project.
         Verify that the user should be able to deploy to this platform.
         Add django-simple-deploy to project requirements.
@@ -130,12 +130,6 @@ class Command(BaseCommand):
 
         platform_name = pm.hook.simple_deploy_get_platform_name()[0]
         plugin_utils.write_output(f"\nDeployment target: {platform_name}")
-        # print("Platform name from plugin:", pname)
-        # breakpoint()
-
-
-
-
 
         # Inspect the user's system and project, and make sure simple_deploy is included
         # in project requirements.
@@ -143,16 +137,10 @@ class Command(BaseCommand):
         self._inspect_project()
         self._add_simple_deploy_req()
 
-
-
-
-
-        
-
-
         self._confirm_automate_all(pm)
 
-        # Validate sd_config before handing responsiblity off to plugin.
+        # At this point sd_config is fully defined, so we can validate it before handing
+        # responsiblity off to plugin.
         sd_config.validate()
 
         # Platform-agnostic work is finished. Hand off to plugin.
@@ -178,9 +166,9 @@ class Command(BaseCommand):
         """Set up for logging.
 
         Create a log directory if needed; create a new log file for every run of
-        simple_deploy. Since simple_deploy should be called once, it's helpful to have
+        simple_deploy. Since deploy should be called once, it's helpful to have
         separate files for each run. It should only be run more than once when users
-        are fixing errors that are called out by simple_deploy, or if a remote resource
+        are fixing errors that are called out by deploy, or if a remote resource
         hangs.
 
         Log path is added to .gitignore when the project is inspected.
@@ -202,7 +190,7 @@ class Command(BaseCommand):
             format="%(asctime)s %(levelname)s: %(message)s",
         )
 
-        plugin_utils.write_output("Logging run of `manage.py simple_deploy`...")
+        plugin_utils.write_output("Logging run of `manage.py deploy`...")
         plugin_utils.write_output(f"Created {verbose_log_path}.")
 
     def _log_cli_args(self, options):
@@ -225,7 +213,12 @@ class Command(BaseCommand):
             return False
 
     def _load_plugin(self):
-        """Load the appropriate platform-specific plugin module for this deployment."""
+        """Load the appropriate platform-specific plugin module for this deployment.
+
+        The plugin name is not usually specified as a CLI arg, because most users will
+        only have one plugin installed. We inspect the installed packages, and try to
+        identify the installed plugin automatically.
+        """
         self.plugin_name = sd_utils.get_plugin_name()
         plugin_utils.write_output(f"  Using plugin: {self.plugin_name}")
 
@@ -233,7 +226,7 @@ class Command(BaseCommand):
         return platform_module
 
     def _validate_command(self):
-        """Verify simple_deploy has been called with a valid set of arguments.
+        """Verify deploy has been called with a valid set of arguments.
 
         Returns:
             None
@@ -241,7 +234,7 @@ class Command(BaseCommand):
         Raises:
             SimpleDeployCommandError: If we can't do a deployment with given set of args.
         """
-        # This was used to validate the deprecated --platform arg, but will probably
+        # DEV: This was used to validate the deprecated --platform arg, but will probably
         # be used again.
         pass
 
@@ -517,6 +510,7 @@ class Command(BaseCommand):
         required_hooks = [
             "simple_deploy_automate_all_supported",
             "simple_deploy_deploy",
+            "simple_deploy_get_platform_name",
         ]
         for hook in required_hooks:
             if hook not in callers:
