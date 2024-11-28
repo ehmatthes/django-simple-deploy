@@ -236,7 +236,7 @@ def _get_plugin_name_from_packages(available_packages):
         msg += "\nYou can install any of these with pip:"
         msg += "\n  $ pip install dsd-flyio"
         msg += "\nPlease install the plugin for the platform you want to deploy to,"
-        msg += "\nand then run simple_deploy again."
+        msg += "\nand then run the deploy command again."
         raise SimpleDeployCommandError(msg)
 
     if len(plugin_names) == 1:

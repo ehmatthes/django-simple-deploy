@@ -1,4 +1,4 @@
-usage: manage.py simple_deploy --platform PLATFORM_NAME
+usage: manage.py deploy
         [--automate-all]
         [--no-logging]
         [--ignore-unclean-git]

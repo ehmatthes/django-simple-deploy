@@ -6,7 +6,7 @@ import argparse
 
 def get_usage():
     """Return a custom usage text."""
-    return """manage.py simple_deploy --platform PLATFORM_NAME
+    return """manage.py deploy
         [--automate-all]
         [--no-logging]
         [--ignore-unclean-git]
@@ -20,7 +20,7 @@ class SimpleDeployCLI:
         """Defines the CLI for django-simple-deploy."""
 
         # Define groups of arguments. These groups help generate a clean
-        #   output for `manage.py simple_deploy --help`
+        #   output for `manage.py deploy --help`
         help_group = parser.add_argument_group("Get help")
         required_group = parser.add_argument_group("Required arguments")
         behavior_group = parser.add_argument_group("Customize simple_deploy's behavior")
