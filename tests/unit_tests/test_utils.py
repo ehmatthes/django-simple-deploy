@@ -54,7 +54,7 @@ def test_get_string_from_output_with_stderr():
     assert plugin_utils.get_string_from_output(output_obj) == "Error message\n"
 
 
-# --- Parsing --platform arg ---
+# --- Parsing plugin names ---
 
 
 def test_get_plugin_name_default_plugins():

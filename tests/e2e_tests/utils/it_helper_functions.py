@@ -49,14 +49,14 @@ def get_python_exe(tmp_project):
 
 def run_simple_deploy(python_cmd, platform, automate_all):
     """Run simple_deploy against the test project."""
-    print("Running manage.py simple_deploy...")
+    print("Running manage.py deploy...")
     if automate_all:
         make_sp_call(
-            f"{python_cmd} manage.py simple_deploy --platform {platform} --automate-all --e2e-testing"
+            f"{python_cmd} manage.py deploy --automate-all --e2e-testing"
         )
     else:
         make_sp_call(
-            f"{python_cmd} manage.py simple_deploy --platform {platform} --e2e-testing"
+            f"{python_cmd} manage.py deploy --e2e-testing"
         )
 
 

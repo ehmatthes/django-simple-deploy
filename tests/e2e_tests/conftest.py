@@ -104,7 +104,6 @@ def cli_options(request):
         pypi=request.config.getoption("--pypi"),
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations"),
-        # platform=request.config.getoption("--platform"),
         plugin_name=request.config.getoption("--plugin"),
     )
 

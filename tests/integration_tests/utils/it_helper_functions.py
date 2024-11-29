@@ -22,8 +22,7 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
     - filepath: relative path from tmp_proj_dir to test file
     - reference_filename: the name of the  reference file, if it has a
       different name than the generated file
-    - plugin_name: used to find the path to reference files, so it's distinct from the
-      --platform arg.
+    - plugin_name: used to find the path to reference files.
 
     Asserts:
     - Asserts that the file at `filepath` matches the reference file of the
