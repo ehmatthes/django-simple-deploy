@@ -95,7 +95,7 @@ def check_prerequisites():
 @pytest.fixture(scope="session")
 def tmp_project(tmp_path_factory, pytestconfig):
     """Create a copy of the local sample project, so that platform-specific modules
-    can call simple_deploy.
+    can call deploy.
 
     Most tests will examine how the project was modified.
     """
@@ -133,11 +133,11 @@ def reset_test_project(request, tmp_project):
 
 @pytest.fixture(scope="module", autouse=True)
 def run_simple_deploy(reset_test_project, tmp_project, request):
-    """Call simple deploy, targeting the platform that's currently being tested.
+    """Call simple deploy, targeting the plugin that's currently being tested.
     This auto-runs for all test modules in the /integration_tests/ directory, and
     should run for all default plugins as well.
     """
-    # Identify the platform that's being tested. This is derived from the path of the
+    # Identify the plugin that's being tested. This is derived from the path of the
     # test module that's currently being run. If no platform is being tested, don't
     # need to run simple_deploy.
     # DEV: This is implemented awkwardly. There's probably one dsd- in the path,

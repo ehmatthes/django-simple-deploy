@@ -167,7 +167,7 @@ def setup_project(tmp_proj_dir, sd_root_dir,config):
 
 
     # Make an initial git commit, so we can reset the project every time we want
-    #   to test a different simple_deploy command. This is much more efficient than
+    #   to test a different deploy command. This is much more efficient than
     #   tearing down the whole sample project and rebuilding it from scratch.
     # We use a git tag to do the reset, instead of trying to capture the initial hash.
     # Note: This tag refers to the version of the project that contains files for all
@@ -249,12 +249,12 @@ def reset_test_project(tmp_dir, pkg_manager):
     )
     settings_file_path.write_text(new_settings_content)
 
-    # Make sure we have a clean status before calling simple_deploy.
+    # Make sure we have a clean status before calling deploy.
     subprocess.run(["git", "commit", "-am", "Added simple_deploy to INSTALLED_APPS."])
 
 
 def call_simple_deploy(tmp_dir, sd_command, platform=None):
-    """Make a call to simple_deploy, using the arguments passed in sd_command.
+    """Make a call to deploy, using the arguments passed in sd_command.
 
     Returns:
     - stdout, stderr
@@ -295,7 +295,7 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     sd_command = sd_command.replace("python", python_exe.as_posix())
     print(f"*** sd_command: {sd_command} ***")
 
-    # Make the call to simple_deploy.
+    # Make the call to deploy.
     #   The `text=True` argument causes this to return stdout and stderr as strings, not objects.
     #   Some of these commands, such as cwd, are required specifically for Windows.
     sd_call = subprocess.Popen(

@@ -111,22 +111,22 @@ def add_sd_installed_apps(tmp_project):
 
 
 def test_clean_git_status(tmp_project):
-    """Call simple_deploy with the existing clean state of the project."""
-    sd_command = "python manage.py deploy --platform fly_io"
+    """Call deploy with the existing clean state of the project."""
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
 
 
 def test_unacceptable_settings_change(tmp_project):
-    """Call simple_deploy after adding a non-simple_deploy line to settings.py."""
+    """Call deploy after adding a non-simple_deploy line to settings.py."""
     path = tmp_project / "blog" / "settings.py"
     settings_text = path.read_text()
     new_text = "\n# Placeholder comment to create unacceptable git status.\n"
     new_settings_text = settings_text + new_text
     path.write_text(new_settings_text)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." not in stdout
@@ -134,14 +134,14 @@ def test_unacceptable_settings_change(tmp_project):
 
 
 def test_unacceptable_file_changed(tmp_project):
-    """Call simple_deploy after adding a comment to wsgi.py."""
+    """Call deploy after adding a comment to wsgi.py."""
     path = tmp_project / "blog" / "wsgi.py"
     wsgi_text = path.read_text()
     new_text = "\n# Placeholder comment to create unacceptable git status."
     new_wsgi_text = wsgi_text + new_text
     path.write_text(new_wsgi_text)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." not in stdout
@@ -152,7 +152,7 @@ def test_sdlogs_exists(tmp_project):
     """Add simple_deploy_logs/ dir, and dummy log file with one line."""
     add_sd_logs(tmp_project)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
@@ -162,7 +162,7 @@ def test_add_sdlogs_gitignore(tmp_project):
     """Add simple_deploy_logs/ to .gitignore."""
     add_sd_logs_gitignore(tmp_project)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
@@ -172,7 +172,7 @@ def test_add_sd_installed_apps(tmp_project):
     """Add simple_deploy to INSTALLED_APPS, as an uncommitted change."""
     add_sd_installed_apps(tmp_project)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
@@ -188,7 +188,7 @@ def test_sdlogs_exists_add_sdlogs_gitignore(tmp_project):
     add_sd_logs(tmp_project)
     add_sd_logs_gitignore(tmp_project)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
@@ -202,7 +202,7 @@ def test_sdlogs_exists_sd_installed_apps(tmp_project):
     add_sd_installed_apps(tmp_project)
     add_sd_logs(tmp_project)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
@@ -214,7 +214,7 @@ def test_sdlogs_gitignore_sd_installed_apps(tmp_project):
     add_sd_installed_apps(tmp_project)
     add_sd_logs_gitignore(tmp_project)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
@@ -232,7 +232,7 @@ def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project):
     add_sd_logs(tmp_project)
     add_sd_logs_gitignore(tmp_project)
 
-    sd_command = "python manage.py deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "No uncommitted changes, other than simple_deploy work." in stdout
@@ -242,22 +242,22 @@ def test_sdlogs_exists_sdlogs_gitgnore_sd_installed_apps(tmp_project):
 
 
 def test_clean_git_status_ignore_unclean_flag(tmp_project):
-    """Call simple_deploy with the existing clean state of the project."""
-    sd_command = "python manage.py deploy --platform fly_io --ignore-unclean-git"
+    """Call deploy with the existing clean state of the project."""
+    sd_command = "python manage.py deploy --ignore-unclean-git"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "Ignoring git status." in stdout
 
 
 def test_unacceptable_settings_change_ignore_unclean_flag(tmp_project):
-    """Call simple_deploy after adding a non-simple_deploy line to settings.py."""
+    """Call deploy after adding a non-simple_deploy line to settings.py."""
     path = tmp_project / "blog" / "settings.py"
     settings_text = path.read_text()
     new_text = "\n# Placeholder comment to create unacceptable git status."
     new_settings_text = settings_text + new_text
     path.write_text(new_settings_text)
 
-    sd_command = "python manage.py deploy --platform fly_io --ignore-unclean-git"
+    sd_command = "python manage.py deploy --ignore-unclean-git"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "Ignoring git status." in stdout
@@ -265,14 +265,14 @@ def test_unacceptable_settings_change_ignore_unclean_flag(tmp_project):
 
 
 def test_unacceptable_file_changed_ignore_unclean_flag(tmp_project):
-    """Call simple_deploy after adding a comment to wsgi.py."""
+    """Call deploy after adding a comment to wsgi.py."""
     path = tmp_project / "blog" / "wsgi.py"
     wsgi_text = path.read_text()
     new_text = "\n# Placeholder comment to create unacceptable git status."
     new_wsgi_text = wsgi_text + new_text
     path.write_text(new_wsgi_text)
 
-    sd_command = "python manage.py deploy --platform fly_io --ignore-unclean-git"
+    sd_command = "python manage.py deploy --ignore-unclean-git"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert "Ignoring git status." in stdout

@@ -11,11 +11,6 @@ Configures your project for deployment to the specified platform.
 Get help:
   --help, -h            Show this help message and exit.
 
-Required arguments:
-  --platform PLATFORM, -p PLATFORM
-                        Specifies the platform where the project will be
-                        deployed. Options: fly_io | platform_sh | heroku
-
 Customize simple_deploy's behavior:
   --automate-all        Automates all aspects of deployment. Creates
                         resources, makes commits, and runs `push` or `deploy`
