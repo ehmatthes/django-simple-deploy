@@ -6,7 +6,7 @@ hide:
 
 # Documenting a Test Run
 
-One of the simplest ways to start contributing is to document a test run of the project. In this early pre-1.0 phase of development, every test run is a helpful data point.
+One of the simplest ways to start contributing is to document a test run of the project. In the pre-1.0 phase of development, every test run is a helpful data point.
 
 ## Minimum Requirements
 
@@ -16,11 +16,11 @@ The following directions are written with a focus on Fly.io, but can be adapted 
 
 ## Configuration and `--automate-all` Modes
 
-The recommended usage for `simple_deploy` is a "configuration-only" mode. With this usage, you create a new project on the chosen platform, and then run `simple_deploy`, which configures your project for deployment to the targeted platform. You then review and commit changes, and run your platform's `push` or `deploy` command. Using the configuration mode will give you a better sense of what the automated mode does for users.
+The recommended usage for `simple_deploy` is a "configuration-only" mode. With this usage, you create a new project on the chosen platform, and then run the `deploy` command, which configures your project for deployment to the targeted platform. You then review and commit changes, and run your platform's `push` or `deploy` command. Using the configuration mode will give you a better sense of what the automated mode does for users.
 
 There is an option to have `simple_deploy` automate every step of this process. Please feel free to test this usage as well.
 
-Both approaches require an actual deployment, because `simple_deploy` can not configure a local project for deployment without a specific app to target. For example, creating an app often creates a remote project, database, and some config settings. `simple_deploy` needs to inspect the local project, and query the remote project in order to complete configuration.
+Both approaches require an actual deployment, because `simple_deploy` can't configure a local project for deployment without a specific app to target. For example, creating an app often creates a remote project, database, and some config settings. `simple_deploy` needs to inspect the local project, and query the remote project in order to complete configuration.
 
 ## Brief Description
 
@@ -31,8 +31,8 @@ Here are the overall steps you'll take:
 - Open an issue using the [Documenting a Test Run](https://github.com/django-simple-deploy/django-simple-deploy/issues/new?assignees=&labels=&template=documenting-a-test-run.md&title=Documenting+a+Test+Run) issue template.
 - Fill in the initial information in the template.
 - Clone the sample repository, if you're not testing against your own project.
-- Run `simple_deploy` in either configuration mode, or the automated mode.
-- Summarize your results, in as much or as little detail as you care to provide. We are mosted interested in:
+- Run the `deploy` command in either configuration mode, or the automated mode.
+- Summarize your results, in as much or as little detail as you care to provide. We are most interested in:
     - Did the project work as you expected it to?
     - Was the documentation clear?
     - Was the configuration successful?
@@ -76,18 +76,21 @@ Clone the example project, and run it locally:
 
 At this point you may want to visit the site and make an account, and maybe make a post. You may also want to visit the admin page, and verify that everything's working locally.
 
+!!! note
+    I've used `b_env` in place of the usual `.venv` here, because it's been helpful to have a distinct name for the environment that the test project is running in. Otherwise you might not be sure whether you're in the test project's environment, or your `simple_deploy` development environment.
+
 ### Run functionality tests against the local project
 
 The functionality tests use `requests`; these are not typical tests for a Django project. They're written this way to facilitate testing deployed versions of the project, as a user would interact with them. You can run these tests against the local project if you want. Open a new terminal tab, activate the virtual environment, and run the following command:
 
 ```sh
-(b_env)$ python test_deployed_app_functionality.py --url http://localhost:8000
+(b_env)$ python test_deployed_app_functionality.py --url http://localhost:8000/
 ```
 
 The tests are meant to be run against a freshly-deployed version of the project, with no user data. If you get errors, you may need to rerun the tests using the `--flush-db` flag, which only works when testing the local version of the project:
 
 ```sh
-(b_env)$ python test_deployed_app_functionality.py --flush-db --url http://localhost:8000
+(b_env)$ python test_deployed_app_functionality.py --flush-db --url http://localhost:8000/
 ```
 
 ### Run `simple_deploy` against the sample project
@@ -98,23 +101,23 @@ Visit the [Quick Start](../quick_starts/index.md) document for the platform you'
 
 ### Evaluating the deployment
 
-If the deployment was not successful, please provide as much information as you can that will help us troubleshoot the project.
+If the deployment was not successful, please provide as much information as you can to help us troubleshoot the project.
 
 If the deployment was successful, you can run the automated tests against the deployed project. Remember that `--flush-db` won't work on the deployed project, so consider running these tests before entering any data on the deployed site. To run the tests:
 
 ```sh
-(b_env)$ python test_deployed_app_functionality.py --url https://deployed-project-url
+(b_env)$ python test_deployed_app_functionality.py --url https://deployed-project-url/
 ```
 
 After running the tests, poke around the site on your own as well. Make sure you can make an account, make a blog and a post, and visit the admin site. (You'll need to make a superuser account on your own; `django-simple-deploy` does not do this for you.)
 
 ### Destroying the test project
 
-Make sure you destroy your test deployment. This is entirely your responsibility, and if you fail to do so you will accrue any charges associated with a project deployed to the platform you are working with. No one associated with this project should ask you to keep a deployment alive for troubleshooting purposes.
+Make sure you destroy your test deployment. This is entirely your responsibility, and if you fail to do so you will accrue any charges associated with a project deployed to the platform you're working with. No one associated with this project should ask you to keep a deployment alive for troubleshooting purposes.
 
 ### Final thoughts
 
-If you have any final thoughts about how `django-simple-deploy` works, please share them in the issue you created to track your test run. Thank you for helping out!
+If you have any final thoughts about how `simple_deploy` works, please share them in the issue you created to track your test run. Thank you for helping out!
 
 ## What next?
 
