@@ -6,7 +6,7 @@ hide:
 
 # Parking Lot
 
-This is a place to dump ideas that aren't yet actionable. This document exists to keep from cluttering up issues with tasks that aren't really closable in a short timeframe.
+This is a place to dump ideas that aren't yet actionable. This document exists to keep from cluttering up issues with tasks that aren't really closable in a short timeframe. That said, there is a [Parking lot](https://github.com/django-simple-deploy/django-simple-deploy/issues/337) issue, so if you have a small suggestion feel free to add it there.
 
 General ideas
 ---
@@ -19,7 +19,7 @@ General ideas
 - Implement a `--check` flag. This would inspect the system and project, and report any identifiable issues that would prevent deployment. It would not make any changes to the project. May do platform-specific validation as well? See [#80](https://github.com/django-simple-deploy/django-simple-deploy/issues/80).
 - Remove `old_docs/` directory. See [#138](https://github.com/django-simple-deploy/django-simple-deploy/issues/138).
 - Support deploying project from the Django Girls tutorial. See [#82](https://github.com/django-simple-deploy/django-simple-deploy/issues/82).
-- Support PDM. See [#137](https://github.com/django-simple-deploy/django-simple-deploy/issues/137).
+- Support PDM. See [#137](https://github.com/django-simple-deploy/django-simple-deploy/issues/137), but more importantly [#381](https://github.com/django-simple-deploy/django-simple-deploy/issues/381).
 - Look at settings in [django-production](https://github.com/lincolnloop/django-production). See [#147](https://github.com/django-simple-deploy/django-simple-deploy/issues/147).
 - Set up CI. See [#148](https://github.com/django-simple-deploy/django-simple-deploy/issues/148).
 - Identify current branch? Warn about non-main branch? See [#150](https://github.com/django-simple-deploy/django-simple-deploy/issues/150).
@@ -35,6 +35,7 @@ General ideas
     - Poetry seems to be well-respected for developing libraries, but I don't know that anyone is really using it to manage dependencies for Django projects. If not, there's no reason to support it in this project.
     - Perhaps support it, but dial back some of the specificity of tests? Poetry is resolving at a finer grain size than we need to pay attention to?
     - I believe poetry does not conform to emerging standards for specifying Python dependencies. How much of a burden is it to support poetry? Perhaps moderate support, in the sense of exporting to requirements.txt?
+    - All of this should be addressed in [#381](https://github.com/django-simple-deploy/django-simple-deploy/issues/381).
 - There are some interesting notes in [#238](https://github.com/django-simple-deploy/django-simple-deploy/issues/238).
 - Add `black` to CI.
 
@@ -64,7 +65,7 @@ New platforms
 Fly.io
 ---
 
-- Simplify approach to checking for db. See [#297](https://github.com/django-simple-deploy/django-simple-deploy/issues/297).
+- No parking lot items currently.
 
 Platform.sh
 ---
