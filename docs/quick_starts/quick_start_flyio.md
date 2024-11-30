@@ -31,7 +31,7 @@ $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 !!! note
     If you're using zsh, you need to put quotes around the package name when you install it: `$ pip install "django-simple-deploy[fly_io]"`. Otherwise zsh interprets the square brackets as glob patterns.
 
-Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure your app:
+Now create a new Fly.io app using the CLI, and run the `deploy` command to configure your app:
 
 ```sh
 $ fly apps create --generate-name
