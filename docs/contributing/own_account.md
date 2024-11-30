@@ -6,7 +6,7 @@ hide:
 
 # Testing on Your Own Account
 
-There's really no way around the requirement to be comfortable deploying projects to a personal account if you want to contribute to `django-simple-deploy`. You can run unit and integration tests without making any network calls, but it's hard to fully understand this project without making some actual deployments to at least one of the supported platforms. While we may end up with some support for running CI tests on GitHub, there is no way to offer contributors individual support for running test deployments during their own development work.
+There's really no way around the requirement to be comfortable deploying projects to a personal account if you want to contribute to `django-simple-deploy`. You can run unit and integration tests without making any network calls, but it's hard to fully understand this project without making some actual deployments to at least one of the supported platforms. While we may end up with some support for running CI tests on GitHub, there's currently no way to offer contributors individual support for running test deployments during their own development work.
 
 Most development work incurs very little cost; however this is highly dependent on your vigilance in making sure to destroy projects shortly after each deployment. For example the e2e tests make actual deployments, and they prompt you to automate the destruction of all resources created in the test run. If you choose no, or if anything interrupts the completion of the test run, you can be left with active projects on the platform you're working with.
 
@@ -16,7 +16,7 @@ If you're concerned about costs, you can look for platforms that have extended f
 
 ## Destroying Resources
 
-Keep in mind that some platforms create more than one resource per deployment. For example on Fly.io, each deployment creates a new project, and a corresponding database. Destroying the project does not destroy the database. It is your responsibility to identify what resources were created on each test run, and to verify that all of these resources were actually destroyed.
+Keep in mind that some platforms create more than one resource per deployment. For example on Fly.io, each deployment creates a new project, and a corresponding database. Destroying the project does not destroy the database. It's your responsibility to identify what resources were created on each test run, and to verify that all those resources were actually destroyed.
 
 ## Higher-Tier Resources
 
