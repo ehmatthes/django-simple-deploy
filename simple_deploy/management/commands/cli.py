@@ -37,7 +37,7 @@ class SimpleDeployCLI:
 
         behavior_group.add_argument(
             "--automate-all",
-            help="Automates all aspects of deployment. Creates resources, makes commits, and runs `push` or `deploy` commands.",
+            help="Automate all aspects of deployment. Create resources, make commits, and run `push` or `deploy` commands.",
             action="store_true",
         )
 
