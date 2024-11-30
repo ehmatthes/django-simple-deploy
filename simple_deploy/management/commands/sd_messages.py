@@ -83,7 +83,7 @@ makes.
 #         f"""
 
 #         --- The platform "{requested_platform}" is not currently supported. ---
-        
+
 #         - Current options are: fly_io, platform_sh, and heroku
 #         - Example usage:
 #           $ python manage.py simple_deploy --platform fly_io

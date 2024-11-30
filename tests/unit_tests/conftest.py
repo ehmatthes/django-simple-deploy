@@ -1,2 +1,1 @@
 """Configuration for unit tests."""
-

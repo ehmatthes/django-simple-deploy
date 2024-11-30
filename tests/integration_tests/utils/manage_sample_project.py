@@ -9,7 +9,7 @@ from shlex import split
 import pytest
 
 
-def setup_project(tmp_proj_dir, sd_root_dir,config):
+def setup_project(tmp_proj_dir, sd_root_dir, config):
     """Set up the test project.
     - Copy the sample project to a temp dir.
     - Set up a venv.
@@ -122,8 +122,6 @@ def setup_project(tmp_proj_dir, sd_root_dir,config):
     #     else:
     #         subprocess.run([pip_path, "install", "-e", plugin_root_dir])
 
-
-
     # Install a plugin. If no plugin specified, install local editable version of dsd-flyio.
     # If a plugin specified, install same version that's installed to dev env.
     plugin = config.option.plugin
@@ -161,10 +159,6 @@ def setup_project(tmp_proj_dir, sd_root_dir,config):
         subprocess.run([pip_path, "install", "-e", plugin_path])
 
     # breakpoint()
-
-
-
-
 
     # Make an initial git commit, so we can reset the project every time we want
     #   to test a different deploy command. This is much more efficient than

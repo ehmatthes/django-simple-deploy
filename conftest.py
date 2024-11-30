@@ -52,7 +52,9 @@ def pytest_configure(config):
 
     # Want to know if unit or integration tests were explicitly called.
     unit_tests_explicit = any(arg.endswith("tests/unit_tests") for arg in sys.argv)
-    int_tests_explicit = any(arg.endswith("tests/integration_tests") for arg in sys.argv)
+    int_tests_explicit = any(
+        arg.endswith("tests/integration_tests") for arg in sys.argv
+    )
 
     # Consider a "bare" call one that doesn't explicitly ask for unit or integration tests.
     # In this case, we want to collect all plugin tests. Look at all args beyond
