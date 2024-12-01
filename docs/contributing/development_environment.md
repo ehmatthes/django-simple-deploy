@@ -6,9 +6,9 @@ hide:
 
 # Setting Up a Development Environment
 
-Setting up a development environment will let you make changes to the `simple_deploy` project, and deploy test projects using your version of `simple_deploy`. If your work improves the project, you can make a Pull Request and we'll review your changes to see if they're ready to be merged into the main project.
+Setting up a development environment will let you make changes to `simple_deploy`, and deploy test projects using your version of `simple_deploy`. If your work improves the project, you can make a Pull Request and we'll review your changes to see if they're ready to be merged into the main project.
 
-If you are doing any significant work, please open an issue and communicate with the rest of the team first. This project is evolving rapidly, and we don't want to see people do a bunch of work that conflicts with other work that's being done, and can't end up being merged to the main project.
+If you're doing any significant work, please open an issue and communicate with the rest of the team first. This project is evolving steadily, and we don't want to see people do a bunch of work that conflicts with other work that's being done, and can't end up being merged to the main project.
 
 Also, if you haven't done so already, please review the [Testing on Your Own Account](own_account.md) page before moving forward.
 
@@ -32,7 +32,7 @@ $ git config branch.main.remote upstream
 $ git remote set-url --push upstream git@github.com:<your-username>/django-simple-deploy.git
 ```
 
-You can verify that `git` is configured correctly by running:
+You can verify `git` is configured correctly by running:
 
 ```bash
 $ git remote -v
@@ -47,7 +47,7 @@ upstream
 
 If you did everything correctly, you should now have a copy of the code in the `django-simple-deploy` directory and two remotes that refer to your own GitHub fork (`origin`) and the official **django-simple-deploy** repository (`upstream`).
 
-Now, considering that you are in the django-simple-deploy directory, create a virtual environment and install the necessary dependencies:
+Now, considering that you are in the *django-simple-deploy/* directory, create a virtual environment and install the necessary dependencies:
 
 === "macOS/Linux"
 
@@ -64,12 +64,13 @@ Now, considering that you are in the django-simple-deploy directory, create a vi
     > python -m venv .venv
     > .venv\Scripts\activate
     > pip install --upgrade pip
-    > pip install -e '[.dev]'
+    > pip install -e '.[dev]'
     ```
+
 
 ## Make a test project to run `simple_deploy` against
 
-In order to work on `django-simple-deploy`, you need a Django project outside the main project directory to run the `simple_deploy` command against. You can either copy a project from the `sample_project/` directory, or clone the [standalone sample project](https://github.com/ehmatthes/dsd_sample_blog_reqtxt).
+In order to work on `django-simple-deploy`, you need a Django project outside the main project directory to run the `deploy` command against. You can either copy a project from the `sample_project/` directory, or clone the [standalone sample project](https://github.com/ehmatthes/dsd_sample_blog_reqtxt).
 
 ### Copy a project from `sample_project/`
 
@@ -159,7 +160,7 @@ If the tests pass, you're ready to run a deployment using your local version of 
 
 ## Make a new commit
 
-Before you run `simple_deploy`, make a commit so you can more easily do repeated deployments without having to build the test project from scratch:
+Before you run the `deploy` command, make a commit so you can more easily do repeated deployments without having to build the test project from scratch:
 
 ```sh
 $ git add .
@@ -220,7 +221,7 @@ Now you're ready to do your own development work on `simple_deploy`. Make a new 
 The `--unit-testing` and `--ignore-unclean-git` flags can be really helpful when doing development work. For example say you're revising the approach to generating a dockerfile for Poetry users when deploying to Fly.io. You've modified some of the project's code, and you want to see how it impacts your demo project. Run the following command:
 
 ```sh
-$ python manage.py simple_deploy --platform fly_io --unit-testing
+$ python manage.py deploy --unit-testing
 ```
 
 This won't run the unit tests, but it will skip the same network calls that are skipped during unit testing. You should see most of the same configuration that's done during a normal run, using sample resource names.
@@ -229,18 +230,22 @@ When you've made more changes and want to run `simple_deploy` again, but all you
 
 ```sh
 $ rm Dockerfile
-$ python manage.py simple_deploy --platform fly_io --unit-testing --ignore-unclean-git
+$ python manage.py deploy --unit-testing --ignore-unclean-git
 ```
 
 This will avoid network calls and use sample resource names again, and it will ignore the fact that you have significant uncommitted changes. A new Dockerfile should be generated, and you can repeat these steps to rapidly develop the code that generates the Dockerfile.
 
-## Making a PR
-
-When this project is more mature, there will be a clear routine for running tests before opening a new PR. But testing this project is not straightforward. For example, there's no need to run a full test suite making multiple full deployments for every possible PR. If you're satisfied with your work and think it should be merged into the main project, feel free to open a PR.
-
 ## Running tests
 
 Unit and integration tests can be run locally, without making any network calls. End-to-end tests are one-off runs of actual deployments, and can cost money to run. If you're interested in running tests, see the [Testing](../../testing/) section.
+
+## Making a PR
+
+Unit and integration tests should pass before making a PR. If you're having trouble getting those tests to pass, please ask for help by opening an issue.
+
+You *should* run the end-to-end tests for at least one platform before submitting a PR. If you're just working on core django-simple-deploy, I'd suggest using the `dsd-flyio` plugin for testing. If you're developing a different plugin, use that plugin's tests.
+
+If you can't run an end-to-end test, please ask for help in an issue.
 
 ## Ongoing work
 
@@ -263,9 +268,9 @@ a0ebc9 (HEAD -> main) Added simple_deploy to INSTALLED_APPS.
 7209f0 (tag: INITIAL_STATE) Initial commit.
 ```
 
-This gives you a project where simple_deploy has already been installed and added to `INSTALLED_APPS`. Basically, you should be able to just run simple_deploy at this point. If you want to run simple_deploy more than once, you can git reset back to `INITIAL_STATE`.
+This gives you a project where `simple_deploy` has already been installed and added to `INSTALLED_APPS`. Basically, you should be able to just run the `deploy` command at this point. If you want to run `deploy` more than once, you can git reset back to `INITIAL_STATE`.
 
-New contributors should probably go through the longer process once, unless they've used simple_deploy previously.
+New contributors should probably go through the longer process once, unless they've used `simple_deploy` previously.
 
 You can also pass arguments to *build_dev_env.py* to develop against the package manager of your choice, and you can run manual tests against the PyPI version if you wish as well:
 
