@@ -57,7 +57,7 @@ Date: 11/27/22
 
 Context:
 
-At the start of this work, the CLI was defined inside a method in the growing simple_deploy.py file. The goal was to clean up the CLI so it can be used to support new platforms. The main decision was whether to start using Click to implement the CLI, and also to assess whether there were optimizations that could be made at this point.
+At the start of this work, the CLI was defined inside a method in the growing *simple_deploy.py* file (now *deploy.py*). The goal was to clean up the CLI so it can be used to support new platforms. The main decision was whether to start using Click to implement the CLI, and also to assess whether there were optimizations that could be made at this point.
 
 Options:
 
