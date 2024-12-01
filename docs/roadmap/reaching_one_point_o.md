@@ -76,10 +76,10 @@ Support for a new platform starts out as a proof-of-concept, showing that deploy
 There are a number of other questions to answer formally, and tasks to complete, before releasing a 1.0 version:
 
 - [ ] Is the API stable enough for a 1.0 release?
-- [ ] Should we adopt a plugin-based approach?
+- [x] Should we adopt a plugin-based approach?
     - [ ] If not, what's the plan when a number of additional platforms want to build support into `django-simple-deploy`?
     - [ ] One of the goals of this project is to insulate the community from a platform that lets its docs and support tools go stale. If we have a plugin model, how do we keep the deployment process up to date when a platform isn't maintaining its plugin? Is there a submodule-based approach where the plugins can live here, and staff from platforms can have commit access to their submodule?
-    - [ ] Should this be an org, and each plugin is in a repo on the org? Does that give us commit access to all plugins?
+    - [x] Should this be an org, and each plugin is in a repo on the org? Does that give us commit access to all plugins? (Officially-supported plugins are in the org.)
 - [ ] Write a deprecation plan for platforms that go out of business, or are no longer appropriate for `simple_deploy` to support.
 - [ ] Write a stability policy.
 - [ ] Review all open issues, and label everything as pre-1.0 and post-1.0. Complete all pre-1.0 tasks.
