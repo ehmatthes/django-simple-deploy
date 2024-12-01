@@ -8,11 +8,11 @@ hide:
 
 `django-simple-deploy` solves a long-standing problem in the Django community: *How can we make people's initial deployment experience as straightforward as possible?*
 
-This has not been an easy problem to address, because when it comes to deployment we find ourselves dependent on hosting platforms. These platforms may not have good documentation to begin with, they might have stale documentation and unmaintained support libraries, to name two common issues when dealing with hosting platforms.
+This has been a difficult problem to address, because when it comes to deployment we find ourselves dependent on hosting platforms. These platforms may not have good documentation to begin with, or they might have stale documentation and unmaintained support libraries, to name a couple common issues when dealing with hosting platforms.
 
 > `django-simple-deploy` is a stable API for making initial deployments across multiple platforms.
 
-`simple_deploy` is an abstraction layer between your project, and a hosting platform. As long as this project is maintained, you can configure your project for deployment by running `manage.py simple_deploy --platform platform_name`, against any supported platform. If the platform changes its deployment process, we just update this library and your deployment commands still work. This benefits people new to deployment, people familiar with deployment who just want to push simple projects, and people creating teaching resources that need more stability than a hosting platform can promise.
+`simple_deploy` is an abstraction layer between your project, and a hosting platform. As long as this project is maintained, you can configure your project for deployment by running `manage.py deploy`, against any supported platform. If the platform changes its deployment process, we just update that platform's plugin and your deployment commands still work. This benefits people new to deployment, people familiar with deployment who just want to push simple projects, and people creating teaching resources that need more stability than a hosting platform can provide.
 
 ## Guiding questions
 
@@ -27,4 +27,4 @@ Everyone who learns Django has a similar path. They pick some resource - the Dja
 
 What if people new to Django didn't have to dig into a platform's documentation in order to deploy their project? What if people could just make an account on a platform, run a few commands, and see their project deployed? That's the vision of django-simple-deploy.
 
-The management command `python manage.py simple_deploy --platform platform_name --automate-all` allows people to push their project to a cloud provider in four steps. There's still plenty to learn about deployment, but this project allows people to see their project deployed before they dig into their provider's documentation.
+The management command `python manage.py deploy --automate-all` allows people to push their project to a cloud provider in just four steps. There's still plenty to learn about deployment, but this project allows people to see their project deployed *before* they dig deeply into their provider's documentation.

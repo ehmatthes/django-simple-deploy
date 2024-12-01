@@ -18,7 +18,7 @@ Lastly, some platforms and other packages offer a template that you can start wi
 
 ### It sets up a feedback cycle between platform providers and Django experts
 
-I was recently writing the deployment script for a newly-supported platform. The deployment process for this platform involves creating a Dockerfile, so I adopted the sample Dockerfile that the host provides in their onboarding documentation. Someone much more experienced with deployment commented that there's a way to vastly reduce the size of the resultant Docker image. The final version of the `simple_deploy` configuration script for this platform will likely include that person's recommendations.
+At one point I was writing the deployment script for a newly-supported platform. The deployment process for this platform involves creating a Dockerfile, so I adopted the sample Dockerfile that the host provides in their onboarding documentation. Someone much more experienced with deployment commented that there's a way to significantly reduce the size of the resultant Docker image. The final version of the `simple_deploy` configuration script for this platform now includes that person's recommendations.
 
 I don't think it's realistic to expect that every platform provider will always have a staff member with Django deployment experience comparable to the strongest people in our community. Most of them are balancing their support for Django with support for Flask, Rails, JavaScript, Go, Rust, and many other languages and frameworks.
 
@@ -28,7 +28,7 @@ If `django-simple-deploy` matures and gains a reputation for incorporating the f
 
 When we're writing a deployment tutorial, whether we're the platform host, an author, or a resource creator, we're often tempted to simplify the process. Every step we ask the user to take is a chance they'll make a typo or get off track somehow. So we're constantly balancing between supporting a well-architected deployment, and not making too many changes to the project.
 
-By automating all of the initial configuration, we can make any choices we want that support a good deployment. We can add as many config files as we want, set as many environment variables as needed, and run any followup commands we want. We are not limited to the bare-minimum "Getting Started" steps that you see in many platforms' onboarding docs. One simple example: we can generate heavily-commented config files, which are longer than a platform would want to present in an onboarding doc.
+By automating all the initial configuration, we can make any choices we want that support a good deployment. We can add as many config files as we want, set as many environment variables as needed, and run any followup commands we want. We're not limited to the bare-minimum "Getting Started" steps that you see in many platforms' onboarding docs. One simple example: we can generate generously-commented config files, which are longer than a platform would want to present in an onboarding doc.
 
 ## Limitations
 
