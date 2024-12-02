@@ -10,7 +10,6 @@ Note that plugins will need to update some reference files after running this sc
 
 from pathlib import Path
 import subprocess
-import shlex
 
 # --- Update requirements.txt ---
 path_dsd_root = Path(__file__).parents[1]
