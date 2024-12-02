@@ -15,7 +15,7 @@ import shlex
 # --- Update requirements.txt ---
 path_dsd_root = Path(__file__).parents[1]
 path_blog_proj = path_dsd_root / "sample_project" / "blog_project"
-path_req_in = path_blog_proj  / "requirements.in"
+path_req_in = path_blog_proj / "requirements.in"
 path_req_txt = path_blog_proj / "requirements.txt"
 
 assert path_req_in.exists()
