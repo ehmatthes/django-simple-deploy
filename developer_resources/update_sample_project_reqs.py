@@ -20,7 +20,6 @@ path_req_txt = path_blog_proj / "requirements.txt"
 assert path_req_in.exists()
 assert path_req_txt.exists()
 
-cmd_simple = f"uv pip compile {path_req_in.as_posix()}"#" > {path_req_txt.as_posix()}"
 cmd = f"uv pip compile {path_req_in.as_posix()} > {path_req_txt.as_posix()}"
 subprocess.run(cmd, shell=True)
 
@@ -32,7 +31,6 @@ path_req_txt.write_text(contents)
 
 # Update vendor/.
 path_vendor = path_dsd_root / "vendor"
-# assert path_vendor.exists()
 
 cmd = f"rm -rf {path_vendor.as_posix()}"
 cmd_parts = shlex.split(cmd)
