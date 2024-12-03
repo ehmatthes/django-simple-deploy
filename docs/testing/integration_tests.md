@@ -101,3 +101,11 @@ To upgrade all packages in `vendor/`:
 $ rm -rf vendor/
 $ pip download --dest vendor/ -r sample_project/blog_project/requirements.txt
 ```
+
+This can be done automatically by running the update script from *developer_resources/*:
+
+```sh
+$ python developer_resources/update_sample_project_reqs.py
+```
+
+This will generate an updated *requirements.txt* file for the sample project, and download the appropriate packages to *vendor/*. This will break existing tests for plugins, so this should only be done on new Django point releases.
