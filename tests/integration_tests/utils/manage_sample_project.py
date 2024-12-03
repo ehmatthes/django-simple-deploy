@@ -6,6 +6,8 @@ from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
+from simple_deploy.management.commands.utils import sd_utils
+
 import pytest
 
 
@@ -13,7 +15,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, config):
     """Set up the test project.
     - Copy the sample project to a temp dir.
     - Set up a venv.
-    - Install requiremenst for the sample project.
+    - Install requirements for the sample project.
     - Install the local, editable version of simple_deploy.
     - Make an initial commit.
     - Add simple_deploy to INSTALLED_APPS.
@@ -124,9 +126,15 @@ def setup_project(tmp_proj_dir, sd_root_dir, config):
 
     # Install a plugin. If no plugin specified, install local editable version of dsd-flyio.
     # If a plugin specified, install same version that's installed to dev env.
+    # DEV: This approach is breaking tests for other plugins.
+    #   Better: install whatever plugin is installed locally.
     plugin = config.option.plugin
     if config.option.plugin is None:
-        plugin = "dsd-flyio"
+        # plugin = "dsd-flyio"
+        # Get installed plugin (just as simple_deploy does), and install it to test project.
+        plugin = sd_utils.get_plugin_name()
+        # print("plugin", plugin)
+        # pytest.exit()
 
     plugin_pkg_name = plugin.replace("-", "_")
     # breakpoint()
