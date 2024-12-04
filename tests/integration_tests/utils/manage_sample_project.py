@@ -133,8 +133,9 @@ def setup_project(tmp_proj_dir, sd_root_dir, config):
         # plugin = "dsd-flyio"
         # Get installed plugin (just as simple_deploy does), and install it to test project.
         plugin = sd_utils.get_plugin_name()
-        # print("plugin", plugin)
-        # pytest.exit()
+        print("plugin", plugin)
+        breakpoint()
+        pytest.exit()
 
     plugin_pkg_name = plugin.replace("-", "_")
     # breakpoint()
