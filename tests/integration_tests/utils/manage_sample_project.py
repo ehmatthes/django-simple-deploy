@@ -134,8 +134,8 @@ def setup_project(tmp_proj_dir, sd_root_dir, config):
         # Get installed plugin (just as simple_deploy does), and install it to test project.
         plugin = sd_utils.get_plugin_name()
         print("plugin", plugin)
-        breakpoint()
-        pytest.exit()
+        # breakpoint()
+        # pytest.exit()
 
     plugin_pkg_name = plugin.replace("-", "_")
     # breakpoint()

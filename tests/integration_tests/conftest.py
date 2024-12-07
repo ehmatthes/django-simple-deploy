@@ -86,8 +86,9 @@ def pytest_sessionfinish(session, exitstatus):
 
 # Check prerequisites before running integration tests.
 @pytest.fixture(scope="session", autouse=True)
-def check_prerequisites():
+def check_prerequisites(pytestconfig):
     """Make sure dev environment supports integration tests."""
+    ihf.check_plugin_available(pytestconfig)
     ihf.check_package_manager_available("poetry")
     ihf.check_package_manager_available("pipenv")
 

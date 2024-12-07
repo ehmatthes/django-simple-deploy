@@ -6,6 +6,7 @@ The functions in this module are not specific to any one platform. If a function
 
 from pathlib import Path
 import filecmp
+import importlib
 import re
 import shutil
 import sys
@@ -13,6 +14,9 @@ import subprocess
 from textwrap import dedent
 
 import pytest
+
+from simple_deploy.management.commands.utils import sd_utils
+from simple_deploy.management.commands.utils.command_errors import SimpleDeployCommandError
 
 
 def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filename=""):
@@ -62,6 +66,32 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
     assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
+
+
+def check_plugin_available(config):
+    """Make sure a plugin is available, otherwise don't run integration tests."""
+    plugin = config.option.plugin
+    if config.option.plugin is None:
+        # plugin = "dsd-flyio"
+        # Get installed plugin (just as simple_deploy does), and install it to test project.
+        try:
+            plugin = sd_utils.get_plugin_name()
+        except SimpleDeployCommandError:
+            msg = f"The plugin {plugin} is not installed. You must install a plugin in editable mode in order to test it."
+            # pytest.fail(msg)
+            pytest.skip()
+        print("plugin", plugin)
+        # breakpoint()
+        # pytest.exit()
+
+    plugin_pkg_name = plugin.replace("-", "_")
+    # breakpoint()
+    try:
+        plugin_module = importlib.import_module(plugin_pkg_name)
+    except ImportError:
+        msg = f"The plugin {plugin} is not installed. You must install a plugin in editable mode in order to test it."
+        pytest.fail(msg)
+    breakpoint()
 
 
 def check_package_manager_available(pkg_manager):
