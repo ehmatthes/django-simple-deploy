@@ -69,29 +69,16 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
 
 
 def check_plugin_available(config):
-    """Make sure a plugin is available, otherwise don't run integration tests."""
-    plugin = config.option.plugin
-    if config.option.plugin is None:
-        # plugin = "dsd-flyio"
-        # Get installed plugin (just as simple_deploy does), and install it to test project.
-        try:
-            plugin = sd_utils.get_plugin_name()
-        except SimpleDeployCommandError:
-            msg = f"The plugin {plugin} is not installed. You must install a plugin in editable mode in order to test it."
-            # pytest.fail(msg)
-            pytest.skip()
-        print("plugin", plugin)
-        # breakpoint()
-        # pytest.exit()
+    """If no plugin specified, make sure one is available."""
+    if config.option.plugin:
+        return
 
-    plugin_pkg_name = plugin.replace("-", "_")
-    # breakpoint()
+    # No plugin specified; make sure one is installed.
     try:
-        plugin_module = importlib.import_module(plugin_pkg_name)
-    except ImportError:
-        msg = f"The plugin {plugin} is not installed. You must install a plugin in editable mode in order to test it."
-        pytest.fail(msg)
-    breakpoint()
+        sd_utils.get_plugin_name()
+    except SimpleDeployCommandError:
+        msg = "No plugins installed. Skipping integration tests."
+        pytest.skip(msg)
 
 
 def check_package_manager_available(pkg_manager):
