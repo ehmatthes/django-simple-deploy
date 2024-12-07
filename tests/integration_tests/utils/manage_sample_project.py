@@ -99,7 +99,7 @@ def setup_project(tmp_proj_dir, sd_root_dir, config):
     # being tested.
     # Assumes user has default plugins in repos named dsd-flyio, in same directory as
     # their development copy of django-simple-deploy.
-    default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
+    # default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
     # DEV: Hacky [:1] insertion to just test against dsd-flyio plugin for now.
     # Need to determine which plugin to install for testing.
     # for plugin_name in default_plugin_names[:1]:
@@ -130,15 +130,12 @@ def setup_project(tmp_proj_dir, sd_root_dir, config):
     #   Better: install whatever plugin is installed locally.
     plugin = config.option.plugin
     if config.option.plugin is None:
-        # plugin = "dsd-flyio"
-        # Get installed plugin (just as simple_deploy does), and install it to test project.
         plugin = sd_utils.get_plugin_name()
         print("plugin", plugin)
         # breakpoint()
         # pytest.exit()
 
     plugin_pkg_name = plugin.replace("-", "_")
-    # breakpoint()
     try:
         plugin_module = importlib.import_module(plugin_pkg_name)
     except ImportError:
