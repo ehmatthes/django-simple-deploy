@@ -77,8 +77,9 @@ def check_plugin_available(config):
     try:
         sd_utils.get_plugin_name()
     except SimpleDeployCommandError:
-        msg = "No plugins installed. Skipping integration tests."
-        pytest.skip(msg)
+        msg = "\n*** No plugins installed. Skipping integration tests. ***"
+        print(msg)
+        pytest.skip()
 
 
 def check_package_manager_available(pkg_manager):
