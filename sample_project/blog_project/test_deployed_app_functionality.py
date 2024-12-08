@@ -132,10 +132,18 @@ assert "Password" in r.text
 
 # --- Check styling of admin login page ---
 print("  Checking that admin static assets are available...")
-url = f"{app_url}static/admin/css/login.css"
-r = requests.get(url)
 
-assert r.status_code == 200
+# On some platforms, the contents of static files are hashed in order to manage
+# caching. This hash should remain consistent for Django 5.1.
+try:
+    url = f"{app_url}static/admin/css/login.css"
+    r = requests.get(url)
+    assert r.status_code == 200
+except AssertionError:
+    url = f"{app_url}static/admin/css/login.a3b47c458e5d.css"
+    r = requests.get(url)
+    assert r.status_code == 200
+
 # This is a random line from the default django/contrib/admin/static/admin/css/login.css file.
 assert ".login #container {" in r.text
 assert "Not Found" not in r.text
