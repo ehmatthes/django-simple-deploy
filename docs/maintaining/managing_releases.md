@@ -6,6 +6,11 @@ Managing Releases
 ===
 
 
+Consider impact on plugins
+---
+
+If this release will impact the functionality of current plugins, make sure to either update all plugins when this release is made, or communicate the need to update plugins.
+
 
 Making a new release
 ---
