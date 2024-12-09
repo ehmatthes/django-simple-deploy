@@ -3,6 +3,26 @@ Changelog: django-simple-deploy
 
 For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.com/en/0.3.0/).
 
+0.9 - Simplified usage
+---
+
+### 0.9.0
+
+#### External changes
+
+- Command changed to `manage.py deploy` instead of `manage.py simple_deploy`.
+- The `--platform` CLI arg is no longer needed. (It's removed, because the plugin makes it completely unnecessary.)
+- Docs updated, new section focusing on plugins.
+
+#### Internal changes
+
+- Core gets target platform name from plugin.
+- Auto-detects installed plugin.
+- Option `--skip-plugin-tests` added, to run only core tests.
+- Started general `tests/utils` utilities.
+- Script in `developer_resources/` to update requirements for sample project.
+- Functionality test updated to support static file names that include hashes.
+
 0.8 - External plugins
 ---
 
