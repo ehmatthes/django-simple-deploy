@@ -1,4 +1,4 @@
-usage: manage.py simple_deploy --platform PLATFORM_NAME
+usage: manage.py deploy
         [--automate-all]
         [--no-logging]
         [--ignore-unclean-git]
@@ -11,15 +11,9 @@ Configures your project for deployment to the specified platform.
 Get help:
   --help, -h            Show this help message and exit.
 
-Required arguments:
-  --platform PLATFORM, -p PLATFORM
-                        Specifies the platform where the project will be
-                        deployed. Options: fly_io | platform_sh | heroku
-
 Customize simple_deploy's behavior:
-  --automate-all        Automates all aspects of deployment. Creates
-                        resources, makes commits, and runs `push` or `deploy`
-                        commands.
+  --automate-all        Automate all aspects of deployment. Create resources,
+                        make commits, and run `push` or `deploy` commands.
   --no-logging          Do not create a log of the configuration and
                         deployment process.
   --ignore-unclean-git  Run simple_deploy even with an unclean `git status`

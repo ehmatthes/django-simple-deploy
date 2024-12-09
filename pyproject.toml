@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-simple-deploy"
-version = "0.8.1"
+version = "0.9.0"
 description = "Deployment, for Djangonauts with deadlines."
 readme = "README.md"
 

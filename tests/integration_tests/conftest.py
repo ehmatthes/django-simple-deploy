@@ -86,8 +86,9 @@ def pytest_sessionfinish(session, exitstatus):
 
 # Check prerequisites before running integration tests.
 @pytest.fixture(scope="session", autouse=True)
-def check_prerequisites():
+def check_prerequisites(pytestconfig):
     """Make sure dev environment supports integration tests."""
+    ihf.check_plugin_available(pytestconfig)
     ihf.check_package_manager_available("poetry")
     ihf.check_package_manager_available("pipenv")
 
@@ -95,7 +96,7 @@ def check_prerequisites():
 @pytest.fixture(scope="session")
 def tmp_project(tmp_path_factory, pytestconfig):
     """Create a copy of the local sample project, so that platform-specific modules
-    can call simple_deploy.
+    can call deploy.
 
     Most tests will examine how the project was modified.
     """
@@ -113,7 +114,7 @@ def tmp_project(tmp_path_factory, pytestconfig):
     # assert not tmp_proj_dir
 
     # Copy sample project to tmp dir, and set up the project for using simple_deploy.
-    msp.setup_project(tmp_proj_dir, sd_root_dir)
+    msp.setup_project(tmp_proj_dir, sd_root_dir, pytestconfig)
 
     # Store the tmp_proj_dir in the pytest cache, so we can access it in the
     #   open_test_project() plugin.
@@ -133,11 +134,11 @@ def reset_test_project(request, tmp_project):
 
 @pytest.fixture(scope="module", autouse=True)
 def run_simple_deploy(reset_test_project, tmp_project, request):
-    """Call simple deploy, targeting the platform that's currently being tested.
+    """Call simple deploy, targeting the plugin that's currently being tested.
     This auto-runs for all test modules in the /integration_tests/ directory, and
     should run for all default plugins as well.
     """
-    # Identify the platform that's being tested. This is derived from the path of the
+    # Identify the plugin that's being tested. This is derived from the path of the
     # test module that's currently being run. If no platform is being tested, don't
     # need to run simple_deploy.
     # DEV: This is implemented awkwardly. There's probably one dsd- in the path,
@@ -155,7 +156,7 @@ def run_simple_deploy(reset_test_project, tmp_project, request):
     plugin_name = plugin_names[0]
     platform = plugin_name.removeprefix("dsd-")
 
-    cmd = f"python manage.py simple_deploy"
+    cmd = f"python manage.py deploy"
     msp.call_simple_deploy(tmp_project, cmd, platform)
 
 

@@ -6,14 +6,14 @@ hide:
 
 # django-simple-deploy
 
-`django-simple-deploy` configures your Django project for deployment to a number of different platforms. For some platforms, it can automate the entire deployment process. The project currently supports three platforms: [Fly.io](https://fly.io), [Platform.sh](https://platform.sh), and [Heroku](https://heroku.com).
+`django-simple-deploy` configures your Django project for deployment to a number of different platforms. For some platforms, it can automate the entire deployment process. The project officially supports three platforms: [Fly.io](https://fly.io), [Platform.sh](https://platform.sh), and [Heroku](https://heroku.com). An external plugin system allows for third-party support of other platforms as well.
 
 Here's what automated deployment on [Fly.io](https://fly.io) looks like:
 
 ```sh
 $ pip install django-simple-deploy[fly_io]
 # Add simple_deploy to INSTALLED_APPS.
-$ python manage.py simple_deploy --platform fly_io --automate-all
+$ python manage.py deploy --automate-all
 ```
 
 After these three steps, your project should open in a new browser tab. :)

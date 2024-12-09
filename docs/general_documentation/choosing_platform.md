@@ -8,7 +8,7 @@ hide:
 
 Choosing a platform for your first deployment might seem difficult, because there are many options to choose from these days. It's hard to say that any one platform is better than any other, because they all take different approaches to a complex problem - pushing your project to a remote server in a way that lets it run reliably, at a reasonable cost.
 
-`django-simple-deploy` aims to make it easier to choose a platform by simplifying your first deployments to a new platform. You don't have to do a deep dive into each platform's documentation in order to get a deployment up and running. Typically, you can make an account with the platform you're interested in, install that platform's CLI, specify that platform with the `--platform` flag, and then push your project to that platform. You get a working deployment with very little effort, which makes further exploration of each platform much easier and much less frustrating.
+`django-simple-deploy` aims to make it easier to choose a platform by simplifying your first deployments to a new platform. You don't have to do a deep dive into each platform's documentation in order to get a deployment up and running. Typically, you can make an account with the platform you're interested in, install that platform's CLI, install the deployment plugin for that platform, and then push your project. You get a working deployment with very little effort, which makes further exploration of each platform much easier and much less frustrating.
 
 This page summarizes the major strengths and potential drawbacks of each platform.
 

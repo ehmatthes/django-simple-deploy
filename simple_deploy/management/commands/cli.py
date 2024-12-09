@@ -6,7 +6,7 @@ import argparse
 
 def get_usage():
     """Return a custom usage text."""
-    return """manage.py simple_deploy --platform PLATFORM_NAME
+    return """manage.py deploy
         [--automate-all]
         [--no-logging]
         [--ignore-unclean-git]
@@ -20,7 +20,7 @@ class SimpleDeployCLI:
         """Defines the CLI for django-simple-deploy."""
 
         # Define groups of arguments. These groups help generate a clean
-        #   output for `manage.py simple_deploy --help`
+        #   output for `manage.py deploy --help`
         help_group = parser.add_argument_group("Get help")
         required_group = parser.add_argument_group("Required arguments")
         behavior_group = parser.add_argument_group("Customize simple_deploy's behavior")
@@ -33,23 +33,11 @@ class SimpleDeployCLI:
             "--help", "-h", action="help", help="Show this help message and exit."
         )
 
-        # --- Required platform argument ---
-
-        # This may need some clarification about the distinction between a "platform"
-        # and a "plugin".
-        required_group.add_argument(
-            "--platform",
-            "-p",
-            type=str,
-            help="Specifies the platform where the project will be deployed. Options: fly_io | platform_sh | heroku",
-            default="",
-        )
-
         # --- Arguments to customize simple_deploy behavior ---
 
         behavior_group.add_argument(
             "--automate-all",
-            help="Automates all aspects of deployment. Creates resources, makes commits, and runs `push` or `deploy` commands.",
+            help="Automate all aspects of deployment. Create resources, make commits, and run `push` or `deploy` commands.",
             action="store_true",
         )
 

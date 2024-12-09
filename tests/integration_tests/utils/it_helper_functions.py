@@ -6,6 +6,7 @@ The functions in this module are not specific to any one platform. If a function
 
 from pathlib import Path
 import filecmp
+import importlib
 import re
 import shutil
 import sys
@@ -13,6 +14,9 @@ import subprocess
 from textwrap import dedent
 
 import pytest
+
+from simple_deploy.management.commands.utils import sd_utils
+from simple_deploy.management.commands.utils.command_errors import SimpleDeployCommandError
 
 
 def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filename=""):
@@ -22,8 +26,7 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
     - filepath: relative path from tmp_proj_dir to test file
     - reference_filename: the name of the  reference file, if it has a
       different name than the generated file
-    - plugin_name: used to find the path to reference files, so it's distinct from the
-      --platform arg.
+    - plugin_name: used to find the path to reference files.
 
     Asserts:
     - Asserts that the file at `filepath` matches the reference file of the
@@ -63,6 +66,20 @@ def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filen
     # The test file and reference file will always have different modified
     #   timestamps, so no need to use default shallow=True.
     assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
+
+
+def check_plugin_available(config):
+    """If no plugin specified, make sure one is available."""
+    if config.option.plugin:
+        return
+
+    # No plugin specified; make sure one is installed.
+    try:
+        sd_utils.get_plugin_name()
+    except SimpleDeployCommandError:
+        msg = "\n*** No plugins installed. Skipping integration tests. ***"
+        print(msg)
+        pytest.skip()
 
 
 def check_package_manager_available(pkg_manager):

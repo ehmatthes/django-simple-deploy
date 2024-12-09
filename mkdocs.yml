@@ -41,6 +41,8 @@ nav:
     - 'Coding Guide': 'contributing/coding_guide.md'
     - 'Architecture Notes': 'contributing/architecture_notes.md'
     - 'Parking Lot': 'contributing/parking_lot.md'
+  - 'Plugins':
+    - 'plugins/index.md'
   - 'Design Documentation':
     - 'Rationale': 'design_docs/rationale.md'
     - 'Use Cases': 'design_docs/use_cases.md'

@@ -8,6 +8,24 @@ import importlib
 
 import pytest
 
+from tests.utils import plugin_finders
+
+
+# Allow developers to skip all tests in plugins.
+def pytest_addoption(parser):
+    parser.addoption(
+        "--skip-plugin-tests",
+        action="store_true",
+        help="Don't collect any tests from plugins.",
+    )
+    parser.addoption(
+        "--plugin",
+        action="store",
+        help="Which plugin to run tests for.",
+        required=False,
+    )
+
+
 # Don't look at any test files in the sample_project/ dir.
 # Don't collect e2e tests; only run when specified over CLI.
 collect_ignore = ["sample_project", "tests/e2e_tests"]
@@ -17,32 +35,6 @@ path = Path(__file__).parent / "tests" / "integration_tests" / "utils"
 sys.path.insert(0, str(path))
 
 
-# --- Dynamically import tests from all installed plugins ---
-
-# Get names of all plugins.
-plugin_names = packages_distributions().keys()
-plugin_names = [p for p in plugin_names if p.startswith("dsd_")]
-
-plugin_paths = []
-for plugin_name in plugin_names:
-    spec = importlib.util.find_spec(plugin_name)
-    path = Path(spec.origin).parents[1]
-    plugin_paths.append(path)
-
-sd_root_dir = Path(__file__).parent
-plugin_paths_rel = []
-for path in plugin_paths:
-    path_rel = os.path.relpath(path, sd_root_dir)
-    path_rel = Path(path_rel) / "tests"
-
-    if not path_rel.exists():
-        # This block is hit when a plugin is installed through PyPI rather than
-        # a local editable install. PyPI versions typically don't have tests.
-        continue
-
-    plugin_paths_rel.append(str(path_rel))
-
-
 def pytest_configure(config):
     """Add plugin test paths to what's being collected."""
 
@@ -50,17 +42,38 @@ def pytest_configure(config):
     if any("e2e_tests" in arg for arg in config.args):
         return
 
-    # DEV: It's probably better to use absolute paths, and make sure any path
-    # that's already included in args isn't appended again. This would mean
-    # comparing each plugin path to each arg, probably with path.resolve(), and
-    # only adding if not already in args. Consider working with
-    # config._inicache["testpaths"] for this.
-    #
-    # Also, consider bailing if there are already any of these paths in config.args.
-    # We don't want to run all plugins' tests if the user is just trying to run tests
-    # for a single plugin.
+    if config.option.skip_plugin_tests:
+        return
 
-    # Don't add paths that have already been explicitly included.
-    for path in plugin_paths_rel:
-        if path not in config.args:
-            config.args.append(path)
+    # Define expected unit and integration tests paths for plugins.
+    plugin_paths_rel = plugin_finders.get_plugin_paths_rel()
+    unit_test_paths = [p / "tests" / "unit_tests" for p in plugin_paths_rel]
+    int_test_paths = [p / "tests" / "integration_tests" for p in plugin_paths_rel]
+
+    # Want to know if unit or integration tests were explicitly called.
+    unit_tests_explicit = any(arg.endswith("tests/unit_tests") for arg in sys.argv)
+    int_tests_explicit = any(
+        arg.endswith("tests/integration_tests") for arg in sys.argv
+    )
+
+    # Consider a "bare" call one that doesn't explicitly ask for unit or integration tests.
+    # In this case, we want to collect all plugin tests. Look at all args beyond
+    # pytest command, and see if any paths are included.
+    bare_call = True
+    for arg in sys.argv[1:]:
+        if Path(arg).exists():
+            bare_call = False
+            break
+
+    # Collect appropriate tests from plugins.
+    if unit_tests_explicit or bare_call:
+        # Collect plugins' unit tests.
+        for path in unit_test_paths:
+            if path.exists() and path not in config.args:
+                config.args.append(path.as_posix())
+
+    if int_tests_explicit or bare_call:
+        # Collect plugins' integration tests.
+        for path in int_test_paths:
+            if path.exists() and path not in config.args:
+                config.args.append(path.as_posix())

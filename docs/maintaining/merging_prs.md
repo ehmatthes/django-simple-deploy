@@ -16,7 +16,7 @@ Reviewing PRs
 Merging PRs
 ---
 
-- Contributors should make all their changes on a development branch. They are free to make as many in-progress commits as they need, but should aim for a final atomic PR.
+- Contributors should make all their changes on a development branch. They're free to make as many in-progress commits as they need, but should aim for a final atomic PR.
 - Contributors should create a PR on GitHub.
     - In the initial comment box when opening a PR, contributors should make any comments about the changes they've made that would help in code review.
 - When appropriate, a maintainer will merge the PR, using `squash and merge` through the GitHub interface.

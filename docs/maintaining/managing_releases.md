@@ -6,11 +6,16 @@ Managing Releases
 ===
 
 
+Consider impact on plugins
+---
+
+If this release will impact the functionality of current plugins, make sure to either update all plugins when this release is made, or communicate the need to update plugins.
+
 
 Making a new release
 ---
 
-- Make sure you are on the main branch, and you have pulled all recently merged changes: `git pull origin main`
+- Make sure you're on the main branch, and you've' pulled all recently merged changes: `git pull origin main`
 - Bump the version number in `pyproject.toml`
 - Make an entry in `changelog.md`
 - Commit this change: `git commit -am "Bumped version number, and updated changelog."`
@@ -31,13 +36,13 @@ Making a new release
 
 - Test the released package:
 ```
-$ pytest tests/e2e_tests --platform <platform-name> --pypi -s
+$ pytest tests/e2e_tests --plugin <plugin-name> --pypi -s
 ```
 
     - Sometimes there's a stale cache that causes the previous release to be installed. If you don't check this version, you won't know whether the new release actually works. In the test output, verify that the new version was installed. Look for something like this:
 
 ```sh
-$ pytest tests/e2e_tests --platform fly_io --pypi -s
+$ pytest tests/e2e_tests --plugin dsd_flyio --pypi -s
 Temp project directory: ...
 ...
 Collecting django-simple-deploy

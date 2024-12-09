@@ -26,6 +26,12 @@ def check_valid_call(config):
         print(msg)
         return False
 
+    # --plugin arg is not required for all tests, but is required for e2e tests.
+    if not config.option.plugin:
+        msg = "You must use the `--plugin` arg when running e2e tests."
+        print(msg)
+        return False
+
     # Make sure unit tests or integration tests aren't being run as well.
     if "unit_tests" in " ".join(config.args) or "integration_tests" in " ".join(
         config.args
@@ -71,12 +77,12 @@ def pytest_addoption(parser):
         default=False,
         help="Skip all confirmations",
     )
-    parser.addoption(
-        "--plugin",
-        action="store",
-        help="Which plugin to run e2e tests for.",
-        required=True,
-    )
+    # parser.addoption(
+    #     "--plugin",
+    #     action="store",
+    #     help="Which plugin to run e2e tests for.",
+    #     required=True,
+    # )
 
 
 # Bundle these options into a single object.
@@ -98,7 +104,6 @@ def cli_options(request):
         pypi=request.config.getoption("--pypi"),
         automate_all=request.config.getoption("--automate-all"),
         skip_confirmations=request.config.getoption("--skip-confirmations"),
-        # platform=request.config.getoption("--platform"),
         plugin_name=request.config.getoption("--plugin"),
     )
 

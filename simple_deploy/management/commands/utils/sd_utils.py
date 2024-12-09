@@ -23,10 +23,10 @@ def validate_choice(choice, valid_choices):
     return False
 
 
-def get_plugin_name(platform):
-    """Get the appropriate plugin name from the --platform arg."""
+def get_plugin_name():
+    """Get the name of the installed plugin."""
     available_packages = packages_distributions().keys()
-    return _get_plugin_name_from_packages(platform, available_packages)
+    return _get_plugin_name_from_packages(available_packages)
 
 
 def parse_req_txt(path):
@@ -220,40 +220,30 @@ def _clean_diff(diff_lines):
     return lines
 
 
-def _get_plugin_name_from_packages(platform, available_packages):
-    """Helper for getting correct plugin from platform name.
+def _get_plugin_name_from_packages(available_packages):
+    """Helper for getting plugin name from installed packages.
 
     This is broken into a helper function to make testing easier.
-
-    Examples:
-    - The platform arg --fly_io will return dsd_flyio.
-    - The platform arg --digital_ocean will return dsd_digitalocean_<extension>.
     """
-    # Remove underscores from platform arg.
-    platform_name = platform.replace("_", "")
-
     # Get possible plugin names.
-    plugin_prefix = f"dsd_{platform_name}"
+    plugin_prefix = f"dsd_"
     plugin_names = [
         pkg_name for pkg_name in available_packages if plugin_prefix in pkg_name
     ]
     if len(plugin_names) == 0:
-        msg = f"Could not find plugin for the platform {platform}."
-        msg += "\n"
+        msg = f"Could not find any plugins. Officially-supported plugins are:" ""
+        msg += "\n  dsd-flyio dsd-platformsh dsd-heroku"
+        msg += "\nYou can install any of these with pip:"
+        msg += "\n  $ pip install dsd-flyio"
+        msg += "\nPlease install the plugin for the platform you want to deploy to,"
+        msg += "\nand then run the deploy command again."
         raise SimpleDeployCommandError(msg)
 
     if len(plugin_names) == 1:
         return plugin_names[0]
 
-    if len(plugin_names) == 2 and platform in ["fly_io", "platform_sh", "heroku"]:
-        # Return the third-party plugin. We're assuming a user who installed a
-        # third-party plugin overlapping a default plugin wants the custom plugin.
-        default_plugins = {"dsd_flyio", "dsd_platformsh", "dsd_heroku"}
-        return (set(plugin_names) - default_plugins).pop()
-
-    # At this point, it's simply an error if the user has installed multiple plugins
-    # targeting the same platform.
-    msg = f"There seem to be multiple plugins targeting the platform {platform}."
-    msg += "\nPlease uninstall redundant plugins."
+    # At this point, it's simply an error if the user has installed multiple plugins.
+    msg = f"There seem to be multiple plugins installed."
+    msg += "\nPlease uninstall plugins, keeping only the one you want to use for deployment."
     msg += "\nFuture releases of simple_deploy may allow you to select which plugin to use."
     raise SimpleDeployCommandError(msg)

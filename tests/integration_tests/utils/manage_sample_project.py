@@ -1,16 +1,21 @@
 import os
 import subprocess
 import sys
+import importlib
 from pathlib import Path
 from shutil import copytree, rmtree
 from shlex import split
 
+from simple_deploy.management.commands.utils import sd_utils
 
-def setup_project(tmp_proj_dir, sd_root_dir):
+import pytest
+
+
+def setup_project(tmp_proj_dir, sd_root_dir, config):
     """Set up the test project.
     - Copy the sample project to a temp dir.
     - Set up a venv.
-    - Install requiremenst for the sample project.
+    - Install requirements for the sample project.
     - Install the local, editable version of simple_deploy.
     - Make an initial commit.
     - Add simple_deploy to INSTALLED_APPS.
@@ -77,8 +82,10 @@ def setup_project(tmp_proj_dir, sd_root_dir):
         )
 
     # Install the local version of simple_deploy (the version we're testing).
-    # Note: We don't need an editable install, but a non-editable install is *much* slower.
-    #   We may be able to use --cache-dir to address this, but -e is working fine right now.
+    # An editable install is preferred for two reasons. It's much faster than a non-editable
+    # install. It also makes the temp test project *really* useful for debugging, and even
+    # development. You can run a test, maybe `pytest -x`, drop into the temp project and
+    # activate the venv, and then run the deploy command while fixing the bug.
     if uv_available:
         subprocess.run(
             ["uv", "pip", "install", "--python", path_to_python, "-e", sd_root_dir]
@@ -92,31 +99,75 @@ def setup_project(tmp_proj_dir, sd_root_dir):
     # being tested.
     # Assumes user has default plugins in repos named dsd-flyio, in same directory as
     # their development copy of django-simple-deploy.
-    default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
-    for plugin_name in default_plugin_names:
-        plugin_root_dir = sd_root_dir.parent / plugin_name
+    # default_plugin_names = ["dsd-flyio", "dsd-platformsh", "dsd-heroku"]
+    # DEV: Hacky [:1] insertion to just test against dsd-flyio plugin for now.
+    # Need to determine which plugin to install for testing.
+    # for plugin_name in default_plugin_names[:1]:
+    #     plugin_root_dir = sd_root_dir.parent / plugin_name
 
-        if not plugin_root_dir.exists():
-            print(f"Can't install default plugin {plugin_name}.")
-            continue
+    #     if not plugin_root_dir.exists():
+    #         print(f"Can't install default plugin {plugin_name}.")
+    #         continue
 
-        if uv_available:
-            subprocess.run(
-                [
-                    "uv",
-                    "pip",
-                    "install",
-                    "--python",
-                    path_to_python,
-                    "-e",
-                    plugin_root_dir,
-                ]
-            )
-        else:
-            subprocess.run([pip_path, "install", "-e", plugin_root_dir])
+    #     if uv_available:
+    #         subprocess.run(
+    #             [
+    #                 "uv",
+    #                 "pip",
+    #                 "install",
+    #                 "--python",
+    #                 path_to_python,
+    #                 "-e",
+    #                 plugin_root_dir,
+    #             ]
+    #         )
+    #     else:
+    #         subprocess.run([pip_path, "install", "-e", plugin_root_dir])
+
+    # Install a plugin. If no plugin specified, install local editable version of dsd-flyio.
+    # If a plugin specified, install same version that's installed to dev env.
+    # DEV: This approach is breaking tests for other plugins.
+    #   Better: install whatever plugin is installed locally.
+    plugin = config.option.plugin
+    if config.option.plugin is None:
+        plugin = sd_utils.get_plugin_name()
+        print("plugin", plugin)
+        # breakpoint()
+        # pytest.exit()
+
+    plugin_pkg_name = plugin.replace("-", "_")
+    try:
+        plugin_module = importlib.import_module(plugin_pkg_name)
+    except ImportError:
+        msg = f"The plugin {plugin} is not installed. You must install a plugin in editable mode in order to test it."
+        pytest.fail(msg)
+
+    # breakpoint()
+    plugin_path = Path(plugin_module.__file__).parents[1]
+
+    if not plugin_path.exists():
+        msg = f"Can't install plugin {plugin}. A plugin must be installed to run integration test."
+        pytest.exit(msg)
+
+    if uv_available:
+        subprocess.run(
+            [
+                "uv",
+                "pip",
+                "install",
+                "--python",
+                path_to_python,
+                "-e",
+                plugin_path,
+            ]
+        )
+    else:
+        subprocess.run([pip_path, "install", "-e", plugin_path])
+
+    # breakpoint()
 
     # Make an initial git commit, so we can reset the project every time we want
-    #   to test a different simple_deploy command. This is much more efficient than
+    #   to test a different deploy command. This is much more efficient than
     #   tearing down the whole sample project and rebuilding it from scratch.
     # We use a git tag to do the reset, instead of trying to capture the initial hash.
     # Note: This tag refers to the version of the project that contains files for all
@@ -198,12 +249,12 @@ def reset_test_project(tmp_dir, pkg_manager):
     )
     settings_file_path.write_text(new_settings_content)
 
-    # Make sure we have a clean status before calling simple_deploy.
+    # Make sure we have a clean status before calling deploy.
     subprocess.run(["git", "commit", "-am", "Added simple_deploy to INSTALLED_APPS."])
 
 
 def call_simple_deploy(tmp_dir, sd_command, platform=None):
-    """Make a call to simple_deploy, using the arguments passed in sd_command.
+    """Make a call to deploy, using the arguments passed in sd_command.
 
     Returns:
     - stdout, stderr
@@ -213,6 +264,9 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
 
     # Change to the temp dir.
     os.chdir(tmp_dir)
+
+    # Add --unit-testing argument to the call.
+    sd_command = sd_command.replace("deploy", "deploy --unit-testing")
 
     # Add options that are present.
     # - If we're testing for a platform, add that platform option.
@@ -225,13 +279,10 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     # DEV: This will probably not be hard-coded once third-party plugins are being
     # written.
     if platform:
-        sd_command = f"{sd_command} --platform {platform}"
+        sd_command = f"{sd_command}"
     if platform in ("fly_io", "flyio", "platform_sh", "platformsh"):
         # These platforms need a project name to carry out configuration.
         sd_command = f"{sd_command} --deployed-project-name my_blog_project"
-
-    # Add --unit-testing argument to the call.
-    sd_command = sd_command.replace("simple_deploy", "simple_deploy --unit-testing")
 
     # Get the path to the Python interpreter in the virtual environment.
     #   We'll use the full path to the interpreter, rather than trying to rely on
@@ -244,7 +295,7 @@ def call_simple_deploy(tmp_dir, sd_command, platform=None):
     sd_command = sd_command.replace("python", python_exe.as_posix())
     print(f"*** sd_command: {sd_command} ***")
 
-    # Make the call to simple_deploy.
+    # Make the call to deploy.
     #   The `text=True` argument causes this to return stdout and stderr as strings, not objects.
     #   Some of these commands, such as cwd, are required specifically for Windows.
     sd_call = subprocess.Popen(

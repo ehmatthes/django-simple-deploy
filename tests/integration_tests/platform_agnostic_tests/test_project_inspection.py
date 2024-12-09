@@ -42,7 +42,7 @@ def test_identify_dep_man_approach(tmp_project, capfd):
     """Verify that we identified the correct dependency management approach
     that's currently being used.
     """
-    valid_sd_command = "python manage.py simple_deploy --platform heroku"
+    valid_sd_command = "python manage.py deploy"
 
     make_valid_call(tmp_project, valid_sd_command)
     captured = capfd.readouterr()

@@ -1,6 +1,6 @@
 # django-simple-deploy
 
-Initial Django deployments made easy.
+Deployment, for Djangonauts with deadlines.
 
 ## Documentation
 

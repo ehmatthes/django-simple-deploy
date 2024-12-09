@@ -8,7 +8,7 @@ hide:
 
 ## Overview
 
-Heroku no longer has a free tier, but it's still a functioning hosting platform. As long as Heroku maintains a deployment process that can be scripted, `simple_deploy` will likely maintain support for Heroku.
+Heroku no longer has a free tier, but it's still a popular platform for hosting Django projects. As long as Heroku maintains a deployment process that can be scripted, `simple_deploy` will likely maintain support for Heroku.
 
 Deployment to Heroku can be fully automated, but the configuration-only approach is recommended. This allows you to review the changes that are made to your project before committing them and making the initial push. The fully automated approach configures your project, commits these changes, and pushes the project to Heroku's servers.
 
@@ -30,12 +30,15 @@ $ pip install django-simple-deploy[heroku]
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
-Now create a new Heroku app and database using the CLI, and run `simple_deploy` to configure your app:
+!!! note
+    If you're using zsh, you need to put quotes around the package name when you install it: `$ pip install "django-simple-deploy[heroku]"`. Otherwise zsh interprets the square brackets as glob patterns.
+
+Now create a new Heroku app and database using the CLI, and run the `deploy` command to configure your app:
 
 ```sh
 $ heroku create
 $ heroku addons:create heroku-postgresql:essential-0
-$ python manage.py simple_deploy --platform heroku
+$ python manage.py deploy
 ```
 
 The `heroku create` command is required. If you skip the step to create a database, `simple_deploy` will make that call for you.
@@ -52,7 +55,7 @@ $ heroku run python manage.py migrate
 $ heroku open
 ```
 
-You can find a record of the deployment process in `simple_deploy_logs`. It contains most of the output you saw when running `simple_deploy`.
+You can find a record of the deployment process in `simple_deploy_logs`. It contains most of the output you saw when running `deploy`.
 
 ## Automated deployment
 
@@ -61,7 +64,7 @@ If you want, you can automate this entire process. This involves just three step
 ```sh
 $ pip install django-simple-deploy[heroku]
 # Add `simple_deploy` to INSTALLED_APPS in settings.py.
-$ python manage.py simple_deploy --platform heroku --automate-all
+$ python manage.py deploy --automate-all
 ```
 
 You should see a bunch of output as Heroku resources are created for you, your project is configured for deployment, and `simple_deploy` pushes your project to Heroku's servers. When everything's complete, your project should open in a new browser tab.

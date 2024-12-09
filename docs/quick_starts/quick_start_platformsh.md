@@ -28,11 +28,14 @@ $ pip install django-simple-deploy[platform_sh]
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
-Now create a new Platform.sh app using the CLI, and run `simple_deploy` to configure your app:
+!!! note
+    If you're using zsh, you need to put quotes around the package name when you install it: `$ pip install "django-simple-deploy[platform_sh]"`. Otherwise zsh interprets the square brackets as glob patterns.
+
+Now create a new Platform.sh app using the CLI, and run the `deploy` command to configure your app:
 
 ```sh
 $ platform create
-$ python manage.py simple_deploy --platform platform_sh
+$ python manage.py deploy
 ```
 
 At this point, you should review the changes that were made to your project. Running `git status` will show you which files were modified, and which new files were created.
@@ -46,7 +49,7 @@ $ platform push
 $ platform url
 ```
 
-You can find a record of the deployment process in `simple_deploy_logs`. It contains most of the output you saw when running `simple_deploy`.
+You can find a record of the deployment process in `simple_deploy_logs`. It contains most of the output you saw when running `deploy`.
 
 ## Automated deployment
 
@@ -55,7 +58,7 @@ If you want, you can automate this entire process. This involves just three step
 ```sh
 $ pip install django-simple-deploy[platform_sh]
 # Add `simple_deploy` to INSTALLED_APPS in settings.py.
-$ python manage.py simple_deploy --platform platform_sh --automate-all
+$ python manage.py deploy --automate-all
 ```
 
 You should see a bunch of output as Platform.sh resources are created for you, your project is configured for deployment, and `simple_deploy` pushes your project to Platform.sh' servers. When everything's complete, your project should open in a new browser tab.

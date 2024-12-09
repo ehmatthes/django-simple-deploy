@@ -28,28 +28,30 @@ $ pip install django-simple-deploy[fly_io]
 $ git commit -am "Added simple_deploy to INSTALLED_APPS."
 ```
 
-Now create a new Fly.io app using the CLI, and run `simple_deploy` to configure your app:
-
 !!! note
-    The `fly` and `flyctl` commands are used on the Fly.io docs interchangeably. They are standardizing on `fly`, so that's what we'll be using here.
+    If you're using zsh, you need to put quotes around the package name when you install it: `$ pip install "django-simple-deploy[fly_io]"`. Otherwise zsh interprets the square brackets as glob patterns.
+
+Now create a new Fly.io app using the CLI, and run the `deploy` command to configure your app:
 
 ```sh
 $ fly apps create --generate-name
-$ python manage.py simple_deploy --platform fly_io
+$ python manage.py deploy
 ```
 
-`simple_deploy` will ask you if it's found the correct app to deploy to. It will then create a database and link it to the app you just created. After that, it will configure your project for deployment. At this point, you should review the changes that were made to your project. Running `git status` will show you which files were modified, and which files were created for a successful deployment.
+You'll be asked if the correct Fly app was identified for deployment. A database will then be created, and linked to the app you just created. After that, your project will be configured for deployment.
 
-If you want to continue with the deployment process, commit these changes and run the `deploy` command; the initial migration is done automatically. When deployment is complete, use the `open` command to see the deployed version of your project:
+At this point, you should review the changes that were made to your project. Running `git status` will show you which files were modified, and which files were created for a successful deployment. If you want to continue with the deployment process, commit these changes and run the `fly deploy` command; the initial migration is done automatically.
+
+When deployment is complete, use the `fly apps open` command to see the deployed version of your project:
 
 ```sh
 $ git add .
 $ git commit -m "Configured for deployment to Fly.io."
 $ fly deploy
-$ fly open
+$ fly apps open
 ```
 
-You can find a record of the deployment process in `simple_deploy_logs`. It contains most of the output you saw when running `simple_deploy`.
+You can find a record of the deployment process in `simple_deploy_logs`. It contains most of the output you saw when running `deploy`.
 
 ## Automated deployment
 
@@ -58,7 +60,7 @@ If you want, you can automate this entire process. This involves just three step
 ```sh
 $ pip install django-simple-deploy[fly_io]
 # Add `simple_deploy` to INSTALLED_APPS in settings.py.
-$ python manage.py simple_deploy --platform fly_io --automate-all
+$ python manage.py deploy --automate-all
 ```
 
 You should see a bunch of output as Fly.io resources are created for you, your project is configured for deployment, and `simple_deploy` pushes your project to Fly.io's servers. When everything's complete, your project should open in a new browser tab.
@@ -87,3 +89,7 @@ $ fly ssh console
 If deployment doesn't work, feel free to open an [issue](https://github.com/django-simple-deploy/django-simple-deploy/issues). Please share the OS you're  using locally, and the specific error message or unexpected behavior you saw. If the project you're deploying is hosted in a public repository, please share that as well.
 
 Please remember that `django-simple-deploy` is in a preliminary state. That said, I'd love to know the specific issues people are running into so we can reach a 1.0 state in a reasonable time frame.
+
+## A note about `fly` and `flyctl`
+
+The `fly` and `flyctl` commands are used on the Fly.io docs interchangeably. They are standardizing on `fly`, so that's what we'll be using here.

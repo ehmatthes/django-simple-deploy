@@ -30,6 +30,13 @@ def test_with_existing_dockerfile(tmp_project):
     The --unit-testing flag should get confirmation, but we should see a relevant
     message in the log.
     """
+    # For now, this test only works if the dsd-flyio plugin is being tested.
+    # Skip if that's not available.
+    import importlib.util
+    if not importlib.util.find_spec("dsd_flyio"):
+        pytest.skip("The plugin dsd-flyio needs to be installed to run this test.")
+
+
     path_dockerfile = tmp_project / "Dockerfile"
     path_dockerfile.write_text("Dummy dockerfile for testing.")
 
@@ -38,7 +45,7 @@ def test_with_existing_dockerfile(tmp_project):
     cmd = "git commit -am 'Added dummy dockerfile.'"
     output_str = execute_quick_command(tmp_project, cmd).stdout.decode()
 
-    sd_command = "python manage.py simple_deploy --platform fly_io"
+    sd_command = "python manage.py deploy"
     stdout, stderr = msp.call_simple_deploy(tmp_project, sd_command)
 
     assert (
