@@ -73,3 +73,14 @@ $ git tag -d vA.B.C
 
 - See [Git docs](https://git-scm.com/book/en/v2/Git-Basics-Tagging) for more about tagging.
 - See also [GH docs about releases](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository).
+
+Verifying `dist/`
+---
+
+To make sure the right files are included in wheels, using the Fly plugin as an example:
+
+```sh
+$ pip install wheel
+$ wheel unpack dist/dsd_flyio-0.9.0-py3-none-any.whl
+$ ls dsd_flyio-0.9.0/dsd_flyio/templates
+```
