@@ -16,7 +16,9 @@ from textwrap import dedent
 import pytest
 
 from simple_deploy.management.commands.utils import sd_utils
-from simple_deploy.management.commands.utils.command_errors import SimpleDeployCommandError
+from simple_deploy.management.commands.utils.command_errors import (
+    SimpleDeployCommandError,
+)
 
 
 def check_reference_file(tmp_proj_dir, filepath, plugin_name="", reference_filename=""):

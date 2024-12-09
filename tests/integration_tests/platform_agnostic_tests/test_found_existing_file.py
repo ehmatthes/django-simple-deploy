@@ -33,9 +33,9 @@ def test_with_existing_dockerfile(tmp_project):
     # For now, this test only works if the dsd-flyio plugin is being tested.
     # Skip if that's not available.
     import importlib.util
+
     if not importlib.util.find_spec("dsd_flyio"):
         pytest.skip("The plugin dsd-flyio needs to be installed to run this test.")
-
 
     path_dockerfile = tmp_project / "Dockerfile"
     path_dockerfile.write_text("Dummy dockerfile for testing.")
