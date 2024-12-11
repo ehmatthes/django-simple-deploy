@@ -127,8 +127,9 @@ class Command(BaseCommand):
         # Register the platform-specific plugin.
         pm.register(platform_module)
         self._check_required_hooks(pm)
+        self.plugin_config = pm.hook.simple_deploy_get_plugin_config()[0]
 
-        platform_name = pm.hook.simple_deploy_get_platform_name()[0]
+        platform_name = self.plugin_config.platform_name
         plugin_utils.write_output(f"\nDeployment target: {platform_name}")
 
         # Inspect the user's system and project, and make sure simple_deploy is included
@@ -508,23 +509,24 @@ class Command(BaseCommand):
 
         callers = [caller.name for caller in pm.get_hookcallers(plugin)]
         required_hooks = [
-            "simple_deploy_automate_all_supported",
-            "simple_deploy_deploy",
-            "simple_deploy_get_platform_name",
+            # "simple_deploy_automate_all_supported",
+            # "simple_deploy_deploy",
+            # "simple_deploy_get_platform_name",
+            "simple_deploy_get_plugin_config",
         ]
         for hook in required_hooks:
             if hook not in callers:
                 msg = f"\nPlugin missing required hook implementation: {hook}()"
                 raise SimpleDeployCommandError(msg)
 
-        # If plugin supports automate_all, make sure a confirmation message is provided.
-        if not pm.hook.simple_deploy_automate_all_supported()[0]:
-            return
+        # # If plugin supports automate_all, make sure a confirmation message is provided.
+        # if not pm.hook.simple_deploy_automate_all_supported()[0]:
+        #     return
 
-        hook = "simple_deploy_get_automate_all_msg"
-        if hook not in callers:
-            msg = f"\nPlugin missing required hook implementation: {hook}()"
-            raise SimpleDeployCommandError(msg)
+        # hook = "simple_deploy_get_automate_all_msg"
+        # if hook not in callers:
+        #     msg = f"\nPlugin missing required hook implementation: {hook}()"
+        #     raise SimpleDeployCommandError(msg)
 
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
@@ -539,14 +541,13 @@ class Command(BaseCommand):
             return
 
         # Make sure this platform supports automate-all.
-        supported = pm.hook.simple_deploy_automate_all_supported()[0]
-        if not supported:
+        if not self.plugin_config.automate_all_supported:
             msg = "\nThis platform does not support automated deployments."
             msg += "\nYou may want to try again without the --automate-all flag."
             raise SimpleDeployCommandError(msg)
 
         # Confirm the user wants to automate all steps.
-        msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
+        msg = self.plugin_config.confirm_automate_all_msg
 
         plugin_utils.write_output(msg)
         confirmed = plugin_utils.get_confirmation()
