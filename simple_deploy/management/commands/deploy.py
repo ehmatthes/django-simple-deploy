@@ -509,9 +509,6 @@ class Command(BaseCommand):
 
         callers = [caller.name for caller in pm.get_hookcallers(plugin)]
         required_hooks = [
-            # "simple_deploy_automate_all_supported",
-            # "simple_deploy_deploy",
-            # "simple_deploy_get_platform_name",
             "simple_deploy_get_plugin_config",
         ]
         for hook in required_hooks:
@@ -519,14 +516,7 @@ class Command(BaseCommand):
                 msg = f"\nPlugin missing required hook implementation: {hook}()"
                 raise SimpleDeployCommandError(msg)
 
-        # # If plugin supports automate_all, make sure a confirmation message is provided.
-        # if not pm.hook.simple_deploy_automate_all_supported()[0]:
-        #     return
-
-        # hook = "simple_deploy_get_automate_all_msg"
-        # if hook not in callers:
-        #     msg = f"\nPlugin missing required hook implementation: {hook}()"
-        #     raise SimpleDeployCommandError(msg)
+        # DEV: Should check that confirm_automate_all_msg is provided in plugin_config.
 
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
