@@ -3,7 +3,7 @@ import pluggy
 hookspec = pluggy.HookspecMarker("simple_deploy")
 
 
-@ hookspec
+@hookspec
 def simple_deploy_get_plugin_config():
     """Get plugin-specific attributes required by core.
 
@@ -13,6 +13,7 @@ def simple_deploy_get_plugin_config():
     Optional:
     - confirm_automate_all_msg (required if automate_all_supported is True)
     """
+
 
 @hookspec
 def simple_deploy_deploy(sd_config):

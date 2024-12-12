@@ -524,7 +524,6 @@ class Command(BaseCommand):
                 msg = "\nThis plugin supports --automate-all, but does not provide a confirmation message."
                 raise SimpleDeployCommandError(msg)
 
-
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
 
