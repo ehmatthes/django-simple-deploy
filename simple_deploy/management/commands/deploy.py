@@ -123,12 +123,10 @@ class Command(BaseCommand):
         # Import the platform-specific plugin module. This performs some validation, so
         # it's best to call this before modifying project in any way.
         platform_module = self._load_plugin()
-
-        # Register the platform-specific plugin.
         pm.register(platform_module)
-        self._check_required_hooks(pm)
+        self._validate_plugin(pm)
 
-        platform_name = pm.hook.simple_deploy_get_platform_name()[0]
+        platform_name = self.plugin_config.platform_name
         plugin_utils.write_output(f"\nDeployment target: {platform_name}")
 
         # Inspect the user's system and project, and make sure simple_deploy is included
@@ -496,35 +494,36 @@ class Command(BaseCommand):
         plugin_utils.write_output(msg)
         plugin_utils.add_package("django-simple-deploy")
 
-    def _check_required_hooks(self, pm):
+    def _validate_plugin(self, pm):
         """Check that all required hooks are implemeted by plugin.
+
+        Also, load and validate plugin config object.
 
         Returns:
             None
         Raises:
-            SimpleDeployCommandError: If hook not found.
+            SimpleDeployCommandError: If plugin found invalid in any way.
         """
         plugin = pm.list_name_plugin()[0][1]
 
         callers = [caller.name for caller in pm.get_hookcallers(plugin)]
         required_hooks = [
-            "simple_deploy_automate_all_supported",
-            "simple_deploy_deploy",
-            "simple_deploy_get_platform_name",
+            "simple_deploy_get_plugin_config",
         ]
         for hook in required_hooks:
             if hook not in callers:
                 msg = f"\nPlugin missing required hook implementation: {hook}()"
                 raise SimpleDeployCommandError(msg)
 
-        # If plugin supports automate_all, make sure a confirmation message is provided.
-        if not pm.hook.simple_deploy_automate_all_supported()[0]:
-            return
+        # Load plugin config, and validate config.
+        self.plugin_config = pm.hook.simple_deploy_get_plugin_config()[0]
 
-        hook = "simple_deploy_get_automate_all_msg"
-        if hook not in callers:
-            msg = f"\nPlugin missing required hook implementation: {hook}()"
-            raise SimpleDeployCommandError(msg)
+        # Make sure there's a confirmation msg for automate_all if needed.
+        if self.plugin_config.automate_all_supported and sd_config.automate_all:
+            if not hasattr(self.plugin_config, "confirm_automate_all_msg"):
+                msg = "\nThis plugin supports --automate-all, but does not provide a confirmation message."
+                raise SimpleDeployCommandError(msg)
+
 
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
@@ -539,15 +538,13 @@ class Command(BaseCommand):
             return
 
         # Make sure this platform supports automate-all.
-        supported = pm.hook.simple_deploy_automate_all_supported()[0]
-        if not supported:
+        if not self.plugin_config.automate_all_supported:
             msg = "\nThis platform does not support automated deployments."
             msg += "\nYou may want to try again without the --automate-all flag."
             raise SimpleDeployCommandError(msg)
 
         # Confirm the user wants to automate all steps.
-        msg = pm.hook.simple_deploy_get_automate_all_msg()[0]
-
+        msg = self.plugin_config.confirm_automate_all_msg
         plugin_utils.write_output(msg)
         confirmed = plugin_utils.get_confirmation()
 

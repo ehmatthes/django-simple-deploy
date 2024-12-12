@@ -6,6 +6,17 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.9 - Simplified usage
 ---
 
+### 0.9.1 (unreleased)
+
+#### External changes
+
+- Updated README to reflect current usage.
+
+#### Internal changes
+
+- Gets a `plugin_conf` object from the plugin, instead of several individual attributes. This is much simpler and more future-proof.
+
+
 ### 0.9.0
 
 #### External changes
