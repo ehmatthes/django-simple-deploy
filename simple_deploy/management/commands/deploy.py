@@ -520,9 +520,7 @@ class Command(BaseCommand):
 
         # Make sure there's a confirmation msg for automate_all if needed.
         if self.plugin_config.automate_all_supported and sd_config.automate_all:
-            try:
-                self.plugin_config.confirm_automate_all_msg
-            except AttributeError:
+            if not hasattr(self.plugin_config, "confirm_automate_all_msg"):
                 msg = "\nThis plugin supports --automate-all, but does not provide a confirmation message."
                 raise SimpleDeployCommandError(msg)
 
