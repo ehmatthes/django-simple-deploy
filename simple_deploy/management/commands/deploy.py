@@ -123,10 +123,8 @@ class Command(BaseCommand):
         # Import the platform-specific plugin module. This performs some validation, so
         # it's best to call this before modifying project in any way.
         platform_module = self._load_plugin()
-
-        # Register the platform-specific plugin.
         pm.register(platform_module)
-        self._check_required_hooks(pm)
+        self._validate_plugin(pm)
 
         platform_name = self.plugin_config.platform_name
         plugin_utils.write_output(f"\nDeployment target: {platform_name}")
@@ -496,15 +494,15 @@ class Command(BaseCommand):
         plugin_utils.write_output(msg)
         plugin_utils.add_package("django-simple-deploy")
 
-    def _check_required_hooks(self, pm):
+    def _validate_plugin(self, pm):
         """Check that all required hooks are implemeted by plugin.
 
-        Also, loads plugin config object.
+        Also, load and validate plugin config object.
 
         Returns:
             None
         Raises:
-            SimpleDeployCommandError: If hook not found.
+            SimpleDeployCommandError: If plugin found invalid in any way.
         """
         plugin = pm.list_name_plugin()[0][1]
 
