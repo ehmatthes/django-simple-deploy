@@ -127,7 +127,6 @@ class Command(BaseCommand):
         # Register the platform-specific plugin.
         pm.register(platform_module)
         self._check_required_hooks(pm)
-        self.plugin_config = pm.hook.simple_deploy_get_plugin_config()[0]
 
         platform_name = self.plugin_config.platform_name
         plugin_utils.write_output(f"\nDeployment target: {platform_name}")
@@ -500,6 +499,8 @@ class Command(BaseCommand):
     def _check_required_hooks(self, pm):
         """Check that all required hooks are implemeted by plugin.
 
+        Also, loads plugin config object.
+
         Returns:
             None
         Raises:
@@ -516,7 +517,17 @@ class Command(BaseCommand):
                 msg = f"\nPlugin missing required hook implementation: {hook}()"
                 raise SimpleDeployCommandError(msg)
 
-        # DEV: Should check that confirm_automate_all_msg is provided in plugin_config.
+        # Load plugin config, and validate config.
+        self.plugin_config = pm.hook.simple_deploy_get_plugin_config()[0]
+
+        # Make sure there's a confirmation msg for automate_all if needed.
+        if self.plugin_config.automate_all_supported and sd_config.automate_all:
+            try:
+                self.plugin_config.confirm_automate_all_msg
+            except AttributeError:
+                msg = "\nThis plugin supports --automate-all, but does not provide a confirmation message."
+                raise SimpleDeployCommandError(msg)
+
 
     def _confirm_automate_all(self, pm):
         """Confirm the user understands what --automate-all does.
@@ -538,7 +549,6 @@ class Command(BaseCommand):
 
         # Confirm the user wants to automate all steps.
         msg = self.plugin_config.confirm_automate_all_msg
-
         plugin_utils.write_output(msg)
         confirmed = plugin_utils.get_confirmation()
 
