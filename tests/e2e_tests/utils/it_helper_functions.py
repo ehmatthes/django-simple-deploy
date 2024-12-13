@@ -47,7 +47,7 @@ def get_python_exe(tmp_project):
     return python_exe.as_posix()
 
 
-def run_simple_deploy(python_cmd, platform, automate_all):
+def run_simple_deploy(python_cmd, platform="", automate_all=False):
     """Run simple_deploy against the test project."""
     print("Running manage.py deploy...")
     if automate_all:
