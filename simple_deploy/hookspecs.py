@@ -16,5 +16,5 @@ def simple_deploy_get_plugin_config():
 
 
 @hookspec
-def simple_deploy_deploy(sd_config):
+def simple_deploy_deploy():
     """Carry out all platform-specific configuration and deployment work."""
