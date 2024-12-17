@@ -104,7 +104,7 @@ def add_dir(path):
     """Write a new directory to the file.
 
     This function is meant to be used when adding new directories that don't
-    typically exist ina Django project. For example, a platform-specific directory
+    typically exist in a Django project. For example, a platform-specific directory
     such as .platform/ for Platform.sh.
 
     Only adds the directory; does nothing if the directory already exists.
