@@ -399,6 +399,16 @@ def get_template_string(template_path, context):
     return template.render(Context(context))
 
 
+def read_log():
+    """Get the contents of the current log file."""
+    if not sd_config.log_output:
+        return None
+
+    log_handler = logging.getLogger().handlers[0]
+    log_file_path = handler.baseFilename
+    return log_file_path.read_text()
+
+
 # --- Helper functions ---
 
 
