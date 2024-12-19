@@ -6,7 +6,7 @@ For inspiration and motivation, see [Keep a CHANGELOG](https://keepachangelog.co
 0.9 - Simplified usage
 ---
 
-### 0.9.1 (unreleased)
+### 0.9.1
 
 #### External changes
 
