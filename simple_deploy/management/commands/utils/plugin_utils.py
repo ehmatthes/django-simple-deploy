@@ -405,7 +405,7 @@ def read_log():
         return None
 
     log_handler = logging.getLogger().handlers[0]
-    log_file_path = handler.baseFilename
+    log_file_path = log_handler.baseFilename
     return log_file_path.read_text()
 
 
