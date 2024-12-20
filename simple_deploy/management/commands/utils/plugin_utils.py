@@ -8,6 +8,7 @@ import re
 import subprocess
 import shlex
 import toml
+from pathlib import Path
 
 from django.template.engine import Engine, Context
 from django.utils.safestring import mark_safe
@@ -405,7 +406,7 @@ def read_log():
         return None
 
     log_handler = logging.getLogger().handlers[0]
-    log_file_path = log_handler.baseFilename
+    log_file_path = Path(log_handler.baseFilename)
     return log_file_path.read_text()
 
 
