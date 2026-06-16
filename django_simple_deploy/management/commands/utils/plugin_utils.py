@@ -79,7 +79,8 @@ def modify_file(path, contents):
         raise DSDCommandError(msg)
 
     # Rewrite file with new contents.
-    path.write_text(contents)
+    # newline='': preserve line terminators
+    path.write_text(contents, newline='')
     msg = f"  Modified file: {path.as_posix()}"
     write_output(msg)
 
@@ -93,7 +94,8 @@ def modify_settings_file(template_path, context=None):
     if context is None:
         context = {}
     # Add current settings to context.
-    settings_string = dsd_config.settings_path.read_text()
+    # newline='': preserve line terminators
+    settings_string = dsd_config.settings_path.read_text(newline='')
     safe_settings_string = mark_safe(settings_string)
     context["current_settings"] = safe_settings_string
 

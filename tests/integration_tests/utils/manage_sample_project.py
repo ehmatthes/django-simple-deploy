@@ -182,11 +182,13 @@ def setup_project(tmp_proj_dir, sd_root_dir, config):
 
     # Add django_simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_proj_dir / "blog/settings.py"
-    settings_content = settings_file_path.read_text()
+    # newline='': preserve line terminators
+    settings_content = settings_file_path.read_text(newline='')
     new_settings_content = settings_content.replace(
         "# Third party apps.", '# Third party apps.\n    "django_simple_deploy",'
     )
-    settings_file_path.write_text(new_settings_content)
+    # newline='': preserve line terminators
+    settings_file_path.write_text(new_settings_content, newline='')
 
 
 def reset_test_project(tmp_dir, pkg_manager):
@@ -219,11 +221,13 @@ def reset_test_project(tmp_dir, pkg_manager):
 
     # Add django_simple_deploy to INSTALLED_APPS.
     settings_file_path = tmp_dir / "blog/settings.py"
-    settings_content = settings_file_path.read_text()
+    # newline='': preserve line terminators
+    settings_content = settings_file_path.read_text(newline='')
     new_settings_content = settings_content.replace(
         "# Third party apps.", '# Third party apps.\n    "django_simple_deploy",'
     )
-    settings_file_path.write_text(new_settings_content)
+    # newline='': preserve line terminators
+    settings_file_path.write_text(new_settings_content, newline='')
 
     # Make sure we have a clean status before calling deploy.
     subprocess.run(

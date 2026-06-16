@@ -66,11 +66,13 @@ def add_sd_logs_gitignore(tmp_project):
     assert path.exists()
 
     # dsd_logs/ should not be in .gitignore yet.
-    contents = path.read_text()
+     # newline='': preserve line terminators
+    contents = path.read_text(newline='')
     assert "dsd_logs" not in contents
 
     contents += "\ndsd_logs/\n"
-    path.write_text(contents)
+    # newline='': preserve line terminators
+    path.write_text(contents, newline='')
 
 
 def add_sd_installed_apps(tmp_project):
@@ -85,7 +87,8 @@ def add_sd_installed_apps(tmp_project):
     assert "Initial commit." in output_str
 
     path = tmp_project / "blog" / "settings.py"
-    settings_text = path.read_text()
+    # newline='': preserve line terminators
+    settings_text = path.read_text(newline="")
 
     # 'django_simple_deploy' should no longer be in settings.
     assert "django_simple_deploy" not in settings_text
@@ -100,7 +103,8 @@ def add_sd_installed_apps(tmp_project):
     settings_text = "\n".join(settings_lines)
     # Add back the trailing newline that was lost in text processing.
     settings_text += "\n"
-    path.write_text(settings_text)
+    # newline='': preserve line terminators
+    path.write_text(settings_text, newline="")
 
     cmd = "git status --porcelain"
     output_str = execute_quick_command(tmp_project, cmd).stdout.decode()

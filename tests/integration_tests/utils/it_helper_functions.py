@@ -19,6 +19,7 @@ from django_simple_deploy.management.commands.utils import dsd_utils
 from django_simple_deploy.management.commands.utils.command_errors import (
     DSDCommandError,
 )
+from ...unit_tests.test_utils import compare_text_files
 
 
 def check_reference_file(
@@ -90,9 +91,8 @@ def check_reference_file(
         fp_reference = tmp_path / filename
         fp_reference.write_text(contents)
 
-    # The test file and reference file will always have different modified
-    #   timestamps, so no need to use default shallow=True.
-    assert filecmp.cmp(fp_generated, fp_reference, shallow=False)
+    # Compare files line by line, ignoring differences in line terminators
+    assert compare_text_files(fp_generated, fp_reference)
 
 
 def check_plugin_available(config):
