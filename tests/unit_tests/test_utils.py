@@ -18,6 +18,35 @@ from django_simple_deploy.management.commands.utils.command_errors import (
 import pytest
 
 
+def compare_text_files (path1, path2):
+    """Compares two text files, ignoring differences in line terminators
+
+    If a text file is written under Unix and Windows, line terminators
+    will be different (LF vs. CRLF) even if the contents are otherwise
+    identical. Function filecmp.cmp() considers both versions of the
+    file different. But sometimes it may be desirable to consider them equal.
+
+    - path1: first file to compare
+    - path2: second file to compare
+
+    Returns:
+        - True if file contents are identical except for possible
+          differences in line terminators
+        - False otherwise
+    """
+    lines1 = path1.read_text().splitlines()
+    lines2 = path2.read_text().splitlines()
+
+    if len (lines1) != len (lines2):
+        return False
+    
+    for (l1, l2) in zip (lines1, lines2):
+        if l1 != l2:
+            return False
+        
+    return True
+
+
 # --- Fixtures ---
 
 
@@ -160,7 +189,7 @@ def test_create_poetry_deploy_group(tmp_path):
 
     plugin_utils.create_poetry_deploy_group(tmp_pptoml)
     ref_file = Path(__file__).parent / "reference_files" / "pyproject.toml"
-    assert filecmp.cmp(tmp_pptoml, ref_file)
+    assert compare_text_files(tmp_pptoml, ref_file)
 
 
 def test_add_req_txt_pkg(tmp_path):
@@ -173,7 +202,7 @@ def test_add_req_txt_pkg(tmp_path):
 
     plugin_utils.add_req_txt_pkg(tmp_req_txt, "awesome-deployment-package", "")
     ref_file = Path(__file__).parent / "reference_files" / "requirements.txt"
-    assert filecmp.cmp(tmp_req_txt, ref_file)
+    assert compare_text_files(tmp_req_txt, ref_file)
 
 
 def test_add_poetry_pkg(tmp_path):
@@ -192,7 +221,7 @@ def test_add_poetry_pkg(tmp_path):
         / "reference_files"
         / "pyproject_deploy_group_awesome_pkg.toml"
     )
-    assert filecmp.cmp(tmp_pptoml, ref_file)
+    assert compare_text_files(tmp_pptoml, ref_file)
 
 
 def test_add_pipenv_pkg(tmp_path):
@@ -205,7 +234,7 @@ def test_add_pipenv_pkg(tmp_path):
 
     plugin_utils.add_pipenv_pkg(tmp_pipfile, "awesome-deployment-package", "")
     ref_file = Path(__file__).parent / "reference_files" / "Pipfile"
-    assert filecmp.cmp(tmp_pipfile, ref_file)
+    assert compare_text_files(tmp_pipfile, ref_file)
 
 
 # --- Tests for functions that require dsd_config ---
