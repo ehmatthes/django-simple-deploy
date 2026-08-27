@@ -6,3 +6,8 @@ __pycache__/
 .DS_Store
 
 db.sqlite3
+
+# Allow plugins to support environment changing files
+.env
+# Allow logs to be generated from dsd
+dsd_logs/
